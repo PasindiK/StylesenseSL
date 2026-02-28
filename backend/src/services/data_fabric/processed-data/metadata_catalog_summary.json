@@ -1,0 +1,143 @@
+{
+  "exported_at": "2026-02-25T16:23:26.500213",
+  "total_assets": 3,
+  "datasets": [
+    {
+      "name": "customer_ltv_dataset",
+      "dataset_name": "customer_ltv_dataset",
+      "description": "Derived customer LTV table",
+      "owner": "analytics-team",
+      "source_system": "pipeline",
+      "domain": "Analytics",
+      "schema": {
+        "user_id": "int",
+        "ltv": "float"
+      },
+      "row_count": 500,
+      "column_count": 2,
+      "created_at": "2026-02-25T15:48:13.612845",
+      "updated_at": "2026-02-25T16:23:26.427094",
+      "last_updated": "2026-02-25T16:23:26.427094",
+      "producer_pipeline": "pipeline.customer_ltv",
+      "validation_status": "Warning",
+      "quality_score": 78.0,
+      "tags": [
+        "analytics"
+      ],
+      "properties": {},
+      "usage_count": 0,
+      "last_accessed": null,
+      "consumers": [],
+      "upstream_datasets": [
+        "transactions_dataset",
+        "users_dataset"
+      ],
+      "downstream_datasets": []
+    },
+    {
+      "name": "transactions_dataset",
+      "dataset_name": "transactions_dataset",
+      "description": "Order transaction facts",
+      "owner": "data-platform",
+      "source_system": "csv",
+      "domain": "Orders",
+      "schema": {
+        "transaction_id": "int",
+        "user_id": "int",
+        "amount": "float"
+      },
+      "row_count": 9458,
+      "column_count": 3,
+      "created_at": "2026-02-25T15:48:13.575370",
+      "updated_at": "2026-02-25T16:23:26.403506",
+      "last_updated": "2026-02-25T16:23:26.403506",
+      "producer_pipeline": "ingestion.auto_data_loader",
+      "validation_status": "Failed",
+      "quality_score": 61.0,
+      "tags": [
+        "orders",
+        "finance"
+      ],
+      "properties": {},
+      "usage_count": 2,
+      "last_accessed": "2026-02-25T16:23:26.403506",
+      "consumers": [
+        "fraud_detection_model"
+      ],
+      "upstream_datasets": [],
+      "downstream_datasets": [
+        "customer_ltv_dataset"
+      ]
+    },
+    {
+      "name": "users_dataset",
+      "dataset_name": "users_dataset",
+      "description": "User master data",
+      "owner": "data-platform",
+      "source_system": "csv",
+      "domain": "Customers",
+      "schema": {
+        "user_id": "int",
+        "name": "string",
+        "email": "string"
+      },
+      "row_count": 525,
+      "column_count": 3,
+      "created_at": "2026-02-25T15:48:13.568340",
+      "updated_at": "2026-02-25T16:23:26.403506",
+      "last_updated": "2026-02-25T16:23:26.403506",
+      "producer_pipeline": "ingestion.auto_data_loader",
+      "validation_status": "Passed",
+      "quality_score": 92.5,
+      "tags": [
+        "customers",
+        "pii"
+      ],
+      "properties": {},
+      "usage_count": 4,
+      "last_accessed": "2026-02-25T16:23:26.403506",
+      "consumers": [
+        "PowerBI_SalesDashboard",
+        "recommendation_model_v1"
+      ],
+      "upstream_datasets": [],
+      "downstream_datasets": [
+        "customer_ltv_dataset"
+      ]
+    }
+  ],
+  "health": {
+    "generated_at": "2026-02-25T16:23:26.506518",
+    "total_datasets": 3,
+    "health_counts": {
+      "Healthy": 1,
+      "Warning": 1,
+      "Failed": 1,
+      "Stale": 0
+    },
+    "stale_threshold_days": 30,
+    "datasets": [
+      {
+        "dataset_name": "transactions_dataset",
+        "health": "Failed",
+        "validation_status": "Failed",
+        "quality_score": 61.0,
+        "last_updated": "2026-02-25T16:23:26.403506"
+      },
+      {
+        "dataset_name": "users_dataset",
+        "health": "Healthy",
+        "validation_status": "Passed",
+        "quality_score": 92.5,
+        "last_updated": "2026-02-25T16:23:26.403506"
+      },
+      {
+        "dataset_name": "customer_ltv_dataset",
+        "health": "Warning",
+        "validation_status": "Warning",
+        "quality_score": 78.0,
+        "last_updated": "2026-02-25T16:23:26.427094"
+      }
+    ]
+  }
+}
