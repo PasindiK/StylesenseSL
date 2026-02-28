@@ -1,0 +1,9 @@
+pytest
+pandas
+fastapi
+uvicorn
+rapidfuzz
+google-auth
+requests
+chromadb
+sentence-transformers

@@ -1,0 +1,566 @@
+{
+  "interactions_dataset": {
+    "rows": 3000,
+    "columns": 6,
+    "columns_list": [
+      "interaction_id",
+      "user_id",
+      "product_id",
+      "interaction_type",
+      "interaction_ts",
+      "interaction_date"
+    ],
+    "missing_per_column": {
+      "interaction_id": 0,
+      "user_id": 0,
+      "product_id": 0,
+      "interaction_type": 0,
+      "interaction_ts": 0,
+      "interaction_date": 0
+    },
+    "dtypes": {
+      "interaction_id": "int64",
+      "user_id": "int64",
+      "product_id": "int64",
+      "interaction_type": "object",
+      "interaction_ts": "object",
+      "interaction_date": "object"
+    },
+    "sample": [
+      {
+        "interaction_id": 1,
+        "user_id": 253,
+        "product_id": 554,
+        "interaction_type": "view",
+        "interaction_ts": "2024-06-11 11:42:34.120871",
+        "interaction_date": "2024-01-08"
+      },
+      {
+        "interaction_id": 2,
+        "user_id": 380,
+        "product_id": 1241,
+        "interaction_type": "view",
+        "interaction_ts": "2024-02-10 13:37:54.088955",
+        "interaction_date": "2024-06-06"
+      },
+      {
+        "interaction_id": 3,
+        "user_id": 179,
+        "product_id": 1299,
+        "interaction_type": "add_to_cart",
+        "interaction_ts": "2024-01-05 06:15:17.568281",
+        "interaction_date": "2024-04-27"
+      }
+    ]
+  },
+  "products": {
+    "rows": 4,
+    "columns": 13,
+    "columns_list": [
+      "product_id",
+      "name",
+      "category",
+      "color",
+      "fabric",
+      "size_range",
+      "price",
+      "style_tags",
+      "product_url",
+      "created_ts",
+      "popularity_score",
+      "stock_count",
+      "shop_id"
+    ],
+    "missing_per_column": {
+      "product_id": 0,
+      "name": 0,
+      "category": 0,
+      "color": 0,
+      "fabric": 0,
+      "size_range": 0,
+      "price": 0,
+      "style_tags": 0,
+      "product_url": 4,
+      "created_ts": 0,
+      "popularity_score": 0,
+      "stock_count": 0,
+      "shop_id": 0
+    },
+    "dtypes": {
+      "product_id": "object",
+      "name": "object",
+      "category": "object",
+      "color": "object",
+      "fabric": "object",
+      "size_range": "int64",
+      "price": "object",
+      "style_tags": "object",
+      "product_url": "float64",
+      "created_ts": "object",
+      "popularity_score": "float64",
+      "stock_count": "int64",
+      "shop_id": "object"
+    },
+    "sample": [
+      {
+        "product_id": "Classic White Shirt",
+        "name": "Shirts",
+        "category": "White",
+        "color": "Cotton",
+        "fabric": "S-M-L",
+        "size_range": 1999,
+        "price": "[\"classic\"",
+        "style_tags": "formal]",
+        "product_url": NaN,
+        "created_ts": "2025-06-01T10:00:00Z",
+        "popularity_score": 0.8,
+        "stock_count": 25,
+        "shop_id": "shop1"
+      },
+      {
+        "product_id": "Red Summer Dress",
+        "name": "Dresses",
+        "category": "Red",
+        "color": "Silk",
+        "fabric": "S-M-L",
+        "size_range": 3499,
+        "price": "[\"summer\"",
+        "style_tags": "party]",
+        "product_url": NaN,
+        "created_ts": "2025-04-15T12:00:00Z",
+        "popularity_score": 0.6,
+        "stock_count": 10,
+        "shop_id": "shop2"
+      },
+      {
+        "product_id": "Blue Denim Jeans",
+        "name": "Bottoms",
+        "category": "Blue",
+        "color": "Denim",
+        "fabric": "M-L-XL",
+        "size_range": 2999,
+        "price": "[\"casual\"",
+        "style_tags": "denim]",
+        "product_url": NaN,
+        "created_ts": "2025-05-20T09:00:00Z",
+        "popularity_score": 0.9,
+        "stock_count": 40,
+        "shop_id": "shop1"
+      }
+    ]
+  },
+  "shops_dataset": {
+    "rows": 24,
+    "columns": 9,
+    "columns_list": [
+      "shop_id",
+      "shop_name",
+      "location",
+      "district",
+      "postal_code",
+      "phone_number",
+      "is_active",
+      "operating_hours_open",
+      "operating_hours_close"
+    ],
+    "missing_per_column": {
+      "shop_id": 0,
+      "shop_name": 0,
+      "location": 0,
+      "district": 0,
+      "postal_code": 0,
+      "phone_number": 0,
+      "is_active": 0,
+      "operating_hours_open": 0,
+      "operating_hours_close": 0
+    },
+    "dtypes": {
+      "shop_id": "int64",
+      "shop_name": "object",
+      "location": "object",
+      "district": "object",
+      "postal_code": "int64",
+      "phone_number": "int64",
+      "is_active": "bool",
+      "operating_hours_open": "object",
+      "operating_hours_close": "object"
+    },
+    "sample": [
+      {
+        "shop_id": 1,
+        "shop_name": "FOA",
+        "location": "Batticaloa",
+        "district": "Batticaloa",
+        "postal_code": 25795,
+        "phone_number": 9466755036,
+        "is_active": true,
+        "operating_hours_open": "09:00",
+        "operating_hours_close": "19:00"
+      },
+      {
+        "shop_id": 2,
+        "shop_name": "Incarnage",
+        "location": "Batticaloa",
+        "district": "Batticaloa",
+        "postal_code": 16265,
+        "phone_number": 9436735830,
+        "is_active": true,
+        "operating_hours_open": "09:00",
+        "operating_hours_close": "21:00"
+      },
+      {
+        "shop_id": 3,
+        "shop_name": "Hameedia",
+        "location": "Jaffna",
+        "district": "Jaffna",
+        "postal_code": 74820,
+        "phone_number": 9414981505,
+        "is_active": true,
+        "operating_hours_open": "09:30",
+        "operating_hours_close": "20:00"
+      }
+    ]
+  },
+  "transactions_dataset": {
+    "rows": 292,
+    "columns": 19,
+    "columns_list": [
+      "transaction_id",
+      "user_id",
+      "product_id",
+      "shop_id",
+      "quantity",
+      "unit_price",
+      "total_amount",
+      "discount_percent",
+      "discount_amount",
+      "tax_percent",
+      "tax_amount",
+      "final_amount",
+      "payment_method",
+      "transaction_status",
+      "transaction_date",
+      "transaction_ts",
+      "delivery_date",
+      "delivery_address",
+      "notes"
+    ],
+    "missing_per_column": {
+      "transaction_id": 0,
+      "user_id": 0,
+      "product_id": 0,
+      "shop_id": 0,
+      "quantity": 0,
+      "unit_price": 0,
+      "total_amount": 0,
+      "discount_percent": 0,
+      "discount_amount": 0,
+      "tax_percent": 0,
+      "tax_amount": 0,
+      "final_amount": 0,
+      "payment_method": 0,
+      "transaction_status": 0,
+      "transaction_date": 0,
+      "transaction_ts": 0,
+      "delivery_date": 17,
+      "delivery_address": 0,
+      "notes": 0
+    },
+    "dtypes": {
+      "transaction_id": "int64",
+      "user_id": "int64",
+      "product_id": "int64",
+      "shop_id": "int64",
+      "quantity": "int64",
+      "unit_price": "float64",
+      "total_amount": "float64",
+      "discount_percent": "int64",
+      "discount_amount": "float64",
+      "tax_percent": "int64",
+      "tax_amount": "float64",
+      "final_amount": "float64",
+      "payment_method": "object",
+      "transaction_status": "object",
+      "transaction_date": "object",
+      "transaction_ts": "object",
+      "delivery_date": "object",
+      "delivery_address": "object",
+      "notes": "object"
+    },
+    "sample": [
+      {
+        "transaction_id": 1,
+        "user_id": 200,
+        "product_id": 1868,
+        "shop_id": 8,
+        "quantity": 3,
+        "unit_price": 2500.0,
+        "total_amount": 7500.0,
+        "discount_percent": 5,
+        "discount_amount": 375.0,
+        "tax_percent": 8,
+        "tax_amount": 570.0,
+        "final_amount": 7695.0,
+        "payment_method": "Credit Card",
+        "transaction_status": "Completed",
+        "transaction_date": "2024-06-12",
+        "transaction_ts": "2024-06-12 03:57:16.802800",
+        "delivery_date": "2024-06-18 03:57:16.802800",
+        "delivery_address": "90834 Andrea Loaf, Lauraport, TX 50924",
+        "notes": "Order for Minimalist Wide Leg Polos"
+      },
+      {
+        "transaction_id": 2,
+        "user_id": 200,
+        "product_id": 889,
+        "shop_id": 11,
+        "quantity": 3,
+        "unit_price": 12500.0,
+        "total_amount": 37500.0,
+        "discount_percent": 0,
+        "discount_amount": 0.0,
+        "tax_percent": 8,
+        "tax_amount": 3000.0,
+        "final_amount": 40500.0,
+        "payment_method": "Credit Card",
+        "transaction_status": "Completed",
+        "transaction_date": "2024-10-22",
+        "transaction_ts": "2024-10-22 07:45:43.585170",
+        "delivery_date": "2024-10-28 07:45:43.585170",
+        "delivery_address": "90834 Andrea Loaf, Lauraport, TX 50924",
+        "notes": "Order for Structured Statement Coats"
+      },
+      {
+        "transaction_id": 3,
+        "user_id": 55,
+        "product_id": 85,
+        "shop_id": 9,
+        "quantity": 3,
+        "unit_price": 12500.0,
+        "total_amount": 37500.0,
+        "discount_percent": 0,
+        "discount_amount": 0.0,
+        "tax_percent": 8,
+        "tax_amount": 3000.0,
+        "final_amount": 40500.0,
+        "payment_method": "Digital Wallet",
+        "transaction_status": "Completed",
+        "transaction_date": "2024-10-22",
+        "transaction_ts": "2024-10-22 17:52:03.165899",
+        "delivery_date": "2024-10-29 17:52:03.165899",
+        "delivery_address": "5038 Chapman Plaza, Mcculloughland, GA 50825",
+        "notes": "Order for Statement Vintage Denim Jackets"
+      }
+    ]
+  },
+  "trends_dataset": {
+    "rows": 223,
+    "columns": 8,
+    "columns_list": [
+      "trend_id",
+      "trend_name",
+      "trend_category",
+      "trend_score",
+      "week",
+      "year",
+      "emerging_designers",
+      "trend_tags"
+    ],
+    "missing_per_column": {
+      "trend_id": 0,
+      "trend_name": 0,
+      "trend_category": 0,
+      "trend_score": 0,
+      "week": 0,
+      "year": 0,
+      "emerging_designers": 0,
+      "trend_tags": 0
+    },
+    "dtypes": {
+      "trend_id": "int64",
+      "trend_name": "object",
+      "trend_category": "object",
+      "trend_score": "float64",
+      "week": "int64",
+      "year": "int64",
+      "emerging_designers": "object",
+      "trend_tags": "object"
+    },
+    "sample": [
+      {
+        "trend_id": 1,
+        "trend_name": "Pastel",
+        "trend_category": "Category Trend",
+        "trend_score": 3.762968761464213,
+        "week": 1,
+        "year": 2024,
+        "emerging_designers": "Designer_4",
+        "trend_tags": "Leather, Bold Colors, Cotton"
+      },
+      {
+        "trend_id": 2,
+        "trend_name": "Oversized",
+        "trend_category": "Seasonal Trend",
+        "trend_score": 4.19045668780402,
+        "week": 1,
+        "year": 2024,
+        "emerging_designers": "Designer_38, Designer_18, Designer_27",
+        "trend_tags": "Minimalist, Velvet, Y2K"
+      },
+      {
+        "trend_id": 3,
+        "trend_name": "Y2K",
+        "trend_category": "Category Trend",
+        "trend_score": 0.504089449889813,
+        "week": 1,
+        "year": 2024,
+        "emerging_designers": "Designer_22",
+        "trend_tags": "Velvet, Modal, Earth Tones"
+      }
+    ]
+  },
+  "users_dataset": {
+    "rows": 500,
+    "columns": 7,
+    "columns_list": [
+      "user_id",
+      "name",
+      "email",
+      "phone",
+      "shipping_address",
+      "signup_ts",
+      "is_active"
+    ],
+    "missing_per_column": {
+      "user_id": 0,
+      "name": 0,
+      "email": 0,
+      "phone": 0,
+      "shipping_address": 0,
+      "signup_ts": 0,
+      "is_active": 0
+    },
+    "dtypes": {
+      "user_id": "int64",
+      "name": "object",
+      "email": "object",
+      "phone": "object",
+      "shipping_address": "object",
+      "signup_ts": "object",
+      "is_active": "bool"
+    },
+    "sample": [
+      {
+        "user_id": 1,
+        "name": "Christian Carter",
+        "email": "abarnett@example.com",
+        "phone": "830.546.0356x27",
+        "shipping_address": "1720 Miller Cliff Suite 493, Port Carlosmouth, LA 70100",
+        "signup_ts": "2024-06-08",
+        "is_active": true
+      },
+      {
+        "user_id": 2,
+        "name": "Pedro Burton",
+        "email": "daisy23@example.org",
+        "phone": "+1-347-816-2226",
+        "shipping_address": "2028 Rodriguez Summit Apt. 263, Port Tony, PR 54306",
+        "signup_ts": "2024-08-23",
+        "is_active": false
+      },
+      {
+        "user_id": 3,
+        "name": "Bryan Ross",
+        "email": "jeffreysparks@example.org",
+        "phone": "713.856.0974x95",
+        "shipping_address": "23191 Tonya Court Suite 106, West Brandon, MI 79827",
+        "signup_ts": "2024-07-05",
+        "is_active": true
+      }
+    ]
+  },
+  "user_preferences_dataset": {
+    "rows": 500,
+    "columns": 11,
+    "columns_list": [
+      "preference_id",
+      "user_id",
+      "preferred_categories",
+      "preferred_colors",
+      "preferred_fabrics",
+      "preferred_brands",
+      "preferred_styles",
+      "skin_tone",
+      "body_type",
+      "price_sensitivity",
+      "updated_ts"
+    ],
+    "missing_per_column": {
+      "preference_id": 0,
+      "user_id": 0,
+      "preferred_categories": 0,
+      "preferred_colors": 0,
+      "preferred_fabrics": 0,
+      "preferred_brands": 0,
+      "preferred_styles": 0,
+      "skin_tone": 0,
+      "body_type": 0,
+      "price_sensitivity": 0,
+      "updated_ts": 0
+    },
+    "dtypes": {
+      "preference_id": "int64",
+      "user_id": "int64",
+      "preferred_categories": "object",
+      "preferred_colors": "object",
+      "preferred_fabrics": "object",
+      "preferred_brands": "object",
+      "preferred_styles": "object",
+      "skin_tone": "object",
+      "body_type": "object",
+      "price_sensitivity": "object",
+      "updated_ts": "object"
+    },
+    "sample": [
+      {
+        "preference_id": 1,
+        "user_id": 1,
+        "preferred_categories": "UTILITY PANTS, CHINOS, OVERSIZE TEE",
+        "preferred_colors": "Brown, Off-white, Teal",
+        "preferred_fabrics": "Modal, Cotton",
+        "preferred_brands": "Brand_3",
+        "preferred_styles": "Casual, Athleisure, Formal",
+        "skin_tone": "Medium Skin",
+        "body_type": "Tall Friendly",
+        "price_sensitivity": "Medium",
+        "updated_ts": "2025-11-19 14:56:19.269218"
+      },
+      {
+        "preference_id": 2,
+        "user_id": 2,
+        "preferred_categories": "JOGGERS & PANTS, BLAZERS, SHORTS",
+        "preferred_colors": "Polka Dot, Teal, Tan",
+        "preferred_fabrics": "Linen, Denim",
+        "preferred_brands": "Brand_6",
+        "preferred_styles": "Athleisure, Formal, Beach Wear",
+        "skin_tone": "Medium Skin",
+        "body_type": "Curvy Friendly",
+        "price_sensitivity": "Medium",
+        "updated_ts": "2025-11-19 14:56:19.269398"
+      },
+      {
+        "preference_id": 3,
+        "user_id": 3,
+        "preferred_categories": "COATS, JOGGERS & PANTS, SWEATSHIRTS",
+        "preferred_colors": "Brown, Tan, Yellow",
+        "preferred_fabrics": "Denim, Modal",
+        "preferred_brands": "Brand_19",
+        "preferred_styles": "Hipster, Beach Wear, Eco-friendly",
+        "skin_tone": "Dark Skin",
+        "body_type": "Curvy Friendly",
+        "price_sensitivity": "Medium",
+        "updated_ts": "2025-11-19 14:56:19.269539"
+      }
+    ]
+  }
+}
