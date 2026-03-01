@@ -10,9 +10,17 @@ type Message = {
   metadata?: any
 }
 
+type ModuleKey = 'dashboard' | 'agentic' | 'data-mesh' | 'data-fabric' | 'architecture'
+
+type ModuleHealthState = {
+  status: 'idle' | 'checking' | 'online' | 'offline'
+  message: string
+}
+
 export default function App() {
-  // Landing page state
-  const [showLanding, setShowLanding] = useState(true)
+  // Current module view
+  const [currentModule, setCurrentModule] = useState<ModuleKey>('dashboard')
+  const [showModules, setShowModules] = useState(false)
   
   // Dark mode state
   const [darkMode, setDarkMode] = useState(true)
@@ -47,11 +55,24 @@ export default function App() {
 
   // Message list ref
   const listRef = useRef<HTMLDivElement | null>(null)
+  const modulesSectionRef = useRef<HTMLDivElement | null>(null)
 
   // Main chat interface API_base - MUST be before useEffect
   const API_BASE = typeof window !== 'undefined' && (window as any).VITE_API_URL 
     ? (window as any).VITE_API_URL
     : (typeof import.meta !== 'undefined' && (import.meta.env.VITE_API_URL as any)) || '/api'
+
+  const AGENTIC_API_URL = (typeof import.meta !== 'undefined' && (import.meta.env.VITE_AGENTIC_API_URL as any)) || API_BASE
+  const DATA_MESH_API_URL = (typeof import.meta !== 'undefined' && (import.meta.env.VITE_DATA_MESH_API_URL as any)) || 'http://localhost:8001'
+  const DATA_FABRIC_API_URL = (typeof import.meta !== 'undefined' && (import.meta.env.VITE_DATA_FABRIC_API_URL as any)) || 'http://localhost:8002'
+  const DATA_ARCH_API_URL = (typeof import.meta !== 'undefined' && (import.meta.env.VITE_DATA_ARCH_API_URL as any)) || 'http://localhost:8003'
+
+  const [moduleHealth, setModuleHealth] = useState<Record<Exclude<ModuleKey, 'dashboard'>, ModuleHealthState>>({
+    agentic: { status: 'idle', message: 'Not checked yet' },
+    'data-mesh': { status: 'idle', message: 'Not checked yet' },
+    'data-fabric': { status: 'idle', message: 'Not checked yet' },
+    architecture: { status: 'idle', message: 'Not checked yet' },
+  })
 
   // Apply dark mode class to document
   useEffect(() => {
@@ -80,10 +101,10 @@ export default function App() {
 
   // Load cart data
   useEffect(() => {
-    if (!showLanding) {
+    if (currentModule === 'agentic') {
       fetchCart()
     }
-  }, [API_BASE, showLanding])
+  }, [API_BASE, currentModule])
 
   // Fetch cart from backend
   async function fetchCart() {
@@ -110,40 +131,132 @@ export default function App() {
     setDarkMode(!darkMode)
   }
 
-  // Landing page component
-  if (showLanding) {
-    return (
-      <div className="landing-page">
-        {/* Animated background shapes */}
-        <div className="landing-bg-shapes">
-          <div className="shape shape-1"></div>
-          <div className="shape shape-2"></div>
-          <div className="shape shape-3"></div>
-        </div>
+  const moduleDescriptions: Record<Exclude<ModuleKey, 'dashboard'>, string> = {
+    agentic: 'Main AI chat and recommendations module',
+    'data-mesh': 'Shop-wise data mesh module (coming soon)',
+    'data-fabric': 'Shop collection data fabric module (coming soon)',
+    architecture: 'Data architecture workspace module (coming soon)',
+  }
 
-        <div className="landing-container">
-          <div className="landing-content">
-            <h1 className="landing-title">StylesenseSL</h1>
-            <p className="landing-description">
-              Discover your perfect style with AI-powered fashion recommendations.
-              Get personalized product suggestions tailored to your unique taste and preferences.
-            </p>
-            <button 
-              className="landing-button"
-              onClick={() => {
-                console.log('Explore button clicked!')
-                setShowLanding(false)
-              }}
-            >
-              Explore Now
+  function getModuleBackend(module: Exclude<ModuleKey, 'dashboard'>) {
+    if (module === 'agentic') return { baseUrl: AGENTIC_API_URL, healthPath: '/health' }
+    if (module === 'data-mesh') return { baseUrl: DATA_MESH_API_URL, healthPath: '/api/health' }
+    if (module === 'data-fabric') return { baseUrl: DATA_FABRIC_API_URL, healthPath: '/api/health/ping' }
+    return { baseUrl: DATA_ARCH_API_URL, healthPath: '/api/health' }
+  }
+
+  async function checkModuleHealth(module: Exclude<ModuleKey, 'dashboard'>) {
+    const cfg = getModuleBackend(module)
+    const url = `${cfg.baseUrl}${cfg.healthPath}`
+
+    setModuleHealth((s) => ({
+      ...s,
+      [module]: { status: 'checking', message: `Checking ${url}` },
+    }))
+
+    try {
+      const res = await fetch(url)
+      if (!res.ok) {
+        setModuleHealth((s) => ({
+          ...s,
+          [module]: { status: 'offline', message: `Backend unavailable (${res.status})` },
+        }))
+        return
+      }
+
+      setModuleHealth((s) => ({
+        ...s,
+        [module]: { status: 'online', message: `Connected to ${cfg.baseUrl}` },
+      }))
+    } catch {
+      setModuleHealth((s) => ({
+        ...s,
+        [module]: { status: 'offline', message: `Cannot reach ${cfg.baseUrl}` },
+      }))
+    }
+  }
+
+  function openModule(module: Exclude<ModuleKey, 'dashboard'>) {
+    setCurrentModule(module)
+    checkModuleHealth(module)
+  }
+
+  function scrollToModules() {
+    setShowModules(true)
+    setTimeout(() => {
+      modulesSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 50)
+  }
+
+  if (currentModule === 'dashboard') {
+    return (
+      <div className="module-dashboard-page premium-dashboard">
+        {!showModules ? (
+          <section className="hero-section">
+            <div className="hero-center">
+              <h1 className="brand-title">StylesenseSL</h1>
+              <p className="brand-subtitle">
+                A unified intelligence platform connecting Agentic AI, Data Mesh, Data Fabric, and Data Architecture for smarter fashion discovery and operations.
+              </p>
+              <div className="brand-loading">
+                <span>Preparing the Stylesense ecosystem</span>
+              </div>
+              <button className="scroll-to-modules-btn" onClick={scrollToModules}>
+                Explore Modules ↓
+              </button>
+            </div>
+          </section>
+        ) : (
+          <section className="modules-section" ref={modulesSectionRef}>
+            <div className="module-dashboard-container">
+              <div className="module-dashboard-header premium-header">
+                <div>
+                  <h2>StylesenseSL</h2>
+                  <p>Choose a component to continue</p>
+                </div>
+              </div>
+              <div className="module-grid">
+                <button className="module-tile" onClick={() => openModule('agentic')}>
+                  <h3>Agentic AI</h3>
+                  <p>Personalized chat assistant and style recommendations</p>
+                </button>
+                <button className="module-tile" onClick={() => openModule('data-mesh')}>
+                  <h3>Data Mesh</h3>
+                  <p>Shop-wise data domains and distributed ownership</p>
+                </button>
+                <button className="module-tile" onClick={() => openModule('data-fabric')}>
+                  <h3>Data Fabric</h3>
+                  <p>Collection pipelines, transformation, and metadata flow</p>
+                </button>
+                <button className="module-tile" onClick={() => openModule('architecture')}>
+                  <h3>Data Architecture</h3>
+                  <p>Platform governance, structure, and long-term design</p>
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+      </div>
+    )
+  }
+
+  if (currentModule !== 'agentic') {
+    const health = moduleHealth[currentModule]
+    return (
+      <div className="module-placeholder-page">
+        <div className="module-placeholder-card">
+          <h2>{currentModule.replace('-', ' ').replace(/\b\w/g, (c) => c.toUpperCase())}</h2>
+          <p>{moduleDescriptions[currentModule]}</p>
+          <p className={`module-health ${health.status}`}>{health.message}</p>
+          <div className="module-placeholder-actions">
+            <button className="module-back-button" onClick={() => checkModuleHealth(currentModule)}>
+              Recheck Backend
             </button>
           </div>
+          <button className="module-back-button" onClick={() => setCurrentModule('dashboard')}>
+            ← Back to Dashboard
+          </button>
         </div>
-
-        {/* Dark mode toggle - top right */}
-        <button className="theme-toggle" onClick={toggleDarkMode} title="Toggle dark mode">
-          {darkMode ? '☀️' : '🌙'}
-        </button>
       </div>
     )
   }
@@ -406,8 +519,8 @@ export default function App() {
             </button>
             <button
               className="sidebar-btn back-btn"
-              onClick={() => setShowLanding(true)}
-              title="Back to home"
+              onClick={() => setCurrentModule('dashboard')}
+              title="Back to dashboard"
             >
               ↩️
             </button>
