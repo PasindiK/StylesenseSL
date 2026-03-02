@@ -1,115 +1,153 @@
-# StyleSense Solution
+# StyleSenseSL
 
-StyleSense is a Python + React platform for fashion intelligence, combining data architecture, data mesh, data fabric, and agentic AI to deliver analytics, recommendations, and operational insights.
+StyleSenseSL is an AI-powered fashion discovery platform with:
+- a FastAPI backend for conversational product search, intent routing, personalization, and cart workflows,
+- a React + Vite frontend for chat-first shopping UX,
+- service modules for Data Mesh, Data Fabric, and Data Architecture expansion.
 
-This repository is **not** a Spring Boot application.
+## Tech Stack
 
-## Simple Lakehouse Architecture (Short Overview)
+- **Backend:** Python, FastAPI, pandas, rapidfuzz, requests, ChromaDB, sentence-transformers
+- **Frontend:** React 19, TypeScript, Vite, TailwindCSS, framer-motion
+- **AI/ML:** semantic vector search + fashion-optimized embedding wrapper + Gemini-assisted intent/response utilities
+- **Infra:** Docker + Docker Compose
 
-StyleSense follows a practical lakehouse pattern:
-- **Raw zone**: source files and ingested datasets (users, products, shops, sales, interactions)
-- **Processed zone**: cleaned and transformed datasets for analytics and ML
-- **Serving zone**: APIs, dashboards, and agents consume trusted domain data
+## Repository Layout
 
-This keeps storage flexible like a data lake while supporting structured analytics and application use like a warehouse.
+```text
+.
+├─ backend/                     # Main API, agents, ingestion, user intelligence
+│  ├─ src/
+│  │  ├─ api/                   # FastAPI app + orchestrator routing
+│  │  ├─ agents/                # Catalog, order, vector search, personalization agents
+│  │  ├─ users/                 # User profile + preference extraction
+│  │  ├─ ingestion/             # Dataset loading/parsing
+│  │  └─ services/              # Additional service implementations (incl. data_fabric API)
+│  ├─ data/                     # Raw + processed fashion datasets and embedding cache
+│  └─ tests/                    # Unit/e2e-style backend tests
+├─ frontend/                    # Main user-facing web app
+├─ docker/                      # Compose + Dockerfiles for backend/frontend/nginx
+├─ infrastructure/              # Infra scaffolding (compose/docker/k8s/terraform)
+├─ services/                    # Team service workspaces (data-mesh/fabric/architecture)
+└─ docs/
+```
 
-## Core Platform Features
+## Core Features
 
-### 1) Data Architecture
-- Organizes datasets into clear layers (`raw` → `processed` → serving)
-- Standardizes schemas and data contracts for consistent downstream use
-- Supports scalable onboarding of new fashion and commerce datasets
-
-### 2) Data Mesh
-- Domain-oriented data ownership (users, products, sales, shops, engagement)
-- Independent domain data products with health and governance visibility
-- Dedicated UI and backend for mesh monitoring and contract-aware operations
-
-### 3) Data Fabric
-- Connects and harmonizes data services across domains and modules
-- Improves discoverability, reuse, and interoperability of data assets
-- Provides shared patterns for integration, quality checks, and access
-
-### 4) Agentic AI
-- AI agents for catalog intelligence, user understanding, and automation flows
-- Scripted entry points and backend modules for agent execution
-- Designed to work with mesh/fabric data for contextual decision support
-
-## Current Project Structure
-
-- `backend/`
-  - `src/services/agentic_ai/` (agents, scripts, requirements)
-  - `src/services/data_mesh/` (backend API, data, requirements)
-  - `src/services/data_fabric/`
-  - `src/services/data_architecture/`
-  - `src/shared/` (shared constants, enums, models, utils)
-- `frontend/`
-  - `src/modules/agentic_ai/`
-  - `src/modules/data_mesh/` (standalone module app files)
-  - `src/modules/data_fabric/`
-  - `src/modules/data_architecture/`
-  - `src/shared/`
-- `docker/`
+- Conversational query endpoint (`/api/answer`) with orchestrator-driven intent routing
+- Product search (`/api/search`) and semantic similar product lookup (`/api/products/{id}/similar`)
+- Personalization reranking using user interaction history and preference extraction
+- Shopping cart APIs (add/view/update/remove/clear) backed by:
+  - direct dataset URL-to-product lookup, and
+  - fallback scraping for external product URLs
+- Optional semantic vector search with cached embeddings under `backend/data/embeddings_cache/`
 
 ## Prerequisites
 
-- Python 3.10+ (recommended for backend services)
-- Node.js 20+ and npm 10+ (recommended for frontend apps)
-- Windows PowerShell commands are shown below
+- Python **3.10+**
+- Node.js **18+** (or newer LTS)
+- npm
+- (Optional) Docker Desktop
 
-## Run Commands
+## Local Development
 
-### 1) Agentic AI Backend API (port 8000)
+### 1) Backend
+
 ```powershell
-cd c:\Test\backend
-python -m venv .venv
-& ".\.venv\Scripts\python.exe" -m pip install -r requirements.txt
-& ".\.venv\Scripts\python.exe" -m uvicorn src.api.app:app --host 127.0.0.1 --port 8000 --reload
+cd backend
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+uvicorn src.api.app:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-### 2) Data Mesh Backend API (port 8001)
+Backend health check:
+
 ```powershell
-cd c:\Test\backend
-python -m venv .venv
-& ".\.venv\Scripts\python.exe" -m pip install -r src\services\data_mesh\requirements.txt
-& ".\.venv\Scripts\python.exe" -m uvicorn src.services.data_mesh:app --host 127.0.0.1 --port 8001 --reload
+curl http://localhost:8000/api/health
 ```
 
-### 3) Data Fabric Backend API (port 8002)
-```powershell
-cd c:\Test\backend\src\services\data_fabric
-& "c:\Test\backend\.venv\Scripts\python.exe" -m pip install -r requirements.txt
-& "c:\Test\backend\.venv\Scripts\python.exe" -m uvicorn src.api.main:app --host 127.0.0.1 --port 8002 --reload
-```
+### 2) Frontend
 
-### 4) Main Frontend App (port 5173)
 ```powershell
-cd c:\Test\frontend
+cd frontend
 npm install
-npm run dev -- --port 5173
+npm run dev
 ```
 
-### 5) Data Mesh Frontend Module (port 5174)
+The Vite dev server runs on `http://localhost:5173` and proxies `/api` to `http://localhost:8000`.
+
+## Environment Configuration
+
+Create `backend/.env` and set values like:
+
+```dotenv
+GEMINI_API_KEY=your_key_here
+GEMINI_MOCK=1
+OPENAI_API_KEY=your_key_here
+```
+
+Notes:
+- `GEMINI_MOCK=1` enables local mock behavior.
+- Do **not** commit real API keys.
+- If any key was previously committed, rotate it immediately.
+
+## Run with Docker
+
+From repository root:
+
 ```powershell
-cd c:\Test\frontend\src\modules\data_mesh
-npm install
-npm run dev -- --port 5174
+docker compose -f docker/docker-compose.yml up --build
 ```
 
-## Quick Health Checks
+Services:
+- Backend: `http://localhost:8000`
+- Frontend: `http://localhost:3000`
 
-- Agentic AI backend docs: `http://127.0.0.1:8000/docs`
-- Data Mesh health: `http://127.0.0.1:8001/health`
-- Data Fabric docs: `http://127.0.0.1:8002/api/docs`
+## Main API Endpoints
 
-## Notes
+- `GET /api/health` – service health
+- `GET /api/search?q=...&limit=...` – catalog search
+- `GET /api/products/{product_id}` – single product detail
+- `GET /api/products/{product_id}/similar?limit=...` – similar products
+- `GET /api/shops/{shop_id}` – shop info
+- `GET /api/users` – user list (from users dataset)
+- `POST /api/answer` – orchestrated conversational entry point
+- `POST /api/cart/add` – add item by product URL (+ optional quantity/size)
+- `GET /api/cart` – cart summary
+- `PATCH /api/cart/item/{index}` – update item quantity
+- `DELETE /api/cart/item/{index}` – remove one item
+- `DELETE /api/cart/clear` – clear cart
 
-- `frontend/src/modules/data_architecture` and `frontend/src/modules/data_fabric` are prepared as module folders; add app files there when those UIs are implemented.
-- `backend/src/services/data_architecture` is prepared as a backend service folder; add API entrypoint before running it as a standalone service.
+## Data Dependencies
 
-## Troubleshooting
+Expected input files are under `backend/data/raw/` (e.g. `final_products.csv`, `shops_dataset.csv`, `users_dataset.csv`).
 
-- In PowerShell, use `&` when running the venv Python executable.
-- Use `.\.venv\...` (current folder) — **not** `..venv\...`.
-- If you want the black landing/chat UI with tile button, run **Main Frontend App** on `http://localhost:5173`.
-- `http://localhost:5174` is the **Data Mesh module UI**, which is a different frontend.
+The backend `DataLoader` resolves data using:
+- `DATA_DIR` environment variable when provided, or
+- default local path `backend/data`, or
+- `/app/data` when running in container.
+
+## Testing
+
+Run backend tests:
+
+```powershell
+cd backend
+pytest -q
+```
+
+## Service Modules (Team Structure)
+
+The repo includes additional service workspaces under `services/` and code under `backend/src/services/` for:
+- Data Mesh
+- Data Fabric
+- Data Architecture
+
+Use these as independently evolvable components following `TEAM_CONTRIBUTION_GUIDE.md`.
+
+## Known Notes
+
+- This codebase currently contains a mix of active modules and scaffolding/placeholder modules.
+- The main production path for this branch is the FastAPI backend in `backend/src/api/app.py` and the frontend in `frontend/`.
+- Keep API contracts stable across team modules and prefer environment variables over hardcoded service URLs.
