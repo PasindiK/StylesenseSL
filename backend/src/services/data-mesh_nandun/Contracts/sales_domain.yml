@@ -1,0 +1,86 @@
+domain_name: sales_domain
+owner: nadunthenuwara@gmail.com
+description: Auto-generated contract for sales_domain. Add full description here.
+schema:
+- column: transaction_id
+  type: int64
+  nullable: false
+  description: Add column description here
+- column: user_id
+  type: int64
+  nullable: false
+  description: Add column description here
+- column: product_id
+  type: int64
+  nullable: false
+  description: Add column description here
+- column: shop_id
+  type: int64
+  nullable: false
+  description: Add column description here
+- column: quantity
+  type: int64
+  nullable: false
+  description: Add column description here
+- column: unit_price
+  type: float64
+  nullable: false
+  description: Add column description here
+- column: total_amount
+  type: float64
+  nullable: false
+  description: Add column description here
+- column: discount_percent
+  type: int64
+  nullable: false
+  description: Add column description here
+- column: discount_amount
+  type: float64
+  nullable: false
+  description: Add column description here
+- column: tax_percent
+  type: int64
+  nullable: false
+  description: Add column description here
+- column: tax_amount
+  type: float64
+  nullable: false
+  description: Add column description here
+- column: final_amount
+  type: float64
+  nullable: false
+  description: Add column description here
+- column: payment_method
+  type: object
+  nullable: false
+  description: Add column description here
+- column: transaction_status
+  type: object
+  nullable: false
+  description: Add column description here
+- column: transaction_date
+  type: object
+  nullable: false
+  description: Add column description here
+- column: transaction_ts
+  type: object
+  nullable: false
+  description: Add column description here
+- column: delivery_date
+  type: object
+  nullable: false
+  description: Add column description here
+- column: delivery_address
+  type: object
+  nullable: false
+  description: Add column description here
+- column: notes
+  type: object
+  nullable: false
+  description: Add column description here
+update_frequency: weekly
+sla:
+  freshness: Data should be updated weekly
+  completeness: No missing primary key values allowed
+examples:
+- SELECT * FROM sales_domain LIMIT 10

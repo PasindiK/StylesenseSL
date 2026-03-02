@@ -1,0 +1,35 @@
+domain_name: interaction_domain
+owner: nadunthenuwara@gmail.com
+description: Auto-generated contract for interaction_domain. Add full description
+  here.
+schema:
+- column: interaction_id
+  type: int64
+  nullable: false
+  description: Add column description here
+- column: user_id
+  type: int64
+  nullable: false
+  description: Add column description here
+- column: product_id
+  type: int64
+  nullable: false
+  description: Add column description here
+- column: interaction_type
+  type: object
+  nullable: false
+  description: Add column description here
+- column: interaction_ts
+  type: object
+  nullable: false
+  description: Add column description here
+- column: interaction_date
+  type: object
+  nullable: false
+  description: Add column description here
+update_frequency: weekly
+sla:
+  freshness: Data should be updated weekly
+  completeness: No missing primary key values allowed
+examples:
+- SELECT * FROM interaction_domain LIMIT 10

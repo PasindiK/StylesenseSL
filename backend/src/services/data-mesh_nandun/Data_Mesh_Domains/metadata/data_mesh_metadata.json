@@ -1,0 +1,218 @@
+[
+    {
+        "domain_name": "interaction_domain",
+        "rows": 2856,
+        "columns": 6,
+        "primary_key": "interaction_id",
+        "nullable_columns": {
+            "interaction_id": 0,
+            "user_id": 0,
+            "product_id": 0,
+            "interaction_type": 0,
+            "interaction_ts": 0,
+            "interaction_date": 0
+        },
+        "data_types": {
+            "interaction_id": "int64",
+            "user_id": "int64",
+            "product_id": "int64",
+            "interaction_type": "object",
+            "interaction_ts": "object",
+            "interaction_date": "object"
+        }
+    },
+    {
+        "domain_name": "product_domain",
+        "rows": 2483,
+        "columns": 13,
+        "primary_key": "product_id",
+        "nullable_columns": {
+            "product_id": 0,
+            "shop_id": 0,
+            "name": 0,
+            "category": 0,
+            "color": 0,
+            "fabric": 0,
+            "size_range": 0,
+            "price_LKR": 0,
+            "style_tags": 0,
+            "product_url": 0,
+            "created_ts": 0,
+            "popularity_score": 0,
+            "stock_count": 0
+        },
+        "data_types": {
+            "product_id": "int64",
+            "shop_id": "int64",
+            "name": "object",
+            "category": "object",
+            "color": "object",
+            "fabric": "object",
+            "size_range": "object",
+            "price_LKR": "float64",
+            "style_tags": "object",
+            "product_url": "object",
+            "created_ts": "object",
+            "popularity_score": "float64",
+            "stock_count": "int64"
+        }
+    },
+    {
+        "domain_name": "sales_domain",
+        "rows": 8008,
+        "columns": 19,
+        "primary_key": "transaction_id",
+        "nullable_columns": {
+            "transaction_id": 0,
+            "user_id": 0,
+            "product_id": 0,
+            "shop_id": 0,
+            "quantity": 0,
+            "unit_price": 0,
+            "total_amount": 0,
+            "discount_percent": 0,
+            "discount_amount": 0,
+            "tax_percent": 0,
+            "tax_amount": 0,
+            "final_amount": 0,
+            "payment_method": 0,
+            "transaction_status": 0,
+            "transaction_date": 0,
+            "transaction_ts": 0,
+            "delivery_date": 0,
+            "delivery_address": 0,
+            "notes": 0
+        },
+        "data_types": {
+            "transaction_id": "int64",
+            "user_id": "int64",
+            "product_id": "int64",
+            "shop_id": "int64",
+            "quantity": "int64",
+            "unit_price": "float64",
+            "total_amount": "float64",
+            "discount_percent": "int64",
+            "discount_amount": "float64",
+            "tax_percent": "int64",
+            "tax_amount": "float64",
+            "final_amount": "float64",
+            "payment_method": "object",
+            "transaction_status": "object",
+            "transaction_date": "object",
+            "transaction_ts": "object",
+            "delivery_date": "object",
+            "delivery_address": "object",
+            "notes": "object"
+        }
+    },
+    {
+        "domain_name": "shop_domain",
+        "rows": 24,
+        "columns": 9,
+        "primary_key": "shop_id",
+        "nullable_columns": {
+            "shop_id": 0,
+            "shop_name": 0,
+            "location": 0,
+            "district": 0,
+            "postal_code": 0,
+            "phone_number": 0,
+            "is_active": 0,
+            "operating_hours_open": 0,
+            "operating_hours_close": 0
+        },
+        "data_types": {
+            "shop_id": "int64",
+            "shop_name": "object",
+            "location": "object",
+            "district": "object",
+            "postal_code": "int64",
+            "phone_number": "int64",
+            "is_active": "bool",
+            "operating_hours_open": "object",
+            "operating_hours_close": "object"
+        }
+    },
+    {
+        "domain_name": "users_domain",
+        "rows": 508,
+        "columns": 7,
+        "primary_key": "user_id",
+        "nullable_columns": {
+            "user_id": 0,
+            "name": 0,
+            "email": 0,
+            "phone": 0,
+            "shipping_address": 0,
+            "signup_ts": 0,
+            "is_active": 0
+        },
+        "data_types": {
+            "user_id": "int64",
+            "name": "object",
+            "email": "object",
+            "phone": "object",
+            "shipping_address": "object",
+            "signup_ts": "object",
+            "is_active": "bool"
+        }
+    },
+    {
+        "domain_name": "user_preferences_domain",
+        "rows": 471,
+        "columns": 11,
+        "primary_key": "preference_id",
+        "nullable_columns": {
+            "preference_id": 0,
+            "user_id": 0,
+            "preferred_categories": 0,
+            "preferred_colors": 0,
+            "preferred_fabrics": 0,
+            "preferred_brands": 0,
+            "preferred_styles": 0,
+            "skin_tone": 0,
+            "body_type": 0,
+            "price_sensitivity": 0,
+            "updated_ts": 0
+        },
+        "data_types": {
+            "preference_id": "int64",
+            "user_id": "int64",
+            "preferred_categories": "object",
+            "preferred_colors": "object",
+            "preferred_fabrics": "object",
+            "preferred_brands": "object",
+            "preferred_styles": "object",
+            "skin_tone": "object",
+            "body_type": "object",
+            "price_sensitivity": "object",
+            "updated_ts": "object"
+        }
+    },
+    {
+        "domain_name": "engagement_domain",
+        "rows": 222,
+        "columns": 8,
+        "primary_key": "trend_id",
+        "nullable_columns": {
+            "trend_id": 0,
+            "trend_name": 0,
+            "trend_category": 0,
+            "trend_score": 0,
+            "week": 0,
+            "year": 0,
+            "emerging_designers": 0,
+            "trend_tags": 0
+        },
+        "data_types": {
+            "trend_id": "int64",
+            "trend_name": "object",
+            "trend_category": "object",
+            "trend_score": "float64",
+            "week": "float64",
+            "year": "float64",
+            "emerging_designers": "object",
+            "trend_tags": "object"
+        }
+    }
+]

@@ -1,0 +1,62 @@
+domain_name: product_domain
+owner: nadunthenuwara@gmail.com
+description: Auto-generated contract for product_domain. Add full description here.
+schema:
+- column: product_id
+  type: int64
+  nullable: false
+  description: Add column description here
+- column: shop_id
+  type: int64
+  nullable: false
+  description: Add column description here
+- column: name
+  type: object
+  nullable: false
+  description: Add column description here
+- column: category
+  type: object
+  nullable: false
+  description: Add column description here
+- column: color
+  type: object
+  nullable: false
+  description: Add column description here
+- column: fabric
+  type: object
+  nullable: false
+  description: Add column description here
+- column: size_range
+  type: object
+  nullable: false
+  description: Add column description here
+- column: price_LKR
+  type: float64
+  nullable: false
+  description: Add column description here
+- column: style_tags
+  type: object
+  nullable: false
+  description: Add column description here
+- column: product_url
+  type: object
+  nullable: false
+  description: Add column description here
+- column: created_ts
+  type: object
+  nullable: false
+  description: Add column description here
+- column: popularity_score
+  type: float64
+  nullable: false
+  description: Add column description here
+- column: stock_count
+  type: int64
+  nullable: false
+  description: Add column description here
+update_frequency: weekly
+sla:
+  freshness: Data should be updated weekly
+  completeness: No missing primary key values allowed
+examples:
+- SELECT * FROM product_domain LIMIT 10
