@@ -1,0 +1,55 @@
+domain_name: user_preferences_domain
+owner: nadunthenuwara@gmail.com
+description: Auto-generated contract for user_preferences_domain. Add full description
+  here.
+schema:
+- column: preference_id
+  type: int64
+  nullable: false
+  description: Add column description here
+- column: user_id
+  type: int64
+  nullable: false
+  description: Add column description here
+- column: preferred_categories
+  type: object
+  nullable: false
+  description: Add column description here
+- column: preferred_colors
+  type: object
+  nullable: false
+  description: Add column description here
+- column: preferred_fabrics
+  type: object
+  nullable: false
+  description: Add column description here
+- column: preferred_brands
+  type: object
+  nullable: false
+  description: Add column description here
+- column: preferred_styles
+  type: object
+  nullable: false
+  description: Add column description here
+- column: skin_tone
+  type: object
+  nullable: false
+  description: Add column description here
+- column: body_type
+  type: object
+  nullable: false
+  description: Add column description here
+- column: price_sensitivity
+  type: object
+  nullable: false
+  description: Add column description here
+- column: updated_ts
+  type: object
+  nullable: false
+  description: Add column description here
+update_frequency: weekly
+sla:
+  freshness: Data should be updated weekly
+  completeness: No missing primary key values allowed
+examples:
+- SELECT * FROM user_preferences_domain LIMIT 10

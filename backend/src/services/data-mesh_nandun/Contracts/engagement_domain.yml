@@ -1,0 +1,42 @@
+domain_name: engagement_domain
+owner: nadunthenuwara@gmail.com
+description: Auto-generated contract for engagement_domain. Add full description here.
+schema:
+- column: trend_id
+  type: int64
+  nullable: false
+  description: Add column description here
+- column: trend_name
+  type: object
+  nullable: false
+  description: Add column description here
+- column: trend_category
+  type: object
+  nullable: false
+  description: Add column description here
+- column: trend_score
+  type: float64
+  nullable: false
+  description: Add column description here
+- column: week
+  type: float64
+  nullable: false
+  description: Add column description here
+- column: year
+  type: float64
+  nullable: false
+  description: Add column description here
+- column: emerging_designers
+  type: object
+  nullable: false
+  description: Add column description here
+- column: trend_tags
+  type: object
+  nullable: false
+  description: Add column description here
+update_frequency: weekly
+sla:
+  freshness: Data should be updated weekly
+  completeness: No missing primary key values allowed
+examples:
+- SELECT * FROM engagement_domain LIMIT 10

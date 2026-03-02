@@ -1,0 +1,38 @@
+domain_name: users_domain
+owner: nadunthenuwara@gmail.com
+description: Auto-generated contract for users_domain. Add full description here.
+schema:
+- column: user_id
+  type: int64
+  nullable: false
+  description: Add column description here
+- column: name
+  type: object
+  nullable: false
+  description: Add column description here
+- column: email
+  type: object
+  nullable: false
+  description: Add column description here
+- column: phone
+  type: object
+  nullable: false
+  description: Add column description here
+- column: shipping_address
+  type: object
+  nullable: false
+  description: Add column description here
+- column: signup_ts
+  type: object
+  nullable: false
+  description: Add column description here
+- column: is_active
+  type: bool
+  nullable: false
+  description: Add column description here
+update_frequency: weekly
+sla:
+  freshness: Data should be updated weekly
+  completeness: No missing primary key values allowed
+examples:
+- SELECT * FROM users_domain LIMIT 10

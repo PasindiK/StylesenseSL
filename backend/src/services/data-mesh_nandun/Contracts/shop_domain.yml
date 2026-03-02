@@ -1,0 +1,46 @@
+domain_name: shop_domain
+owner: nadunthenuwara@gmail.com
+description: Auto-generated contract for shop_domain. Add full description here.
+schema:
+- column: shop_id
+  type: int64
+  nullable: false
+  description: Add column description here
+- column: shop_name
+  type: object
+  nullable: false
+  description: Add column description here
+- column: location
+  type: object
+  nullable: false
+  description: Add column description here
+- column: district
+  type: object
+  nullable: false
+  description: Add column description here
+- column: postal_code
+  type: int64
+  nullable: false
+  description: Add column description here
+- column: phone_number
+  type: int64
+  nullable: false
+  description: Add column description here
+- column: is_active
+  type: bool
+  nullable: false
+  description: Add column description here
+- column: operating_hours_open
+  type: object
+  nullable: false
+  description: Add column description here
+- column: operating_hours_close
+  type: object
+  nullable: false
+  description: Add column description here
+update_frequency: weekly
+sla:
+  freshness: Data should be updated weekly
+  completeness: No missing primary key values allowed
+examples:
+- SELECT * FROM shop_domain LIMIT 10
