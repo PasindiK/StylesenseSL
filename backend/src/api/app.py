@@ -21,14 +21,14 @@ else:
     print("⚠️ OpenAI API key not found in environment")
 
 from src.ingestion.data_loader import DataLoader
-from src.agents.catalog_agent import CatalogAgent
+from src.services.agentic_ai.agents.catalog_agent import CatalogAgent
 from src.api.orchestrator import Orchestrator
 from src.users.user_agent import UserAgent
 from src.users.catalog_personalization import CatalogPersonalizer
-from src.agents.personalization_agent import PersonalizationAgent
+from src.services.agentic_ai.agents.personalization_agent import PersonalizationAgent
 from src.utils.nl_parser import parse_intent
 from src.clients.gemini_client import dynamic_small_talk, parse_query_with_gemini, generate_styling_advice_with_gemini, clarify_ambiguous_query
-from src.agents.order_agent import OrderAgent
+from src.services.agentic_ai.agents.order_agent import OrderAgent
 
 app = FastAPI(title="CatalogAgent API")
 
