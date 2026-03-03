@@ -4,6 +4,7 @@ import ProductCard from './modules/agentic_ai/components/ProductCard'
 import type { Product } from './modules/agentic_ai/components/ProductCard'
 import DataFabricTestingPage from './modules/data_fabric/components/DataFabricTestingPage'
 import DataArchitectureTestingPage from './modules/data_architecture/components/DataArchitectureTestingPage'
+import DataMeshApp from './modules/data_mesh/src/App.jsx'
 
 type Message = {
   id: string
@@ -18,7 +19,6 @@ const componentCards: Array<{
   key: ComponentKey
   title: string
   description: string
-  url?: string
 }> = [
   {
     key: 'agentic_ai',
@@ -29,7 +29,6 @@ const componentCards: Array<{
     key: 'data_mesh',
     title: 'Data Mesh',
     description: 'Domain-oriented data access and governance view for distributed ownership and discoverability.',
-    url: 'http://localhost:5174',
   },
   {
     key: 'data_fabric',
@@ -293,12 +292,8 @@ export default function App() {
             </div>
 
             <div className="component-view">
-              {selectedComponent === 'data_mesh' && component?.url ? (
-                <iframe
-                  title={component.title}
-                  src={component.url}
-                  className="component-frame"
-                />
+              {selectedComponent === 'data_mesh' ? (
+                <DataMeshApp />
               ) : selectedComponent === 'data_fabric' ? (
                 <DataFabricTestingPage />
               ) : selectedComponent === 'data_architecture' ? (
