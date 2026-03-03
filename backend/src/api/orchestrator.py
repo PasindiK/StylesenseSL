@@ -7,11 +7,11 @@ delegating tasks to specialized agents (Catalog, Order, User, Personalization).
 import logging
 from typing import Dict, Any, Optional, List
 
-from src.agents.catalog_agent import CatalogAgent
-from src.agents.order_agent import OrderAgent
-from src.agents.personalization_agent import PersonalizationAgent
-from src.agents.intent_classifier_agent import get_intent_classifier
-from src.agents.conversation_memory import get_conversation_memory
+from src.services.agentic_ai.agents.catalog_agent import CatalogAgent
+from src.services.agentic_ai.agents.order_agent import OrderAgent
+from src.services.agentic_ai.agents.personalization_agent import PersonalizationAgent
+from src.services.agentic_ai.agents.intent_classifier_agent import get_intent_classifier
+from src.services.agentic_ai.agents.conversation_memory import get_conversation_memory
 from src.users.user_agent import UserAgent
 from src.utils.nl_parser import parse_intent
 from src.utils.intent_validator import get_intent_validator

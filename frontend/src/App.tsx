@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react'
 import './App.css'
-import ProductCard from './components/ProductCard'
-import type { Product } from './components/ProductCard'
+import ProductCard from './modules/agentic_ai/components/ProductCard'
+import type { Product } from './modules/agentic_ai/components/ProductCard'
+import DataFabricTestingPage from './modules/data_fabric/components/DataFabricTestingPage'
+import DataArchitectureTestingPage from './modules/data_architecture/components/DataArchitectureTestingPage'
 
 type Message = {
   id: string
@@ -10,9 +12,41 @@ type Message = {
   metadata?: any
 }
 
+type ComponentKey = 'agentic_ai' | 'data_mesh' | 'data_fabric' | 'data_architecture'
+
+const componentCards: Array<{
+  key: ComponentKey
+  title: string
+  description: string
+  url?: string
+}> = [
+  {
+    key: 'agentic_ai',
+    title: 'Agentic AI',
+    description: 'Conversational fashion assistant for personalized recommendations, product discovery, and smart cart actions.',
+  },
+  {
+    key: 'data_mesh',
+    title: 'Data Mesh',
+    description: 'Domain-oriented data access and governance view for distributed ownership and discoverability.',
+    url: 'http://localhost:5174',
+  },
+  {
+    key: 'data_fabric',
+    title: 'Data Fabric',
+    description: 'Unified integration layer connecting data pipelines, metadata, and intelligent automation across sources.',
+  },
+  {
+    key: 'data_architecture',
+    title: 'Data Architecture',
+    description: 'High-level architecture perspective for models, standards, and platform design decisions.',
+  },
+]
+
 export default function App() {
   // Landing page state
   const [showLanding, setShowLanding] = useState(true)
+  const [selectedComponent, setSelectedComponent] = useState<ComponentKey | null>(null)
   
   // Dark mode state
   const [darkMode, setDarkMode] = useState(true)
@@ -110,6 +144,11 @@ export default function App() {
     setDarkMode(!darkMode)
   }
 
+  function goToTilesHome() {
+    setShowLanding(false)
+    setSelectedComponent(null)
+  }
+
   // Landing page component
   if (showLanding) {
     return (
@@ -128,22 +167,148 @@ export default function App() {
               Discover your perfect style with AI-powered fashion recommendations.
               Get personalized product suggestions tailored to your unique taste and preferences.
             </p>
-            <button 
-              className="landing-button"
-              onClick={() => {
-                console.log('Explore button clicked!')
-                setShowLanding(false)
-              }}
-            >
-              Explore Now
-            </button>
+            <div className="landing-actions">
+              <button 
+                className="landing-button"
+                onClick={() => {
+                  console.log('Explore button clicked!')
+                  setShowLanding(false)
+                  setSelectedComponent(null)
+                }}
+              >
+                Explore Now
+              </button>
+            </div>
           </div>
         </div>
+
+        <footer className="app-footer landing-footer">
+          <span>© 2026 StylesenseSL</span>
+          <span>AI-Powered Fashion Intelligence Platform</span>
+        </footer>
 
         {/* Dark mode toggle - top right */}
         <button className="theme-toggle" onClick={toggleDarkMode} title="Toggle dark mode">
           {darkMode ? '☀️' : '🌙'}
         </button>
+      </div>
+    )
+  }
+
+  if (!selectedComponent) {
+    return (
+      <div id="agent-console" className={`theme-${darkMode ? 'dark' : 'light'}`}>
+        <div className="component-tile-page">
+          <div className="chat-header tile-header">
+            <h1>Select a Platform Component</h1>
+            <p className="chat-subtitle">Choose one of the four modules to continue</p>
+          </div>
+
+          <div className="component-tile-grid">
+            {componentCards.map((component) => (
+              <button
+                key={component.key}
+                type="button"
+                className="component-tile-card"
+                onClick={() => setSelectedComponent(component.key)}
+              >
+                <h3>{component.title}</h3>
+                <p>{component.description}</p>
+              </button>
+            ))}
+          </div>
+
+          <div className="component-tile-actions">
+            <button
+              type="button"
+              className="sidebar-btn"
+              onClick={() => setShowLanding(true)}
+              title="Go to landing"
+            >
+              🏠
+            </button>
+            <button className="theme-toggle" onClick={toggleDarkMode} title="Toggle dark mode">
+              {darkMode ? '☀️' : '🌙'}
+            </button>
+          </div>
+
+          <footer className="app-footer tiles-footer">
+            <span>Enterprise Data & AI Modules</span>
+            <span>Agentic AI • Data Mesh • Data Fabric • Data Architecture</span>
+          </footer>
+        </div>
+      </div>
+    )
+  }
+
+  if (selectedComponent !== 'agentic_ai') {
+    const component = componentCards.find((c) => c.key === selectedComponent)
+    return (
+      <div id="agent-console" className={`theme-${darkMode ? 'dark' : 'light'}`}>
+        <div className="chat-layout">
+          <aside className="chat-sidebar">
+            <div className="sidebar-header">
+              <h2>{component?.title || 'Component'}</h2>
+            </div>
+
+            <div className="sidebar-controls component-sidebar-text">
+              <div className="component-nav">
+                {componentCards.map((card) => (
+                  <button
+                    key={card.key}
+                    type="button"
+                    className={`component-nav-btn ${selectedComponent === card.key ? 'active' : ''}`}
+                    onClick={() => setSelectedComponent(card.key)}
+                    title={card.title}
+                  >
+                    {card.title}
+                  </button>
+                ))}
+              </div>
+              <p>{component?.description}</p>
+            </div>
+
+            <div className="sidebar-footer">
+              <button
+                className="sidebar-btn theme-toggle-btn"
+                onClick={toggleDarkMode}
+                title="Toggle dark mode"
+              >
+                {darkMode ? '☀️' : '🌙'}
+              </button>
+              <button
+                className="sidebar-btn home-btn"
+                onClick={goToTilesHome}
+                title="Home"
+              >
+                🏠
+              </button>
+            </div>
+          </aside>
+
+          <main className="chat-main">
+            <div className="chat-header">
+              <h1>{component?.title}</h1>
+              <p className="chat-subtitle">{component?.description}</p>
+            </div>
+
+            <div className="component-view">
+              {selectedComponent === 'data_mesh' && component?.url ? (
+                <iframe
+                  title={component.title}
+                  src={component.url}
+                  className="component-frame"
+                />
+              ) : selectedComponent === 'data_fabric' ? (
+                <DataFabricTestingPage />
+              ) : selectedComponent === 'data_architecture' ? (
+                <DataArchitectureTestingPage />
+              ) : (
+                <div className="component-placeholder">Component dashboard is not available yet.</div>
+              )}
+            </div>
+          </main>
+        </div>
       </div>
     )
   }
@@ -358,6 +523,8 @@ export default function App() {
     return reasons
   }
 
+  const agenticComponent = componentCards.find((c) => c.key === 'agentic_ai')
+
   return (
     <div id="agent-console" className={`theme-${darkMode ? 'dark' : 'light'}`}>
       <div className="chat-layout">
@@ -386,6 +553,20 @@ export default function App() {
                   ))}
               </select>
             </label>
+
+            <div className="component-nav">
+              {componentCards.map((card) => (
+                <button
+                  key={card.key}
+                  type="button"
+                  className={`component-nav-btn ${selectedComponent === card.key ? 'active' : ''}`}
+                  onClick={() => setSelectedComponent(card.key)}
+                  title={card.title}
+                >
+                  {card.title}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="sidebar-footer">
@@ -405,11 +586,11 @@ export default function App() {
               {darkMode ? '☀️' : '🌙'}
             </button>
             <button
-              className="sidebar-btn back-btn"
-              onClick={() => setShowLanding(true)}
-              title="Back to home"
+              className="sidebar-btn home-btn"
+              onClick={goToTilesHome}
+              title="Home"
             >
-              ↩️
+              🏠
             </button>
           </div>
         </aside>
@@ -417,8 +598,8 @@ export default function App() {
         {/* RIGHT CHAT AREA */}
         <main className="chat-main">
           <div className="chat-header">
-            <h1>Chat with StylesenseSL</h1>
-            <p className="chat-subtitle">Find your perfect style with AI recommendations</p>
+            <h1>{agenticComponent?.title || 'Agentic AI'}</h1>
+            <p className="chat-subtitle">{agenticComponent?.description || 'Find your perfect style with AI recommendations'}</p>
           </div>
 
           <div className="message-list" ref={listRef}>

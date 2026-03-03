@@ -29,7 +29,7 @@ class ModelEvaluator:
         sys.path.insert(0, str(Path(__file__).parent.parent.parent))
         
         from sentence_transformers import SentenceTransformer
-        from src.agents.fashion_embedding_model import get_fashion_embedding_model
+        from src.services.agentic_ai.agents.fashion_embedding_model import get_fashion_embedding_model
         
         print("\n" + "="*80)
         print("🔬 EVALUATING MODELS")

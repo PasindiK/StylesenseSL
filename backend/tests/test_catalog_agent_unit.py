@@ -1,5 +1,5 @@
 from src.ingestion.data_loader import DataLoader
-from src.agents.catalog_agent import CatalogAgent
+from src.services.agentic_ai.agents.catalog_agent import CatalogAgent
 
 
 def test_catalog_agent_filters_and_enrichment():

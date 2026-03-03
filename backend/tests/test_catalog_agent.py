@@ -1,6 +1,6 @@
 from pathlib import Path
 from src.ingestion.data_loader import DataLoader
-from src.agents.catalog_agent import CatalogAgent
+from src.services.agentic_ai.agents.catalog_agent import CatalogAgent
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
