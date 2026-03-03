@@ -6,7 +6,6 @@ import {
   ShopOutlined,
   SafetyOutlined
 } from "@ant-design/icons";
-import { useNavigate } from 'react-router-dom';
 import Home from "./pages/Home";
 import Domains from "./pages/Domains";
 import ShopAnalysis from "./pages/ShopAnalysis";
@@ -32,13 +31,13 @@ export default function App() {
   const [activeDomain, setActiveDomain] = useState(null); // Track which domain card is clicked
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout style={{ minHeight: "100%", height: "100%", width: "100%", overflow: "hidden" }}>
       <Sider
         theme="dark"
         width={240}
-        style={{ position: "fixed", left: 0, top: 0, bottom: 0, zIndex: 10, boxShadow: "2px 0 8px #e0e7ef22" }}
+        style={{ position: "relative", background: "#061a2f", boxShadow: "2px 0 12px rgba(15, 23, 42, 0.25)" }}
       >
-        <div style={{ color: "#fff", fontWeight: "bold", fontSize: 24, padding: 28, textAlign: "center", letterSpacing: 1, borderBottom: "1px solid #222" }}>
+        <div style={{ color: "#f8fafc", fontWeight: 700, fontSize: 38, padding: 24, textAlign: "left", letterSpacing: 0.2, borderBottom: "1px solid rgba(148, 163, 184, 0.2)", lineHeight: 1.15 }}>
           Data Mesh Control Plane
         </div>
         <Menu
@@ -49,32 +48,34 @@ export default function App() {
             setSelected(e.key);
             setActiveDomain(null); // Reset detail view when switching tabs
           }}
-          style={{ borderRight: 0, fontSize: 17, fontWeight: 500, marginTop: 8 }}
+          style={{ borderRight: 0, fontSize: 16, fontWeight: 500, marginTop: 8, background: "#061a2f" }}
           items={[
             { key: "overview", icon: <AppstoreOutlined />, label: "Overview" },
             { key: "domains", icon: <DatabaseOutlined />, label: "Domains" },
             { key: "products", icon: <ShopOutlined />, label: "Data Products" },
-            { key: "shop", icon: <ShopOutlined style={{ color: '#f59e42' }} />, label: <span style={{ color: '#f59e42', fontWeight: 600 }}>Shop Analysis</span> },
-            { key: "domain-analytics", icon: <DatabaseOutlined style={{ color: '#a855f7' }} />, label: <span style={{ color: '#a855f7', fontWeight: 600 }}>Domain-wise Analytics</span> },
+            { key: "shop", icon: <ShopOutlined />, label: "Shop Analysis" },
+            { key: "domain-analytics", icon: <DatabaseOutlined />, label: "Domain-wise Analytics" },
             { key: "governance", icon: <SafetyOutlined />, label: "Governance" },
-            { key: "mlhealth", icon: <SafetyOutlined style={{ color: '#3b82f6' }} />, label: <span style={{ color: '#3b82f6', fontWeight: 600 }}>ML Health</span> },
+            { key: "mlhealth", icon: <SafetyOutlined />, label: "ML Health" },
           ]}
         />
-        <div style={{ position: "absolute", bottom: 0, width: "100%", color: "#aaa", fontSize: 13, textAlign: "center", padding: 16, borderTop: "1px solid #222" }}>
+        <div style={{ position: "absolute", bottom: 0, width: "100%", color: "#94a3b8", fontSize: 12, textAlign: "center", padding: 14, borderTop: "1px solid rgba(148, 163, 184, 0.2)" }}>
           © {new Date().getFullYear()} Data Mesh Platform
         </div>
       </Sider>
-      <Layout style={{ marginLeft: 240, background: "#f5f6fa", minHeight: "100vh", minWidth: "calc(100vw - 240px)" }}>
-        <Header style={{ background: "#fff", padding: "0 40px", fontSize: 26, fontWeight: 700, borderBottom: "1px solid #eee", minHeight: 70, display: "flex", alignItems: "center", letterSpacing: 1, boxShadow: "0 2px 8px #e0e7ef11" }}>
-          {selected === "overview" && "Mesh Overview"}
-          {selected === "domains" && "Domains & Ownership"}
-          {selected === "products" && "Data Products Catalog"}
-          {selected === "shop" && <span style={{ color: '#f59e42' }}>Shop Analysis</span>}
-          {selected === "governance" && "Federated Governance"}
-          {selected === "mlhealth" && <span style={{ color: '#3b82f6' }}>ML Health & Anomalies</span>}
-          {selected === "domain-analytics" && "Domain-wise Analytics"}
+      <Layout style={{ background: "#f5f6fa", minHeight: 0, height: "100%", minWidth: 0, width: "100%" }}>
+        <Header style={{ background: "#ffffff", padding: "0 28px", fontSize: 34, fontWeight: 700, color: "#0f172a", borderBottom: "1px solid #e2e8f0", minHeight: 70, display: "flex", alignItems: "center", justifyContent: "space-between", letterSpacing: 0.2, boxShadow: "0 1px 4px rgba(15, 23, 42, 0.06)" }}>
+          <div>
+            {selected === "overview" && "Mesh Overview"}
+            {selected === "domains" && "Domains & Ownership"}
+            {selected === "products" && "Data Products Catalog"}
+            {selected === "shop" && "Shop Analysis"}
+            {selected === "governance" && "Federated Governance"}
+            {selected === "mlhealth" && "ML Health & Anomalies"}
+            {selected === "domain-analytics" && "Domain-wise Analytics"}
+          </div>
         </Header>
-        <Content style={{ padding: 48, background: "#f5f6fa", minHeight: "calc(100vh - 70px)", width: "100%" }}>
+        <Content style={{ padding: 28, background: "#f5f6fa", minHeight: 0, width: "100%", overflowY: "auto" }}>
           {/* Mesh-native content routing */}
           {selected === "overview" && <Home />}
           {selected === "domains" && <Domains />}
@@ -82,25 +83,25 @@ export default function App() {
           {selected === "shop" && <ShopAnalysis />}
           {selected === "governance" && <Health />}
           {selected === "mlhealth" && (
-            <div style={{ maxWidth: 1200, margin: "0 auto", background: "#fff", borderRadius: 16, boxShadow: "0 2px 16px #e0e7ef33", padding: "2.5rem 2rem" }}>
+            <div style={{ maxWidth: 1200, margin: "0 auto", background: "#fff", borderRadius: 14, border: "1px solid #e2e8f0", boxShadow: "0 8px 24px rgba(15, 23, 42, 0.06)", padding: "2rem 1.75rem" }}>
               <DomainHealthDashboard />
             </div>
           )}
           {selected === "domain-analytics" && (
             <div>
-              <h1 style={{ fontWeight: 700, fontSize: 32, marginBottom: 32 }}>Domain-wise Analytics</h1>
+              <h1 style={{ fontWeight: 700, fontSize: 28, marginBottom: 24, color: "#0f172a" }}>Domain-wise Analytics</h1>
               {!activeDomain ? (
-                <Row gutter={[32, 32]}>
+                <Row gutter={[20, 20]}>
                   {DOMAIN_CARDS.map(domain => (
                     <Col xs={24} sm={12} md={8} lg={6} key={domain.key}>
                       <Card
                         hoverable
-                        style={{ borderRadius: 16, minHeight: 170, boxShadow: "0 2px 12px #e0e7ef22", cursor: "pointer" }}
+                        style={{ borderRadius: 12, minHeight: 158, boxShadow: "0 4px 14px rgba(15, 23, 42, 0.08)", border: "1px solid #e2e8f0", cursor: "pointer" }}
                         onClick={() => setActiveDomain(domain)}
-                        bodyStyle={{ padding: 24 }}
+                        bodyStyle={{ padding: 18 }}
                       >
-                        <div style={{ fontWeight: 600, fontSize: 20, marginBottom: 10 }}>{domain.name}</div>
-                        <div style={{ color: "#666", fontSize: 15 }}>{domain.description}</div>
+                        <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8, color: "#0f172a" }}>{domain.name}</div>
+                        <div style={{ color: "#64748b", fontSize: 14, lineHeight: 1.5 }}>{domain.description}</div>
                       </Card>
                     </Col>
                   ))}
