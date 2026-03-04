@@ -9,7 +9,7 @@ This module provides functionality to:
 
 import os
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 from dataclasses import dataclass, field
 from datetime import datetime
 import logging
@@ -17,6 +17,8 @@ import pandas as pd
 import re
 
 from .preprocessing import DataPreprocessor
+from .validation import DataValidator, ValidationReport
+from src.integration.virtual_integration import VirtualIntegrationLayer
 from src.metadata.catalog import (
     MetadataCatalog,
     DataAsset,
@@ -614,6 +616,8 @@ class AutoDataLoader:
         self.registry = DatasetRegistry()
         self.metadata_catalog = MetadataCatalog()
         self.metadata_registry = MetadataRegistry()
+        self.last_validation_report: Optional[ValidationReport] = None
+        self.last_relationship_inferences: List[Any] = []
 
         logger.info(f"Initialized AutoDataLoader for: {folder_path}")
 
@@ -695,6 +699,12 @@ class AutoDataLoader:
         normalize_columns: bool = True,
         normalize_dates: bool = True,
         normalize_numeric: bool = True,
+        enable_validation: bool = True,
+        check_primary_keys: bool = True,
+        check_foreign_keys: bool = True,
+        check_missing_values: bool = True,
+        check_anomalies: bool = True,
+        enable_relationship_inference: bool = True,
     ) -> DatasetRegistry:
         """Automatically scan and load all supported data files.
 
@@ -706,6 +716,13 @@ class AutoDataLoader:
             normalize_columns: Convert column names to snake_case
             normalize_dates: Convert date columns to ISO format
             normalize_numeric: Convert numeric columns to proper types
+            enable_validation: Run validation automatically after loading
+            check_primary_keys: Enable primary key checks in validation
+            check_foreign_keys: Enable foreign key checks in validation
+            check_missing_values: Enable missing value checks in validation
+            check_anomalies: Enable anomaly checks in validation
+            enable_relationship_inference: Run relationship inference and metadata
+                registration after validation
 
         Returns:
             Populated DatasetRegistry
@@ -765,6 +782,46 @@ class AutoDataLoader:
         logger.info(
             f"Data loading complete: {successful_loads} loaded, {failed_loads} failed"
         )
+
+        if enable_validation and successful_loads > 0:
+            logger.info("Starting automatic validation after ingestion")
+            validator = DataValidator(metadata_catalog=self.metadata_catalog)
+            self.last_validation_report = validator.validate_registry(
+                self.registry,
+                check_primary_keys=check_primary_keys,
+                check_foreign_keys=check_foreign_keys,
+                check_missing_values=check_missing_values,
+                check_anomalies=check_anomalies,
+            )
+            logger.info(
+                "Automatic validation complete: "
+                f"issues={len(self.last_validation_report.issues)} "
+                f"datasets={self.last_validation_report.total_datasets}"
+            )
+
+        if enable_relationship_inference and successful_loads >= 2:
+            logger.info("Starting automatic relationship inference after validation")
+            integration_layer = VirtualIntegrationLayer(metadata_catalog=self.metadata_catalog)
+            self.last_relationship_inferences = integration_layer.infer_relationships(
+                datasets=self.registry.datasets,
+                register_results=True,
+            )
+            strong_count = sum(
+                1
+                for rel in self.last_relationship_inferences
+                if getattr(rel, "decision", "") == "strong"
+            )
+            probable_count = sum(
+                1
+                for rel in self.last_relationship_inferences
+                if getattr(rel, "decision", "") == "probable"
+            )
+            logger.info(
+                "Automatic relationship inference complete: "
+                f"total={len(self.last_relationship_inferences)} "
+                f"strong={strong_count} probable={probable_count}"
+            )
+
         return self.registry
 
     def get_registry(self) -> DatasetRegistry:
