@@ -720,3 +720,225 @@ Global dashboard UI/UX improvements for enterprise style:
     width: 100%;
   }
 }
+
+.dm-pm-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dm-pm-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.dm-pm-header p {
+  margin: 6px 0 0;
+  color: #667085;
+  font-size: 14px;
+}
+
+.dm-pm-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.dm-pm-card {
+  background: #fff;
+  border: 1px solid #d9dee7;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(16, 24, 40, 0.08);
+  padding: 16px;
+}
+
+.dm-pm-card-title {
+  margin-bottom: 12px;
+  color: #111827;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.dm-pm-muted {
+  color: #667085;
+  font-size: 14px;
+}
+
+.dm-pm-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #edf0f3;
+  color: #344054;
+  font-size: 14px;
+}
+
+.dm-pm-stat-row strong {
+  color: #111827;
+  font-weight: 700;
+}
+
+.dm-pm-health {
+  margin-top: 10px;
+  color: #344054;
+  font-size: 14px;
+}
+
+.dm-pm-health b {
+  color: #2f6fec;
+}
+
+.dm-pm-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 520px;
+}
+
+.dm-pm-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dm-pm-quick-actions button {
+  border: 1px solid #d0d5dd;
+  background: #f9fafb;
+  color: #344054;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+
+.dm-pm-quick-actions button:hover {
+  border-color: #2f6fec;
+  color: #2f6fec;
+  background: #eef4ff;
+}
+
+.dm-pm-messages {
+  flex: 1;
+  min-height: 300px;
+  max-height: 420px;
+  overflow-y: auto;
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+  background: #fcfcfd;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dm-pm-msg {
+  max-width: 82%;
+  border-radius: 12px;
+  padding: 10px 12px;
+  border: 1px solid #e4e7ec;
+}
+
+.dm-pm-msg.user {
+  align-self: flex-end;
+  background: #eef4ff;
+  border-color: #cfe0ff;
+}
+
+.dm-pm-msg.agent {
+  align-self: flex-start;
+  background: #ffffff;
+}
+
+.dm-pm-msg-role {
+  font-size: 11px;
+  font-weight: 700;
+  color: #667085;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.dm-pm-msg-text {
+  margin-top: 4px;
+  color: #111827;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.dm-pm-msg-time {
+  margin-top: 6px;
+  color: #98a2b3;
+  font-size: 11px;
+  text-align: right;
+}
+
+.dm-pm-input-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.dm-pm-input-row input {
+  height: 40px;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+.dm-pm-input-row input:focus {
+  outline: none;
+  border-color: #2f6fec;
+  box-shadow: 0 0 0 3px rgba(47, 111, 236, 0.12);
+}
+
+.dm-pm-input-row button {
+  border: 1px solid #2f6fec;
+  background: #2f6fec;
+  color: #fff;
+  border-radius: 10px;
+  padding: 0 14px;
+  height: 40px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dm-pm-input-row button:hover {
+  background: #2457c4;
+  border-color: #2457c4;
+}
+
+@media (max-width: 1080px) {
+  .dm-pm-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dm-pm-chat {
+    min-height: 440px;
+  }
+}
+
+@media (max-width: 760px) {
+  .dm-pm-quick-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .dm-pm-input-row {
+    grid-template-columns: 1fr;
+  }
+
+  .dm-pm-input-row button {
+    width: 100%;
+  }
+
+  .dm-pm-msg {
+    max-width: 100%;
+  }
+}

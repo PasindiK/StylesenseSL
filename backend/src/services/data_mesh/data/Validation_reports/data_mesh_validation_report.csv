@@ -1,0 +1,9 @@
+domain,row_count,issues
+users_domain,508,[]
+sales_domain,8008,[]
+user_preferences_domain,471,"[""Primary key 'preference_id' duplicates: 10""]"
+engagement_domain,222,"[""Primary key 'trend_id' duplicates: 2""]"
+customer_domain,2856,[]
+shop_domain,24,[]
+metadata,7,[]
+product_domain,2483,"[""Primary key 'product_id' duplicates: 53""]"

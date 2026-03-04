@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-03-04T15:55:09",
+  "latest_run_status": "SUCCESS",
+  "domains_processed": 7,
+  "total_rows_processed": 14572,
+  "execution_time_seconds": 0.0639,
+  "failure_rate_percent": 0.0,
+  "health_score": 100,
+  "health_classification": "Healthy",
+  "trend_last_5_runs": [
+    {
+      "run_id": "20260304155431",
+      "timestamp": "2026-03-04T15:54:31",
+      "status": "SUCCESS",
+      "rows_processed": 14572,
+      "execution_time_seconds": 0.0639,
+      "failure_rate_percent": 0.0
+    }
+  ],
+  "alerts": [
+    "No critical alerts."
+  ]
+}
