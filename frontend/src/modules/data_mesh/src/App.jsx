@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Layout, Menu, Row, Col, Card } from "antd";
+import "./index.css";
 import {
   AppstoreOutlined,
   DatabaseOutlined,
