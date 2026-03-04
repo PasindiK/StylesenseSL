@@ -1,0 +1,375 @@
+# Data Categorization Configuration
+# Defines stakeholder types, geographic scopes, and access rules for Sri Lankan fashion industry
+
+# Geographic Regions (Sri Lanka)
+geographic_regions:
+  provinces:
+    - name: "Western Province"
+      capital: "Colombo"
+      districts:
+        - "Colombo"
+        - "Gampaha"
+        - "Kalutara"
+      major_cities:
+        - "Colombo"
+        - "Negombo"
+        - "Galle"
+      characteristics: "Urban, highest retail density"
+    
+    - name: "Central Province"
+      capital: "Kandy"
+      districts:
+        - "Kandy"
+        - "Matara"
+        - "Nuwara Eliya"
+      major_cities:
+        - "Kandy"
+        - "Nuwara Eliya"
+      characteristics: "Hilly terrain, tourism hub"
+    
+    - name: "Southern Province"
+      capital: "Galle"
+      districts:
+        - "Galle"
+        - "Matara"
+        - "Hambantota"
+      major_cities:
+        - "Galle"
+        - "Matara"
+      characteristics: "Coastal, tourism"
+    
+    - name: "Northern Province"
+      capital: "Jaffna"
+      districts:
+        - "Jaffna"
+        - "Mullaitivu"
+      major_cities:
+        - "Jaffna"
+      characteristics: "Developing, growing retail"
+    
+    - name: "Eastern Province"
+      capital: "Trincomalee"
+      districts:
+        - "Trincomalee"
+        - "Batticaloa"
+        - "Ampara"
+      major_cities:
+        - "Trincomalee"
+      characteristics: "Coastal, emerging market"
+    
+    - name: "North Western Province"
+      capital: "Kurunegala"
+      districts:
+        - "Kurunegala"
+        - "Puttalam"
+      major_cities:
+        - "Kurunegala"
+      characteristics: "Rural, agricultural"
+    
+    - name: "North Central Province"
+      capital: "Polonnaruwa"
+      districts:
+        - "Polonnaruwa"
+        - "Matale"
+      major_cities:
+        - "Polonnaruwa"
+      characteristics: "Historic sites, tourism"
+    
+    - name: "Uva Province"
+      capital: "Badulla"
+      districts:
+        - "Badulla"
+        - "Monaragala"
+      major_cities:
+        - "Badulla"
+      characteristics: "Highland, tea plantations"
+    
+    - name: "Sabaragamuwa Province"
+      capital: "Ratnapura"
+      districts:
+        - "Ratnapura"
+        - "Kegalle"
+      major_cities:
+        - "Ratnapura"
+      characteristics: "Gem trading, agriculture"
+
+# Stakeholder Types & Access Policies
+stakeholder_access:
+  
+  # Type 1: Fabric Component Member (Regional Suppliers)
+  fabric_component_member:
+    description: "Regional fabric/component suppliers"
+    access_level: "regional"
+    allowed_categories:
+      - transactions
+      - inventory
+      - trends
+      - supplier_interactions
+    
+    geographic_scope:
+      type: "specific_regions"
+      regions: ["Western Province", "Central Province", "Southern Province"]
+    
+    row_level_security:
+      - filter_by: "province"
+      - filter_by: "district"
+    
+    column_level_security:
+      excluded_columns:
+        - "customer_email"
+        - "customer_phone"
+        - "payment_method"
+        - "supplier_api_key"
+      
+    data_retention: "1 year"
+    use_cases:
+      - "Inventory planning"
+      - "Supply chain optimization"
+      - "Regional trend analysis"
+  
+  # Type 2: Island-Wide Analyst (Macro Analysis)
+  island_wide_analyst:
+    description: "Comprehensive data access for strategic analysis"
+    access_level: "full_island"
+    allowed_categories:
+      - transactions
+      - inventory
+      - trends
+      - customer_behavior
+      - supplier_performance
+      - market_analysis
+    
+    geographic_scope:
+      type: "all_regions"
+      regions: "all"
+    
+    row_level_security: []  # No filtering
+    
+    column_level_security:
+      excluded_columns:
+        - "customer_pii"
+        - "supplier_pii"
+        - "payment_details"
+        - "internal_cost"
+    
+    data_retention: "unlimited"
+    use_cases:
+      - "Market trend analysis"
+      - "Competitive intelligence"
+      - "Strategic planning"
+      - "Cross-region insights"
+  
+  # Type 3: Regional Manager (Region Operations)
+  regional_manager:
+    description: "Regional operations management"
+    access_level: "regional_ops"
+    allowed_categories:
+      - transactions
+      - shop_performance
+      - employee_metrics
+      - operational_data
+    
+    geographic_scope:
+      type: "assigned_region"
+      # Will be set per user
+    
+    row_level_security:
+      - filter_by: "province"
+      - filter_by: "shop_id"
+    
+    column_level_security:
+      excluded_columns:
+        - "customer_personal_data"
+        - "supplier_costs"
+        - "corporate_strategy"
+    
+    data_retention: "6 months"
+    use_cases:
+      - "Shop performance tracking"
+      - "Staff management"
+      - "Operational issues"
+      - "Local inventory management"
+  
+  # Type 4: Executive (Strategic Summary)
+  executive:
+    description: "Strategic decision makers - aggregated data only"
+    access_level: "executive_summary"
+    allowed_categories:
+      - aggregated_sales
+      - kpi_metrics
+      - summary_trends
+      - quarterly_reports
+    
+    geographic_scope:
+      type: "all_regions"
+      regions: "all"
+    
+    row_level_security: []
+    
+    column_level_security:
+      # Only high-level metrics
+      included_columns:
+        - "total_sales"
+        - "quarterly_revenue"
+        - "regional_summary"
+        - "market_share"
+        - "growth_rate"
+    
+    data_granularity: "monthly_aggregation"
+    data_retention: "2 years"
+    use_cases:
+      - "Board reporting"
+      - "Strategic planning"
+      - "Investor relations"
+      - "Executive dashboards"
+  
+  # Type 5: ML Engineer (ML Model Development)
+  ml_engineer:
+    description: "Machine learning model development and training"
+    access_level: "ml_development"
+    allowed_categories:
+      - transactions
+      - inventory
+      - customer_behavior
+      - trends
+      - seasonal_patterns
+    
+    geographic_scope:
+      type: "all_regions"
+      regions: "all"
+    
+    row_level_security: []  # No geographic filtering for training
+    
+    column_level_security:
+      excluded_columns:
+        - "customer_name"
+        - "customer_email"
+        - "customer_phone"
+        - "payment_card_details"
+        - "supplier_contact_info"
+    
+    data_format: "parquet"  # Optimized for ML
+    data_retention: "2 years"
+    use_cases:
+      - "Demand forecasting"
+      - "Customer segmentation"
+      - "Churn prediction"
+      - "Recommendation engine"
+      - "Inventory optimization"
+
+# Access Validation Rules
+access_validation:
+  require_approval: true
+  approval_levels:
+    regional_subset: "manager"
+    full_island: "director"
+    ml_training: "cto"
+    executive: "cfo"
+  
+  audit_all_access: true
+  audit_log_location: "metadata/audit_logs/access_log.jsonl"
+  
+  # PII Protection
+  pii_columns:
+    - "customer_name"
+    - "customer_email"
+    - "customer_phone"
+    - "payment_method"
+    - "supplier_email"
+    - "supplier_phone"
+  
+  pii_handling:
+    executive: "exclude"
+    ml_engineer: "exclude"
+    regional_manager: "exclude"
+    island_wide_analyst: "exclude"
+    fabric_component_member: "exclude"
+
+# View Generation Rules
+view_generation:
+  
+  # Each stakeholder gets specific views generated
+  fabric_component_member:
+    views:
+      - "regional_transactions"
+      - "regional_inventory"
+      - "regional_trends"
+    auto_refresh: "daily"
+    storage_location: "gold/stakeholder_views/fabric_member/"
+  
+  island_wide_analyst:
+    views:
+      - "island_transactions"
+      - "island_trends"
+      - "customer_segmentation"
+      - "market_analysis"
+    auto_refresh: "hourly"
+    storage_location: "gold/stakeholder_views/analyst/"
+  
+  regional_manager:
+    views:
+      - "regional_dashboard"
+      - "shop_performance"
+      - "employee_metrics"
+    auto_refresh: "daily"
+    storage_location: "gold/stakeholder_views/regional_mgr/"
+  
+  executive:
+    views:
+      - "executive_dashboard"
+      - "kpi_summary"
+      - "quarterly_report"
+    auto_refresh: "weekly"
+    storage_location: "gold/stakeholder_views/executive/"
+  
+  ml_engineer:
+    views:
+      - "training_dataset"
+      - "feature_engineering"
+      - "historical_patterns"
+    auto_refresh: "on_demand"
+    storage_location: "gold/stakeholder_views/ml_engineer/"
+
+# Data Categories
+data_categories:
+  transactions:
+    description: "Point of sale transactions"
+    sensitivity: "medium"
+    examples: ["sales", "returns", "exchanges"]
+  
+  inventory:
+    description: "Stock and inventory data"
+    sensitivity: "low"
+    examples: ["stock_levels", "product_status", "warehouse_location"]
+  
+  trends:
+    description: "Market and sales trends"
+    sensitivity: "low"
+    examples: ["sales_trends", "seasonal_patterns", "customer_preferences"]
+  
+  customer_behavior:
+    description: "Customer purchasing patterns"
+    sensitivity: "high"
+    examples: ["purchase_history", "loyalty_metrics", "browsing_patterns"]
+  
+  supplier_performance:
+    description: "Supplier metrics and performance"
+    sensitivity: "medium"
+    examples: ["delivery_times", "quality_metrics", "cost_efficiency"]
+  
+  market_analysis:
+    description: "Market research and competitive analysis"
+    sensitivity: "low"
+    examples: ["market_share", "competitor_pricing", "demand_forecasts"]
+
+# Compliance & Retention
+compliance:
+  data_residency: "Sri Lanka"
+  gdpr_compliant: false
+  privacy_policy_version: "2.0"
+  
+  retention_policies:
+    default: "2 years"
+    transactions: "7 years"
+    audit_logs: "10 years"
+    customer_pii: "upon_request_deletion"

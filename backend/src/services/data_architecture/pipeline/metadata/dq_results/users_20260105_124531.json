@@ -1,0 +1,12 @@
+{
+  "hard_failures": [
+    "user_id completeness below threshold: 97.52%",
+    "user_id has 36 duplicate values"
+  ],
+  "soft_warnings": [
+    "email completeness below soft threshold: 96.95%",
+    "name completeness below soft threshold: 97.33%",
+    "email has 42 duplicate values"
+  ],
+  "is_acceptable": false
+}

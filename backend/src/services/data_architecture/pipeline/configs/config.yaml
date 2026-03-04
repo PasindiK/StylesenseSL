@@ -1,0 +1,35 @@
+environment:
+  name: development
+  region: us-east-1
+
+databricks:
+  workspace_url: https://your-workspace.cloud.databricks.com
+  cluster_name: lakehouse_dev
+  catalog: fashion_lakehouse
+  
+data_paths:
+  bronze: /mnt/bronze/fashion/
+  silver: /mnt/silver/fashion/
+  gold: /mnt/gold/fashion/
+  local_data: data/
+
+datasets:
+  - products
+  - users
+  - preferences
+  - interactions
+  - transactions
+  - trends
+  - shops
+  - embeddings
+
+quality_targets:
+  completeness_threshold: 0.99
+  accuracy_threshold: 0.99
+  freshness_max_lag_hours: 24
+
+storage_tiering:
+  hot_cost_per_gb: 0.023
+  warm_cost_per_gb: 0.012
+  cold_cost_per_gb: 0.004
+  budget_cap: 1000

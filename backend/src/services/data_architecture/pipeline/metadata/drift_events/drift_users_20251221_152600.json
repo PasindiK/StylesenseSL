@@ -1,0 +1,51 @@
+{
+  "timestamp": "2025-12-21T15:26:00.662429",
+  "table": "users",
+  "source_file": "users_dataset.csv",
+  "diff": {
+    "new_columns": [
+      "_ingestion_ts",
+      "_source_file",
+      "_ingestion_date"
+    ],
+    "missing_columns": [],
+    "dtype_changes": [
+      {
+        "column": "user_id",
+        "expected": "int",
+        "actual": "StringType()"
+      },
+      {
+        "column": "name",
+        "expected": "string",
+        "actual": "StringType()"
+      },
+      {
+        "column": "email",
+        "expected": "string",
+        "actual": "StringType()"
+      },
+      {
+        "column": "phone",
+        "expected": "string",
+        "actual": "StringType()"
+      },
+      {
+        "column": "shipping_address",
+        "expected": "string",
+        "actual": "StringType()"
+      },
+      {
+        "column": "signup_ts",
+        "expected": "string",
+        "actual": "StringType()"
+      },
+      {
+        "column": "is_active",
+        "expected": "boolean",
+        "actual": "StringType()"
+      }
+    ]
+  },
+  "decision": "REQUIRES_REVIEW"
+}

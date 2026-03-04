@@ -1,0 +1,26 @@
+{
+  "timestamp": "2025-12-21T15:38:27.871275",
+  "table": "user_preferences",
+  "source_file": "user_preferences_dataset.csv",
+  "diff": {
+    "new_columns": [
+      "preference_id",
+      "user_id",
+      "preferred_categories",
+      "preferred_colors",
+      "preferred_fabrics",
+      "preferred_brands",
+      "preferred_styles",
+      "skin_tone",
+      "body_type",
+      "price_sensitivity",
+      "updated_ts",
+      "_ingestion_ts",
+      "_source_file",
+      "_ingestion_date"
+    ],
+    "missing_columns": [],
+    "dtype_changes": []
+  },
+  "decision": "REQUIRES_MANUAL_REVIEW"
+}

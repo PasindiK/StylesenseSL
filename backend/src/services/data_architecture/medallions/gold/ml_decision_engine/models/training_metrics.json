@@ -1,0 +1,9 @@
+{
+  "action_counts": {
+    "auto_merge_schema": 18,
+    "create_new_schema_version": 6,
+    "quarantine_data": 2,
+    "rollback_previous_schema": 2,
+    "require_human_approval": 2
+  }
+}

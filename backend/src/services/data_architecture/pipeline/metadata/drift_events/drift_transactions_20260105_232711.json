@@ -1,0 +1,114 @@
+{
+  "timestamp": "2026-01-05T23:27:11.941073",
+  "table": "transactions",
+  "source_file": "transactions_dataset.csv",
+  "diff": {
+    "new_columns": [
+      "delivery_address",
+      "notes",
+      "_ingestion_ts",
+      "_source_file",
+      "_ingestion_date"
+    ],
+    "missing_columns": [],
+    "dtype_changes": [
+      {
+        "column": "transaction_id",
+        "expected": "int",
+        "actual": "StringType()"
+      },
+      {
+        "column": "user_id",
+        "expected": "int",
+        "actual": "StringType()"
+      },
+      {
+        "column": "product_id",
+        "expected": "int",
+        "actual": "StringType()"
+      },
+      {
+        "column": "shop_id",
+        "expected": "int",
+        "actual": "StringType()"
+      },
+      {
+        "column": "quantity",
+        "expected": "int",
+        "actual": "StringType()"
+      },
+      {
+        "column": "unit_price",
+        "expected": "int",
+        "actual": "StringType()"
+      },
+      {
+        "column": "total_amount",
+        "expected": "double",
+        "actual": "StringType()"
+      },
+      {
+        "column": "discount_percent",
+        "expected": "int",
+        "actual": "StringType()"
+      },
+      {
+        "column": "discount_amount",
+        "expected": "double",
+        "actual": "StringType()"
+      },
+      {
+        "column": "tax_percent",
+        "expected": "int",
+        "actual": "StringType()"
+      },
+      {
+        "column": "tax_amount",
+        "expected": "double",
+        "actual": "StringType()"
+      },
+      {
+        "column": "final_amount",
+        "expected": "double",
+        "actual": "StringType()"
+      },
+      {
+        "column": "payment_method",
+        "expected": "string",
+        "actual": "StringType()"
+      },
+      {
+        "column": "transaction_status",
+        "expected": "string",
+        "actual": "StringType()"
+      },
+      {
+        "column": "transaction_date",
+        "expected": "string",
+        "actual": "StringType()"
+      },
+      {
+        "column": "transaction_ts",
+        "expected": "string",
+        "actual": "StringType()"
+      },
+      {
+        "column": "delivery_date",
+        "expected": "string",
+        "actual": "StringType()"
+      }
+    ],
+    "renames": []
+  },
+  "decision": "AUTO_ACCEPT",
+  "extra": {
+    "accepted": [
+      "delivery_address",
+      "notes",
+      "_ingestion_ts",
+      "_source_file",
+      "_ingestion_date"
+    ],
+    "new_version": 1
+  }
+}

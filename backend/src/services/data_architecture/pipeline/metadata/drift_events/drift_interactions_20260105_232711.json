@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-01-05T23:27:11.409016",
+  "table": "interactions",
+  "source_file": "interactions_dataset.csv",
+  "diff": {
+    "new_columns": [
+      "interaction_id",
+      "user_id",
+      "product_id",
+      "interaction_type",
+      "interaction_ts",
+      "interaction_date",
+      "_ingestion_ts",
+      "_source_file",
+      "_ingestion_date"
+    ],
+    "missing_columns": [],
+    "dtype_changes": [],
+    "renames": []
+  },
+  "decision": "AUTO_ACCEPT",
+  "extra": {
+    "accepted": [
+      "interaction_id",
+      "user_id",
+      "product_id",
+      "interaction_type",
+      "interaction_ts",
+      "interaction_date",
+      "_ingestion_ts",
+      "_source_file",
+      "_ingestion_date"
+    ],
+    "new_version": 1
+  }
+}

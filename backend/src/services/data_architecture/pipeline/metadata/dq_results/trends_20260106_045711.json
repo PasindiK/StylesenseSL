@@ -1,0 +1,14 @@
+{
+  "hard_failures": [],
+  "soft_warnings": [
+    "trend_id completeness below soft threshold: 97.86%",
+    "trend_name completeness below soft threshold: 98.72%",
+    "trend_category completeness below soft threshold: 97.01%",
+    "trend_score completeness below soft threshold: 96.15%",
+    "week completeness below soft threshold: 97.44%",
+    "year completeness below soft threshold: 98.29%",
+    "emerging_designers completeness below soft threshold: 97.86%",
+    "trend_tags completeness below soft threshold: 98.29%"
+  ],
+  "is_acceptable": true
+}

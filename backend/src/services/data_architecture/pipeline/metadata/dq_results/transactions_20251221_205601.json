@@ -1,0 +1,12 @@
+{
+  "hard_failures": [
+    "transaction_id completeness below threshold: 98.37%",
+    "final_amount completeness below threshold: 97.39%",
+    "transaction_id has 18 duplicate values"
+  ],
+  "soft_warnings": [
+    "transaction_status has invalid values: [nan]",
+    "payment_method has invalid values: [nan '###typo']"
+  ],
+  "is_acceptable": false
+}

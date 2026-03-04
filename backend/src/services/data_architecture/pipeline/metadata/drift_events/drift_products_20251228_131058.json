@@ -1,0 +1,56 @@
+{
+  "timestamp": "2025-12-28T13:10:58.723843",
+  "table": "products",
+  "source_file": "synthetic_outerwear_sri_lanka_with_shop_ids.csv",
+  "diff": {
+    "new_columns": [
+      "new_feature_x",
+      "new_feature_y"
+    ],
+    "missing_columns": [
+      "fabric",
+      "size_range",
+      "price_LKR",
+      "style_tags",
+      "product_url",
+      "created_ts",
+      "popularity_score",
+      "stock_count"
+    ],
+    "dtype_changes": [
+      {
+        "column": "product_id",
+        "expected": "int",
+        "actual": "LongType()"
+      },
+      {
+        "column": "shop_id",
+        "expected": "int",
+        "actual": "LongType()"
+      },
+      {
+        "column": "name",
+        "expected": "string",
+        "actual": "StringType()"
+      },
+      {
+        "column": "category",
+        "expected": "string",
+        "actual": "StringType()"
+      },
+      {
+        "column": "color",
+        "expected": "string",
+        "actual": "StringType()"
+      }
+    ]
+  },
+  "decision": "AUTO_ACCEPT",
+  "extra": {
+    "accepted": [
+      "new_feature_x",
+      "new_feature_y"
+    ],
+    "new_version": 1
+  }
+}

@@ -1,0 +1,24 @@
+pandas==2.2.3
+numpy==1.25.2
+pyspark==3.5.0
+faker==19.0.0
+pyyaml==6.0
+python-dotenv==1.0.0
+scikit-learn==1.2.2
+joblib==1.3.2
+fastapi==0.115.0
+uvicorn==0.32.0
+pydantic==2.10.0
+requests==2.31.0
+
+# Kafka integration
+kafka-python==2.0.2
+
+# Additional data processing
+pyarrow==14.0.0  # For parquet support
+fastparquet==2023.10.1
+
+# Monitoring and logging
+python-json-logger==2.0.7
+boto3==1.26.160
+azure-storage-blob==12.17.0
