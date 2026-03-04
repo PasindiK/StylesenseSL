@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { HardDrive } from 'lucide-react'
 import './App.css'
 import ProductCard from './modules/agentic_ai/components/ProductCard'
 import type { Product } from './modules/agentic_ai/components/ProductCard'
@@ -260,6 +261,7 @@ export default function App() {
                     onClick={() => setSelectedComponent(card.key)}
                     title={card.title}
                   >
+                    {card.key === 'data_architecture' && <HardDrive size={16} strokeWidth={2} style={{ marginRight: '6px' }} />}
                     {card.title}
                   </button>
                 ))}
@@ -558,6 +560,7 @@ export default function App() {
                   onClick={() => setSelectedComponent(card.key)}
                   title={card.title}
                 >
+                  {card.key === 'data_architecture' && <HardDrive size={16} strokeWidth={2} style={{ marginRight: '6px' }} />}
                   {card.title}
                 </button>
               ))}

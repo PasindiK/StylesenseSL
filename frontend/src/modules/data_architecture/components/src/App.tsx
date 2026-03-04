@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Layout } from './components/Layout';
+import { SaasHeader } from './components/SaasHeader';
+import { SaasTabs } from './components/SaasTabs';
+import { SaasMetrics } from './components/SaasMetrics';
 import { OverviewPage } from './components/OverviewPage';
-import { LatestDecisionPage } from './components/LatestDecisionPage';
 import { ApprovalQueuePage } from './components/ApprovalQueuePage';
 import { DecisionTimelinePage } from './components/DecisionTimelinePage';
-import { ExplainabilityPage } from './components/ExplainabilityPage';
-import { ActionDistributionPage } from './components/ActionDistributionPage';
-import { DriftEventsPage } from './components/DriftEventsPage';
+import { GovernancePage } from './components/GovernancePage';
 import { MedallionPage } from './components/MedallionPage';
 import { StorageTiersPage } from './components/StorageTiersPage';
 import { NotificationDropdown } from './components/NotificationDropdown';
@@ -265,60 +264,44 @@ export default function App() {
   );
 
   const renderPage = () => {
+    const metricCards = [
+      {
+        label: 'Total Drifts',
+        value: metrics.total_drifts,
+        trend: 12,
+      },
+      {
+        label: 'Resolved',
+        value: metrics.auto_resolved,
+        trend: 8,
+      },
+      {
+        label: 'Pending',
+        value: metrics.pending_approvals,
+        trend: -3,
+      },
+      {
+        label: 'Quarantined',
+        value: metrics.quarantined,
+        trend: 0,
+      },
+    ];
+
     switch (currentPage) {
       case 'overview':
         return (
-          <OverviewPage
-            metrics={metrics}
-            onMetricClick={setSelectedMetricType}
-          />
+          <>
+            <SaasMetrics metrics={metricCards} />
+            <OverviewPage
+              metrics={metrics}
+              onMetricClick={setSelectedMetricType}
+            />
+          </>
         );
       
-      case 'latest-decision':
+      case 'governance':
         return (
-          <LatestDecisionPage
-            latestDecision={latestDecision}
-            metrics={metrics}
-            onApprove={handleApprove}
-            onReject={handleReject}
-          />
-        );
-      
-      case 'approval-queue':
-        return (
-          <ApprovalQueuePage
-            pendingApprovals={pendingApprovals}
-            onApprove={handleApprove}
-            onReject={handleReject}
-          />
-        );
-      
-      case 'decision-timeline':
-        return (
-          <DecisionTimelinePage
-            decisionsTimeline={decisionsTimeline}
-          />
-        );
-      
-      case 'explainability':
-        return (
-          <ExplainabilityPage
-            featureImportance={data.feature_importance || []}
-          />
-        );
-      
-      case 'action-distribution':
-        return (
-          <ActionDistributionPage
-            actionDistribution={data.action_distribution || []}
-          />
-        );
-      
-      case 'drift-events':
-        return (
-          <DriftEventsPage
-            driftEvents={data.drift_events || []}
-          />
+          <GovernancePage />
         );
       
       case 'medallion':
@@ -330,7 +313,23 @@ export default function App() {
           />
         );
       
-      case 'storage-tiers':
+      case 'approvals':
+        return (
+          <ApprovalQueuePage
+            pendingApprovals={pendingApprovals}
+            onApprove={handleApprove}
+            onReject={handleReject}
+          />
+        );
+      
+      case 'timeline':
+        return (
+          <DecisionTimelinePage
+            decisionsTimeline={decisionsTimeline}
+          />
+        );
+      
+      case 'storage':
         return (
           <StorageTiersPage
             architecture={data.architecture || { stages: [] }}
@@ -339,21 +338,34 @@ export default function App() {
         );
       
       default:
-        return <OverviewPage metrics={metrics} onMetricClick={setSelectedMetricType} />;
+        return (
+          <>
+            <SaasMetrics metrics={metricCards} />
+            <OverviewPage metrics={metrics} onMetricClick={setSelectedMetricType} />
+          </>
+        );
     }
   };
 
+  const tabs = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'governance', label: 'Governance' },
+    { id: 'medallion', label: 'Medallion' },
+    { id: 'approvals', label: 'Approvals' },
+    { id: 'timeline', label: 'Timeline' },
+    { id: 'storage', label: 'Storage' },
+  ];
+
   return (
-    <>
-      <Layout
-        currentPage={currentPage}
-        onNavigate={setCurrentPage}
-        pipelineStatus={metrics.pipeline_status}
+    <div className="saas-dashboard">
+      <SaasHeader
         notificationCount={unreadNotifications.length}
         onNotificationClick={() => setShowNotifications(!showNotifications)}
-      >
+      />
+      <SaasTabs tabs={tabs} activeTab={currentPage} onTabChange={setCurrentPage} />
+      <div className="saas-content">
         {renderPage()}
-      </Layout>
+      </div>
 
       <NotificationDropdown
         notifications={notifList}
@@ -368,7 +380,7 @@ export default function App() {
       />
 
       {toast && <div className="toast">{toast}</div>}
-    </>
+    </div>
   );
 }
 

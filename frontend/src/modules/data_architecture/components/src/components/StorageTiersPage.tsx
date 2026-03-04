@@ -1,6 +1,20 @@
 import { useState, useEffect } from 'react';
 import { Badge } from './Badge';
 import { DashboardData } from '../types';
+import {
+  Flame,
+  Sun,
+  Snowflake,
+  Package,
+  HardDrive,
+  DollarSign,
+  Zap,
+  AlertCircle,
+  RefreshCw,
+  Calendar,
+  Lock,
+  type LucideIcon,
+} from 'lucide-react';
 
 interface StorageTiersPageProps {
   architecture: NonNullable<DashboardData['architecture']>;
@@ -11,13 +25,14 @@ type Season = 'spring' | 'summer' | 'fall' | 'winter';
 
 interface TierMetrics {
   name: string;
-  icon: string;
+  icon: LucideIcon;
   datasets: string[];
   color: string;
   accessFrequency: string;
   avgLatency: string;
   costPerTB: string;
   retentionDays: number;
+  description: string;
 }
 
 export function StorageTiersPage({ architecture }: StorageTiersPageProps) {
@@ -38,43 +53,47 @@ export function StorageTiersPage({ architecture }: StorageTiersPageProps) {
   const tiers: TierMetrics[] = [
     {
       name: 'Hot',
-      icon: '🔥',
+      icon: Flame,
       datasets: architecture.storage_tiers?.hot || ['users', 'products', 'transactions'],
       color: 'hot',
       accessFrequency: '< 1 day',
       avgLatency: '< 10ms',
       costPerTB: '$23/month',
       retentionDays: 30,
+      description: 'Real-time active data with maximum performance',
     },
     {
       name: 'Warm',
-      icon: '☀️',
+      icon: Sun,
       datasets: architecture.storage_tiers?.warm || ['orders_history', 'user_preferences'],
       color: 'warm',
       accessFrequency: '1-30 days',
       avgLatency: '< 100ms',
       costPerTB: '$10/month',
       retentionDays: 90,
+      description: 'Recently accessed data with balanced cost and latency',
     },
     {
       name: 'Cold',
-      icon: '❄️',
+      icon: Snowflake,
       datasets: architecture.storage_tiers?.cold || ['archived_transactions', 'old_logs'],
       color: 'cold',
       accessFrequency: '30-90 days',
       avgLatency: '< 1s',
       costPerTB: '$4/month',
       retentionDays: 365,
+      description: 'Infrequently accessed data with cost optimization',
     },
     {
       name: 'Archive',
-      icon: '📦',
+      icon: Package,
       datasets: architecture.storage_tiers?.archive || ['compliance_data', 'audit_logs'],
       color: 'archive',
       accessFrequency: '> 90 days',
       avgLatency: '1-12 hours',
       costPerTB: '$1/month',
       retentionDays: 2555,
+      description: 'Long-term retention with minimal access requirements',
     },
   ];
 
@@ -129,28 +148,32 @@ export function StorageTiersPage({ architecture }: StorageTiersPageProps) {
       {/* Overview Metrics */}
       <div className="metrics-grid">
         <div className="metric-card">
-          <div className="metric-icon">💾</div>
+          {/* @ts-ignore */}
+          <div className="metric-icon"><HardDrive size={20} strokeWidth={2} /></div>
           <div className="metric-content">
             <div className="metric-label">Total Datasets</div>
             <div className="metric-value">{totalDatasets}</div>
           </div>
         </div>
         <div className="metric-card">
-          <div className="metric-icon">💰</div>
+          {/* @ts-ignore */}
+          <div className="metric-icon"><DollarSign size={20} strokeWidth={2} /></div>
           <div className="metric-content">
             <div className="metric-label">Est. Monthly Cost</div>
             <div className="metric-value">${estimatedMonthlyCost.toFixed(2)}</div>
           </div>
         </div>
         <div className="metric-card">
-          <div className="metric-icon">⚡</div>
+          {/* @ts-ignore */}
+          <div className="metric-icon"><Zap size={20} strokeWidth={2} /></div>
           <div className="metric-content">
             <div className="metric-label">Hot Tier Datasets</div>
             <div className="metric-value">{tiers[0].datasets.length}</div>
           </div>
         </div>
         <div className="metric-card">
-          <div className="metric-icon">📊</div>
+          {/* @ts-ignore */}
+          <div className="metric-icon"><Lock size={20} strokeWidth={2} /></div>
           <div className="metric-content">
             <div className="metric-label">Archive Datasets</div>
             <div className="metric-value">{tiers[3].datasets.length}</div>
@@ -163,14 +186,12 @@ export function StorageTiersPage({ architecture }: StorageTiersPageProps) {
         <div className="card seasonal-alert">
           <div className="seasonal-header">
             <div className="seasonal-icon">
-              {currentSeason === 'spring' && '🌸'}
-              {currentSeason === 'summer' && '☀️'}
-              {currentSeason === 'fall' && '🍂'}
-              {currentSeason === 'winter' && '❄️'}
+              {/* @ts-ignore */}
+              <Calendar size={24} strokeWidth={2} />
             </div>
             <div className="seasonal-content">
               <h3>
-                Seasonal Optimization: {currentSeason.charAt(0).toUpperCase() + currentSeason.slice(1)}
+                {currentSeason.charAt(0).toUpperCase() + currentSeason.slice(1)} Seasonal Optimization
               </h3>
               <p>{seasonalRule.description}</p>
               <div className="seasonal-metrics">
@@ -189,64 +210,71 @@ export function StorageTiersPage({ architecture }: StorageTiersPageProps) {
       <div className="tiers-section">
         <h3>Storage Tier Breakdown</h3>
         <div className="storage-tiers-grid-detailed">
-          {tiers.map((tier) => (
-            <div key={tier.name} className={`tier-card-detailed ${tier.color}`}>
-              <div className="tier-card-header">
-                <div className="tier-icon-large">{tier.icon}</div>
-                <div className="tier-title-section">
-                  <h4>{tier.name} Tier</h4>
-                  <div className="tier-count">{tier.datasets.length} datasets</div>
-                </div>
-              </div>
-
-              <div className="tier-specs">
-                <div className="tier-spec-item">
-                  <span className="spec-label">Access Frequency</span>
-                  <span className="spec-value">{tier.accessFrequency}</span>
-                </div>
-                <div className="tier-spec-item">
-                  <span className="spec-label">Avg Latency</span>
-                  <span className="spec-value">{tier.avgLatency}</span>
-                </div>
-                <div className="tier-spec-item">
-                  <span className="spec-label">Cost per TB</span>
-                  <span className="spec-value">{tier.costPerTB}</span>
-                </div>
-                <div className="tier-spec-item">
-                  <span className="spec-label">Retention</span>
-                  <span className="spec-value">{tier.retentionDays} days</span>
-                </div>
-              </div>
-
-              {tier.datasets.length > 0 && (
-                <div className="tier-datasets-section">
-                  <div className="datasets-header">Datasets</div>
-                  <div className="datasets-list">
-                    {tier.datasets.slice(0, 5).map((ds, idx) => (
-                      <div key={idx} className="dataset-chip">
-                        {ds}
-                      </div>
-                    ))}
-                    {tier.datasets.length > 5 && (
-                      <button
-                        className="dataset-chip more-btn"
-                        onClick={() => setSelectedTier(tier.name)}
-                      >
-                        +{tier.datasets.length - 5} more
-                      </button>
-                    )}
+          {tiers.map((tier) => {
+            const Icon = tier.icon;
+            return (
+              <div key={tier.name} className={`tier-card-detailed ${tier.color}`}>
+                <div className="tier-card-header">
+                  <div className="tier-icon-large">
+                    {/* @ts-ignore */}
+                    <Icon size={28} strokeWidth={2} />
+                  </div>
+                  <div className="tier-title-section">
+                    <h4>{tier.name} Tier</h4>
+                    <div className="tier-subtitle">{tier.description}</div>
+                    <div className="tier-count">{tier.datasets.length} datasets</div>
                   </div>
                 </div>
-              )}
 
-              <button
-                className="tier-action-btn"
-                onClick={() => setSelectedTier(tier.name)}
-              >
-                View Details
-              </button>
-            </div>
-          ))}
+                <div className="tier-specs">
+                  <div className="tier-spec-item">
+                    <span className="spec-label">Access Frequency</span>
+                    <span className="spec-value">{tier.accessFrequency}</span>
+                  </div>
+                  <div className="tier-spec-item">
+                    <span className="spec-label">Avg Latency</span>
+                    <span className="spec-value">{tier.avgLatency}</span>
+                  </div>
+                  <div className="tier-spec-item">
+                    <span className="spec-label">Cost per TB</span>
+                    <span className="spec-value">{tier.costPerTB}</span>
+                  </div>
+                  <div className="tier-spec-item">
+                    <span className="spec-label">Retention</span>
+                    <span className="spec-value">{tier.retentionDays} days</span>
+                  </div>
+                </div>
+
+                {tier.datasets.length > 0 && (
+                  <div className="tier-datasets-section">
+                    <div className="datasets-header">Datasets</div>
+                    <div className="datasets-list">
+                      {tier.datasets.slice(0, 5).map((ds, idx) => (
+                        <div key={idx} className="dataset-chip">
+                          {ds}
+                        </div>
+                      ))}
+                      {tier.datasets.length > 5 && (
+                        <button
+                          className="dataset-chip more-btn"
+                          onClick={() => setSelectedTier(tier.name)}
+                        >
+                          +{tier.datasets.length - 5} more
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  className="tier-action-btn"
+                  onClick={() => setSelectedTier(tier.name)}
+                >
+                  View Details
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -258,7 +286,8 @@ export function StorageTiersPage({ architecture }: StorageTiersPageProps) {
         </div>
         <div className="policy-section">
           <div className="policy-rule">
-            <div className="policy-icon">🔥</div>
+            {/* @ts-ignore */}
+            <div className="policy-icon"><Flame size={20} strokeWidth={2} /></div>
             <div className="policy-content">
               <div className="policy-title">Hot → Warm</div>
               <div className="policy-condition">
@@ -267,7 +296,8 @@ export function StorageTiersPage({ architecture }: StorageTiersPageProps) {
             </div>
           </div>
           <div className="policy-rule">
-            <div className="policy-icon">☀️</div>
+            {/* @ts-ignore */}
+            <div className="policy-icon"><Sun size={20} strokeWidth={2} /></div>
             <div className="policy-content">
               <div className="policy-title">Warm → Cold</div>
               <div className="policy-condition">
@@ -276,7 +306,8 @@ export function StorageTiersPage({ architecture }: StorageTiersPageProps) {
             </div>
           </div>
           <div className="policy-rule">
-            <div className="policy-icon">❄️</div>
+            {/* @ts-ignore */}
+            <div className="policy-icon"><Snowflake size={20} strokeWidth={2} /></div>
             <div className="policy-content">
               <div className="policy-title">Cold → Archive</div>
               <div className="policy-condition">
@@ -285,7 +316,8 @@ export function StorageTiersPage({ architecture }: StorageTiersPageProps) {
             </div>
           </div>
           <div className="policy-rule">
-            <div className="policy-icon">♻️</div>
+            {/* @ts-ignore */}
+            <div className="policy-icon"><RefreshCw size={20} strokeWidth={2} /></div>
             <div className="policy-content">
               <div className="policy-title">Smart Promotion</div>
               <div className="policy-condition">
@@ -303,7 +335,8 @@ export function StorageTiersPage({ architecture }: StorageTiersPageProps) {
         </div>
         <div className="optimization-grid">
           <div className="optimization-card success">
-            <div className="opt-icon">💰</div>
+            {/* @ts-ignore */}
+            <div className="opt-icon"><DollarSign size={24} strokeWidth={2} /></div>
             <div className="opt-content">
               <div className="opt-value">32%</div>
               <div className="opt-label">Cost Reduction</div>
@@ -311,7 +344,8 @@ export function StorageTiersPage({ architecture }: StorageTiersPageProps) {
             </div>
           </div>
           <div className="optimization-card info">
-            <div className="opt-icon">⚡</div>
+            {/* @ts-ignore */}
+            <div className="opt-icon"><Zap size={24} strokeWidth={2} /></div>
             <div className="opt-content">
               <div className="opt-value">95%</div>
               <div className="opt-label">Hot Tier Efficiency</div>
@@ -319,7 +353,8 @@ export function StorageTiersPage({ architecture }: StorageTiersPageProps) {
             </div>
           </div>
           <div className="optimization-card warning">
-            <div className="opt-icon">📊</div>
+            {/* @ts-ignore */}
+            <div className="opt-icon"><AlertCircle size={24} strokeWidth={2} /></div>
             <div className="opt-content">
               <div className="opt-value">12 TB</div>
               <div className="opt-label">Can Be Archived</div>
