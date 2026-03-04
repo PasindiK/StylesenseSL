@@ -291,7 +291,7 @@ export default function App() {
               <p className="chat-subtitle">{component?.description}</p>
             </div>
 
-            <div className="component-view">
+            <div className={`component-view ${selectedComponent === 'data_mesh' ? 'data-mesh-host' : ''}`}>
               {selectedComponent === 'data_mesh' ? (
                 <DataMeshApp />
               ) : selectedComponent === 'data_fabric' ? (

@@ -24,7 +24,7 @@ export default function Health() {
   const columns = [
     { title: "Domain", dataIndex: "domain" },
     { title: "Row Count", dataIndex: "row_count" },
-    { title: "Null Counts", dataIndex: "null_counts", render: nc => nc ? Object.entries(nc).map(([k, v]) => `${k}: ${v}`).join(", ") : "-" },
+    { title: "Null Counts", dataIndex: "null_counts", render: nc => <span style={{ whiteSpace: "normal", wordBreak: "break-word" }}>{nc ? Object.entries(nc).map(([k, v]) => `${k}: ${v}`).join(", ") : "-"}</span> },
     { title: "Last Modified", dataIndex: "last_modified", render: lm => lm ? new Date(lm).toLocaleString() : "-" },
     { title: "Freshness", dataIndex: "last_modified", render: lm => {
       if (!lm) return <Tag color="red">Stale</Tag>;
@@ -40,7 +40,7 @@ export default function Health() {
         <span className="env-badge">Production</span>
       </div>
       <div className="section">
-        {loading ? <Spin /> : <Table columns={columns} dataSource={health} pagination={false} />}
+        {loading ? <Spin /> : <Table columns={columns} dataSource={health} pagination={false} scroll={{ x: "max-content" }} />}
       </div>
     </div>
   );

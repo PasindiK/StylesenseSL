@@ -2,10 +2,8 @@
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color: #222;
+  background-color: #f5f6fa;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -24,15 +22,8 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+  min-width: 0;
+  min-height: 100%;
 }
 
 button {
@@ -54,19 +45,6 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
-
 /*
 Global dashboard UI/UX improvements for enterprise style:
 - White background, subtle gray borders, soft card shadows
@@ -75,74 +53,74 @@ Global dashboard UI/UX improvements for enterprise style:
 - Typography and padding for clarity
 - Environment badge and last refresh timestamp styles
 */
-body, #root {
+.dm-shell {
   background: #f5f6fa !important;
   color: #222;
   font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
 }
 
-.ant-layout {
+.dm-shell .ant-layout {
   background: #f5f6fa !important;
 }
 
-.ant-layout-header {
+.dm-shell .ant-layout-header {
   background: #fff !important;
   border-bottom: 1px solid #e5e7eb !important;
   box-shadow: 0 2px 8px #e0e7ef11;
-  min-height: 70px !important;
+  min-height: 56px !important;
   display: flex;
   align-items: center;
-  padding: 0 40px !important;
+  padding: 0 16px !important;
 }
 
-.ant-layout-sider {
+.dm-shell .ant-layout-sider {
   background: #18181b !important;
   box-shadow: 2px 0 8px #e0e7ef22;
 }
 
-.ant-menu {
+.dm-shell .ant-menu {
   background: #18181b !important;
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 500;
 }
 
-.ant-card {
+.dm-shell .ant-card {
   background: #fff !important;
   border-radius: 16px !important;
   box-shadow: 0 2px 12px #e0e7ef22 !important;
   border: 1px solid #e5e7eb !important;
 }
 
-.ant-table {
+.dm-shell .ant-table {
   background: #fff !important;
   border-radius: 12px !important;
   box-shadow: 0 1px 8px #e0e7ef11 !important;
   border: 1px solid #e5e7eb !important;
 }
 
-.ant-tag {
+.dm-shell .ant-tag {
   font-size: 15px !important;
   border-radius: 6px !important;
   padding: 2px 10px !important;
 }
 
-.ant-spin {
+.dm-shell .ant-spin {
   margin: 32px auto;
   display: block;
 }
 
-h1, h2, h3, h4, h5 {
+.dm-shell h1, .dm-shell h2, .dm-shell h3, .dm-shell h4, .dm-shell h5 {
   font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
   font-weight: 700;
   color: #222;
 }
 
-.ant-statistic-title {
+.dm-shell .ant-statistic-title {
   font-size: 15px !important;
   color: #888 !important;
 }
 
-.ant-statistic-content {
+.dm-shell .ant-statistic-content {
   font-size: 24px !important;
   font-weight: 600 !important;
 }
@@ -154,6 +132,7 @@ h1, h2, h3, h4, h5 {
   border: 1px solid #e5e7eb;
   padding: 2.5rem 2rem;
   margin-bottom: 32px;
+  overflow-x: auto;
 }
 
 .env-badge {

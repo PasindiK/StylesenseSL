@@ -18,13 +18,13 @@ export default function Domains() {
   }, []);
 
   const columns = [
-    { title: "Domain", dataIndex: "domain" },
-    { title: "Owner", dataIndex: "owner" },
-    { title: "Contact", dataIndex: "contact" },
+    { title: "Domain", dataIndex: "domain", render: v => <span style={{ whiteSpace: "normal", wordBreak: "break-word" }}>{v}</span> },
+    { title: "Owner", dataIndex: "owner", render: v => <span style={{ whiteSpace: "normal", wordBreak: "break-word" }}>{v}</span> },
+    { title: "Contact", dataIndex: "contact", render: v => <span style={{ whiteSpace: "normal", wordBreak: "break-word" }}>{v}</span> },
     { title: "Schema Version", dataIndex: "schema_version" },
     { title: "Contract Status", dataIndex: "contract_status", render: s => <Tag color={s === "Valid" ? "green" : s === "Unknown" ? "red" : "orange"}>{s}</Tag> },
     { title: "Last Modified", dataIndex: "last_modified", render: lm => lm ? new Date(lm).toLocaleString() : "-" },
-    { title: "SLA", dataIndex: "sla" },
+    { title: "SLA", dataIndex: "sla", render: v => <span style={{ whiteSpace: "normal", wordBreak: "break-word" }}>{v}</span> },
     { title: "Health", dataIndex: "health", render: h => <Tag color={h === "Healthy" ? "green" : h === "Warning" ? "orange" : "red"}>{h}</Tag> },
     { title: "Contract", dataIndex: "contract_file", render: file => file ? (
       <Button href={`${API_BASE}/contracts/${file.split('/').pop()}`} target="_blank">View Contract</Button>
@@ -38,7 +38,7 @@ export default function Domains() {
         <span className="env-badge">Production</span>
       </div>
       <div className="section">
-        {loading ? <Spin /> : <Table columns={columns} dataSource={domains} pagination={false} />}
+        {loading ? <Spin /> : <Table columns={columns} dataSource={domains} pagination={false} scroll={{ x: "max-content" }} />}
       </div>
     </div>
   );
