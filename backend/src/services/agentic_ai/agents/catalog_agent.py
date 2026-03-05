@@ -12,6 +12,8 @@ import pandas as pd
 from src.ingestion.data_loader import DataLoader
 from src.utils.nl_parser import parse_intent
 from src.utils.deduplication_service import get_deduplication_service
+from src.services.agentic_ai.kg.client import Neo4jKGClient
+from src.services.agentic_ai.kg.events import KGEventWriter
 
 # Import Gemini query parser for enhanced query understanding
 try:
@@ -42,6 +44,8 @@ class CatalogAgent:
         self.loader = loader or DataLoader()
         # load default products into memory
         self.loader.load_products()
+        self.kg_client = Neo4jKGClient()
+        self.kg_events = KGEventWriter(self.kg_client)
         
         # Initialize vector search agent
         self.vector_search = None
@@ -491,6 +495,13 @@ class CatalogAgent:
             except Exception:
                 shop_id = None
 
+        if user_id:
+            self.kg_events.record_search(user_id=user_id, query=text, intent=intent)
+            if intent.get("category"):
+                self.kg_events.record_user_preference(user_id, "category", str(intent.get("category")), 0.5)
+            if intent.get("color"):
+                self.kg_events.record_user_preference(user_id, "color", str(intent.get("color")), 0.4)
+
         # Try vector search first if available (semantic understanding)
         if self.vector_search and self.vector_search.enabled:
             try:
@@ -553,6 +564,21 @@ class CatalogAgent:
                         dedup_service.track_shown(user_id, shown_product_ids)
                     
                     if results:
+                        if user_id and results:
+                            for product in results[:8]:
+                                pid = str(product.get("product_id") or "")
+                                if not pid:
+                                    continue
+                                self.kg_client.execute_write(
+                                    """
+                                    MERGE (u:User {user_id: toString($user_id)})
+                                    MATCH (p:Product {product_id: toString($product_id)})
+                                    MERGE (u)-[r:VIEWED]->(p)
+                                    SET r.count = coalesce(r.count, 0) + 1,
+                                        r.ts = datetime()
+                                    """,
+                                    {"user_id": user_id, "product_id": pid},
+                                )
                         return {
                             "intent": intent,
                             "shop": shop_details,
@@ -611,6 +637,22 @@ class CatalogAgent:
             log.info(f"answer_question - fallbacks: {fallbacks}, results_count: {len(results)}")
         except Exception:
             pass
+
+        if user_id and results:
+            for product in results[:8]:
+                pid = str(product.get("product_id") or "")
+                if not pid:
+                    continue
+                self.kg_client.execute_write(
+                    """
+                    MERGE (u:User {user_id: toString($user_id)})
+                    MATCH (p:Product {product_id: toString($product_id)})
+                    MERGE (u)-[r:VIEWED]->(p)
+                    SET r.count = coalesce(r.count, 0) + 1,
+                        r.ts = datetime()
+                    """,
+                    {"user_id": user_id, "product_id": pid},
+                )
 
         return {"intent": intent, "shop": shop_details, "results": results[:8] or [], "fallbacks": fallbacks or [], "search_method": "fuzzy_search"}
 

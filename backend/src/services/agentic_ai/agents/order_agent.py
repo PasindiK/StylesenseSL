@@ -12,7 +12,11 @@ import re
 from typing import List, Dict, Any, Optional
 from urllib.parse import urlparse
 import requests
-from bs4 import BeautifulSoup
+try:
+    from bs4 import BeautifulSoup
+except Exception:
+    BeautifulSoup = None
+from src.services.agentic_ai.kg.client import Neo4jKGClient
 
 logger = logging.getLogger(__name__)
 
@@ -23,11 +27,12 @@ class OrderAgent:
     def __init__(self, loader=None):
         self.cart_items: List[Dict[str, Any]] = []
         self.loader = loader  # Optional DataLoader for shop info lookup
+        self.kg_client = Neo4jKGClient()
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         }
     
-    def add_product(self, url: str, quantity: int = 1, size: Optional[str] = None) -> Dict[str, Any]:
+    def add_product(self, url: str, quantity: int = 1, size: Optional[str] = None, user_id: Optional[str] = None) -> Dict[str, Any]:
         """Add product from URL to cart.
         
         Args:
@@ -60,6 +65,18 @@ class OrderAgent:
             }
             
             self.cart_items.append(cart_item)
+
+            if user_id:
+                self.kg_client.execute_write(
+                    """
+                    MERGE (u:User {user_id: toString($user_id)})
+                    MATCH (p:Product {product_url: $product_url})
+                    MERGE (u)-[r:ADDED_TO_CART]->(p)
+                    SET r.count = coalesce(r.count, 0) + $quantity,
+                        r.ts = datetime()
+                    """,
+                    {"user_id": user_id, "product_url": url, "quantity": int(quantity)},
+                )
             
             return {
                 'success': True,
@@ -75,7 +92,7 @@ class OrderAgent:
                 'url': url
             }
     
-    def add_product_direct(self, product_data: Dict[str, Any], quantity: int = 1, size: Optional[str] = None) -> Dict[str, Any]:
+    def add_product_direct(self, product_data: Dict[str, Any], quantity: int = 1, size: Optional[str] = None, user_id: Optional[str] = None) -> Dict[str, Any]:
         """Add product directly from dataset (no web scraping needed).
         
         Args:
@@ -148,6 +165,22 @@ class OrderAgent:
             }
             
             self.cart_items.append(cart_item)
+
+            if user_id:
+                self.kg_client.execute_write(
+                    """
+                    MERGE (u:User {user_id: toString($user_id)})
+                    MATCH (p:Product {product_id: toString($product_id)})
+                    MERGE (u)-[r:ADDED_TO_CART]->(p)
+                    SET r.count = coalesce(r.count, 0) + $quantity,
+                        r.ts = datetime()
+                    """,
+                    {
+                        "user_id": user_id,
+                        "product_id": str(product_id),
+                        "quantity": int(quantity),
+                    },
+                )
             
             return {
                 'success': True,
@@ -173,6 +206,10 @@ class OrderAgent:
             Product information dict or None
         """
         try:
+            if BeautifulSoup is None:
+                logger.warning("BeautifulSoup not installed. URL scraping disabled for add_product().")
+                return None
+
             # Detect shop from URL
             domain = urlparse(url).netloc.lower()
             shop_name = self._extract_shop_name(domain)

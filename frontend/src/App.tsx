@@ -2,8 +2,11 @@ import React, { useState, useRef, useEffect } from 'react'
 import './App.css'
 import ProductCard from './modules/agentic_ai/components/ProductCard'
 import type { Product } from './modules/agentic_ai/components/ProductCard'
+import AgenticAIDashboard from './modules/agentic_ai/pages/AgenticAIDashboard'
+import type { KGPreferenceSignal } from './modules/agentic_ai/services/kgSignals'
 import DataFabricTestingPage from './modules/data_fabric/components/DataFabricTestingPage'
 import DataArchitectureTestingPage from './modules/data_architecture/components/DataArchitectureTestingPage'
+// @ts-ignore - legacy JSX module without TypeScript declarations
 import DataMeshApp from './modules/data_mesh/src/App.jsx'
 
 type Message = {
@@ -68,7 +71,6 @@ export default function App() {
 
   // Users for dropdown
   const [users, setUsers] = useState<{ id: string; name: string }[]>([])
-  const [userFilter, setUserFilter] = useState('')
   
   // Collapsible explainability panel
   const [showExplainability, setShowExplainability] = useState(false)
@@ -80,6 +82,7 @@ export default function App() {
 
   // Message list ref
   const listRef = useRef<HTMLDivElement | null>(null)
+  const inputRef = useRef<HTMLInputElement | null>(null)
 
   // Main chat interface API_base - MUST be before useEffect
   const API_BASE = typeof window !== 'undefined' && (window as any).VITE_API_URL 
@@ -146,6 +149,22 @@ export default function App() {
   function goToTilesHome() {
     setShowLanding(false)
     setSelectedComponent(null)
+  }
+
+  function handleDashboardUserChange(nextUserId: string) {
+    setUserId(nextUserId)
+    const selected = users.find((u) => u.id === nextUserId)
+    setUserName(selected?.name || nextUserId)
+  }
+
+  function handlePreferenceSignal(signal: KGPreferenceSignal) {
+    // Keep signals visible in chat so preference capture feels connected to the agent flow.
+    appendMessage('system', `Captured preference: ${signal.type} = ${signal.value}`)
+    setMeta({
+      mode: 'kg_preference_signal',
+      request: `user=${signal.userId}`,
+      response: signal,
+    })
   }
 
   // Landing page component
@@ -530,25 +549,6 @@ export default function App() {
           </div>
 
           <div className="sidebar-controls">
-            <label>
-              User:&nbsp;
-              <select value={userId} onChange={(e) => {
-                setUserId(e.target.value)
-                const u = users.find(x => x.id === e.target.value)
-                setUserName(u?.name || e.target.value)
-              }}>
-                {users
-                  .filter((u) =>
-                    !userFilter || u.id.toLowerCase().includes(userFilter.toLowerCase()) ||
-                    (u.name || '').toLowerCase().includes(userFilter.toLowerCase())
-                  )
-                  .slice(0, 100)
-                  .map((u) => (
-                    <option key={u.id} value={u.id}>{u.name || u.id}</option>
-                  ))}
-              </select>
-            </label>
-
             <div className="component-nav">
               {componentCards.map((card) => (
                 <button
@@ -593,206 +593,221 @@ export default function App() {
         {/* RIGHT CHAT AREA */}
         <main className="chat-main">
           <div className="chat-header">
-            <h1>{agenticComponent?.title || 'Agentic AI'}</h1>
-            <p className="chat-subtitle">{agenticComponent?.description || 'Find your perfect style with AI recommendations'}</p>
+            <div>
+              <h1>{agenticComponent?.title || 'Agentic AI'}</h1>
+              <p className="chat-subtitle">{agenticComponent?.description || 'Find your perfect style with AI recommendations'}</p>
+            </div>
           </div>
 
-          <div className="message-list" ref={listRef}>
-            {messages.length === 0 && (
-              <div className="empty-state">
-                <div className="empty-icon">✨</div>
-                <div className="empty-title">Start Your Style Journey</div>
-                <div className="empty-text">Ask me about fashion, colors, trends, or get personalized recommendations</div>
-              </div>
-            )}
-            {messages.map((m, idx) => {
-              const displayName = m.sender === 'user' ? userName : 'StylesenseSL'
-              const avatarEmoji = m.sender === 'user' ? '👤' : '✨'
-              
-              // Get metadata for this specific message
-              const messageMeta = m.metadata
-              
-              // Only show products if this is an AI message with product results
-              const showProducts = m.sender === 'ai' && messageMeta?.response && 
-                (messageMeta.response.intent === 'product_search' || 
-                 messageMeta.response.intent === 'multi_task' ||
-                 messageMeta.response.best_matches?.length > 0 ||
-                 messageMeta.response.new_suggestions?.length > 0)
-              
-              return (
-                <React.Fragment key={m.id}>
-                  <div className={`message ${m.sender}`}>
-                    <div className="message-avatar">{avatarEmoji}</div>
-                    <div className="message-content">
-                      <div className="message-sender">{displayName}</div>
-                      <div className="message-text" style={{whiteSpace: 'pre-line'}}>{m.text}</div>
-                    </div>
+          <div style={{ flex: 1, minHeight: 0, padding: '0 16px 16px' }}>
+            <AgenticAIDashboard
+              userId={userId}
+              users={users}
+              onUserChange={handleDashboardUserChange}
+              onPreferenceSignal={handlePreferenceSignal}
+              chatContent={
+                <section className="chat-conversation-pane" style={{ height: '100%' }}>
+                  <div className="message-list" ref={listRef}>
+                {messages.length === 0 && (
+                  <div className="empty-state">
+                    <div className="empty-icon">✨</div>
+                    <div className="empty-title">Start Your Style Journey</div>
+                    <div className="empty-text">Ask me about fashion, colors, trends, or get personalized recommendations</div>
                   </div>
+                )}
+                {messages.map((m, idx) => {
+                  const displayName = m.sender === 'user' ? userName : 'StylesenseSL'
+                  const avatarEmoji = m.sender === 'user' ? '👤' : '✨'
                   
-                  {/* Show products from current AI response only */}
-                  {showProducts && messageMeta?.response && (
-                    <div className="products-section">
-                      {messageMeta.response.best_matches && messageMeta.response.best_matches.length > 0 && (
-                        <>
-                          <h3 className="products-title">Best Matches</h3>
-                          <div className="product-grid">
-                            {messageMeta.response.best_matches.map((p: any, pIdx: number) => (
-                              <ProductCard 
-                                key={`${m.id}-best-${p.product_id}-${pIdx}`} 
-                                product={{ 
-                                  ...p, 
-                                  id: p.product_id || p.id || `best-${pIdx}`,
-                                  onAddToCart: handleAddProductToCart
-                                }} 
-                                showScore={false} 
-                              />
-                            ))}
-                          </div>
-                        </>
-                      )}
-                      {messageMeta.response.new_suggestions && messageMeta.response.new_suggestions.length > 0 && (
-                        <>
-                          <h3 className="products-title">New Suggestions</h3>
-                          <div className="product-grid">
-                            {messageMeta.response.new_suggestions.map((p: any, pIdx: number) => (
-                              <ProductCard 
-                                key={`${m.id}-new-${p.product_id}-${pIdx}`} 
-                                product={{ 
-                                  ...p, 
-                                  id: p.product_id || p.id || `new-${pIdx}`,
-                                  onAddToCart: handleAddProductToCart
-                                }} 
-                                showScore={false} 
-                              />
-                            ))}
-                          </div>
-                        </>
-                      )}
-                      {messageMeta.response.results && messageMeta.response.results.length > 0 && !messageMeta.response.best_matches?.length && !messageMeta.response.new_suggestions?.length && (
-                        <div className="product-grid">
-                          {messageMeta.response.results.map((p: any, pIdx: number) => (
-                            <ProductCard 
-                              key={`${m.id}-result-${p.product_id}-${pIdx}`} 
-                              product={{ 
-                                ...p,
-                                id: p.product_id || p.id || `result-${pIdx}`,
-                                onAddToCart: handleAddProductToCart
-                              }} 
-                            />
-                          ))}
+                  // Get metadata for this specific message
+                  const messageMeta = m.metadata
+                  
+                  // Only show products if this is an AI message with product results
+                  const showProducts = m.sender === 'ai' && messageMeta?.response && 
+                    (messageMeta.response.intent === 'product_search' || 
+                     messageMeta.response.intent === 'multi_task' ||
+                     messageMeta.response.best_matches?.length > 0 ||
+                     messageMeta.response.new_suggestions?.length > 0)
+                  
+                  return (
+                    <React.Fragment key={m.id}>
+                      <div className={`message ${m.sender}`}>
+                        <div className="message-avatar">{avatarEmoji}</div>
+                        <div className="message-content">
+                          <div className="message-sender">{displayName}</div>
+                          <div className="message-text" style={{whiteSpace: 'pre-line'}}>{m.text}</div>
+                        </div>
+                      </div>
+                      
+                      {/* Show products from current AI response only */}
+                      {showProducts && messageMeta?.response && (
+                        <div className="products-section">
+                          {messageMeta.response.best_matches && messageMeta.response.best_matches.length > 0 && (
+                            <>
+                              <h3 className="products-title">Best Matches</h3>
+                              <div className="product-grid">
+                                {messageMeta.response.best_matches.map((p: any, pIdx: number) => (
+                                  <ProductCard 
+                                    key={`${m.id}-best-${p.product_id}-${pIdx}`} 
+                                    product={{ 
+                                      ...p, 
+                                      id: p.product_id || p.id || `best-${pIdx}`,
+                                      onAddToCart: handleAddProductToCart
+                                    }} 
+                                    showScore={false} 
+                                  />
+                                ))}
+                              </div>
+                            </>
+                          )}
+                          {messageMeta.response.new_suggestions && messageMeta.response.new_suggestions.length > 0 && (
+                            <>
+                              <h3 className="products-title">New Suggestions</h3>
+                              <div className="product-grid">
+                                {messageMeta.response.new_suggestions.map((p: any, pIdx: number) => (
+                                  <ProductCard 
+                                    key={`${m.id}-new-${p.product_id}-${pIdx}`} 
+                                    product={{ 
+                                      ...p, 
+                                      id: p.product_id || p.id || `new-${pIdx}`,
+                                      onAddToCart: handleAddProductToCart
+                                    }} 
+                                    showScore={false} 
+                                  />
+                                ))}
+                              </div>
+                            </>
+                          )}
+                          {messageMeta.response.results && messageMeta.response.results.length > 0 && !messageMeta.response.best_matches?.length && !messageMeta.response.new_suggestions?.length && (
+                            <div className="product-grid">
+                              {messageMeta.response.results.map((p: any, pIdx: number) => (
+                                <ProductCard 
+                                  key={`${m.id}-result-${p.product_id}-${pIdx}`} 
+                                  product={{ 
+                                    ...p,
+                                    id: p.product_id || p.id || `result-${pIdx}`,
+                                    onAddToCart: handleAddProductToCart
+                                  }} 
+                                />
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
+                    </React.Fragment>
+                  )
+                })}
+                
+                {/* Typing indicator */}
+                {isTyping && (
+                  <div className="message ai">
+                    <div className="message-avatar">✨</div>
+                    <div className="message-content">
+                      <div className="message-sender">StylesenseSL</div>
+                      <div className="typing-indicator">
+                        <div className="typing-dot"></div>
+                        <div className="typing-dot"></div>
+                        <div className="typing-dot"></div>
+                      </div>
                     </div>
-                  )}
-                </React.Fragment>
-              )
-            })}
-            
-            {/* Typing indicator */}
-            {isTyping && (
-              <div className="message ai">
-                <div className="message-avatar">✨</div>
-                <div className="message-content">
-                  <div className="message-sender">StylesenseSL</div>
-                  <div className="typing-indicator">
-                    <div className="typing-dot"></div>
-                    <div className="typing-dot"></div>
-                    <div className="typing-dot"></div>
                   </div>
-                </div>
+                )}
+                
+                {/* Explainability toggle button */}
+                {meta && (
+                  <div className="meta-toggle-section">
+                    <button
+                      type="button"
+                      onClick={() => setShowExplainability(!showExplainability)}
+                      className="meta-toggle-btn"
+                    >
+                      {showExplainability ? '▼ Hide' : '▶ Show'} Technical Details
+                    </button>
+                  </div>
+                )}
+
+                {/* Explainability Panel */}
+                {showExplainability && meta && (
+                  <div className="explainability-panel">
+                    <h3>Technical Details</h3>
+                    <div className="meta-block">
+                      <h4>Request</h4>
+                      <pre className="small">{meta.request}</pre>
+
+                      <h4>Mode</h4>
+                      <pre className="small">{meta.mode}</pre>
+
+                      <h4>Response (raw)</h4>
+                      <pre className="small">{JSON.stringify(meta.response, null, 2)}</pre>
+
+                      {meta.response?.personalization_score !== undefined && (
+                        <>
+                          <h4>Personalization Score</h4>
+                          <div className="score">{String(meta.response.personalization_score)}</div>
+                        </>
+                      )}
+
+                      {meta.response?.why && (
+                        <>
+                          <h4>Why Recommended</h4>
+                          <div className="why">{String(meta.response.why)}</div>
+                        </>
+                      )}
+
+                      {meta.response?.fallback_steps && (
+                        <>
+                          <h4>Fallback Steps</h4>
+                          <pre className="small">{JSON.stringify(meta.response.fallback_steps, null, 2)}</pre>
+                        </>
+                      )}
+
+                      {meta.response?.fallbacks && (
+                        <>
+                          <h4>Applied Fallbacks</h4>
+                          <pre className="small">{JSON.stringify(meta.response.fallbacks, null, 2)}</pre>
+                        </>
+                      )}
+
+                      {meta.response?.plan && (
+                        <>
+                          <h4>Agent Plan</h4>
+                          <pre className="small">{JSON.stringify(meta.response.plan, null, 2)}</pre>
+                        </>
+                      )}
+
+                      {meta.response?.intent && (
+                        <>
+                          <h4>Parsed Intent</h4>
+                          <pre className="small">{JSON.stringify(meta.response.intent, null, 2)}</pre>
+                        </>
+                      )}
+
+                      {meta.response?.trace && (
+                        <>
+                          <h4>Execution Trace</h4>
+                          <pre className="small">{JSON.stringify(meta.response.trace, null, 2)}</pre>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-            
-            {/* Explainability toggle button */}
-            {meta && (
-              <div className="meta-toggle-section">
-                <button
-                  type="button"
-                  onClick={() => setShowExplainability(!showExplainability)}
-                  className="meta-toggle-btn"
-                >
-                  {showExplainability ? '▼ Hide' : '▶ Show'} Technical Details
-                </button>
-              </div>
-            )}
 
-            {/* Explainability Panel */}
-            {showExplainability && meta && (
-              <div className="explainability-panel">
-                <h3>Technical Details</h3>
-                <div className="meta-block">
-                  <h4>Request</h4>
-                  <pre className="small">{meta.request}</pre>
-
-                  <h4>Mode</h4>
-                  <pre className="small">{meta.mode}</pre>
-
-                  <h4>Response (raw)</h4>
-                  <pre className="small">{JSON.stringify(meta.response, null, 2)}</pre>
-
-                  {meta.response?.personalization_score !== undefined && (
-                    <>
-                      <h4>Personalization Score</h4>
-                      <div className="score">{String(meta.response.personalization_score)}</div>
-                    </>
-                  )}
-
-                  {meta.response?.why && (
-                    <>
-                      <h4>Why Recommended</h4>
-                      <div className="why">{String(meta.response.why)}</div>
-                    </>
-                  )}
-
-                  {meta.response?.fallback_steps && (
-                    <>
-                      <h4>Fallback Steps</h4>
-                      <pre className="small">{JSON.stringify(meta.response.fallback_steps, null, 2)}</pre>
-                    </>
-                  )}
-
-                  {meta.response?.fallbacks && (
-                    <>
-                      <h4>Applied Fallbacks</h4>
-                      <pre className="small">{JSON.stringify(meta.response.fallbacks, null, 2)}</pre>
-                    </>
-                  )}
-
-                  {meta.response?.plan && (
-                    <>
-                      <h4>Agent Plan</h4>
-                      <pre className="small">{JSON.stringify(meta.response.plan, null, 2)}</pre>
-                    </>
-                  )}
-
-                  {meta.response?.intent && (
-                    <>
-                      <h4>Parsed Intent</h4>
-                      <pre className="small">{JSON.stringify(meta.response.intent, null, 2)}</pre>
-                    </>
-                  )}
-
-                  {meta.response?.trace && (
-                    <>
-                      <h4>Execution Trace</h4>
-                      <pre className="small">{JSON.stringify(meta.response.trace, null, 2)}</pre>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <form className="message-input" onSubmit={handleSubmit}>
-            <input
-              type="text"
-              placeholder="What are you in the mood to wear today?"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              className="input-field"
+              <form className="message-input" onSubmit={handleSubmit}>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  placeholder="What are you in the mood to wear today?"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  className="input-field"
+                />
+                <button type="submit" className="send-button">Send</button>
+              </form>
+                </section>
+              }
             />
-            <button type="submit" className="send-button">Send</button>
-          </form>
+          </div>
         </main>
 
         {/* CART PANEL */}
