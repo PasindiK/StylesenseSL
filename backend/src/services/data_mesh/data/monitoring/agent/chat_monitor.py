@@ -1,73 +1,40 @@
-"""CLI chat interface for pipeline monitoring.
-
-No external APIs are used; intent handling is keyword-based.
-"""
+"""CLI chat interface for conversational pipeline monitoring."""
 
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict
+import importlib.util
+import sys
+from typing import Any
 
-from pipeline_monitoring_agent import PipelineMonitoringAgent
+DATA_MESH_SRC = Path(__file__).resolve().parents[3] / "src"
+if str(DATA_MESH_SRC) not in sys.path:
+    sys.path.append(str(DATA_MESH_SRC))
+
+
+def _load_agent_class() -> Any:
+    module_path = DATA_MESH_SRC / "pipeline_conversational_agent.py"
+    spec = importlib.util.spec_from_file_location("pipeline_conversational_agent", module_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("Unable to load pipeline_conversational_agent module.")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.PipelineConversationalAgent
+
+
+PipelineConversationalAgent = _load_agent_class()
 
 
 class PipelineChatInterface:
-    """Simple chat interface to ask log-based questions."""
+    """Interactive chat interface backed by conversational monitoring agent."""
 
-    def __init__(self, agent: PipelineMonitoringAgent) -> None:
+    def __init__(self, agent: Any) -> None:
         self.agent = agent
 
     def answer(self, question: str) -> str:
-        """Return a response for a user query."""
-        q = question.lower().strip()
-        report = self.agent.compute_health_report()
-
-        if "today" in q or "latest" in q or "how was" in q or "pipeline run" in q:
-            return (
-                f"Latest pipeline status: {report['latest_run_status']}. "
-                f"Domains processed: {report.get('domains_processed', 0)}. "
-                f"Total rows: {report['total_rows_processed']}. "
-                f"Execution time: {report['execution_time_seconds']} seconds. "
-                f"Overall health: {report['health_classification']} (score {report['health_score']})."
-            )
-
-        if "fail" in q or "error" in q:
-            if report["failure_rate_percent"] == 0:
-                return "No domain failures detected in the latest run."
-            return (
-                f"Failures detected. Failure rate is {report['failure_rate_percent']}%. "
-                f"Alerts: {'; '.join(report['alerts'])}."
-            )
-
-        if "row" in q or "record" in q:
-            return f"Total rows processed in the latest run: {report['total_rows_processed']}."
-
-        if "time" in q or "duration" in q or "execution" in q:
-            return (
-                f"Latest execution time is {report['execution_time_seconds']} seconds. "
-                f"Threshold is {self.agent.execution_time_threshold_seconds} seconds."
-            )
-
-        if "health" in q or "score" in q or "status" in q:
-            return (
-                f"Health is {report['health_classification']} with score {report['health_score']}. "
-                f"Latest status: {report['latest_run_status']}."
-            )
-
-        if "trend" in q or "last 5" in q or "history" in q:
-            trend = report.get("trend_last_5_runs", [])
-            if not trend:
-                return "No run trend data available yet."
-            trend_text = ", ".join(
-                f"{item['run_id']}: {item['status']} ({item['execution_time_seconds']}s)"
-                for item in trend
-            )
-            return f"Last runs: {trend_text}."
-
-        return (
-            "Ask about: latest pipeline run, failures, rows processed, execution time, health score, "
-            "or trend for last 5 runs."
-        )
+        """Return a conversational response for any user query."""
+        result = self.agent.answer(question)
+        return str(result.get("answer", "No response available."))
 
     def run(self) -> None:
         """Run interactive terminal chat loop."""
@@ -84,9 +51,6 @@ class PipelineChatInterface:
 
 
 if __name__ == "__main__":
-    monitoring_dir = Path(__file__).resolve().parents[1]
-    agent = PipelineMonitoringAgent(
-        log_path=monitoring_dir / "logs" / "pipeline_log.json",
-        report_path=monitoring_dir / "logs" / "pipeline_health_report.json",
-    )
+    data_root = Path(__file__).resolve().parents[2]
+    agent = PipelineConversationalAgent(data_root=data_root)
     PipelineChatInterface(agent).run()

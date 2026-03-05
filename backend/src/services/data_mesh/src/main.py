@@ -1,17 +1,24 @@
-from fastapi import FastAPI
+from fastapi import Body, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import pandas as pd
 from pathlib import Path
 import os
 from datetime import datetime
+import importlib.util
+import json
+import sys
+from threading import Lock, Thread
+import uuid
 try:
     from .domains_metadata_loader import get_domains_metadata
 except ImportError:
     from domains_metadata_loader import get_domains_metadata
 from fastapi.responses import FileResponse
-from threading import Thread
-import time
+try:
+    from .pipeline_conversational_agent import PipelineConversationalAgent
+except ImportError:
+    from pipeline_conversational_agent import PipelineConversationalAgent
 
 # Paths for Data Mesh assets (safe after folder relocation)
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,11 +26,184 @@ DATA_ROOT = BASE_DIR / "data"
 DATA_PATH = DATA_ROOT / "Data_Mesh_Domains"
 CONTRACTS_PATH = DATA_ROOT / "Contracts"
 MONITORING_HISTORY_PATH = DATA_ROOT / "monitoring" / "domain_health_history.csv"
+CREDENTIALS_PATH = DATA_ROOT / "monitoring" / "config" / "credentials.json"
 
 # List of domains
 DOMAINS = ["users_domain", "product_domain", "sales_domain", "shop_domain"]
 
 app = FastAPI()
+
+_rerun_lock = Lock()
+_rerun_state = {
+    "status": "idle",
+    "job_id": None,
+    "started_at": None,
+    "finished_at": None,
+    "summary": None,
+    "error": None,
+    "progress_percent": 0.0,
+    "domains_completed": 0,
+    "total_domains": 0,
+    "rows_processed_so_far": 0,
+    "current_domain": None,
+    "current_domain_status": None,
+}
+
+
+def _load_reload_pipeline_class():
+    module_path = DATA_ROOT / "monitoring" / "pipelines" / "reload_data_mesh_pipeline.py"
+    spec = importlib.util.spec_from_file_location("reload_data_mesh_pipeline", module_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("Unable to load reload_data_mesh_pipeline module")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module.DataMeshReloadPipeline
+
+
+def _load_rerun_credentials() -> list[dict]:
+    if not CREDENTIALS_PATH.exists():
+        return []
+    try:
+        payload = json.loads(CREDENTIALS_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+
+    if isinstance(payload, dict):
+        if "users" in payload and isinstance(payload["users"], list):
+            users = []
+            for item in payload["users"]:
+                if isinstance(item, dict) and item.get("username") and item.get("password"):
+                    users.append(
+                        {
+                            "username": str(item.get("username")),
+                            "password": str(item.get("password")),
+                        }
+                    )
+            return users
+
+        if payload.get("username") and payload.get("password"):
+            return [
+                {
+                    "username": str(payload.get("username")),
+                    "password": str(payload.get("password")),
+                }
+            ]
+
+    return []
+
+
+def _is_rerun_authorized(
+    session_id: str,
+    user_id: str,
+    auth_token: str,
+    auth_username: str,
+    auth_password: str,
+) -> bool:
+    _ = (session_id, user_id, auth_token)
+    credentials = _load_rerun_credentials()
+    if auth_username and auth_password:
+        for entry in credentials:
+            if auth_username == entry.get("username") and auth_password == entry.get("password"):
+                return True
+    return False
+
+
+def _run_rerun_job(job_id: str) -> None:
+    try:
+        pipeline_class = _load_reload_pipeline_class()
+        pipeline = pipeline_class()
+
+        def _progress_update(progress: dict) -> None:
+            with _rerun_lock:
+                if _rerun_state.get("job_id") != job_id or _rerun_state.get("status") != "running":
+                    return
+                _rerun_state.update(
+                    {
+                        "progress_percent": float(progress.get("progress_percent") or 0.0),
+                        "domains_completed": int(progress.get("domains_completed") or 0),
+                        "total_domains": int(progress.get("total_domains") or 0),
+                        "rows_processed_so_far": int(progress.get("rows_processed_cumulative") or 0),
+                        "current_domain": progress.get("domain"),
+                        "current_domain_status": progress.get("status"),
+                    }
+                )
+
+        summary = pipeline.run_once(progress_callback=_progress_update)
+        with _rerun_lock:
+            _rerun_state.update(
+                {
+                    "status": "completed",
+                    "finished_at": datetime.now().isoformat(timespec="seconds"),
+                    "summary": summary,
+                    "error": None,
+                    "progress_percent": 100.0,
+                    "domains_completed": int(summary.get("domains_processed") or 0),
+                    "total_domains": int(summary.get("domains_processed") or 0),
+                    "rows_processed_so_far": int(summary.get("rows_processed") or 0),
+                    "current_domain": None,
+                    "current_domain_status": None,
+                }
+            )
+    except Exception as exc:
+        with _rerun_lock:
+            _rerun_state.update(
+                {
+                    "status": "failed",
+                    "finished_at": datetime.now().isoformat(timespec="seconds"),
+                    "error": str(exc),
+                    "current_domain_status": "FAILED",
+                }
+            )
+
+
+def _trigger_pipeline_rerun() -> dict:
+    with _rerun_lock:
+        if _rerun_state.get("status") == "running":
+            return {
+                "status": "already_running",
+                "job_id": _rerun_state.get("job_id"),
+                "started_at": _rerun_state.get("started_at"),
+            }
+
+        job_id = str(uuid.uuid4())[:8]
+        _rerun_state.update(
+            {
+                "status": "running",
+                "job_id": job_id,
+                "started_at": datetime.now().isoformat(timespec="seconds"),
+                "finished_at": None,
+                "summary": None,
+                "error": None,
+                "progress_percent": 0.0,
+                "domains_completed": 0,
+                "total_domains": 0,
+                "rows_processed_so_far": 0,
+                "current_domain": None,
+                "current_domain_status": None,
+            }
+        )
+
+    worker = Thread(target=_run_rerun_job, args=(job_id,), daemon=True)
+    worker.start()
+    return {
+        "status": "started",
+        "job_id": job_id,
+        "started_at": _rerun_state.get("started_at"),
+    }
+
+
+def _get_rerun_state() -> dict:
+    with _rerun_lock:
+        return dict(_rerun_state)
+
+
+pipeline_chat_agent = PipelineConversationalAgent(
+    data_root=DATA_ROOT,
+    rerun_trigger=_trigger_pipeline_rerun,
+    rerun_status_provider=_get_rerun_state,
+    rerun_authorizer=_is_rerun_authorized,
+)
 
 # Enable CORS for local frontend access
 app.add_middleware(
@@ -378,60 +558,38 @@ def get_data_products():
             })
     return {"data": products, "count": len(products)}
 
-# --- Pipeline Monitoring Agent (Simulated) ---
-pipeline_status = {
-    "ETL_Ingest": {"last_run": None, "status": "unknown", "duration": None, "error": None},
-    "Data_Cleaning": {"last_run": None, "status": "unknown", "duration": None, "error": None},
-    "ML_Training": {"last_run": None, "status": "unknown", "duration": None, "error": None},
-}
-
-def simulate_pipeline_agent():
-    while True:
-        now = datetime.now().isoformat()
-        # Simulate ETL job (always succeeds)
-        pipeline_status["ETL_Ingest"].update({
-            "last_run": now,
-            "status": "success",
-            "duration": 120,
-            "error": None
-        })
-        # Simulate Data Cleaning (randomly fails)
-        import random
-        if random.random() < 0.8:
-            pipeline_status["Data_Cleaning"].update({
-                "last_run": now,
-                "status": "success",
-                "duration": 60,
-                "error": None
-            })
-        else:
-            pipeline_status["Data_Cleaning"].update({
-                "last_run": now,
-                "status": "failed",
-                "duration": 65,
-                "error": "Null value spike detected"
-            })
-        # Simulate ML Training (delayed every 3rd run)
-        if int(datetime.now().second) % 3 == 0:
-            pipeline_status["ML_Training"].update({
-                "last_run": now,
-                "status": "delayed",
-                "duration": 300,
-                "error": "Training not started on schedule"
-            })
-        else:
-            pipeline_status["ML_Training"].update({
-                "last_run": now,
-                "status": "success",
-                "duration": 250,
-                "error": None
-            })
-        time.sleep(10)  # Simulate periodic check every 10 seconds
-
-# Start the agent in a background thread
-Thread(target=simulate_pipeline_agent, daemon=True).start()
-
 @app.get("/pipeline-status")
 def get_pipeline_status():
-    """Return the current status of all monitored pipelines/jobs."""
-    return pipeline_status
+    """Return latest status per pipeline/domain from monitoring logs."""
+    return pipeline_chat_agent.pipeline_status_snapshot()
+
+
+@app.get("/pipeline-monitoring/context")
+def get_pipeline_monitoring_context():
+    """Return structured monitoring context used by the conversational assistant."""
+    return pipeline_chat_agent.build_context()
+
+
+@app.post("/pipeline-monitoring/chat")
+def pipeline_monitoring_chat(payload: dict = Body(default={})):
+    """Conversational monitoring endpoint powered by semantic intent + Gemini."""
+    question = str(payload.get("question") or "").strip()
+    session_id = str(payload.get("session_id") or "default").strip() or "default"
+    user_id = str(payload.get("user_id") or "").strip()
+    auth_token = str(payload.get("auth_token") or "").strip()
+    auth_username = str(payload.get("auth_username") or "").strip()
+    auth_password = str(payload.get("auth_password") or "").strip()
+    return pipeline_chat_agent.answer(
+        question,
+        session_id=session_id,
+        user_id=user_id,
+        auth_token=auth_token,
+        auth_username=auth_username,
+        auth_password=auth_password,
+    )
+
+
+@app.get("/pipeline-monitoring/rerun-status")
+def get_pipeline_rerun_status():
+    """Return current pipeline rerun execution status."""
+    return _get_rerun_state()

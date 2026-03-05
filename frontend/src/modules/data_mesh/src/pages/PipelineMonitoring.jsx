@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { API_BASE } from "../config";
 
@@ -18,6 +18,39 @@ export default function PipelineMonitoring() {
     },
   ]);
   const [input, setInput] = useState("");
+  const [agentBusy, setAgentBusy] = useState(false);
+  const [rerunStatus, setRerunStatus] = useState({ status: "idle" });
+  const [showInlineAuth, setShowInlineAuth] = useState(false);
+  const [authUsername, setAuthUsername] = useState(localStorage.getItem("dm_rerun_username") || "");
+  const [authPassword, setAuthPassword] = useState("");
+  const [pendingRerunQuestion, setPendingRerunQuestion] = useState("");
+  const [authError, setAuthError] = useState("");
+  const [authSubmitting, setAuthSubmitting] = useState(false);
+  const messagesEndRef = useRef(null);
+  const sessionIdRef = useRef(`dm-pm-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+
+  function isRerunCommand(text) {
+    const q = text.toLowerCase();
+    return (
+      q.includes("rerun") ||
+      q.includes("restart") ||
+      q.includes("trigger reload") ||
+      q.includes("run pipeline")
+    );
+  }
+
+  async function loadRerunStatus() {
+    try {
+      const response = await axios.get(`${API_BASE}/pipeline-monitoring/rerun-status`);
+      setRerunStatus(response?.data || { status: "idle" });
+    } catch {
+      setRerunStatus((prev) => prev || { status: "unknown" });
+    }
+  }
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages]);
 
   useEffect(() => {
     let mounted = true;
@@ -47,6 +80,18 @@ export default function PipelineMonitoring() {
     };
   }, []);
 
+  useEffect(() => {
+    loadRerunStatus();
+  }, []);
+
+  useEffect(() => {
+    if ((rerunStatus?.status || "").toLowerCase() !== "running") return undefined;
+    const timer = setInterval(() => {
+      loadRerunStatus();
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [rerunStatus?.status]);
+
   const metrics = useMemo(() => {
     const entries = Object.entries(pipelineStatus || {});
     const totalPipelines = entries.length;
@@ -67,38 +112,111 @@ export default function PipelineMonitoring() {
     };
   }, [pipelineStatus, overview]);
 
-  function generateAnswer(question) {
-    const q = question.toLowerCase();
+  const rerunProgressPercent = Math.max(0, Math.min(100, Number(rerunStatus?.progress_percent || 0)));
+  const rerunDomainsCompleted = Number(rerunStatus?.domains_completed || 0);
+  const rerunTotalDomains = Number(rerunStatus?.total_domains || 0);
+  const rerunRowsProcessed = Number(rerunStatus?.rows_processed_so_far || 0);
+  const rawRerunState = (rerunStatus?.status || "idle").toLowerCase();
+  const rerunState = rawRerunState === "started" ? "running" : rawRerunState;
+  const rerunFailedCount = (rerunStatus?.summary?.failed_domains || []).length;
+  const rerunSucceededCount = Math.max(0, Number(rerunStatus?.summary?.domains_processed || 0) - rerunFailedCount);
 
-    if (q.includes("today") || q.includes("latest") || q.includes("how was") || q.includes("pipeline run")) {
-      return `Latest run summary: ${metrics.success}/${metrics.totalPipelines} pipelines successful, ${metrics.failed} failed, ${metrics.delayed} delayed. Total execution time is ${metrics.totalExecution.toFixed(1)}s. Overall health is ${metrics.health}.`;
-    }
-    if (q.includes("fail") || q.includes("error")) {
-      return metrics.failed > 0
-        ? `${metrics.failed} pipeline(s) failed in the latest cycle. Please review pipeline logs and retry failed jobs.`
-        : "No pipeline failures detected in the latest cycle.";
-    }
-    if (q.includes("how many") || q.includes("rows") || q.includes("records")) {
-      return `Estimated rows processed from current mesh overview: ${metrics.rowsProcessed.toLocaleString()} records.`;
-    }
-    if (q.includes("time") || q.includes("duration") || q.includes("execution")) {
-      return `Total execution time for current monitored pipelines is ${metrics.totalExecution.toFixed(1)} seconds.`;
-    }
-    if (q.includes("health") || q.includes("status")) {
-      return `Pipeline health is ${metrics.health}. Success: ${metrics.success}, Failed: ${metrics.failed}, Delayed: ${metrics.delayed}.`;
-    }
+  async function requestAgent(question, extraPayload = {}, options = {}) {
+    const { captureDenied = false } = options;
+    try {
+      setAgentBusy(true);
+      const response = await axios.post(`${API_BASE}/pipeline-monitoring/chat`, {
+        question,
+        session_id: sessionIdRef.current,
+        user_id: localStorage.getItem("dm_user_id") || "it22893970",
+        auth_token: localStorage.getItem("dm_rerun_token") || "",
+        ...extraPayload,
+      });
+      const payload = response?.data || {};
 
-    return "I can help with run status, failures, rows processed, execution time, and health summary. Try: 'How was today's pipeline run?'";
+      if (captureDenied && payload.intent === "rerun_pipeline_denied") {
+        setAuthError(payload.answer || "Invalid credentials.");
+        return payload;
+      }
+
+      const answer = payload.answer || "No response from monitoring agent.";
+      const agentMsg = { role: "agent", text: answer, at: nowText() };
+      setMessages((prev) => [...prev, agentMsg]);
+      if (payload.rerun) {
+        setRerunStatus(payload.rerun);
+      }
+      return payload;
+    } catch {
+      const fallback = {
+        role: "agent",
+        text: "Monitoring assistant is temporarily unavailable. Please try again, or ask about latest run status/failures.",
+        at: nowText(),
+      };
+      setMessages((prev) => [...prev, fallback]);
+      return {};
+    } finally {
+      setAgentBusy(false);
+    }
   }
 
-  function sendQuestion(text) {
+  async function sendQuestion(text) {
     const cleaned = text.trim();
     if (!cleaned) return;
 
     const userMsg = { role: "user", text: cleaned, at: nowText() };
-    const agentMsg = { role: "agent", text: generateAnswer(cleaned), at: nowText() };
-    setMessages((prev) => [...prev, userMsg, agentMsg]);
+    setMessages((prev) => [...prev, userMsg]);
     setInput("");
+
+    if (isRerunCommand(cleaned)) {
+      setPendingRerunQuestion(cleaned);
+      setAuthError("");
+      setShowInlineAuth(true);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "agent",
+          text: "Please enter rerun credentials below to continue.",
+          at: nowText(),
+        },
+      ]);
+      return;
+    }
+
+    await requestAgent(cleaned);
+  }
+
+  async function submitRerunAuth(e) {
+    e.preventDefault();
+    if (!pendingRerunQuestion) return;
+    setAuthSubmitting(true);
+    localStorage.setItem("dm_rerun_username", authUsername.trim());
+
+    const payload = await requestAgent(
+      pendingRerunQuestion,
+      {
+        auth_username: authUsername.trim(),
+        auth_password: authPassword,
+      },
+      { captureDenied: true }
+    );
+
+    if (payload?.intent !== "rerun_pipeline_denied") {
+      setPendingRerunQuestion("");
+      setAuthPassword("");
+      setAuthError("");
+      setShowInlineAuth(true);
+      loadRerunStatus();
+    }
+
+    setAuthSubmitting(false);
+  }
+
+  function closeInlineRerunPopup() {
+    if (rerunState === "running") return;
+    setShowInlineAuth(false);
+    setPendingRerunQuestion("");
+    setAuthPassword("");
+    setAuthError("");
   }
 
   return (
@@ -127,7 +245,12 @@ export default function PipelineMonitoring() {
         </div>
 
         <div className="dm-pm-card dm-pm-chat">
-          <div className="dm-pm-card-title">Pipeline Chat Interface</div>
+          <div className="dm-pm-card-title-row">
+            <div className="dm-pm-card-title">Pipeline Chat Interface</div>
+            <div className={`dm-pm-rerun-indicator ${(rerunStatus?.status || "idle").toLowerCase()}`}>
+              Rerun Status: {(rerunStatus?.status || "idle").toUpperCase()}
+            </div>
+          </div>
 
           <div className="dm-pm-quick-actions">
             <button type="button" onClick={() => sendQuestion("How was today's pipeline run?")}>How was today's pipeline run?</button>
@@ -144,6 +267,98 @@ export default function PipelineMonitoring() {
                 <div className="dm-pm-msg-time">{msg.at}</div>
               </div>
             ))}
+
+            {showInlineAuth && (
+              <div className="dm-pm-inline-auth">
+                {Boolean(pendingRerunQuestion) ? (
+                  <>
+                    <div className="dm-pm-inline-auth-title">Authenticate to rerun pipeline</div>
+                    <form onSubmit={submitRerunAuth}>
+                      <input
+                        value={authUsername}
+                        onChange={(e) => setAuthUsername(e.target.value)}
+                        placeholder="Username"
+                        required
+                      />
+                      <input
+                        type="password"
+                        value={authPassword}
+                        onChange={(e) => setAuthPassword(e.target.value)}
+                        placeholder="Password"
+                        required
+                      />
+                      {authError ? <div className="dm-pm-inline-auth-error">{authError}</div> : null}
+                      {authSubmitting ? (
+                        <div className="dm-pm-inline-mini-status running">
+                          <span className="dm-pm-spinner dm-pm-spinner-sm" />
+                          <span>Authenticating...</span>
+                        </div>
+                      ) : null}
+                      <div className="dm-pm-inline-auth-actions">
+                        <button type="button" onClick={closeInlineRerunPopup}>Cancel</button>
+                        <button type="submit" disabled={authSubmitting}>{authSubmitting ? "Authorizing..." : "Authorize & Rerun"}</button>
+                      </div>
+                    </form>
+                  </>
+                ) : rerunState === "running" ? (
+                  <>
+                    <div className="dm-pm-inline-auth-title">Pipeline rerun in progress</div>
+                    <div className="dm-pm-inline-mini-status running">
+                      <span className="dm-pm-spinner dm-pm-spinner-sm" />
+                      <span>Running pipeline...</span>
+                    </div>
+                    <div className="dm-pm-inline-rerun running">
+                      <div className="dm-pm-inline-running-head">
+                        <span className="dm-pm-spinner" />
+                        <span>Executing rerun asynchronously...</span>
+                      </div>
+                      <div className="dm-pm-inline-progress-track">
+                        <div className="dm-pm-inline-progress-fill" style={{ width: `${rerunProgressPercent}%` }} />
+                      </div>
+                      <div className="dm-pm-inline-progress-meta">
+                        <span>{rerunDomainsCompleted}/{rerunTotalDomains || "?"} domains</span>
+                        <span>{rerunRowsProcessed.toLocaleString()} rows</span>
+                        <span>{rerunProgressPercent.toFixed(0)}%</span>
+                      </div>
+                      {rerunStatus?.current_domain ? (
+                        <div className="dm-pm-inline-current-domain">
+                          Current: {rerunStatus.current_domain} ({(rerunStatus.current_domain_status || "IN_PROGRESS").toLowerCase()})
+                        </div>
+                      ) : null}
+                    </div>
+                  </>
+                ) : rerunState === "completed" && rerunStatus?.summary ? (
+                  <>
+                    <div className="dm-pm-inline-auth-title">Pipeline rerun completed</div>
+                    <div className="dm-pm-inline-mini-status completed">
+                      <span className="dm-pm-check-dot">✓</span>
+                      <span>Pipeline completed</span>
+                    </div>
+                    <div className="dm-pm-inline-summary">
+                      <div><b>Rows Processed:</b> {rerunStatus.summary.total_rows_processed}</div>
+                      <div><b>Pipelines Succeeded:</b> {rerunSucceededCount}</div>
+                      <div><b>Pipelines Failed:</b> {rerunFailedCount}</div>
+                      <div><b>Execution Time:</b> {rerunStatus.summary.total_execution_time_seconds}s</div>
+                    </div>
+                    <div className="dm-pm-inline-auth-actions">
+                      <button type="button" onClick={closeInlineRerunPopup}>Close</button>
+                    </div>
+                  </>
+                ) : rerunState === "failed" ? (
+                  <>
+                    <div className="dm-pm-inline-auth-title">Pipeline rerun failed</div>
+                    <div className="dm-pm-inline-auth-error">{rerunStatus?.error || "Unknown error"}</div>
+                    <div className="dm-pm-inline-auth-actions">
+                      <button type="button" onClick={closeInlineRerunPopup}>Close</button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="dm-pm-inline-auth-title">Type "rerun pipeline" to start a new rerun.</div>
+                )}
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
           </div>
 
           <form
@@ -158,10 +373,11 @@ export default function PipelineMonitoring() {
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about failures, rows processed, execution time..."
             />
-            <button type="submit">Send</button>
+            <button type="submit" disabled={agentBusy}>{agentBusy ? "Thinking..." : "Send"}</button>
           </form>
         </div>
       </div>
+
     </div>
   );
 }

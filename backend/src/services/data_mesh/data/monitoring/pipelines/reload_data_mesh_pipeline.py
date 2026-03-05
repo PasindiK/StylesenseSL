@@ -12,7 +12,7 @@ import os
 import shutil
 import time
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Callable, Dict, List, Optional
 
 import pandas as pd
 
@@ -70,11 +70,14 @@ class DataMeshReloadPipeline:
             "interactions_clean.csv": "Interaction_domain/interaction_domain.csv",
         }
 
-    def run_once(self) -> Dict[str, object]:
+    def run_once(self, progress_callback: Optional[Callable[[Dict[str, object]], None]] = None) -> Dict[str, object]:
         """Execute one full reload cycle and append per-domain logs to JSON."""
         run_id = datetime.now().strftime("%Y%m%d%H%M%S")
         run_timestamp = datetime.now().isoformat(timespec="seconds")
         results: List[DomainExecutionResult] = []
+        total_domains = len(self.mapping)
+        completed_domains = 0
+        rows_processed_cumulative = 0
 
         for source_file, destination_relative in self.mapping.items():
             source_path = self.silver_path / source_file
@@ -98,6 +101,19 @@ class DataMeshReloadPipeline:
                         error=f"Missing source file: {source_path}",
                     )
                 )
+                completed_domains += 1
+                if progress_callback:
+                    progress_callback(
+                        {
+                            "run_id": run_id,
+                            "domain": domain_name,
+                            "status": "FAILED",
+                            "rows_processed_cumulative": rows_processed_cumulative,
+                            "domains_completed": completed_domains,
+                            "total_domains": total_domains,
+                            "progress_percent": round((completed_domains / total_domains) * 100, 2),
+                        }
+                    )
                 continue
 
             try:
@@ -119,6 +135,20 @@ class DataMeshReloadPipeline:
                         error=None,
                     )
                 )
+                completed_domains += 1
+                rows_processed_cumulative += int(len(df))
+                if progress_callback:
+                    progress_callback(
+                        {
+                            "run_id": run_id,
+                            "domain": domain_name,
+                            "status": "SUCCESS",
+                            "rows_processed_cumulative": rows_processed_cumulative,
+                            "domains_completed": completed_domains,
+                            "total_domains": total_domains,
+                            "progress_percent": round((completed_domains / total_domains) * 100, 2),
+                        }
+                    )
             except Exception as exc:  # pylint: disable=broad-except
                 finished = datetime.now()
                 results.append(
@@ -134,6 +164,19 @@ class DataMeshReloadPipeline:
                         error=str(exc),
                     )
                 )
+                completed_domains += 1
+                if progress_callback:
+                    progress_callback(
+                        {
+                            "run_id": run_id,
+                            "domain": domain_name,
+                            "status": "FAILED",
+                            "rows_processed_cumulative": rows_processed_cumulative,
+                            "domains_completed": completed_domains,
+                            "total_domains": total_domains,
+                            "progress_percent": round((completed_domains / total_domains) * 100, 2),
+                        }
+                    )
 
         self._append_logs([result.to_dict() for result in results])
 
