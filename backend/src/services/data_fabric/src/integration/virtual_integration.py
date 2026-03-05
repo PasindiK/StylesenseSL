@@ -27,6 +27,7 @@ from .relationship_engines import (
     StatisticalFeatureExtractor,
     StructuralFeatureExtractor,
 )
+from .join_executor import JoinExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -197,6 +198,7 @@ class VirtualIntegrationLayer:
     def __init__(self, metadata_catalog: MetadataCatalog):
         self.catalog = metadata_catalog
         self.discovery = IntelligentRelationshipDiscovery()
+        self.join_executor = JoinExecutor(metadata_catalog=self.catalog)
 
     def infer_relationships(
         self,
@@ -224,67 +226,41 @@ class VirtualIntegrationLayer:
         how: str = "inner",
         output_dataset: Optional[str] = None,
         producer_pipeline: str = "integration.virtual_integration_layer",
+        selected_relationship_key: Optional[str] = None,
+        allow_weak_relationship: bool = False,
     ) -> Tuple[pd.DataFrame, InferredRelationship]:
         """Perform on-demand join and register derived dataset + lineage.
 
-        If join keys are omitted, the best inferred relationship is used.
+        If join keys are omitted, relationships are resolved from metadata first.
+        Manual intervention is required for ambiguous candidates or weak-only matches.
         """
-        if left_dataset not in datasets:
-            raise ValueError(f"Dataset not found: {left_dataset}")
-        if right_dataset not in datasets:
-            raise ValueError(f"Dataset not found: {right_dataset}")
+        output_name = output_dataset or f"virtual_{left_dataset}_{right_dataset}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
-        left_df = datasets[left_dataset]
-        right_df = datasets[right_dataset]
-
-        if left_on is None or right_on is None:
-            pair_relationships = self.infer_relationships(
-                datasets={left_dataset: left_df, right_dataset: right_df},
+        joined, relationship = self.join_executor.execute(
+            datasets=datasets,
+            left_dataset=left_dataset,
+            right_dataset=right_dataset,
+            relationship_factory=InferredRelationship,
+            discover_relationships=lambda pair_datasets: self.infer_relationships(
+                datasets=pair_datasets,
                 register_results=True,
-            )
-            best = self.discovery.get_best_relationship(left_dataset, right_dataset, pair_relationships)
-            if best is None:
-                raise ValueError(
-                    f"No reliable relationship found between {left_dataset} and {right_dataset}"
-                )
-            left_on = best.left_column
-            right_on = best.right_column
-            relationship = best
-        else:
-            relationship = self._build_manual_relationship(
-                left_dataset=left_dataset,
-                right_dataset=right_dataset,
-                left_col=left_on,
-                right_col=right_on,
-                left_df=left_df,
-                right_df=right_df,
-            )
-
-        joined = pd.merge(
-            left_df,
-            right_df,
+            ),
+            build_manual_relationship=self._build_manual_relationship,
+            register_inferred_relationship=self._register_inferred_relationship,
+            register_derived_dataset=self._register_derived_dataset,
             left_on=left_on,
             right_on=right_on,
             how=how,
-            suffixes=(f"_{left_dataset}", f"_{right_dataset}"),
-        )
-
-        output_name = output_dataset or (
-            f"virtual_{left_dataset}_{right_dataset}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
-        )
-
-        self._register_derived_dataset(
             output_dataset=output_name,
-            joined_df=joined,
-            input_datasets=[left_dataset, right_dataset],
             producer_pipeline=producer_pipeline,
-            relationship=relationship,
+            selected_relationship_key=selected_relationship_key,
+            allow_weak_relationship=allow_weak_relationship,
         )
 
         logger.info(
             "event=virtual_integration.join_created "
             f"output_dataset={output_name} left_dataset={left_dataset} right_dataset={right_dataset} "
-            f"left_on={left_on} right_on={right_on} confidence={relationship.confidence:.4f} "
+            f"left_on={relationship.left_column} right_on={relationship.right_column} confidence={relationship.confidence:.4f} "
             f"decision={relationship.decision} rows={len(joined)}"
         )
         return joined, relationship

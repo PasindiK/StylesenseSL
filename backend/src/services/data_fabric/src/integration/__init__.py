@@ -29,6 +29,7 @@ from .statistical_features import StatisticalFeatureExtractor as StatisticalFeat
 from .behavioral_features import BehavioralFeatureExtractor as BehavioralFeatureExtractorV2
 from .feature_vector_builder import FeatureVectorBuilder as FeatureVectorBuilderV2
 from .scoring_engine import RelationshipScoringEngine as RelationshipScoringEngineV2
+from .join_executor import JoinExecutor, ManualInterventionRequired
 
 __all__ = [
     "WorkflowOrchestrator",
@@ -49,6 +50,8 @@ __all__ = [
     "BehavioralFeatureExtractorV2",
     "FeatureVectorBuilderV2",
     "RelationshipScoringEngineV2",
+    "JoinExecutor",
+    "ManualInterventionRequired",
     "RelationshipDiscoveryEngineV2",
     "InferredRelationshipV2",
 ]
