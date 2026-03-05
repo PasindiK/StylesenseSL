@@ -77,22 +77,6 @@ function KpiCard({ title, value, helper, color, status }) {
   );
 }
 
-function PipelineStatusCard({ name, status, lastRun, duration, error }) {
-  let color = '#888';
-  if (status === 'success') color = '#22c55e';
-  else if (status === 'failed') color = '#ef4444';
-  else if (status === 'delayed') color = '#f59e42';
-  return (
-    <Card style={{ width: "100%", margin: 0, border: `1.5px solid ${color}` }}>
-      <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 6 }}>{name}</div>
-      <div style={{ fontWeight: 600, color, fontSize: 16, marginBottom: 4 }}>Status: {status}</div>
-      <div style={{ fontSize: 14, marginBottom: 2 }}>Last Run: {lastRun ? new Date(lastRun).toLocaleString() : '-'}</div>
-      <div style={{ fontSize: 14, marginBottom: 2 }}>Duration: {duration ? duration + 's' : '-'}</div>
-      {error && <div style={{ color: '#ef4444', fontSize: 13, marginTop: 4 }}>Error: {error}</div>}
-    </Card>
-  );
-}
-
 function DataProductReadiness({ shopId }) {
   const [readiness, setReadiness] = useState(null);
   useEffect(() => {
@@ -151,7 +135,6 @@ export default function ShopAnalysis() {
   const [trendingProducts, setTrendingProducts] = useState([]);
   const [productMap, setProductMap] = useState({});
   const [overview, setOverview] = useState(null); // Shop overview KPIs
-  const [pipelineStatus, setPipelineStatus] = useState(null);
 
   useEffect(() => {
     axios.get(`${API_BASE}/shops`).then(res => setShops(res.data || []));
@@ -197,38 +180,9 @@ export default function ShopAnalysis() {
     });
   }, [selectedShop]);
 
-  useEffect(() => {
-    // Fetch pipeline status
-    axios.get(`${API_BASE}/pipeline-status`).then(res => setPipelineStatus(res.data));
-    // Optionally, poll every 10s for live updates
-    const interval = setInterval(() => {
-      axios.get(`${API_BASE}/pipeline-status`).then(res => setPipelineStatus(res.data));
-    }, 10000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <div style={{ padding: 16, maxWidth: 1400, margin: '0 auto', width: '100%' }}>
       <Title level={2} style={{ fontWeight: 700, marginBottom: 32 }}>Shop-wise Data Analysis</Title>
-      {/* Pipeline Status Section */}
-      <div style={{ marginBottom: 32 }}>
-        <Title level={4} style={{ marginBottom: 12 }}>Pipeline/Job Status</Title>
-        {pipelineStatus ? (
-          <Row gutter={[16, 16]} style={{ flexWrap: 'wrap' }}>
-            {Object.entries(pipelineStatus).map(([name, info]) => (
-              <Col key={name} xs={24} sm={12} md={12} lg={8} xl={6}>
-                <PipelineStatusCard
-                  name={name}
-                  status={info.status}
-                  lastRun={info.last_run}
-                  duration={info.duration}
-                  error={info.error}
-                />
-              </Col>
-            ))}
-          </Row>
-        ) : <Spin />}
-      </div>
       {/* Shop Overview KPI Cards */}
       {overview ? (
         <div
