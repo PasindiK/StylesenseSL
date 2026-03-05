@@ -1,0 +1,8 @@
+{
+  "reward_weights": {
+    "pipeline_success": 1.0,
+    "dq_improvement": 0.8,
+    "storage_cost": -0.3,
+    "manual_intervention_penalty": -1.0
+  }
+}

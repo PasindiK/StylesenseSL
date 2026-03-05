@@ -1,0 +1,19 @@
+{
+  "hard_failures": [],
+  "soft_warnings": [
+    "product_id completeness below soft threshold: 97.10%",
+    "shop_id completeness below soft threshold: 96.84%",
+    "name completeness below soft threshold: 97.22%",
+    "category completeness below soft threshold: 97.07%",
+    "color completeness below soft threshold: 97.37%",
+    "fabric completeness below soft threshold: 97.18%",
+    "size_range completeness below soft threshold: 97.14%",
+    "price_LKR completeness below soft threshold: 97.14%",
+    "style_tags completeness below soft threshold: 96.46%",
+    "product_url completeness below soft threshold: 97.37%",
+    "created_ts completeness below soft threshold: 97.07%",
+    "popularity_score completeness below soft threshold: 96.57%",
+    "stock_count completeness below soft threshold: 97.03%"
+  ],
+  "is_acceptable": true
+}

@@ -1,0 +1,28 @@
+{
+  "timestamp": "2025-12-21T15:38:27.156331",
+  "table": "products.csv",
+  "source_file": "synthetic_outerwear_sri_lanka_with_shop_ids.csv",
+  "diff": {
+    "new_columns": [
+      "product_id",
+      "shop_id",
+      "name",
+      "category",
+      "color",
+      "fabric",
+      "size_range",
+      "price_LKR",
+      "style_tags",
+      "product_url",
+      "created_ts",
+      "popularity_score",
+      "stock_count",
+      "_ingestion_ts",
+      "_source_file",
+      "_ingestion_date"
+    ],
+    "missing_columns": [],
+    "dtype_changes": []
+  },
+  "decision": "REQUIRES_MANUAL_REVIEW"
+}

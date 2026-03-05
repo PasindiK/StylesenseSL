@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-01-05T23:27:10.870415",
+  "table": "user_preferences",
+  "source_file": "user_preferences_dataset.csv",
+  "diff": {
+    "new_columns": [
+      "preference_id",
+      "user_id",
+      "preferred_categories",
+      "preferred_colors",
+      "preferred_fabrics",
+      "preferred_brands",
+      "preferred_styles",
+      "skin_tone",
+      "body_type",
+      "price_sensitivity",
+      "updated_ts",
+      "_ingestion_ts",
+      "_source_file",
+      "_ingestion_date"
+    ],
+    "missing_columns": [],
+    "dtype_changes": [],
+    "renames": []
+  },
+  "decision": "QUARANTINED",
+  "extra": {
+    "quarantined_path": "bronze/quarantine\\20260105\\user_preferences_raw.csv"
+  },
+  "approved": true,
+  "approved_at": "2026-01-06T02:49:56.812890Z",
+  "approved_by": "user"
+}

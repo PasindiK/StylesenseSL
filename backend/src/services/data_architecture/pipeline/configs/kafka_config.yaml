@@ -1,0 +1,48 @@
+# Kafka Configuration
+kafka:
+  bootstrap_servers:
+    - "localhost:9092"
+    # Add more brokers for production
+    # - "kafka-broker-2:9092"
+    # - "kafka-broker-3:9092"
+  
+  pos_topic: "pos-transactions"
+  confirmation_topic: "pos-confirmations"
+  consumer_group: "lakehouse-ingestion" 
+  auto_offset_reset: "earliest"
+  enable_auto_commit: false
+  max_poll_records: 500
+  session_timeout_ms: 30000
+
+# Data Categorization for Stakeholders
+data_categorization:
+  # Fabric component members - regional subset
+  fabric_component_member:
+    description: "Regional data for fabric component members"
+    filters:
+      region:
+        in: ["Colombo", "Kandy", "Galle"]  # Example regions
+  
+  # Island-wide data for comprehensive analysis
+  island_wide:
+    description: "Complete island-wide dataset for macro analysis"
+    filters: {}  # No filters - full access
+  
+  # Regional subset
+  regional:
+    description: "Data filtered by specific region"
+    filters:
+      region:
+        equals: null  # Will be set dynamically
+  
+  # Shop-specific subset
+  shop_specific:
+    description: "Data for specific shops"
+    filters:
+      shop_id:
+        in: []  # Will be set dynamically
+  
+  # General/default category
+  general:
+    description: "Default category for uncategorized data"
+    filters: {}

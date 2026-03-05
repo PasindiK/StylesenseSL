@@ -1,0 +1,70 @@
+{
+  "timestamp": "2026-01-05T23:27:12.700065",
+  "table": "shops",
+  "source_file": "shops_dataset.csv",
+  "diff": {
+    "new_columns": [
+      "_ingestion_ts",
+      "_source_file",
+      "_ingestion_date"
+    ],
+    "missing_columns": [],
+    "dtype_changes": [
+      {
+        "column": "shop_id",
+        "expected": "int",
+        "actual": "StringType()"
+      },
+      {
+        "column": "shop_name",
+        "expected": "string",
+        "actual": "StringType()"
+      },
+      {
+        "column": "location",
+        "expected": "string",
+        "actual": "StringType()"
+      },
+      {
+        "column": "district",
+        "expected": "string",
+        "actual": "StringType()"
+      },
+      {
+        "column": "postal_code",
+        "expected": "string",
+        "actual": "StringType()"
+      },
+      {
+        "column": "phone_number",
+        "expected": "string",
+        "actual": "StringType()"
+      },
+      {
+        "column": "is_active",
+        "expected": "boolean",
+        "actual": "StringType()"
+      },
+      {
+        "column": "operating_hours_open",
+        "expected": "string",
+        "actual": "StringType()"
+      },
+      {
+        "column": "operating_hours_close",
+        "expected": "string",
+        "actual": "StringType()"
+      }
+    ],
+    "renames": []
+  },
+  "decision": "AUTO_ACCEPT",
+  "extra": {
+    "accepted": [
+      "_ingestion_ts",
+      "_source_file",
+      "_ingestion_date"
+    ],
+    "new_version": 1
+  }
+}

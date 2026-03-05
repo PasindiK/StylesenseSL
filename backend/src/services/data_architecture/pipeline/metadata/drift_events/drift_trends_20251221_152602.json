@@ -1,0 +1,23 @@
+{
+  "timestamp": "2025-12-21T15:26:02.254844",
+  "table": "trends",
+  "source_file": "trends_dataset.csv",
+  "diff": {
+    "new_columns": [
+      "trend_id",
+      "trend_name",
+      "trend_category",
+      "trend_score",
+      "week",
+      "year",
+      "emerging_designers",
+      "trend_tags",
+      "_ingestion_ts",
+      "_source_file",
+      "_ingestion_date"
+    ],
+    "missing_columns": [],
+    "dtype_changes": []
+  },
+  "decision": "REQUIRES_MANUAL_REVIEW"
+}

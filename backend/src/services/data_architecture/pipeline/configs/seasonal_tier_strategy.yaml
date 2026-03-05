@@ -1,0 +1,191 @@
+# Seasonal Storage Tier Configuration for Sri Lankan Fashion Retail
+# Links business seasons to medallion layers and Azure storage tiers
+
+seasons:
+  festive_season:
+    months: [1, 4, 12]  # Jan (New Year), April (Sinhala New Year), Dec (Christmas)
+    description: "Peak buying season - holidays, festivities, special occasions"
+    demand_level: "High"
+    tier_strategy:
+      bronze:
+        tier: "HOT"
+        cost: "$$$$"
+        latency_ms: 50
+        reason: "Real-time validation during peak ingestion"
+      silver:
+        tier: "COOL"
+        cost: "$$$"
+        latency_ms: 500
+        reason: "Reference data, cleaned records available"
+      gold:
+        tier: "HOT"
+        cost: "$$$$"
+        latency_ms: 50
+        reason: "Live dashboards, real-time predictions, inventory"
+    ai_agent_config:
+      priority: 1
+      features_to_keep_hot:
+        - "gold/ml_ready/embeddings"
+        - "gold/curated/dim_customers"
+        - "gold/analytics/inventory_forecast"
+      update_frequency: "Real-time"
+      cache_strategy: "No caching - use live"
+      
+  monsoon_season:
+    months: [5, 6, 7, 8, 9]  # May-Sept (SW monsoon), partial Dec-Feb (NE monsoon)
+    description: "Weather impacts retail footfall - moderate demand"
+    demand_level: "Moderate"
+    poya_dates: [[2, 5], [3, 7], [4, 5], [5, 4], [6, 3], [7, 3], [8, 1], [8, 31], [9, 30], [10, 29], [11, 28], [12, 27]]
+    tier_strategy:
+      bronze:
+        tier: "COOL"
+        cost: "$$$"
+        latency_ms: 500
+        reason: "Validated data can move to cool after initial checks"
+      silver:
+        tier: "COOL"
+        cost: "$$$"
+        latency_ms: 500
+        reason: "Weekly reference data sufficient"
+      gold:
+        tier: "COOL"
+        cost: "$$$"
+        latency_ms: 500
+        reason: "Slower dashboards acceptable, AI can use cached results"
+    ai_agent_config:
+      priority: 2
+      features_to_cache:
+        - "gold/ml_ready/embeddings (weekly update)"
+        - "gold/curated/dim_products (batch processed)"
+      update_frequency: "Weekly batch"
+      cache_strategy: "Cache for 7 days"
+      
+  dry_season:
+    months: [10, 11, 2, 3]  # Oct-Nov, Feb-Mar (between monsoons)
+    description: "Off-season - lower demand, clearance sales"
+    demand_level: "Low"
+    tier_strategy:
+      bronze:
+        tier: "COOL"
+        cost: "$$$"
+        latency_ms: 500
+        reason: "Archive preparation phase"
+      silver:
+        tier: "COOL"
+        cost: "$$$"
+        latency_ms: 500
+        reason: "Available for analysis but slower ok"
+      gold:
+        tier: "COOL"
+        cost: "$$$"
+        latency_ms: 500
+        reason: "Off-season dashboards, batch reporting"
+    ai_agent_config:
+      priority: 3
+      features_to_archive:
+        - "gold/analytics/seasonal_trends"
+        - "gold/stakeholder_views/quarterly_summary"
+      update_frequency: "Monthly batch"
+      cache_strategy: "Cache for 30 days"
+
+  historical_archive:
+    description: "Same season from previous years - for trend analysis"
+    retention: "2-5 years"
+    tier_strategy:
+      bronze:
+        tier: "ARCHIVE"
+        cost: "$"
+        latency_ms: 5000
+        reason: "Historical raw data"
+      silver:
+        tier: "ARCHIVE"
+        cost: "$"
+        latency_ms: 5000
+        reason: "Historical cleaned records"
+      gold:
+        tier: "ARCHIVE"
+        cost: "$"
+        latency_ms: 5000
+        reason: "Historical curated data for trend analysis"
+    ai_agent_config:
+      priority: 4
+      use_case: "Year-over-year comparison, ML training"
+      access_pattern: "Batch, infrequent"
+      cache_strategy: "Pre-load before analysis jobs"
+
+# Agentic AI Tier Priority
+# When AI agent needs data:
+# 1. Check HOT tier first (if available in this season)
+# 2. Then COOL tier (fallback, acceptable latency)
+# 3. Only ARCHIVE if doing historical analysis (pre-load)
+
+ai_agent_tier_hierarchy:
+  festive_season:
+    - tier: "HOT"
+      latency_tolerance_ms: 100
+      use_case: "Real-time recommendations, inventory"
+    - tier: "COOL"
+      latency_tolerance_ms: 1000
+      use_case: "Customer history, trends"
+    - tier: "ARCHIVE"
+      latency_tolerance_ms: 10000
+      use_case: "Historical comparison (rare)"
+      
+  monsoon_season:
+    - tier: "COOL"
+      latency_tolerance_ms: 500
+      use_case: "Weekly batch processing"
+    - tier: "ARCHIVE"
+      latency_tolerance_ms: 10000
+      use_case: "Stored results, comparisons"
+      
+  dry_season:
+    - tier: "COOL"
+      latency_tolerance_ms: 1000
+      use_case: "Off-season analysis"
+    - tier: "ARCHIVE"
+      latency_tolerance_ms: 10000
+      use_case: "Year-over-year trends"
+
+cost_optimization:
+  festive_season_peak:
+    bronze: "7 days HOT"
+    silver: "30 days COOL"
+    gold: "90 days HOT (dashboards), then COOL"
+    estimated_monthly_cost: "$$$$$"  # Premium
+    
+  monsoon_standard:
+    bronze: "14 days COOL"
+    silver: "45 days COOL"
+    gold: "90 days COOL"
+    estimated_monthly_cost: "$$$"    # Standard
+    
+  dry_season_reduced:
+    bronze: "14 days COOL"
+    silver: "60 days COOL"
+    gold: "90 days COOL"
+    estimated_monthly_cost: "$$$"    # Standard
+    
+  historical_archive:
+    retention: "Forever ARCHIVE"
+    cost: "$" per month  # Minimal
+    accessed: "Infrequently (ML training)"
+
+# Lifecycle Management Rules
+lifecycle_policies:
+  bronze_layer:
+    rule_1: "During FESTIVE: Keep HOT for 7 days"
+    rule_2: "Then move to COOL for 7 days"
+    rule_3: "Move to ARCHIVE after 14 days"
+    rule_4: "Delete after 90 days (validation kept in silver)"
+    
+  silver_layer:
+    rule_1: "Keep in current season tier"
+    rule_2: "Move to ARCHIVE at season end"
+    rule_3: "Retain 2+ years of historical data"
+    
+  gold_layer:
+    rule_1: "Keep HOT during actual peak season"
+    rule_2: "Move to COOL during moderate/low seasons"
+    rule_3: "Keep ARCHIVE forever (audit trail)"
+    rule_4: "Replicate annually to separate archive account"

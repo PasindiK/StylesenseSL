@@ -1,0 +1,10 @@
+{
+  "hard_failures": [],
+  "soft_warnings": [
+    "shop_name completeness below soft threshold: 96.00%",
+    "district completeness below soft threshold: 96.00%",
+    "is_active completeness below soft threshold: 96.00%",
+    "operating_hours_close completeness below soft threshold: 92.00%"
+  ],
+  "is_acceptable": true
+}

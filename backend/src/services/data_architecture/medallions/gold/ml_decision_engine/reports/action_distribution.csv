@@ -1,0 +1,6 @@
+action,count
+auto_merge_schema,33
+create_new_schema_version,11
+rollback_previous_schema,7
+quarantine_data,4
+require_human_approval,4

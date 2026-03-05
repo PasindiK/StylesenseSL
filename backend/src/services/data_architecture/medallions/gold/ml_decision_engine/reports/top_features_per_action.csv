@@ -1,0 +1,6 @@
+action,feature1,feat1_val,feature2,feat2_val,feature3,feat3_val,count
+auto_merge_schema,new_cols,0.5595673358054774,dtype_changes,0.25684806613432326,new_col_ratio,0.13641221607808013,33
+create_new_schema_version,new_cols,0.6032057386682128,dtype_changes,0.2879171752849753,missing_cols,0.06640198078403318,11
+quarantine_data,new_cols,0.6513089491521934,dtype_changes,0.34250438155520146,new_col_ratio,0.0023558948472247546,4
+rollback_previous_schema,new_cols,0.6187435016945837,dtype_changes,0.3253791624774413,new_col_ratio,0.002238100104863512,7
+require_human_approval,,0.0,,,0.0,,,4

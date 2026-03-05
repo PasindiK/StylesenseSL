@@ -1,0 +1,21 @@
+{
+  "timestamp": "2025-12-21T15:38:28.189524",
+  "table": "interactions",
+  "source_file": "interactions_dataset.csv",
+  "diff": {
+    "new_columns": [
+      "interaction_id",
+      "user_id",
+      "product_id",
+      "interaction_type",
+      "interaction_ts",
+      "interaction_date",
+      "_ingestion_ts",
+      "_source_file",
+      "_ingestion_date"
+    ],
+    "missing_columns": [],
+    "dtype_changes": []
+  },
+  "decision": "REQUIRES_MANUAL_REVIEW"
+}

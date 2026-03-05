@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-01-05T23:27:12.313039",
+  "table": "trends",
+  "source_file": "trends_dataset.csv",
+  "diff": {
+    "new_columns": [
+      "trend_id",
+      "trend_name",
+      "trend_category",
+      "trend_score",
+      "week",
+      "year",
+      "emerging_designers",
+      "trend_tags",
+      "_ingestion_ts",
+      "_source_file",
+      "_ingestion_date"
+    ],
+    "missing_columns": [],
+    "dtype_changes": [],
+    "renames": []
+  },
+  "decision": "AUTO_ACCEPT",
+  "extra": {
+    "accepted": [
+      "trend_id",
+      "trend_name",
+      "trend_category",
+      "trend_score",
+      "week",
+      "year",
+      "emerging_designers",
+      "trend_tags",
+      "_ingestion_ts",
+      "_source_file",
+      "_ingestion_date"
+    ],
+    "new_version": 1
+  }
+}

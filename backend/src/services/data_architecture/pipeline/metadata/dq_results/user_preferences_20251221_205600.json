@@ -1,0 +1,17 @@
+{
+  "hard_failures": [],
+  "soft_warnings": [
+    "preference_id completeness below soft threshold: 97.14%",
+    "user_id completeness below soft threshold: 94.86%",
+    "preferred_categories completeness below soft threshold: 96.95%",
+    "preferred_colors completeness below soft threshold: 97.90%",
+    "preferred_fabrics completeness below soft threshold: 97.52%",
+    "preferred_brands completeness below soft threshold: 97.33%",
+    "preferred_styles completeness below soft threshold: 97.71%",
+    "skin_tone completeness below soft threshold: 97.52%",
+    "body_type completeness below soft threshold: 97.71%",
+    "price_sensitivity completeness below soft threshold: 96.38%",
+    "updated_ts completeness below soft threshold: 96.38%"
+  ],
+  "is_acceptable": true
+}

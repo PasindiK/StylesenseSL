@@ -1,0 +1,133 @@
+# Storage Tier Configuration
+# Defines hot/warm/cold tier policies for adaptive storage management
+
+# Fashion Industry Seasons (Sri Lanka Context)
+seasons:
+  spring_summer:
+    start_month: 2      # February
+    end_month: 7        # July
+    description: "Spring/Summer collection season"
+  
+  fall_winter:
+    start_month: 8      # August
+    end_month: 1        # January
+    description: "Fall/Winter collection season"
+
+# Storage Tier Policies
+tier_policies:
+  
+  hot:
+    description: "Current season, frequently accessed data"
+    characteristics:
+      - "Current season inventory and transactions"
+      - "High access frequency (daily)"
+      - "Recent promotional campaigns"
+      - "Real-time analytics"
+    
+    compression_level: 0        # No compression for speed
+    replication_factor: 3       # 3x replication for reliability
+    storage_type: "SSD"         # High-speed storage
+    
+    # Data is HOT if:
+    max_days_since_access: 7    # Accessed within 7 days
+    min_access_count: 100       # OR accessed at least 100 times
+    current_season: true        # OR it's the current season
+    
+    # Cost optimization
+    estimated_cost_per_gb_month: 0.10  # Premium SSD cost
+  
+  warm:
+    description: "Previous season, moderately accessed data"
+    characteristics:
+      - "Previous season inventory"
+      - "Moderate access frequency (weekly)"
+      - "Historical trend analysis"
+      - "Batch processing"
+    
+    compression_level: 6        # Medium compression (zstd level 6)
+    replication_factor: 2       # 2x replication
+    storage_type: "HDD"         # Standard storage
+    
+    # Data moves to WARM if:
+    min_age_days: 7             # Older than 7 days
+    max_age_days: 90            # But younger than 90 days
+    max_days_since_access: 30   # AND accessed within 30 days
+    min_access_count: 10        # OR accessed at least 10 times
+    
+    # Cost optimization
+    estimated_cost_per_gb_month: 0.05  # Standard HDD cost
+  
+  cold:
+    description: "Historical, rarely accessed, archived data"
+    characteristics:
+      - "Historical archives (multiple seasons)"
+      - "Low access frequency (monthly/yearly)"
+      - "Compliance/audit trails"
+      - "Long-term retention"
+    
+    compression_level: 9        # Maximum compression (zstd level 9)
+    replication_factor: 1       # 1x replication (cost optimized)
+    storage_type: "Archive"     # Glacier/archive storage
+    
+    # Data moves to COLD if:
+    min_age_days: 90            # Older than 90 days
+    max_days_since_access: 999  # Accessed within 999 days (rarely)
+    access_count_threshold: 5   # Less than 5 accesses
+    
+    # Cost optimization
+    estimated_cost_per_gb_month: 0.01  # Archive storage cost
+    retrieval_time: "hours"     # May take hours to retrieve
+
+# Automatic Movement Rules
+movement_rules:
+  hot_to_warm:
+    - condition: "age >= 7 days AND access_count < 100"
+      trigger_frequency: "daily"
+  
+  warm_to_hot:
+    - condition: "current_season AND access_count > 50"
+      trigger_frequency: "hourly"
+  
+  warm_to_cold:
+    - condition: "age >= 90 days AND last_access > 30 days"
+      trigger_frequency: "weekly"
+  
+  cold_to_warm:
+    - condition: "access_request AND age >= 90 days"
+      trigger_frequency: "on-demand"
+
+# Seasonal Promotions
+seasonal_promotions:
+  spring_summer:
+    tier: "hot"
+    duration_days: 180
+    description: "Keep spring/summer collections in hot tier during season"
+  
+  fall_winter:
+    tier: "hot"
+    duration_days: 180
+    description: "Keep fall/winter collections in hot tier during season"
+
+# Monitoring & Alerts
+monitoring:
+  check_frequency_minutes: 60    # Check tier status every hour
+  alert_on_tier_overage: true
+  alert_thresholds:
+    hot:
+      max_storage_gb: 1000
+    warm:
+      max_storage_gb: 5000
+    cold:
+      max_storage_gb: 50000
+
+# Metadata Tracking
+metadata:
+  track_file_creation_date: true
+  track_access_frequency: true
+  track_last_access_date: true
+  track_checksum: true
+  retention_policy: "compliance"
+  
+  # Audit
+  log_all_movements: true
+  audit_log_location: "metadata/audit_logs/tier_movements.jsonl"

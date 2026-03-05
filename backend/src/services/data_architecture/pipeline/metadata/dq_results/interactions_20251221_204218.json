@@ -1,0 +1,12 @@
+{
+  "hard_failures": [],
+  "soft_warnings": [
+    "interaction_id completeness below soft threshold: 97.43%",
+    "user_id completeness below soft threshold: 97.05%",
+    "product_id completeness below soft threshold: 96.83%",
+    "interaction_type completeness below soft threshold: 97.14%",
+    "interaction_ts completeness below soft threshold: 96.38%",
+    "interaction_date completeness below soft threshold: 96.95%"
+  ],
+  "is_acceptable": true
+}

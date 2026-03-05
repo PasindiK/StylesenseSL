@@ -1,0 +1,32 @@
+{
+  "timestamp": "2026-01-05T23:27:09.924579",
+  "table": "products.csv",
+  "source_file": "synthetic_outerwear_sri_lanka_with_shop_ids.csv",
+  "diff": {
+    "new_columns": [
+      "product_id",
+      "shop_id",
+      "name",
+      "category",
+      "color",
+      "fabric",
+      "size_range",
+      "price_LKR",
+      "style_tags",
+      "product_url",
+      "created_ts",
+      "popularity_score",
+      "stock_count",
+      "_ingestion_ts",
+      "_source_file",
+      "_ingestion_date"
+    ],
+    "missing_columns": [],
+    "dtype_changes": [],
+    "renames": []
+  },
+  "decision": "QUARANTINED",
+  "extra": {
+    "quarantined_path": "bronze/quarantine\\20260105\\products.csv_raw.csv"
+  }
+}

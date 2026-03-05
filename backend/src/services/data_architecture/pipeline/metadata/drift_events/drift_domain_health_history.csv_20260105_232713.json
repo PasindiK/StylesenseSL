@@ -1,0 +1,38 @@
+{
+  "timestamp": "2026-01-05T23:27:13.062962",
+  "table": "domain_health_history.csv",
+  "source_file": "domain_health_history.csv",
+  "diff": {
+    "new_columns": [
+      "domain_name",
+      "row_count",
+      "null_percentage",
+      "duplicate_percentage",
+      "freshness_hours",
+      "schema_change_flag",
+      "timestamp",
+      "_ingestion_ts",
+      "_source_file",
+      "_ingestion_date"
+    ],
+    "missing_columns": [],
+    "dtype_changes": [],
+    "renames": []
+  },
+  "decision": "AUTO_ACCEPT",
+  "extra": {
+    "accepted": [
+      "domain_name",
+      "row_count",
+      "null_percentage",
+      "duplicate_percentage",
+      "freshness_hours",
+      "schema_change_flag",
+      "timestamp",
+      "_ingestion_ts",
+      "_source_file",
+      "_ingestion_date"
+    ],
+    "new_version": 1
+  }
+}

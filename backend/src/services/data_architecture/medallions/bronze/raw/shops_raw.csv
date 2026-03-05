@@ -1,0 +1,26 @@
+shop_id,shop_name,location,district,postal_code,phone_number,is_active,operating_hours_open,operating_hours_close,_ingestion_ts,_source_file,_ingestion_date
+1,FOA,Batticaloa,Batticaloa,25795,9466755036,True,09:00,19:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+2,Incarnage,Batticaloa,Batticaloa,16265,9436735830,True,09:00,21:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+3,Hameedia,Jaffna,Jaffna,74820,9414981505,True,09:30,20:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+4,Signature,Borella,Colombo,15311,9486893497,True,09:00,19:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+5,Odel,Matrahena,Matara,28431,9456792155,False,10:00,,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+6,Arpico,Galle,Galle,77435,9471136438,False,09:00,21:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+7,DressSmart,Negombo,Gampaha,13890,9471306900,True,09:30,19:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+8,Casual Corner,Borella,Colombo,53001,9478574553,True,10:00,21:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+9,House of Fashion,Matara,Matara,90077,9478979792,True,09:30,20:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+10,Fashion Bug,Jaffna,Jaffna,88953,9432335235,True,10:00,20:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+11,Cool Guy,Matrahena,Matara,81211,9418585377,True,09:30,21:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+12,Urban Closet,Matara,Matara,50397,9446433622,True,09:30,19:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+13,Red Dot,Borella,Colombo,92798,9479739572,,09:00,19:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+14,Metro Wear,Trincomalee,Trincomalee,48044,9499966606,True,09:00,21:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+15,Arena,Trincomalee,Trincomalee,72592,9458170987,True,10:00,21:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+16,Planet Sports,Galle,Galle,49504,9454054178,True,10:00,19:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+17,Lifestyle,Matrahena,Matara,36854,9447407771,True,09:30,19:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+18,,Batticaloa,,45222,9464079037,True,10:00,20:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+19,Skyline Clothing,Galle,Galle,80592,9444045666,True,09:30,,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+20,Trendz,Colombo,Colombo,92948,9484023414,True,10:00,21:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+21,Elements,Trincomalee,Trincomalee,10206,9483619289,True,09:00,21:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+22,Crossover,Batticaloa,Batticaloa,64268,9446810847,True,09:00,21:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+23,###typo,Batticaloa,Batticaloa,66044,9446898446,True,09:00,21:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+24,Elite Wear,Galle,Galle,32299,9471777469,True,09:30,20:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28
+15,Arena,Trincomalee,Trincomalee,72592,9458170987,True,10:00,21:00,2026-02-28 19:12:01.848395,shops_dataset.csv,2026-02-28

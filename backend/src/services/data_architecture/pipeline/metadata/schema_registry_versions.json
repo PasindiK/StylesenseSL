@@ -1,0 +1,140 @@
+{
+  "products": [
+    {
+      "version_ts": "2025-12-28T13:10:58.722842",
+      "schema": {
+        "product_id": "int",
+        "shop_id": "int",
+        "name": "string",
+        "category": "string",
+        "color": "string",
+        "fabric": "string",
+        "size_range": "string",
+        "price_LKR": "int",
+        "style_tags": "string",
+        "product_url": "string",
+        "created_ts": "string",
+        "popularity_score": "double",
+        "stock_count": "int",
+        "new_feature_x": "string",
+        "new_feature_y": "string"
+      }
+    }
+  ],
+  "users": [
+    {
+      "version_ts": "2026-01-05T23:27:10.390377",
+      "schema": {
+        "user_id": "int",
+        "name": "string",
+        "email": "string",
+        "phone": "string",
+        "shipping_address": "string",
+        "signup_ts": "string",
+        "is_active": "boolean",
+        "_ingestion_ts": "string",
+        "_source_file": "string",
+        "_ingestion_date": "string"
+      }
+    }
+  ],
+  "interactions": [
+    {
+      "version_ts": "2026-01-05T23:27:11.407015",
+      "schema": {
+        "interaction_id": "string",
+        "user_id": "string",
+        "product_id": "string",
+        "interaction_type": "string",
+        "interaction_ts": "string",
+        "interaction_date": "string",
+        "_ingestion_ts": "string",
+        "_source_file": "string",
+        "_ingestion_date": "string"
+      }
+    }
+  ],
+  "transactions": [
+    {
+      "version_ts": "2026-01-05T23:27:11.940058",
+      "schema": {
+        "transaction_id": "int",
+        "user_id": "int",
+        "product_id": "int",
+        "shop_id": "int",
+        "quantity": "int",
+        "unit_price": "int",
+        "total_amount": "double",
+        "discount_percent": "int",
+        "discount_amount": "double",
+        "tax_percent": "int",
+        "tax_amount": "double",
+        "final_amount": "double",
+        "payment_method": "string",
+        "transaction_status": "string",
+        "transaction_date": "string",
+        "transaction_ts": "string",
+        "delivery_date": "string",
+        "delivery_address": "string",
+        "notes": "string",
+        "_ingestion_ts": "string",
+        "_source_file": "string",
+        "_ingestion_date": "string"
+      }
+    }
+  ],
+  "trends": [
+    {
+      "version_ts": "2026-01-05T23:27:12.311037",
+      "schema": {
+        "trend_id": "string",
+        "trend_name": "string",
+        "trend_category": "string",
+        "trend_score": "string",
+        "week": "string",
+        "year": "string",
+        "emerging_designers": "string",
+        "trend_tags": "string",
+        "_ingestion_ts": "string",
+        "_source_file": "string",
+        "_ingestion_date": "string"
+      }
+    }
+  ],
+  "shops": [
+    {
+      "version_ts": "2026-01-05T23:27:12.699066",
+      "schema": {
+        "shop_id": "int",
+        "shop_name": "string",
+        "location": "string",
+        "district": "string",
+        "postal_code": "string",
+        "phone_number": "string",
+        "is_active": "boolean",
+        "operating_hours_open": "string",
+        "operating_hours_close": "string",
+        "_ingestion_ts": "string",
+        "_source_file": "string",
+        "_ingestion_date": "string"
+      }
+    }
+  ],
+  "domain_health_history.csv": [
+    {
+      "version_ts": "2026-01-05T23:27:13.061962",
+      "schema": {
+        "domain_name": "string",
+        "row_count": "string",
+        "null_percentage": "string",
+        "duplicate_percentage": "string",
+        "freshness_hours": "string",
+        "schema_change_flag": "string",
+        "timestamp": "string",
+        "_ingestion_ts": "string",
+        "_source_file": "string",
+        "_ingestion_date": "string"
+      }
+    }
+  ]
+}
