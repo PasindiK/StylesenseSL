@@ -11,11 +11,17 @@ Outputs:
 """
 from typing import Any, Dict, List, Optional
 from src.users.user_agent import UserAgent
+from src.services.agentic_ai.kg.client import Neo4jKGClient
+from src.services.agentic_ai.kg.events import KGEventWriter
+from src.services.agentic_ai.kg.scoring import KGScoringService
 
 
 class PersonalizationAgent:
     def __init__(self, user_agent: UserAgent):
         self.user_agent = user_agent
+        self.kg_client = Neo4jKGClient()
+        self.kg_events = KGEventWriter(self.kg_client)
+        self.kg_scorer = KGScoringService(self.kg_client)
 
     def rerank(
         self,
@@ -29,12 +35,14 @@ class PersonalizationAgent:
 
         # Compute weighted scores per spec
         prefs = self.user_agent.get_preferences(user_id) if user_id else None
+        graph_scores = self.kg_scorer.score_candidates(user_id, candidates, intent=intent)
         scored = []
         for c in candidates:
             intent_score = 0.0
             personalization = 0.0
             price_score = 0.0
             poprec = 0.0
+            graph_score = 0.0
             why: List[str] = []
 
             # IntentMatchScore (category, color, shop, occasion)
@@ -95,11 +103,16 @@ class PersonalizationAgent:
             except Exception:
                 poprec = 0.0
 
-            final = 0.40 * intent_score + 0.30 * personalization + 0.20 * price_score + 0.10 * poprec
+            product_id = str(c.get("product_id") or "")
+            if product_id and product_id in graph_scores:
+                graph_score = float(graph_scores[product_id].get("graph_score", 0.0))
+                why.extend(graph_scores[product_id].get("graph_reasons", []))
+
+            final = 0.32 * intent_score + 0.25 * personalization + 0.18 * price_score + 0.10 * poprec + 0.15 * graph_score
             # Ensure at least one reason
             if not why:
                 why = ["Recommended for you"]
-            c2 = {**c, "personalization_score": round(final, 4), "_why_reasons": why}
+            c2 = {**c, "personalization_score": round(final, 4), "graph_score": round(graph_score, 4), "_why_reasons": why}
             scored.append(c2)
 
         # Sort and limit to top 6
@@ -203,7 +216,16 @@ class PersonalizationAgent:
             "budget": intent.get("max_price") if intent else None,
             "shop": intent.get("shop") if intent else None,
             "category": intent.get("category") if intent else None,
+            "graph_boost_applied": bool(user_id and self.kg_client.enabled),
         }
+
+        if user_id:
+            self.kg_events.record_recommendation_impression(
+                user_id=user_id,
+                products=top6,
+                context=context,
+            )
+
         return {
             "results": top6,
             "best_matches": best,

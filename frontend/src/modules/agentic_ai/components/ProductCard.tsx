@@ -117,6 +117,12 @@ export default function ProductCard({ product, showScore = false }: { product: P
     return (
       <article 
         className="product-card"
+        style={{
+          background: 'linear-gradient(160deg, #0f172a 0%, #1e293b 65%, #0f3a5b 100%)',
+          border: '1px solid rgba(148,163,184,0.25)',
+          boxShadow: '0 12px 24px rgba(2,6,23,0.3)',
+          color: '#e2e8f0',
+        }}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       >
@@ -127,5 +133,17 @@ export default function ProductCard({ product, showScore = false }: { product: P
     )
   }
   
-  return <article className="product-card">{CardContent}</article>
+  return (
+    <article
+      className="product-card"
+      style={{
+        background: 'linear-gradient(160deg, #0f172a 0%, #1e293b 65%, #0f3a5b 100%)',
+        border: '1px solid rgba(148,163,184,0.25)',
+        boxShadow: '0 12px 24px rgba(2,6,23,0.3)',
+        color: '#e2e8f0',
+      }}
+    >
+      {CardContent}
+    </article>
+  )
 }

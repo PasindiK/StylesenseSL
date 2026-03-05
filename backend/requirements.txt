@@ -7,3 +7,4 @@ google-auth
 requests
 chromadb
 sentence-transformers
+beautifulsoup4
