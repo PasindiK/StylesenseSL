@@ -31,7 +31,7 @@ export default function Catalog() {
 
   const columns = [
     { title: "Domain", dataIndex: "domain" },
-    { title: "Fields", dataIndex: "fields", render: f => f.join(", ") },
+    { title: "Fields", dataIndex: "fields", render: f => <span style={{ whiteSpace: "normal", wordBreak: "break-word" }}>{f.join(", ")}</span> },
     { title: "Schema Version", dataIndex: "schemaVersion" },
     { title: "Contract Status", dataIndex: "contractStatus", render: s => <Tag color={s === "Valid" ? "green" : "red"}>{s}</Tag> }
   ];
@@ -43,7 +43,7 @@ export default function Catalog() {
         <span className="env-badge">Production</span>
       </div>
       <div className="section">
-        {loading ? <Spin /> : <Table columns={columns} dataSource={schemas} pagination={false} />}
+        {loading ? <Spin /> : <Table columns={columns} dataSource={schemas} pagination={false} scroll={{ x: "max-content" }} />}
       </div>
     </div>
   );

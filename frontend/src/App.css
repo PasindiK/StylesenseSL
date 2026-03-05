@@ -286,13 +286,15 @@ body {
   flex-direction: column;
   color: var(--text-primary);
   background: var(--bg-primary);
-  overflow: hidden;
+  overflow: auto;
 }
 
 .chat-layout {
   display: flex;
   flex: 1;
   overflow: hidden;
+  min-height: 0;
+  min-width: 0;
 }
 
 .component-tile-page {
@@ -374,6 +376,16 @@ body {
   flex: 1;
   padding: 1rem;
   background: var(--bg-primary);
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+}
+
+.component-view.data-mesh-host {
+  padding: 0;
+  overflow: auto;
+  min-height: 0;
+  min-width: 0;
 }
 
 .component-frame {
@@ -627,6 +639,8 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0;
+  min-width: 0;
 }
 
 .chat-conversation-pane {

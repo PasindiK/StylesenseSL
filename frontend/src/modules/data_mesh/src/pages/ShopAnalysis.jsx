@@ -50,7 +50,8 @@ function KpiCard({ title, value, helper, color, status }) {
   return (
     <div
       style={{
-        width: 240,
+        width: "100%",
+        maxWidth: 280,
         height: 150,
         background: "#fff",
         borderRadius: 16,
@@ -82,7 +83,7 @@ function PipelineStatusCard({ name, status, lastRun, duration, error }) {
   else if (status === 'failed') color = '#ef4444';
   else if (status === 'delayed') color = '#f59e42';
   return (
-    <Card style={{ width: 260, margin: 8, border: `1.5px solid ${color}` }}>
+    <Card style={{ width: "100%", margin: 0, border: `1.5px solid ${color}` }}>
       <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 6 }}>{name}</div>
       <div style={{ fontWeight: 600, color, fontSize: 16, marginBottom: 4 }}>Status: {status}</div>
       <div style={{ fontSize: 14, marginBottom: 2 }}>Last Run: {lastRun ? new Date(lastRun).toLocaleString() : '-'}</div>
@@ -135,6 +136,7 @@ function DataProductReadiness({ shopId }) {
         { title: "ML Health", dataIndex: "mlHealth", render: v => <Tag color={v === "Normal" ? "green" : v === "Anomaly" ? "red" : "orange"}>{v}</Tag> }
       ]}
       pagination={false}
+      scroll={{ x: "max-content" }}
       style={{ marginTop: 24, marginBottom: 24 }}
     />
   );
@@ -206,7 +208,7 @@ export default function ShopAnalysis() {
   }, []);
 
   return (
-    <div style={{ padding: 24, maxWidth: 1400, margin: '0 auto' }}>
+    <div style={{ padding: 16, maxWidth: 1400, margin: '0 auto', width: '100%' }}>
       <Title level={2} style={{ fontWeight: 700, marginBottom: 32 }}>Shop-wise Data Analysis</Title>
       {/* Pipeline Status Section */}
       <div style={{ marginBottom: 32 }}>
@@ -214,7 +216,7 @@ export default function ShopAnalysis() {
         {pipelineStatus ? (
           <Row gutter={[16, 16]} style={{ flexWrap: 'wrap' }}>
             {Object.entries(pipelineStatus).map(([name, info]) => (
-              <Col key={name} xs={24} sm={12} md={8} lg={6} xl={6}>
+              <Col key={name} xs={24} sm={12} md={12} lg={8} xl={6}>
                 <PipelineStatusCard
                   name={name}
                   status={info.status}
@@ -254,7 +256,7 @@ export default function ShopAnalysis() {
       )}
       <Select
         showSearch
-        style={{ width: 300, marginBottom: 24 }}
+        style={{ width: '100%', maxWidth: 340, marginBottom: 24 }}
         placeholder="Select a shop"
         optionFilterProp="children"
         onChange={setSelectedShop}
@@ -268,10 +270,10 @@ export default function ShopAnalysis() {
       </Select>
       {loading ? <Spin /> : selectedShop && (
         <>
-          <Row gutter={16} style={{ marginBottom: 24 }}>
-            <Col span={8}><Card><Statistic title="Total Sales (LKR)" value={shopKPIs.totalSales} /></Card></Col>
-            <Col span={8}><Card><Statistic title="Order Count" value={shopKPIs.orderCount} /></Card></Col>
-            <Col span={8}><Card><Statistic title="Unique Users" value={shopKPIs.uniqueUsers} /></Card></Col>
+          <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+            <Col xs={24} sm={12} md={8}><Card><Statistic title="Total Sales (LKR)" value={shopKPIs.totalSales} /></Card></Col>
+            <Col xs={24} sm={12} md={8}><Card><Statistic title="Order Count" value={shopKPIs.orderCount} /></Card></Col>
+            <Col xs={24} sm={12} md={8}><Card><Statistic title="Unique Users" value={shopKPIs.uniqueUsers} /></Card></Col>
           </Row>
           <Card title="Sales Trend">
             <ResponsiveContainer width="100%" height={300}>
@@ -296,7 +298,7 @@ export default function ShopAnalysis() {
                   {trendingProducts.slice(0, 3).map(tp => {
                     const prod = productMap[tp.product_id];
                     return (
-                      <Col span={8} key={tp.product_id}>
+                      <Col xs={24} sm={12} md={8} key={tp.product_id}>
                         <Card
                           hoverable
                           cover={prod && prod.product_url && prod.product_url.startsWith('http') ? (

@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { Layout, Menu, Row, Col, Card } from "antd";
+import "./index.css";
 import {
   AppstoreOutlined,
   DatabaseOutlined,
   ShopOutlined,
-  SafetyOutlined
+  SafetyOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined
 } from "@ant-design/icons";
 import Home from "./pages/Home";
 import Domains from "./pages/Domains";
 import ShopAnalysis from "./pages/ShopAnalysis";
 import Health from "./pages/Health";
 import Catalog from "./pages/Catalog";
+import PipelineMonitoring from "./pages/PipelineMonitoring";
 import DomainHealthDashboard from "./components/DomainHealthDashboard";
 import { API_BASE } from "./config";
 
@@ -29,58 +33,96 @@ const DOMAIN_CARDS = [
 export default function App() {
   const [selected, setSelected] = useState("overview");
   const [activeDomain, setActiveDomain] = useState(null); // Track which domain card is clicked
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   return (
-    <Layout style={{ minHeight: "100%", height: "100%", width: "100%", overflow: "hidden" }}>
+    <Layout className="dm-shell" style={{ minHeight: "100%", height: "100%", width: "100%", overflow: "hidden" }}>
       <Sider
         theme="dark"
-        width={240}
-        style={{ position: "relative", background: "#061a2f", boxShadow: "2px 0 12px rgba(15, 23, 42, 0.25)" }}
+        width={220}
+        collapsed={sidebarCollapsed}
+        collapsedWidth={isMobile ? 0 : 72}
+        trigger={null}
+        breakpoint="lg"
+        onBreakpoint={(broken) => {
+          setIsMobile(broken);
+          setSidebarCollapsed(broken);
+        }}
+        style={{ position: "relative", background: "#061a2f", boxShadow: "2px 0 12px rgba(15, 23, 42, 0.25)", display: "flex", flexDirection: "column", minHeight: 0, transition: "all 0.2s ease" }}
       >
-        <div style={{ color: "#f8fafc", fontWeight: 700, fontSize: 38, padding: 24, textAlign: "left", letterSpacing: 0.2, borderBottom: "1px solid rgba(148, 163, 184, 0.2)", lineHeight: 1.15 }}>
-          Data Mesh Control Plane
+        <div style={{ color: "#f8fafc", fontWeight: 700, fontSize: sidebarCollapsed ? 16 : 20, padding: sidebarCollapsed ? "14px 10px" : 18, textAlign: sidebarCollapsed ? "center" : "left", letterSpacing: 0.2, borderBottom: "1px solid rgba(148, 163, 184, 0.2)", lineHeight: 1.25, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          {sidebarCollapsed ? "DM" : "Data Mesh Control Plane"}
         </div>
         <Menu
           theme="dark"
           mode="inline"
+          inlineCollapsed={sidebarCollapsed && !isMobile}
           selectedKeys={[selected]}
           onClick={e => {
             setSelected(e.key);
             setActiveDomain(null); // Reset detail view when switching tabs
           }}
-          style={{ borderRight: 0, fontSize: 16, fontWeight: 500, marginTop: 8, background: "#061a2f" }}
+          style={{ borderRight: 0, fontSize: 14, fontWeight: 500, marginTop: 8, background: "#061a2f", flex: 1, overflowY: "auto", minHeight: 0 }}
           items={[
             { key: "overview", icon: <AppstoreOutlined />, label: "Overview" },
             { key: "domains", icon: <DatabaseOutlined />, label: "Domains" },
             { key: "products", icon: <ShopOutlined />, label: "Data Products" },
             { key: "shop", icon: <ShopOutlined />, label: "Shop Analysis" },
+            { key: "pipeline-monitoring", icon: <SafetyOutlined />, label: "Pipeline Monitoring" },
             { key: "domain-analytics", icon: <DatabaseOutlined />, label: "Domain-wise Analytics" },
             { key: "governance", icon: <SafetyOutlined />, label: "Governance" },
             { key: "mlhealth", icon: <SafetyOutlined />, label: "ML Health" },
           ]}
         />
-        <div style={{ position: "absolute", bottom: 0, width: "100%", color: "#94a3b8", fontSize: 12, textAlign: "center", padding: 14, borderTop: "1px solid rgba(148, 163, 184, 0.2)" }}>
+        <div style={{ position: "absolute", bottom: 0, width: "100%", color: "#94a3b8", fontSize: 12, textAlign: "center", padding: 14, borderTop: "1px solid rgba(148, 163, 184, 0.2)", opacity: sidebarCollapsed ? 0 : 1, transition: "opacity 0.2s ease", pointerEvents: sidebarCollapsed ? "none" : "auto" }}>
           © {new Date().getFullYear()} Data Mesh Platform
         </div>
       </Sider>
-      <Layout style={{ background: "#f5f6fa", minHeight: 0, height: "100%", minWidth: 0, width: "100%" }}>
-        <Header style={{ background: "#ffffff", padding: "0 28px", fontSize: 34, fontWeight: 700, color: "#0f172a", borderBottom: "1px solid #e2e8f0", minHeight: 70, display: "flex", alignItems: "center", justifyContent: "space-between", letterSpacing: 0.2, boxShadow: "0 1px 4px rgba(15, 23, 42, 0.06)" }}>
-          <div>
+      <Layout style={{ background: "#f5f6fa", minHeight: 0, height: "100%", minWidth: 0, width: "100%", overflow: "hidden" }}>
+        <Header style={{ background: "#ffffff", padding: "0 16px", fontSize: 20, fontWeight: 700, color: "#0f172a", borderBottom: "1px solid #e2e8f0", minHeight: 56, display: "flex", alignItems: "center", justifyContent: "space-between", letterSpacing: 0.1, boxShadow: "0 1px 4px rgba(15, 23, 42, 0.06)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+            <button
+              type="button"
+              onClick={() => setSidebarCollapsed(prev => !prev)}
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 8,
+                border: "1px solid #cbd5e1",
+                background: "#fff",
+                color: "#0f172a",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                flexShrink: 0,
+                padding: 0
+              }}
+              aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              {sidebarCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            </button>
+            <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {selected === "overview" && "Mesh Overview"}
             {selected === "domains" && "Domains & Ownership"}
             {selected === "products" && "Data Products Catalog"}
             {selected === "shop" && "Shop Analysis"}
+            {selected === "pipeline-monitoring" && "Pipeline Monitoring"}
             {selected === "governance" && "Federated Governance"}
             {selected === "mlhealth" && "ML Health & Anomalies"}
             {selected === "domain-analytics" && "Domain-wise Analytics"}
+            </div>
           </div>
         </Header>
-        <Content style={{ padding: 28, background: "#f5f6fa", minHeight: 0, width: "100%", overflowY: "auto" }}>
+        <Content style={{ padding: 16, background: "#f5f6fa", minHeight: 0, minWidth: 0, width: "100%", overflow: "auto" }}>
           {/* Mesh-native content routing */}
           {selected === "overview" && <Home />}
           {selected === "domains" && <Domains />}
           {selected === "products" && <Catalog />}
           {selected === "shop" && <ShopAnalysis />}
+          {selected === "pipeline-monitoring" && <PipelineMonitoring />}
           {selected === "governance" && <Health />}
           {selected === "mlhealth" && (
             <div style={{ maxWidth: 1200, margin: "0 auto", background: "#fff", borderRadius: 14, border: "1px solid #e2e8f0", boxShadow: "0 8px 24px rgba(15, 23, 42, 0.06)", padding: "2rem 1.75rem" }}>
