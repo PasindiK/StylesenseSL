@@ -511,6 +511,8 @@ body {
   flex: 1;
   padding: 1rem;
   background: var(--bg-primary);
+  min-height: 0;
+  overflow: auto;
 }
 
 .component-frame {

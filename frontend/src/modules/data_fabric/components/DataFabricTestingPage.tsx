@@ -1,31 +1,559 @@
-import React from 'react'
+import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react'
+import './DataFabricTestingPage.css'
+import ControlTowerPage from '../pages/ControlTowerPage'
+import JoinStudioPage from '../pages/JoinStudioPage'
+import LineageGraphPage from '../pages/LineageGraphPage'
+import OpsLogsPage from '../pages/OpsLogsPage'
 
-const checks = [
-  { name: 'Pipeline connectivity', status: 'Pass' },
-  { name: 'Metadata sync', status: 'Pass' },
-  { name: 'Schema drift alert', status: 'Review' },
-  { name: 'Catalog indexing', status: 'Pass' },
+type TabKey = 'overview' | 'join' | 'lineage' | 'logs'
+
+type DatasetRow = {
+  dataset_name: string
+  row_count: number
+  column_count: number
+  domain: string
+  quality_score: number
+  updated_at: string
+  usage_count: number
+  location: string
+}
+
+type RelationshipRow = {
+  relationship_key: string
+  left_dataset: string
+  right_dataset: string
+  left_column: string
+  right_column: string
+  confidence: number
+  decision: string
+  cardinality: string
+  model_version: string
+  feature_vector_version: string
+  feature_vector: Record<string, unknown>
+  is_unstable: boolean
+  drift_score: number
+  join_usage_count: number
+  last_scored_at?: string
+  last_used_at?: string
+  history_points: number
+}
+
+type OverviewResponse = {
+  kpis: {
+    dataset_count: number
+    relationship_count: number
+    strong_count: number
+    probable_count: number
+    weak_count: number
+    unstable_count: number
+  }
+  model: {
+    model_mode: string
+    model_version: string
+    feature_vector_version: string
+    ensemble_ready?: boolean
+    ensemble_reason?: string
+    lr_loaded?: boolean
+    secondary_model_loaded?: boolean
+    secondary_model_label?: string
+  }
+  datasets: DatasetRow[]
+  relationships: RelationshipRow[]
+  metrics: Record<string, unknown>
+  last_refreshed: string
+}
+
+type JoinOptionsResponse = {
+  left_dataset: string
+  right_dataset: string
+  mode: 'no_relationship' | 'manual_required_multiple' | 'manual_required_weak' | 'auto_ready'
+  suggestions: RelationshipRow[]
+}
+
+type JoinExecuteResponse = {
+  success: boolean
+  manual_intervention_required: boolean
+  reason?: string
+  suggestions?: Array<{
+    relationship_key: string
+    left_column: string
+    right_column: string
+    confidence: number
+    decision: string
+    cardinality: string
+    model_version: string
+  }>
+  relationship?: RelationshipRow
+  row_count?: number
+  columns?: string[]
+  preview?: Array<Record<string, unknown>>
+  usage_updates?: number
+}
+
+type LineageResponse = {
+  nodes: Array<{ id: string; label: string; domain: string; quality_score: number }>
+  edges: Array<{ source: string; target: string }>
+}
+
+type LogsResponse = {
+  events: Array<{
+    timestamp?: string
+    event: string
+    dataset_pair: string
+    relationship_key: string
+    confidence: number
+    decision: string
+    drift_score?: number
+  }>
+}
+
+type IntakeResponse = {
+  status: string
+  dataset_name?: string
+  good_match_count?: number
+  bad_match_count?: number
+  why_joined?: string
+  why_not_auto_joined?: string
+  selected_relationship?: RelationshipRow
+  selected_signals?: Record<string, Record<string, unknown>>
+  join_rows?: number
+  join_preview?: Array<Record<string, unknown>>
+  suggestions?: Array<
+    RelationshipRow & {
+      signals?: Record<string, Record<string, unknown>>
+      explanation?: string
+    }
+  >
+  agent_updates?: {
+    usage_updates?: number
+    behavioral_updates?: number
+    drift_flags?: number
+  }
+}
+
+const TAB_ROUTE: Record<TabKey, string> = {
+  overview: 'control-tower',
+  join: 'join-studio',
+  lineage: 'lineage-graph',
+  logs: 'ops-logs',
+}
+
+const tabs: Array<{ key: TabKey; label: string }> = [
+  { key: 'overview', label: 'Control Tower' },
+  { key: 'join', label: 'Join Studio' },
+  { key: 'lineage', label: 'Lineage Graph' },
+  { key: 'logs', label: 'Ops Logs' },
 ]
 
+const API_BASE =
+  typeof window !== 'undefined' && (window as any).VITE_API_URL
+    ? (window as any).VITE_API_URL
+    : (typeof import.meta !== 'undefined' && (import.meta.env.VITE_API_URL as string)) || '/api'
+
+function tabFromHash(hash: string): TabKey | null {
+  const normalized = hash.replace(/^#/, '').trim().toLowerCase()
+  const hit = (Object.entries(TAB_ROUTE) as Array<[TabKey, string]>).find(
+    ([, route]) => normalized === `data-fabric/${route}`
+  )
+  return hit ? hit[0] : null
+}
+
+function routeForTab(tab: TabKey): string {
+  return `#data-fabric/${TAB_ROUTE[tab]}`
+}
+
+async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
+  const url = `${API_BASE}${path}`
+  try {
+    const res = await fetch(url, init)
+    if (!res.ok) {
+      const text = await res.text()
+      throw new Error(`${path} failed (${res.status})${text ? `: ${text}` : ''}`)
+    }
+    return (await res.json()) as T
+  } catch (err) {
+    if (err instanceof Error) {
+      throw new Error(`${path} request error via ${API_BASE}: ${err.message}`)
+    }
+    throw new Error(`${path} request error via ${API_BASE}`)
+  }
+}
+
+function decisionClass(decision: string): string {
+  const normalized = decision.toLowerCase()
+  if (normalized === 'strong') return 'decision-strong'
+  if (normalized === 'probable') return 'decision-probable'
+  return 'decision-weak'
+}
+
+function formatNumber(value: number): string {
+  return Intl.NumberFormat().format(Number.isFinite(value) ? value : 0)
+}
+
+function safeDate(value?: string): string {
+  if (!value) return 'N/A'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleString()
+}
+
 export default function DataFabricTestingPage() {
+  const [activeTab, setActiveTab] = useState<TabKey>(() => tabFromHash(window.location.hash) || 'overview')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string>('')
+
+  const [overview, setOverview] = useState<OverviewResponse | null>(null)
+  const [lineage, setLineage] = useState<LineageResponse | null>(null)
+  const [logs, setLogs] = useState<LogsResponse | null>(null)
+
+  const [selectedRelationshipKey, setSelectedRelationshipKey] = useState<string>('')
+
+  const [leftDataset, setLeftDataset] = useState<string>('')
+  const [rightDataset, setRightDataset] = useState<string>('')
+  const [joinOptions, setJoinOptions] = useState<JoinOptionsResponse | null>(null)
+  const [joinResult, setJoinResult] = useState<JoinExecuteResponse | null>(null)
+  const [joinBusy, setJoinBusy] = useState(false)
+  const [intakeFilePath, setIntakeFilePath] = useState('')
+  const [intakeDatasetName, setIntakeDatasetName] = useState('')
+  const [intakeFile, setIntakeFile] = useState<File | null>(null)
+  const [intakeBusy, setIntakeBusy] = useState(false)
+  const [intakeResult, setIntakeResult] = useState<IntakeResponse | null>(null)
+  const [dragActive, setDragActive] = useState(false)
+  const intakeFileInputRef = useRef<HTMLInputElement | null>(null)
+
+  async function fetchOverview() {
+    const data = await fetchJson<OverviewResponse>('/data-fabric/overview')
+    setOverview(data)
+
+    // Default to strongest discovered relationship pair so Join Studio starts meaningful.
+    if ((!leftDataset || !rightDataset) && data.relationships.length > 0) {
+      const strongest = data.relationships[0]
+      if (strongest.left_dataset && strongest.right_dataset) {
+        setLeftDataset(strongest.left_dataset)
+        setRightDataset(strongest.right_dataset)
+        setSelectedRelationshipKey(strongest.relationship_key || '')
+        return
+      }
+    }
+
+    if (!leftDataset && data.datasets.length > 0) {
+      setLeftDataset(data.datasets[0].dataset_name)
+    }
+    if (!rightDataset && data.datasets.length > 1) {
+      const fallback = data.datasets.find((d) => d.dataset_name !== leftDataset)
+      setRightDataset((fallback || data.datasets[1]).dataset_name)
+    }
+  }
+
+  async function fetchLineage() {
+    setLineage(await fetchJson<LineageResponse>('/data-fabric/lineage'))
+  }
+
+  async function fetchLogs() {
+    setLogs(await fetchJson<LogsResponse>('/data-fabric/logs?limit=200'))
+  }
+
+  async function refreshAll() {
+    setLoading(true)
+    setError('')
+    const results = await Promise.allSettled([fetchOverview(), fetchLineage(), fetchLogs()])
+    const failures = results
+      .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+      .map((result) => (result.reason instanceof Error ? result.reason.message : 'Request failed'))
+
+    if (failures.length > 0) {
+      setError(failures.join(' | '))
+    }
+
+    setLoading(false)
+  }
+
+  async function fetchJoinOptions(left: string, right: string) {
+    if (!left || !right || left === right) {
+      setJoinOptions(null)
+      return
+    }
+    const params = new URLSearchParams({ left_dataset: left, right_dataset: right })
+    const data = await fetchJson<JoinOptionsResponse>(`/data-fabric/join-options?${params.toString()}`)
+    setJoinOptions(data)
+    setSelectedRelationshipKey(data.suggestions[0]?.relationship_key || '')
+  }
+
+  async function runJoin() {
+    if (!leftDataset || !rightDataset || leftDataset === rightDataset) return
+    setJoinBusy(true)
+    setError('')
+    try {
+      const payload = {
+        left_dataset: leftDataset,
+        right_dataset: rightDataset,
+        selected_relationship_key:
+          joinOptions?.mode === 'manual_required_multiple' || joinOptions?.mode === 'manual_required_weak'
+            ? selectedRelationshipKey || null
+            : null,
+        allow_weak_relationship: joinOptions?.mode === 'manual_required_weak',
+        preview_limit: 25,
+      }
+      const result = await fetchJson<JoinExecuteResponse>('/data-fabric/join-execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      setJoinResult(result)
+
+      if (result.manual_intervention_required && result.suggestions?.length) {
+        setJoinOptions((prev) => {
+          if (!prev) return prev
+          return {
+            ...prev,
+            suggestions: result.suggestions!.map((item) => ({
+              relationship_key: item.relationship_key,
+              left_dataset: leftDataset,
+              right_dataset: rightDataset,
+              left_column: item.left_column,
+              right_column: item.right_column,
+              confidence: item.confidence,
+              decision: item.decision,
+              cardinality: item.cardinality,
+              model_version: item.model_version,
+              feature_vector_version: 'unknown',
+              feature_vector: {},
+              is_unstable: false,
+              drift_score: 0,
+              join_usage_count: 0,
+              history_points: 0,
+            })),
+          }
+        })
+      }
+
+      await Promise.all([fetchOverview(), fetchLineage(), fetchLogs()])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Join execution failed')
+    } finally {
+      setJoinBusy(false)
+    }
+  }
+
+  async function runIntake() {
+    if (!intakeFile && !intakeFilePath.trim()) {
+      setError('Provide a file via drag/drop or paste a valid file path for intake.')
+      return
+    }
+
+    setIntakeBusy(true)
+    setError('')
+    try {
+      let res: Response
+      if (intakeFile) {
+        const formData = new FormData()
+        formData.append('file', intakeFile)
+        if (intakeDatasetName.trim()) {
+          formData.append('dataset_name', intakeDatasetName.trim())
+        }
+        formData.append('auto_join_if_single', 'true')
+        formData.append('how', 'inner')
+        res = await fetch(`${API_BASE}/data-fabric/intake-upload`, {
+          method: 'POST',
+          body: formData,
+        })
+      } else {
+        res = await fetch(`${API_BASE}/data-fabric/intake`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            file_path: intakeFilePath.trim(),
+            dataset_name: intakeDatasetName.trim() || undefined,
+            auto_join_if_single: true,
+            how: 'inner',
+          }),
+        })
+      }
+      if (!res.ok) {
+        const message = await res.text()
+        throw new Error(`/data-fabric/intake failed (${res.status})${message ? `: ${message}` : ''}`)
+      }
+
+      const result = (await res.json()) as IntakeResponse
+      setIntakeResult(result)
+
+      if (result.suggestions?.length) {
+        const first = result.suggestions[0]
+        if (first.left_dataset && first.right_dataset) {
+          setLeftDataset(first.left_dataset)
+          setRightDataset(first.right_dataset)
+          setSelectedRelationshipKey(first.relationship_key)
+        }
+      }
+
+      await Promise.all([fetchOverview(), fetchLineage(), fetchLogs()])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Intake workflow failed')
+    } finally {
+      setIntakeBusy(false)
+    }
+  }
+
+  function handlePickedFile(file: File | null) {
+    if (!file) return
+    setIntakeFile(file)
+    setIntakeResult(null)
+    setError('')
+  }
+
+  function handleDrop(e: DragEvent<HTMLDivElement>) {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+    const file = e.dataTransfer.files?.[0] || null
+    handlePickedFile(file)
+  }
+
+  function navigateTab(tab: TabKey) {
+    setActiveTab(tab)
+    window.history.replaceState(null, '', routeForTab(tab))
+  }
+
+  useEffect(() => {
+    const onHashChange = () => {
+      const resolved = tabFromHash(window.location.hash)
+      if (resolved) {
+        setActiveTab(resolved)
+      }
+    }
+
+    if (!tabFromHash(window.location.hash)) {
+      window.history.replaceState(null, '', routeForTab('overview'))
+    }
+
+    window.addEventListener('hashchange', onHashChange)
+    void refreshAll()
+    return () => window.removeEventListener('hashchange', onHashChange)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    void fetchJoinOptions(leftDataset, rightDataset).catch((err) => {
+      setError(err instanceof Error ? err.message : 'Failed to fetch join options')
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leftDataset, rightDataset])
+
+  const relationshipRows = overview?.relationships || []
+
+  const selectedRelationship = useMemo(
+    () => relationshipRows.find((row) => row.relationship_key === selectedRelationshipKey),
+    [relationshipRows, selectedRelationshipKey]
+  )
+
+  const graphLayout = useMemo(() => {
+    const width = 860
+    const height = 420
+    const nodes = lineage?.nodes || []
+    const edges = lineage?.edges || []
+    const count = Math.max(1, nodes.length)
+    const radius = Math.min(width, height) * 0.34
+    const centerX = width / 2
+    const centerY = height / 2
+
+    const positioned = nodes.map((node, index) => {
+      const angle = (2 * Math.PI * index) / count
+      return {
+        ...node,
+        x: centerX + radius * Math.cos(angle),
+        y: centerY + radius * Math.sin(angle),
+      }
+    })
+
+    const nodeMap = new Map(positioned.map((node) => [node.id, node]))
+    const positionedEdges = edges.flatMap((edge) => {
+      const source = nodeMap.get(edge.source)
+      const target = nodeMap.get(edge.target)
+      if (!source || !target) return []
+      return [{ ...edge, source, target }]
+    })
+
+    return { width, height, nodes: positioned, edges: positionedEdges }
+  }, [lineage])
+
   return (
-    <div className="test-page-shell">
-      <h2>Data Fabric Testing Page</h2>
-      <p>Use this page to validate data integration, metadata flow, and orchestration checks.</p>
+    <div className="df-dashboard-shell">
+      <header className="df-header compact glass-card">
+        <div>
+          <h2>Autonomous Data Fabric Control Tower</h2>
+          <p>Live metadata + integration status</p>
+        </div>
+        <button type="button" className="df-btn" onClick={() => void refreshAll()} disabled={loading}>
+          {loading ? 'Refreshing...' : 'Refresh Live Data'}
+        </button>
+      </header>
 
-      <div className="test-grid">
-        {checks.map((check) => (
-          <div key={check.name} className="test-card">
-            <span className="test-name">{check.name}</span>
-            <span className={`test-status ${check.status.toLowerCase()}`}>{check.status}</span>
-          </div>
+      {error ? <div className="df-error glass-card">{error}</div> : null}
+
+      <nav className="df-tabs glass-card" aria-label="Data Fabric Tabs">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            className={`df-tab ${activeTab === tab.key ? 'active' : ''}`}
+            onClick={() => navigateTab(tab.key)}
+          >
+            {tab.label}
+          </button>
         ))}
-      </div>
+      </nav>
+      {activeTab === 'overview' ? (
+        <ControlTowerPage
+          loading={loading}
+          overview={overview}
+          selectedRelationshipKey={selectedRelationshipKey}
+          setSelectedRelationshipKey={setSelectedRelationshipKey}
+          selectedRelationship={selectedRelationship}
+          formatNumber={formatNumber}
+          safeDate={safeDate}
+          decisionClass={decisionClass}
+        />
+      ) : null}
 
-      <div className="test-actions">
-        <button type="button" className="sidebar-btn">Run smoke checks</button>
-        <button type="button" className="sidebar-btn">Refresh statuses</button>
-      </div>
+      {activeTab === 'join' ? (
+        <JoinStudioPage
+          loading={loading}
+          overview={overview}
+          joinOptions={joinOptions}
+          joinResult={joinResult}
+          joinBusy={joinBusy}
+          leftDataset={leftDataset}
+          rightDataset={rightDataset}
+          setLeftDataset={setLeftDataset}
+          setRightDataset={setRightDataset}
+          selectedRelationshipKey={selectedRelationshipKey}
+          setSelectedRelationshipKey={setSelectedRelationshipKey}
+          runJoin={runJoin}
+          intakeFilePath={intakeFilePath}
+          setIntakeFilePath={setIntakeFilePath}
+          intakeDatasetName={intakeDatasetName}
+          setIntakeDatasetName={setIntakeDatasetName}
+          intakeFile={intakeFile}
+          intakeBusy={intakeBusy}
+          intakeResult={intakeResult}
+          dragActive={dragActive}
+          setDragActive={setDragActive}
+          intakeFileInputRef={intakeFileInputRef}
+          handlePickedFile={handlePickedFile}
+          handleDrop={handleDrop}
+          runIntake={runIntake}
+          formatNumber={formatNumber}
+          decisionClass={decisionClass}
+        />
+      ) : null}
+
+      {activeTab === 'lineage' ? (
+        <LineageGraphPage loading={loading} lineage={lineage} graphLayout={graphLayout} />
+      ) : null}
+
+      {activeTab === 'logs' ? (
+        <OpsLogsPage loading={loading} logs={logs} safeDate={safeDate} decisionClass={decisionClass} />
+      ) : null}
     </div>
   )
 }
