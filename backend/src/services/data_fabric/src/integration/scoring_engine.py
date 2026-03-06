@@ -48,7 +48,7 @@ class RelationshipScoringEngine:
         overlap_weight: float = 0.5,
         lr_weight: float = 0.5,
         rf_weight: float = 0.5,
-        strong_threshold: float = 0.75,
+        strong_threshold: float = 0.80,
         probable_threshold: float = 0.5,
         rf_model_path: Optional[str] = None,
     ):
@@ -120,8 +120,38 @@ class RelationshipScoringEngine:
         self.model.fit(X_scaled, y_np)
 
     def _build_ordered_row(self, feature_vector: Dict[str, float], ordered_features: Sequence[str]) -> np.ndarray:
-        ordered = [float(feature_vector.get(name, 0.0)) for name in ordered_features]
+        ordered = [self._coerce_float(feature_vector.get(name, 0.0)) for name in ordered_features]
         return np.asarray([ordered], dtype=float)
+
+    @staticmethod
+    def _coerce_float(value: Any) -> float:
+        """Convert mixed feature values to float for model input.
+
+        Some serialized model bundles may include feature names that map to
+        version-like strings (for example, "v1.0"). These should not crash
+        scoring; we coerce safely and fall back to 0.0 when parsing fails.
+        """
+        if value is None:
+            return 0.0
+        if isinstance(value, bool):
+            return 1.0 if value else 0.0
+        if isinstance(value, (int, float, np.number)):
+            return float(value)
+        if isinstance(value, str):
+            text = value.strip()
+            if not text:
+                return 0.0
+            try:
+                return float(text)
+            except ValueError:
+                # Accept common version format like "v1.0".
+                if text.lower().startswith("v"):
+                    try:
+                        return float(text[1:])
+                    except ValueError:
+                        return 0.0
+                return 0.0
+        return 0.0
 
     def _predict_lr_probability(self, feature_vector: Dict[str, float]) -> Optional[float]:
         if not self.has_lr_model:
@@ -141,9 +171,9 @@ class RelationshipScoringEngine:
         return float(np.clip(self.rf_model.predict_proba(row)[0, 1], 0.0, 1.0))
 
     def _fallback_score(self, feature_vector: Dict[str, float]) -> float:
-        name_similarity = float(feature_vector.get("name_similarity", 0.0))
-        type_score = float(feature_vector.get("type_score", 0.0))
-        overlap_ratio = float(feature_vector.get("overlap_ratio", 0.0))
+        name_similarity = self._coerce_float(feature_vector.get("name_similarity", 0.0))
+        type_score = self._coerce_float(feature_vector.get("type_score", 0.0))
+        overlap_ratio = self._coerce_float(feature_vector.get("overlap_ratio", 0.0))
 
         confidence = (
             (self.name_weight * name_similarity)
@@ -240,7 +270,16 @@ class RelationshipScoringEngine:
         - Native logistic bundle written by this engine.
         - RelationshipModelTrainer bundles (LR or RF).
         """
-        bundle = joblib.load(path)
+        try:
+            bundle = joblib.load(path)
+        except Exception as exc:
+            # Keep runtime resilient when pickled models are from a different sklearn version.
+            logger.warning(
+                "Failed to load ML scoring model from '%s' (%s). Falling back to static scoring.",
+                path,
+                exc,
+            )
+            return
 
         model = bundle
         scaler = None
