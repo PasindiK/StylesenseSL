@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import pandas as pd
 import logging
 
-from src.metadata.catalog import MetadataCatalog
+from ..metadata.catalog import MetadataCatalog
 from .relationship_engines import (
     BehavioralFeatureExtractor,
     FeatureVectorBuilder,
@@ -76,7 +76,7 @@ class IntelligentRelationshipDiscovery:
     TYPE_WEIGHT = 0.2
     OVERLAP_WEIGHT = 0.5
 
-    STRONG_THRESHOLD = 0.75
+    STRONG_THRESHOLD = 0.80
     PROBABLE_THRESHOLD = 0.5
 
     MODEL_DIR = Path(__file__).resolve().parents[2] / "models"
