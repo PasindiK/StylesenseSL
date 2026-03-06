@@ -6,11 +6,13 @@ import { OverviewPage } from './components/OverviewPage';
 import { ApprovalQueuePage } from './components/ApprovalQueuePage';
 import { DecisionTimelinePage } from './components/DecisionTimelinePage';
 import { GovernancePage } from './components/GovernancePage';
+import { ExplainabilityPage } from './components/ExplainabilityPage';
+import { ActionDistributionPage } from './components/ActionDistributionPage';
 import { MedallionPage } from './components/MedallionPage';
 import { StorageTiersPage } from './components/StorageTiersPage';
 import { NotificationDropdown } from './components/NotificationDropdown';
 import { MetricDetailModal } from './components/MetricDetailModal';
-import { DashboardData, LiveMetrics, Notification, DriftEvent } from './types';
+import type { DashboardData, LiveMetrics, Notification, DriftEvent } from './types';
 
 function Loading() {
   return (
@@ -39,6 +41,12 @@ export default function App() {
   });
   const [notifList, setNotifList] = useState<Notification[]>([]);
   const [toast, setToast] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<string>(
+    new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  );
+  const [endDate, setEndDate] = useState<string>(
+    new Date().toISOString().split('T')[0]
+  );
 
   // API Configuration
   const API_BASE_URL = 'http://localhost:8003/api';
@@ -301,7 +309,24 @@ export default function App() {
       
       case 'governance':
         return (
-          <GovernancePage />
+          <GovernancePage
+            governance={data.governance}
+            metrics={metrics}
+          />
+        );
+
+      case 'explainability':
+        return (
+          <ExplainabilityPage
+            featureImportance={data.feature_importance || []}
+          />
+        );
+
+      case 'actions':
+        return (
+          <ActionDistributionPage
+            actionDistribution={data.action_distribution || []}
+          />
         );
       
       case 'medallion':
@@ -350,6 +375,8 @@ export default function App() {
   const tabs = [
     { id: 'overview', label: 'Overview' },
     { id: 'governance', label: 'Governance' },
+    { id: 'explainability', label: 'Explainability' },
+    { id: 'actions', label: 'Actions' },
     { id: 'medallion', label: 'Medallion' },
     { id: 'approvals', label: 'Approvals' },
     { id: 'timeline', label: 'Timeline' },
@@ -371,6 +398,10 @@ export default function App() {
         notifications={notifList}
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
+        onNotificationClick={(table: string) => {
+          // Navigate to approvals page and highlight the table
+          setCurrentPage('approvals');
+        }}
       />
 
       <MetricDetailModal

@@ -1909,6 +1909,70 @@ a {
   background: rgba(255, 255, 255, 0.03);
 }
 
+.data-table tbody tr.tier-mismatch-row {
+  background: rgba(234, 179, 8, 0.08);
+  border-left: 3px solid var(--warning);
+}
+
+.data-table tbody tr.tier-mismatch-row:hover {
+  background: rgba(234, 179, 8, 0.12);
+}
+
+.tier-mismatch-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: help;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(234, 179, 8, 0.15);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  color: var(--warning);
+  font-size: 12px;
+}
+
+.tier-mismatch-tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tier-mismatch-tooltip .tooltip-text {
+  visibility: hidden;
+  width: 240px;
+  background-color: rgba(0, 0, 0, 0.9);
+  color: #fff;
+  text-align: left;
+  border-radius: 6px;
+  padding: 8px 12px;
+  position: absolute;
+  z-index: 1000;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -120px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 11px;
+  line-height: 1.4;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(234, 179, 8, 0.5);
+}
+
+.tier-mismatch-tooltip .tooltip-text::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(0, 0, 0, 0.9) transparent transparent transparent;
+}
+
+.tier-mismatch-tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
 .table-cell-main {
   font-weight: 600;
   color: var(--text);
@@ -2474,6 +2538,10 @@ a {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
 }
 
 .loading-text {

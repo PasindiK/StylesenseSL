@@ -4,9 +4,10 @@ interface NotificationDropdownProps {
   notifications: Notification[];
   isOpen: boolean;
   onClose: () => void;
+  onNotificationClick?: (table: string) => void;
 }
 
-export function NotificationDropdown({ notifications, isOpen, onClose }: NotificationDropdownProps) {
+export function NotificationDropdown({ notifications, isOpen, onClose, onNotificationClick }: NotificationDropdownProps) {
   if (!isOpen) return null;
 
   const unreadNotifications = notifications.filter(
@@ -27,7 +28,17 @@ export function NotificationDropdown({ notifications, isOpen, onClose }: Notific
           </div>
         ) : (
           unreadNotifications.map((notif, idx) => (
-            <div key={idx} className={`notification-item type-${notif.type}`}>
+            <div 
+              key={idx} 
+              className={`notification-item type-${notif.type}`}
+              onClick={() => {
+                if (onNotificationClick) {
+                  onNotificationClick(notif.table);
+                  onClose();
+                }
+              }}
+              style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+            >
               <div className="notif-icon">
                 {notif.type === 'approval' ? '✓' : notif.type === 'quarantine' ? '⚠️' : 'ℹ️'}
               </div>
