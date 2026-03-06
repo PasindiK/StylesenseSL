@@ -9,8 +9,10 @@ React + TypeScript + Vite frontend for the fashion-aware search and chat experie
 - Styling: base Vite/React setup; easily skinnable.
 
 ## Running locally
-1) Backend (from repo root):
-   - `./venv/Scripts/Activate.ps1; python -m uvicorn src.api.app:app --port 8000 --reload`
+1) Backend APIs (from `c:\Test\backend`):
+   - Agentic AI API (`8000`): `& ".\.venv\Scripts\python.exe" -m uvicorn src.api.app:app --host 127.0.0.1 --port 8000 --reload`
+   - Data Mesh API (`8001`): `& ".\.venv\Scripts\python.exe" -m uvicorn src.services.data_mesh:app --host 127.0.0.1 --port 8001 --reload`
+   - Data Fabric API (`8002`, optional): from `c:\Test\backend\src\services\data_fabric` run `& "c:\Test\backend\.venv\Scripts\python.exe" -m uvicorn src.api.main:app --host 127.0.0.1 --port 8002 --reload`
 2) Frontend:
    - `cd frontend`
    - `npm install`
