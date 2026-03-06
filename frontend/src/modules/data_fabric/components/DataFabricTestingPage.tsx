@@ -131,6 +131,13 @@ type IntakeResponse = {
   }
 }
 
+type IntakeStepStatus = 'pending' | 'running' | 'completed'
+
+type IntakeStep = {
+  label: string
+  status: IntakeStepStatus
+}
+
 const TAB_ROUTE: Record<TabKey, string> = {
   overview: 'control-tower',
   join: 'join-studio',
@@ -215,11 +222,88 @@ export default function DataFabricTestingPage() {
   const [joinBusy, setJoinBusy] = useState(false)
   const [intakeFilePath, setIntakeFilePath] = useState('')
   const [intakeDatasetName, setIntakeDatasetName] = useState('')
-  const [intakeFile, setIntakeFile] = useState<File | null>(null)
+  const [intakeFiles, setIntakeFiles] = useState<File[]>([])
   const [intakeBusy, setIntakeBusy] = useState(false)
   const [intakeResult, setIntakeResult] = useState<IntakeResponse | null>(null)
+  const [hasIntakeRun, setHasIntakeRun] = useState(false)
+  const [intakeSteps, setIntakeSteps] = useState<IntakeStep[]>([])
+  const [intakeReportText, setIntakeReportText] = useState('')
   const [dragActive, setDragActive] = useState(false)
   const intakeFileInputRef = useRef<HTMLInputElement | null>(null)
+
+  function startIntakeSteps() {
+    setIntakeSteps([
+      { label: 'Step 1: Read intake file(s)', status: 'running' },
+      { label: 'Step 2: Compute structural features', status: 'pending' },
+      { label: 'Step 3: Compute statistical features', status: 'pending' },
+      { label: 'Step 4: Score with LR + secondary model (or fallback)', status: 'pending' },
+      { label: 'Step 5: Register metadata + relationship suggestions', status: 'pending' },
+    ])
+  }
+
+  function setStepStatus(index: number, status: IntakeStepStatus) {
+    setIntakeSteps((prev) =>
+      prev.map((step, i) => (i === index ? { ...step, status } : step))
+    )
+  }
+
+  function buildIntakeReport(result: IntakeResponse, files: File[]) {
+    const lines: string[] = []
+    lines.push('Data Fabric Intake Processing Report')
+    lines.push(`Generated: ${new Date().toLocaleString()}`)
+    lines.push('')
+    lines.push('Processed Files:')
+    if (files.length > 0) {
+      files.forEach((f, idx) => lines.push(`${idx + 1}. ${f.name}`))
+    } else {
+      lines.push('1. Path-based intake (no uploaded file list)')
+    }
+    lines.push('')
+    lines.push('Pipeline Steps:')
+    lines.push('1. Compute structural features')
+    lines.push('2. Compute statistical features')
+    lines.push('3. Compute behavioral features')
+    lines.push('4. Score relationships (LR + secondary model, fallback if needed)')
+    lines.push('5. Register metadata and discovered relationships')
+    lines.push('')
+    lines.push(`Dataset: ${result.dataset_name || 'N/A'}`)
+    lines.push(`Good Matches: ${result.good_match_count || 0}`)
+    lines.push(`Bad Matches: ${result.bad_match_count || 0}`)
+
+    const suggestions = result.suggestions || []
+    if (suggestions.length > 0) {
+      lines.push('')
+      lines.push('Top Relationship Scores:')
+      suggestions.slice(0, 10).forEach((row, idx) => {
+        const fv = (row as any).feature_vector || {}
+        const models = fv.models_used || {}
+        const lr = typeof models.LR === 'number' ? models.LR.toFixed(3) : '-'
+        const secondaryEntry = Object.entries(models).find(([key]) => key !== 'LR')
+        const secondaryLabel = secondaryEntry ? secondaryEntry[0] : 'Secondary'
+        const secondary = secondaryEntry && typeof secondaryEntry[1] === 'number'
+          ? Number(secondaryEntry[1]).toFixed(3)
+          : '-'
+        lines.push(
+          `${idx + 1}. ${row.left_column} -> ${row.right_column} | LR=${lr} | ${secondaryLabel}=${secondary} | Combined=${Number(row.confidence || 0).toFixed(3)} | ${row.decision}`
+        )
+      })
+    }
+
+    return lines.join('\n')
+  }
+
+  function downloadIntakeReport() {
+    if (!intakeReportText.trim()) return
+    const blob = new Blob([intakeReportText], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `data_fabric_intake_report_${Date.now()}.txt`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
 
   async function fetchOverview() {
     const data = await fetchJson<OverviewResponse>('/data-fabric/overview')
@@ -336,29 +420,66 @@ export default function DataFabricTestingPage() {
   }
 
   async function runIntake() {
-    if (!intakeFile && !intakeFilePath.trim()) {
+    if (intakeFiles.length === 0 && !intakeFilePath.trim()) {
       setError('Provide a file via drag/drop or paste a valid file path for intake.')
       return
     }
 
     setIntakeBusy(true)
     setError('')
+    setHasIntakeRun(true)
+    startIntakeSteps()
     try {
-      let res: Response
-      if (intakeFile) {
-        const formData = new FormData()
-        formData.append('file', intakeFile)
-        if (intakeDatasetName.trim()) {
-          formData.append('dataset_name', intakeDatasetName.trim())
+      setStepStatus(0, 'completed')
+      setStepStatus(1, 'running')
+      setStepStatus(1, 'completed')
+      setStepStatus(2, 'running')
+      setStepStatus(2, 'completed')
+      setStepStatus(3, 'running')
+
+      let latestResult: IntakeResponse | null = null
+      if (intakeFiles.length > 0) {
+        const failedFiles: string[] = []
+        for (let index = 0; index < intakeFiles.length; index += 1) {
+          const file = intakeFiles[index]
+          const formData = new FormData()
+          formData.append('file', file)
+
+          const datasetName = intakeDatasetName.trim()
+          if (datasetName) {
+            // Apply custom dataset name only for single-file intake to avoid collisions.
+            if (intakeFiles.length === 1) {
+              formData.append('dataset_name', datasetName)
+            } else {
+              formData.append('dataset_name', `${datasetName}_${index + 1}`)
+            }
+          }
+
+          formData.append('auto_join_if_single', 'true')
+          formData.append('how', 'inner')
+
+          const res = await fetch(`${API_BASE}/data-fabric/intake-upload`, {
+            method: 'POST',
+            body: formData,
+          })
+
+          if (!res.ok) {
+            failedFiles.push(file.name)
+            continue
+          }
+
+          latestResult = (await res.json()) as IntakeResponse
         }
-        formData.append('auto_join_if_single', 'true')
-        formData.append('how', 'inner')
-        res = await fetch(`${API_BASE}/data-fabric/intake-upload`, {
-          method: 'POST',
-          body: formData,
-        })
+
+        if (!latestResult && failedFiles.length > 0) {
+          throw new Error(`Failed to ingest selected files: ${failedFiles.join(', ')}`)
+        }
+
+        if (failedFiles.length > 0) {
+          setError(`Some files failed to ingest: ${failedFiles.join(', ')}`)
+        }
       } else {
-        res = await fetch(`${API_BASE}/data-fabric/intake`, {
+        const res = await fetch(`${API_BASE}/data-fabric/intake`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -368,17 +489,26 @@ export default function DataFabricTestingPage() {
             how: 'inner',
           }),
         })
-      }
-      if (!res.ok) {
-        const message = await res.text()
-        throw new Error(`/data-fabric/intake failed (${res.status})${message ? `: ${message}` : ''}`)
+        if (!res.ok) {
+          const message = await res.text()
+          throw new Error(`/data-fabric/intake failed (${res.status})${message ? `: ${message}` : ''}`)
+        }
+
+        latestResult = (await res.json()) as IntakeResponse
       }
 
-      const result = (await res.json()) as IntakeResponse
-      setIntakeResult(result)
+      if (!latestResult) {
+        throw new Error('Intake completed without a valid response')
+      }
 
-      if (result.suggestions?.length) {
-        const first = result.suggestions[0]
+      setStepStatus(3, 'completed')
+      setStepStatus(4, 'running')
+
+      setIntakeResult(latestResult)
+      setIntakeReportText(buildIntakeReport(latestResult, intakeFiles))
+
+      if (latestResult.suggestions?.length) {
+        const first = latestResult.suggestions[0]
         if (first.left_dataset && first.right_dataset) {
           setLeftDataset(first.left_dataset)
           setRightDataset(first.right_dataset)
@@ -387,6 +517,7 @@ export default function DataFabricTestingPage() {
       }
 
       await Promise.all([fetchOverview(), fetchLineage(), fetchLogs()])
+      setStepStatus(4, 'completed')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Intake workflow failed')
     } finally {
@@ -394,9 +525,9 @@ export default function DataFabricTestingPage() {
     }
   }
 
-  function handlePickedFile(file: File | null) {
-    if (!file) return
-    setIntakeFile(file)
+  function handlePickedFiles(files: File[] | null) {
+    if (!files || files.length === 0) return
+    setIntakeFiles(files)
     setIntakeResult(null)
     setError('')
   }
@@ -405,8 +536,8 @@ export default function DataFabricTestingPage() {
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
-    const file = e.dataTransfer.files?.[0] || null
-    handlePickedFile(file)
+    const files = Array.from(e.dataTransfer.files || [])
+    handlePickedFiles(files)
   }
 
   function navigateTab(tab: TabKey) {
@@ -533,13 +664,17 @@ export default function DataFabricTestingPage() {
           setIntakeFilePath={setIntakeFilePath}
           intakeDatasetName={intakeDatasetName}
           setIntakeDatasetName={setIntakeDatasetName}
-          intakeFile={intakeFile}
+          intakeFiles={intakeFiles}
           intakeBusy={intakeBusy}
           intakeResult={intakeResult}
+          hasIntakeRun={hasIntakeRun}
+          intakeSteps={intakeSteps}
+          intakeReportReady={Boolean(intakeReportText.trim())}
+          downloadIntakeReport={downloadIntakeReport}
           dragActive={dragActive}
           setDragActive={setDragActive}
           intakeFileInputRef={intakeFileInputRef}
-          handlePickedFile={handlePickedFile}
+          handlePickedFiles={handlePickedFiles}
           handleDrop={handleDrop}
           runIntake={runIntake}
           formatNumber={formatNumber}

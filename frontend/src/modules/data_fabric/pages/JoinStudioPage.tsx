@@ -17,13 +17,17 @@ type Props = {
   setIntakeFilePath: (value: string) => void
   intakeDatasetName: string
   setIntakeDatasetName: (value: string) => void
-  intakeFile: File | null
+  intakeFiles: File[]
   intakeBusy: boolean
   intakeResult: any
+  hasIntakeRun: boolean
+  intakeSteps: Array<{ label: string; status: 'pending' | 'running' | 'completed' }>
+  intakeReportReady: boolean
+  downloadIntakeReport: () => void
   dragActive: boolean
   setDragActive: (value: boolean) => void
   intakeFileInputRef: RefObject<HTMLInputElement | null>
-  handlePickedFile: (file: File | null) => void
+  handlePickedFiles: (files: File[] | null) => void
   handleDrop: (e: DragEvent<HTMLDivElement>) => void
   runIntake: () => Promise<void>
   formatNumber: (value: number) => string
@@ -47,13 +51,17 @@ export default function JoinStudioPage({
   setIntakeFilePath,
   intakeDatasetName,
   setIntakeDatasetName,
-  intakeFile,
+  intakeFiles,
   intakeBusy,
   intakeResult,
+  hasIntakeRun,
+  intakeSteps,
+  intakeReportReady,
+  downloadIntakeReport,
   dragActive,
   setDragActive,
   intakeFileInputRef,
-  handlePickedFile,
+  handlePickedFiles,
   handleDrop,
   runIntake,
   formatNumber,
@@ -80,19 +88,31 @@ export default function JoinStudioPage({
     )
   }
 
-  const discoveryRows =
-    (intakeResult?.suggestions as Array<any> | undefined) ||
-    (joinOptions?.suggestions as Array<any> | undefined) ||
-    []
+  const intakeSuggestions = (intakeResult?.suggestions as Array<any> | undefined) || []
+  const joinSuggestions = (joinOptions?.suggestions as Array<any> | undefined) || []
+  const discoveryRows = !hasIntakeRun ? [] : intakeSuggestions.length > 0 ? intakeSuggestions : joinSuggestions
 
   const joinDecisionMessage =
-    joinOptions?.mode === 'auto_ready'
+    !hasIntakeRun
+      ? 'Run new dataset intake to evaluate join decisions for the latest uploaded data.'
+      : joinOptions?.mode === 'auto_ready'
       ? 'One strong relationship detected. System can execute auto join safely.'
       : joinOptions?.mode === 'manual_required_multiple'
         ? 'Multiple strong/probable matches detected. Manual confirmation required.'
         : joinOptions?.mode === 'manual_required_weak'
           ? 'Only weak matches available. Manual confirmation required.'
           : 'No relationship candidates found yet for the selected pair.'
+
+  function modelScores(row: any): { lr: string; secondaryLabel: string; secondary: string; combined: string } {
+    const featureVector = row?.feature_vector || {}
+    const modelsUsed = featureVector?.models_used || {}
+    const lr = typeof modelsUsed.LR === 'number' ? modelsUsed.LR.toFixed(3) : '-'
+    const secondaryEntry = Object.entries(modelsUsed).find(([key]) => key !== 'LR')
+    const secondaryLabel = secondaryEntry ? secondaryEntry[0] : (overview?.model?.secondary_model_label || 'Secondary')
+    const secondary = secondaryEntry && typeof secondaryEntry[1] === 'number' ? Number(secondaryEntry[1]).toFixed(3) : '-'
+    const combined = Number(row?.confidence || 0).toFixed(3)
+    return { lr, secondaryLabel, secondary, combined }
+  }
 
   const derivedDatasetName =
     joinResult?.relationship
@@ -125,18 +145,24 @@ export default function JoinStudioPage({
             }}
             onDrop={handleDrop}
           >
-            <p>Drag and drop dataset</p>
+            <p>Drag and drop datasets</p>
             <p className="muted-text">OR</p>
             <button type="button" className="df-btn" onClick={() => intakeFileInputRef.current?.click()}>
-              Choose File
+              Choose Files
             </button>
             <input
               ref={intakeFileInputRef}
               type="file"
+              multiple
               className="hidden-file-input"
-              onChange={(e) => handlePickedFile(e.target.files?.[0] || null)}
+              onChange={(e) => handlePickedFiles(Array.from(e.target.files || []))}
             />
-            {intakeFile ? <p className="muted-text">Selected file: {intakeFile.name}</p> : null}
+            {intakeFiles.length > 0 ? (
+              <p className="muted-text">
+                Selected files ({intakeFiles.length}): {intakeFiles.slice(0, 3).map((f) => f.name).join(', ')}
+                {intakeFiles.length > 3 ? ` +${intakeFiles.length - 3} more` : ''}
+              </p>
+            ) : null}
           </div>
 
           <div className="join-form-row">
@@ -164,6 +190,31 @@ export default function JoinStudioPage({
           <button type="button" className="df-btn" onClick={() => void runIntake()} disabled={intakeBusy}>
             {intakeBusy ? 'Processing Intake...' : 'Process New File'}
           </button>
+
+          <div className="intake-progress-box">
+            <h4>Processing Progress</h4>
+            {intakeSteps.length ? (
+              <ul className="intake-step-list">
+                {intakeSteps.map((step) => (
+                  <li key={step.label} className={`step-${step.status}`}>
+                    <span>{step.label}</span>
+                    <strong>{step.status}</strong>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="muted-text">Progress steps appear when intake starts.</p>
+            )}
+
+            <button
+              type="button"
+              className="df-btn"
+              onClick={downloadIntakeReport}
+              disabled={!intakeReportReady}
+            >
+              Download Intake Report
+            </button>
+          </div>
         </article>
 
         <article className="glass-card panel-section">
@@ -183,19 +234,24 @@ export default function JoinStudioPage({
                   <tr>
                     <th>Left Column</th>
                     <th>Right Column</th>
-                    <th>Confidence</th>
+                    <th>LR</th>
+                    <th>{overview?.model?.secondary_model_label || 'Secondary'}</th>
+                    <th>Combined</th>
                     <th>Decision</th>
                   </tr>
                 </thead>
                 <tbody>
                   {discoveryRows.map((row: any, index: number) => {
                     const band = confidenceBand(Number(row.confidence || 0))
+                    const scores = modelScores(row)
                     return (
                       <tr key={`${row.relationship_key || 'row'}-${index}`}>
                         <td>{row.left_column || '-'}</td>
                         <td>{row.right_column || '-'}</td>
+                        <td>{scores.lr}</td>
+                        <td>{scores.secondary}</td>
                         <td>
-                          <span className={`confidence-chip ${band}`}>{Number(row.confidence || 0).toFixed(3)}</span>
+                          <span className={`confidence-chip ${band}`}>{scores.combined}</span>
                         </td>
                         <td>
                           <span className={`df-decision ${decisionClass(String(row.decision || 'weak'))}`}>
@@ -209,7 +265,13 @@ export default function JoinStudioPage({
               </table>
             </div>
           ) : (
-            <p className="muted-text">Process a dataset to display discovered relationship candidates.</p>
+            <p className="muted-text">
+              {!hasIntakeRun
+                ? 'Process a new dataset first. Relationship candidates are hidden until intake runs.'
+                : intakeResult
+                ? 'No relationship candidates were found for the newly ingested dataset.'
+                : 'Process a dataset to display discovered relationship candidates.'}
+            </p>
           )}
 
           {intakeResult ? (
@@ -287,7 +349,9 @@ export default function JoinStudioPage({
 
         <div className="suggestion-list">
           <h4>Suggested Relationships</h4>
-          {joinOptions?.suggestions?.length ? (
+          {!hasIntakeRun ? (
+            <p className="muted-text">Suggestions will appear after running new dataset intake.</p>
+          ) : joinOptions?.suggestions?.length ? (
             joinOptions.suggestions.map((s: any) => (
               <label key={s.relationship_key} className="suggestion-item">
                 <input
