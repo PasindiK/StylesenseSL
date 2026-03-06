@@ -13,7 +13,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 import pandas as pd
 
-from src.metadata.catalog import MetadataCatalog
+from ..metadata.catalog import MetadataCatalog
 
 
 @dataclass
