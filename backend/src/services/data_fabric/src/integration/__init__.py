@@ -30,6 +30,7 @@ from .behavioral_features import BehavioralFeatureExtractor as BehavioralFeature
 from .feature_vector_builder import FeatureVectorBuilder as FeatureVectorBuilderV2
 from .scoring_engine import RelationshipScoringEngine as RelationshipScoringEngineV2
 from .join_executor import JoinExecutor, ManualInterventionRequired
+from .autonomous_agent import AutonomousIntegrationAgent, AgentRunReport
 
 __all__ = [
     "WorkflowOrchestrator",
@@ -52,6 +53,8 @@ __all__ = [
     "RelationshipScoringEngineV2",
     "JoinExecutor",
     "ManualInterventionRequired",
+    "AutonomousIntegrationAgent",
+    "AgentRunReport",
     "RelationshipDiscoveryEngineV2",
     "InferredRelationshipV2",
 ]

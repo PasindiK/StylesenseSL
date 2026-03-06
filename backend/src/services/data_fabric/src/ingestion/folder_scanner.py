@@ -18,13 +18,13 @@ import re
 
 from .preprocessing import DataPreprocessor
 from .validation import DataValidator, ValidationReport
-from src.integration.virtual_integration import VirtualIntegrationLayer
-from src.metadata.catalog import (
+from ..integration.virtual_integration import VirtualIntegrationLayer
+from ..metadata.catalog import (
     MetadataCatalog,
     DataAsset,
     DatasetMetadata as CatalogDatasetMetadata,
 )
-from src.metadata.registry import MetadataRegistry
+from ..metadata.registry import MetadataRegistry
 
 logger = logging.getLogger(__name__)
 

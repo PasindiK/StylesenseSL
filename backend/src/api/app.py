@@ -1,9 +1,12 @@
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, List, Optional
+from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
+import json
+import shutil
 
 # Load environment variables from .env file
 from dotenv import load_dotenv
@@ -1184,3 +1187,589 @@ async def update_cart_item(index: int, request: Request):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+def _data_fabric_root() -> Path:
+    return ROOT / "src" / "services" / "data_fabric"
+
+
+def _load_data_fabric_catalog():
+    from src.services.data_fabric.src.metadata.catalog import MetadataCatalog
+
+    return MetadataCatalog()
+
+
+def _read_table_for_dataset(catalog, dataset_name: str) -> pd.DataFrame:
+    asset = catalog.get_asset(dataset_name)
+    file_path = None
+    if asset is not None:
+        file_path = asset.location
+        if not file_path:
+            file_path = asset.metadata.properties.get("file_path") if asset.metadata.properties else None
+
+    # Skip virtual outputs when source file does not exist.
+    if file_path and str(file_path).startswith("virtual://"):
+        file_path = None
+
+    candidate_paths: List[Path] = []
+    if file_path:
+        candidate_paths.append(Path(file_path))
+
+    raw_path = ROOT / "data" / "raw" / f"{dataset_name}.csv"
+    candidate_paths.append(raw_path)
+
+    for path in candidate_paths:
+        if not path.exists() or not path.is_file():
+            continue
+        suffix = path.suffix.lower()
+        if suffix == ".csv":
+            return pd.read_csv(path)
+        if suffix in {".tsv", ".txt"}:
+            return pd.read_csv(path, sep="\t")
+        if suffix in {".xls", ".xlsx"}:
+            return pd.read_excel(path)
+        if suffix == ".json":
+            return pd.read_json(path)
+        if suffix == ".parquet":
+            return pd.read_parquet(path)
+
+    raise FileNotFoundError(f"Dataset file not found for '{dataset_name}'")
+
+
+def _normalize_relationship(record: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        "relationship_key": str(record.get("relationship_key", "")),
+        "left_dataset": str(record.get("left_dataset", "")),
+        "right_dataset": str(record.get("right_dataset", "")),
+        "left_column": str(record.get("left_column", "")),
+        "right_column": str(record.get("right_column", "")),
+        "confidence": float(record.get("confidence", 0.0)),
+        "decision": str(record.get("decision", "weak")),
+        "cardinality": str(record.get("cardinality", "unknown")),
+        "model_version": str(record.get("model_version", "unknown")),
+        "feature_vector_version": str(record.get("feature_vector_version", "unknown")),
+        "feature_vector": record.get("feature_vector", {}),
+        "counterpart_dataset": record.get("counterpart_dataset"),
+        "is_unstable": bool(record.get("is_unstable", False)),
+        "drift_score": float(record.get("drift_score", 0.0)),
+        "join_usage_count": int(record.get("join_usage_count", 0)),
+        "last_scored_at": record.get("last_scored_at"),
+        "last_used_at": record.get("last_used_at"),
+        "history_points": len(list(record.get("history", []))),
+    }
+
+
+def _relationship_signals(relationship: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    feature_vector = dict(relationship.get("feature_vector", {}))
+
+    def pick(keys: List[str]) -> Dict[str, Any]:
+        return {k: feature_vector[k] for k in keys if k in feature_vector}
+
+    structural = {
+        "name_similarity": relationship.get("name_similarity", feature_vector.get("name_similarity", 0.0)),
+        "type_score": relationship.get("type_score", feature_vector.get("type_score", 0.0)),
+        "cardinality": relationship.get("cardinality", "unknown"),
+        **pick(["left_dtype", "right_dtype", "uniqueness_ratio_left", "uniqueness_ratio_right"]),
+    }
+    statistical = {
+        "overlap_ratio": relationship.get("overlap_ratio", feature_vector.get("overlap_ratio", 0.0)),
+        **pick(["numeric_range_similarity", "value_intersection_count", "null_ratio_left", "null_ratio_right"]),
+    }
+    behavioral = {
+        **pick([
+            "convertibility_score",
+            "join_usage_count",
+            "relationship_stability",
+            "behavioral_score",
+        ])
+    }
+
+    return {
+        "structural": structural,
+        "statistical": statistical,
+        "behavioral": behavioral,
+    }
+
+
+@app.get("/api/data-fabric/overview")
+async def data_fabric_overview():
+    """Return Data Fabric dashboard overview from live metadata catalog."""
+    catalog = _load_data_fabric_catalog()
+    assets = catalog.list_assets(asset_type="table")
+
+    datasets: List[Dict[str, Any]] = []
+    relationships: List[Dict[str, Any]] = []
+    seen_relationship_keys = set()
+
+    for asset in assets:
+        md = asset.metadata
+        datasets.append(
+            {
+                "dataset_name": asset.name,
+                "row_count": int(md.row_count),
+                "column_count": int(md.column_count),
+                "domain": str(md.domain),
+                "quality_score": float(md.quality_score),
+                "updated_at": md.updated_at.isoformat(),
+                "usage_count": int(md.usage_count),
+                "location": asset.location,
+            }
+        )
+
+        for rel in catalog.get_inferred_relationships(asset.name):
+            key = str(rel.get("relationship_key", ""))
+            if not key or key in seen_relationship_keys:
+                continue
+            seen_relationship_keys.add(key)
+            relationships.append(_normalize_relationship(rel))
+
+    relationships.sort(key=lambda item: float(item.get("confidence", 0.0)), reverse=True)
+
+    decision_counts = {"strong": 0, "probable": 0, "weak": 0}
+    unstable_count = 0
+    for rel in relationships:
+        decision = str(rel.get("decision", "weak")).lower()
+        if decision in decision_counts:
+            decision_counts[decision] += 1
+        if rel.get("is_unstable"):
+            unstable_count += 1
+
+    metrics_path = _data_fabric_root() / "models" / "relationship_metrics_v1.json"
+    metrics: Dict[str, Any] = {}
+    if metrics_path.exists():
+        try:
+            metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
+        except Exception:
+            metrics = {}
+
+    model_info = {
+        "model_mode": "ensemble",
+        "model_version": "unknown",
+        "feature_vector_version": "unknown",
+    }
+    if relationships:
+        model_info["model_version"] = str(relationships[0].get("model_version", "unknown"))
+        model_info["feature_vector_version"] = str(
+            relationships[0].get("feature_vector_version", "unknown")
+        )
+
+    return {
+        "kpis": {
+            "dataset_count": len(datasets),
+            "relationship_count": len(relationships),
+            "strong_count": decision_counts["strong"],
+            "probable_count": decision_counts["probable"],
+            "weak_count": decision_counts["weak"],
+            "unstable_count": unstable_count,
+        },
+        "model": model_info,
+        "datasets": sorted(datasets, key=lambda item: item["dataset_name"]),
+        "relationships": relationships,
+        "metrics": metrics,
+        "last_refreshed": pd.Timestamp.utcnow().isoformat(),
+    }
+
+
+@app.get("/api/data-fabric/join-options")
+async def data_fabric_join_options(left_dataset: str, right_dataset: str):
+    """Return ranked relationship suggestions and intervention mode for a pair."""
+    catalog = _load_data_fabric_catalog()
+    records = catalog.get_inferred_relationships(left_dataset)
+
+    suggestions = [
+        _normalize_relationship(r)
+        for r in records
+        if {str(r.get("left_dataset", "")), str(r.get("right_dataset", ""))}
+        == {left_dataset, right_dataset}
+    ]
+    suggestions.sort(key=lambda item: float(item.get("confidence", 0.0)), reverse=True)
+
+    non_weak = [s for s in suggestions if str(s.get("decision", "weak")).lower() != "weak"]
+    if not suggestions:
+        mode = "no_relationship"
+    elif len(non_weak) > 1:
+        mode = "manual_required_multiple"
+    elif len(non_weak) == 1:
+        mode = "auto_ready"
+    else:
+        mode = "manual_required_weak"
+
+    return {
+        "left_dataset": left_dataset,
+        "right_dataset": right_dataset,
+        "mode": mode,
+        "suggestions": suggestions,
+    }
+
+
+@app.post("/api/data-fabric/join-execute")
+async def data_fabric_join_execute(request: Request):
+    """Execute autonomous join with optional manual relationship selection."""
+    from src.services.data_fabric.src.integration import (
+        AutonomousIntegrationAgent,
+        ManualInterventionRequired,
+        VirtualIntegrationLayer,
+    )
+
+    body = await request.json()
+    left_dataset = str(body.get("left_dataset", "")).strip()
+    right_dataset = str(body.get("right_dataset", "")).strip()
+    selected_relationship_key = body.get("selected_relationship_key")
+    allow_weak_relationship = bool(body.get("allow_weak_relationship", False))
+    how = str(body.get("how", "inner"))
+
+    if not left_dataset or not right_dataset:
+        raise HTTPException(status_code=400, detail="left_dataset and right_dataset are required")
+
+    catalog = _load_data_fabric_catalog()
+    try:
+        datasets = {
+            left_dataset: _read_table_for_dataset(catalog, left_dataset),
+            right_dataset: _read_table_for_dataset(catalog, right_dataset),
+        }
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+    layer = VirtualIntegrationLayer(metadata_catalog=catalog)
+
+    try:
+        joined_df, relationship = layer.join_on_demand(
+            datasets=datasets,
+            left_dataset=left_dataset,
+            right_dataset=right_dataset,
+            how=how,
+            selected_relationship_key=str(selected_relationship_key) if selected_relationship_key else None,
+            allow_weak_relationship=allow_weak_relationship,
+        )
+    except ManualInterventionRequired as exc:
+        return {
+            "success": False,
+            "manual_intervention_required": True,
+            "reason": str(exc),
+            "suggestions": [s.to_dict() for s in exc.suggestions],
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+    relationship_key = (
+        f"{relationship.left_dataset}:{relationship.left_column}->"
+        f"{relationship.right_dataset}:{relationship.right_column}"
+    )
+    agent = AutonomousIntegrationAgent(metadata_catalog=catalog)
+    usage_updates = agent.log_join_usage(
+        left_dataset=left_dataset,
+        right_dataset=right_dataset,
+        relationship_key=relationship_key,
+    )
+
+    preview_limit = int(body.get("preview_limit", 25))
+    preview = joined_df.head(max(1, min(preview_limit, 200))).to_dict(orient="records")
+
+    return {
+        "success": True,
+        "manual_intervention_required": False,
+        "relationship": relationship.to_dict(),
+        "row_count": int(len(joined_df)),
+        "columns": joined_df.columns.tolist(),
+        "preview": preview,
+        "usage_updates": usage_updates,
+    }
+
+
+@app.get("/api/data-fabric/lineage")
+async def data_fabric_lineage():
+    """Return node/edge lineage graph built from metadata catalog."""
+    catalog = _load_data_fabric_catalog()
+    assets = catalog.list_assets(asset_type="table")
+
+    nodes = [
+        {
+            "id": asset.name,
+            "label": asset.name,
+            "domain": str(asset.metadata.domain),
+            "quality_score": float(asset.metadata.quality_score),
+        }
+        for asset in assets
+    ]
+
+    edges_set = set()
+    edges: List[Dict[str, str]] = []
+    for asset in assets:
+        dataset_info = catalog.get_dataset(asset.name) or {}
+        downstream = dataset_info.get("downstream_datasets", [])
+        for child in downstream:
+            key = (asset.name, child)
+            if key in edges_set:
+                continue
+            edges_set.add(key)
+            edges.append({"source": asset.name, "target": child})
+
+    return {
+        "nodes": sorted(nodes, key=lambda n: n["id"]),
+        "edges": sorted(edges, key=lambda e: (e["source"], e["target"])),
+    }
+
+
+@app.get("/api/data-fabric/logs")
+async def data_fabric_logs(limit: int = 200):
+    """Return operational logs synthesized from relationship metadata history."""
+    catalog = _load_data_fabric_catalog()
+    events: List[Dict[str, Any]] = []
+    seen = set()
+
+    for asset in catalog.list_assets(asset_type="table"):
+        dataset_name = asset.name
+        for rel in catalog.get_inferred_relationships(dataset_name):
+            key = str(rel.get("relationship_key", ""))
+            if not key or key in seen:
+                continue
+            seen.add(key)
+
+            history = list(rel.get("history", []))
+            for item in history:
+                events.append(
+                    {
+                        "timestamp": item.get("timestamp"),
+                        "event": "relationship_scored",
+                        "dataset_pair": f"{rel.get('left_dataset')}:{rel.get('right_dataset')}",
+                        "relationship_key": key,
+                        "confidence": float(item.get("confidence", 0.0)),
+                        "decision": str(item.get("decision", "weak")),
+                    }
+                )
+
+            if rel.get("is_unstable"):
+                events.append(
+                    {
+                        "timestamp": rel.get("last_scored_at"),
+                        "event": "relationship_unstable",
+                        "dataset_pair": f"{rel.get('left_dataset')}:{rel.get('right_dataset')}",
+                        "relationship_key": key,
+                        "confidence": float(rel.get("confidence", 0.0)),
+                        "decision": str(rel.get("decision", "weak")),
+                        "drift_score": float(rel.get("drift_score", 0.0)),
+                    }
+                )
+
+    events.sort(key=lambda e: str(e.get("timestamp", "")), reverse=True)
+    return {"events": events[: max(1, min(int(limit), 1000))]}
+
+
+@app.post("/api/data-fabric/intake")
+async def data_fabric_intake(request: Request):
+    """Process newly arrived file, infer relationships, and auto-join when safe."""
+    body = await request.json()
+    file_path_raw = str(body.get("file_path", "")).strip()
+    dataset_name = str(body.get("dataset_name", "")).strip() or None
+    auto_join_if_single = bool(body.get("auto_join_if_single", True))
+    how = str(body.get("how", "inner"))
+
+    if not file_path_raw:
+        raise HTTPException(status_code=400, detail="file_path is required")
+
+    file_path = Path(file_path_raw)
+    if not file_path.exists() or not file_path.is_file():
+        raise HTTPException(status_code=404, detail=f"File not found: {file_path_raw}")
+
+    return _run_data_fabric_intake(
+        file_path=file_path,
+        dataset_name=dataset_name,
+        auto_join_if_single=auto_join_if_single,
+        how=how,
+    )
+
+
+@app.post("/api/data-fabric/intake-upload")
+async def data_fabric_intake_upload(
+    file: UploadFile = File(...),
+    dataset_name: Optional[str] = Form(default=None),
+    auto_join_if_single: bool = Form(default=True),
+    how: str = Form(default="inner"),
+):
+    """Process uploaded file for Data Fabric intake workflow (drag/drop or file picker)."""
+    upload_dir = ROOT / "data" / "raw" / "intake_uploads"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+
+    original = Path(file.filename or "uploaded_file.csv")
+    safe_name = f"{uuid4().hex}_{original.name}"
+    saved_path = upload_dir / safe_name
+
+    with saved_path.open("wb") as output:
+        shutil.copyfileobj(file.file, output)
+
+    return _run_data_fabric_intake(
+        file_path=saved_path,
+        dataset_name=(dataset_name or "").strip() or original.stem,
+        auto_join_if_single=auto_join_if_single,
+        how=how,
+    )
+
+
+def _run_data_fabric_intake(
+    file_path: Path,
+    dataset_name: Optional[str],
+    auto_join_if_single: bool,
+    how: str,
+) -> Dict[str, Any]:
+    """Shared intake execution for path-based and upload-based workflows."""
+    from src.services.data_fabric.src.ingestion.folder_scanner import FolderScanner
+    from src.services.data_fabric.src.integration import AutonomousIntegrationAgent, VirtualIntegrationLayer
+
+    intake_dataset_name = dataset_name or file_path.stem
+    catalog = _load_data_fabric_catalog()
+    scanner = FolderScanner(str(file_path.parent))
+
+    df_new = scanner.load_data_file(
+        file_path,
+        enable_preprocessing=True,
+        normalize_columns=True,
+        normalize_dates=True,
+        normalize_numeric=True,
+        dataset_name=intake_dataset_name,
+        metadata_catalog=catalog,
+        metadata_registry=None,
+        producer_pipeline="integration.autonomous_intake",
+    )
+    if df_new is None:
+        raise HTTPException(status_code=400, detail="Failed to parse input data file")
+
+    metadata = scanner.create_metadata(df_new, file_path)
+    catalog.upsert_dataset(
+        dataset_name=intake_dataset_name,
+        domain=metadata.detected_domain,
+        schema=metadata.data_types,
+        row_count=metadata.row_count,
+        producer_pipeline="integration.autonomous_intake",
+        validation_status="warning",
+        quality_score=0.0,
+        description=f"Intake dataset from {file_path.name}",
+        owner="integration",
+        source_system=metadata.file_type,
+        location=str(file_path),
+        tags=[metadata.detected_domain, "intake"],
+        properties={
+            "file_path": str(file_path),
+            "loaded_at": metadata.loaded_at.isoformat(),
+            "last_updated": pd.Timestamp.utcnow().isoformat(),
+            "producer_pipeline": "integration.autonomous_intake",
+        },
+    )
+
+    datasets: Dict[str, pd.DataFrame] = {intake_dataset_name: df_new}
+    for asset in catalog.list_assets(asset_type="table"):
+        if asset.name == intake_dataset_name:
+            continue
+        try:
+            datasets[asset.name] = _read_table_for_dataset(catalog, asset.name)
+        except Exception:
+            continue
+
+    if len(datasets) < 2:
+        return {
+            "status": "ingested_only",
+            "dataset_name": intake_dataset_name,
+            "message": "File ingested, but no other datasets were available for relationship discovery yet.",
+        }
+
+    layer = VirtualIntegrationLayer(metadata_catalog=catalog)
+    inferred = layer.infer_relationships(datasets=datasets, register_results=True)
+    candidate_relationships = [
+        rel.to_dict()
+        for rel in inferred
+        if rel.left_dataset == intake_dataset_name or rel.right_dataset == intake_dataset_name
+    ]
+    candidate_relationships.sort(key=lambda item: float(item.get("confidence", 0.0)), reverse=True)
+
+    good_matches = [
+        rel
+        for rel in candidate_relationships
+        if str(rel.get("decision", "weak")).lower() in {"strong", "probable"}
+    ]
+    bad_matches = [
+        rel
+        for rel in candidate_relationships
+        if str(rel.get("decision", "weak")).lower() == "weak"
+    ]
+
+    suggestions = [
+        {
+            **_normalize_relationship(rel),
+            "signals": _relationship_signals(rel),
+            "explanation": (
+                f"{rel.get('left_column')} -> {rel.get('right_column')} scored {float(rel.get('confidence', 0.0)):.3f} "
+                f"({str(rel.get('decision', 'weak')).upper()})"
+            ),
+        }
+        for rel in good_matches + bad_matches
+    ]
+
+    agent = AutonomousIntegrationAgent(metadata_catalog=catalog)
+    behavioral_updates = agent.update_behavioral_features()
+    drift_flags = agent.detect_and_flag_confidence_drift(threshold=0.20)
+
+    if auto_join_if_single and len(good_matches) == 1:
+        selected = good_matches[0]
+        left_dataset = str(selected.get("left_dataset"))
+        right_dataset = str(selected.get("right_dataset"))
+        relationship_key = (
+            f"{left_dataset}:{selected.get('left_column')}->{right_dataset}:{selected.get('right_column')}"
+        )
+
+        join_df, used_relationship = layer.join_on_demand(
+            datasets=datasets,
+            left_dataset=left_dataset,
+            right_dataset=right_dataset,
+            selected_relationship_key=relationship_key,
+            allow_weak_relationship=False,
+            how=how,
+            output_dataset=f"{left_dataset}_{right_dataset}_joined",
+            producer_pipeline="integration.autonomous_intake",
+        )
+
+        usage_updates = agent.log_join_usage(
+            left_dataset=left_dataset,
+            right_dataset=right_dataset,
+            relationship_key=relationship_key,
+        )
+
+        return {
+            "status": "auto_joined",
+            "dataset_name": intake_dataset_name,
+            "good_match_count": len(good_matches),
+            "bad_match_count": len(bad_matches),
+            "selected_relationship": used_relationship.to_dict(),
+            "selected_signals": _relationship_signals(used_relationship.to_dict()),
+            "why_joined": (
+                f"Exactly one good match was found: {used_relationship.left_column} -> {used_relationship.right_column} "
+                f"with confidence {used_relationship.confidence:.3f} ({used_relationship.decision.upper()})."
+            ),
+            "join_preview": join_df.head(25).to_dict(orient="records"),
+            "join_rows": int(len(join_df)),
+            "suggestions": suggestions,
+            "agent_updates": {
+                "usage_updates": usage_updates,
+                "behavioral_updates": behavioral_updates,
+                "drift_flags": drift_flags,
+            },
+        }
+
+    mode = "manual_required_multiple_or_bad"
+    if len(good_matches) == 0:
+        mode = "manual_required_no_good_match"
+    elif len(good_matches) > 1:
+        mode = "manual_required_multiple_good_matches"
+
+    return {
+        "status": mode,
+        "dataset_name": intake_dataset_name,
+        "good_match_count": len(good_matches),
+        "bad_match_count": len(bad_matches),
+        "suggestions": suggestions,
+        "why_not_auto_joined": (
+            "Manual intervention required because there are multiple good matches or no reliable good match."
+        ),
+        "agent_updates": {
+            "behavioral_updates": behavioral_updates,
+            "drift_flags": drift_flags,
+        },
+    }
