@@ -12,11 +12,19 @@ export function OverviewPage({ metrics, onMetricClick }: OverviewPageProps) {
   const totalProcessed = metrics.total_drifts || 0;
   const autoResolved = metrics.auto_resolved || 0;
   const pending = metrics.pending_approvals || 0;
-  const quarantined = metrics.quarantined || 0;
   
-  const automationRate = totalProcessed > 0 ? Math.round((autoResolved / totalProcessed) * 100) : 0;
-  const successRate = totalProcessed > 0 ? Math.round(((autoResolved + pending) / totalProcessed) * 100) : 100;
-  const avgResolutionTime = '2.3h'; // Mock data - replace with real calculation
+  const automationRate = metrics.automation_rate_pct ?? (totalProcessed > 0 ? Math.round((autoResolved / totalProcessed) * 100) : 0);
+  const successRate = metrics.success_rate_pct ?? (totalProcessed > 0 ? Math.round(((autoResolved + pending) / totalProcessed) * 100) : 100);
+  const avgResolutionHours = metrics.avg_resolution_hours ?? 0;
+  const avgResolutionTime = avgResolutionHours > 0 ? `${avgResolutionHours.toFixed(1)}h` : '—';
+  const governanceRulesCount = metrics.governance_rules_count ?? 0;
+  const throughputRecordsPerSec = metrics.throughput_records_per_sec ?? 0;
+  const activePipelines = metrics.active_pipelines ?? 0;
+  const dataVolumeTb = metrics.data_volume_tb ?? 0;
+  const dataVolumeDisplay = dataVolumeTb >= 0.01
+    ? `${dataVolumeTb.toFixed(2)} TB`
+    : `${(dataVolumeTb * 1024).toFixed(2)} GB`;
+  const qualityScore = metrics.quality_score_pct ?? 0;
 
   return (
     <div className="page-section">
@@ -73,11 +81,11 @@ export function OverviewPage({ metrics, onMetricClick }: OverviewPageProps) {
               {/* @ts-ignore */}
               <Shield size={24} strokeWidth={2} />
             </div>
-            <Badge label="Active" tone="info" />
+            <Badge label={governanceRulesCount > 0 ? "Active" : "No Rules"} tone={governanceRulesCount > 0 ? "info" : "warning"} />
           </div>
           <div className="insight-content">
             <h3>Governance Rules</h3>
-            <div className="insight-value">24</div>
+            <div className="insight-value">{governanceRulesCount}</div>
             <p className="insight-description">Quality rules enforced across pipeline</p>
           </div>
         </div>
@@ -180,7 +188,7 @@ export function OverviewPage({ metrics, onMetricClick }: OverviewPageProps) {
             </div>
             <div className="perf-stat-content">
               <div className="perf-stat-label">Throughput</div>
-              <div className="perf-stat-value">1,247 records/s</div>
+              <div className="perf-stat-value">{throughputRecordsPerSec.toFixed(2)} records/s</div>
             </div>
           </div>
           <div className="perf-stat">
@@ -190,7 +198,7 @@ export function OverviewPage({ metrics, onMetricClick }: OverviewPageProps) {
             </div>
             <div className="perf-stat-content">
               <div className="perf-stat-label">Active Pipelines</div>
-              <div className="perf-stat-value">8 running</div>
+              <div className="perf-stat-value">{activePipelines} running</div>
             </div>
           </div>
           <div className="perf-stat">
@@ -200,7 +208,7 @@ export function OverviewPage({ metrics, onMetricClick }: OverviewPageProps) {
             </div>
             <div className="perf-stat-content">
               <div className="perf-stat-label">Data Volume</div>
-              <div className="perf-stat-value">156 TB</div>
+              <div className="perf-stat-value">{dataVolumeDisplay}</div>
             </div>
           </div>
           <div className="perf-stat">
@@ -210,7 +218,7 @@ export function OverviewPage({ metrics, onMetricClick }: OverviewPageProps) {
             </div>
             <div className="perf-stat-content">
               <div className="perf-stat-label">Quality Score</div>
-              <div className="perf-stat-value">98.7%</div>
+              <div className="perf-stat-value">{qualityScore.toFixed(1)}%</div>
             </div>
           </div>
         </div>

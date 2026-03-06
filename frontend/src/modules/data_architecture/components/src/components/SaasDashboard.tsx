@@ -1,7 +1,7 @@
 import { SaasHeader } from './SaasHeader';
 import { SaasTabs } from './SaasTabs';
 import { SaasMetrics } from './SaasMetrics';
-import { LiveMetrics } from '../types';
+import type { LiveMetrics } from '../types.ts';
 
 interface SaasDashboardProps {
   metrics: LiveMetrics;
