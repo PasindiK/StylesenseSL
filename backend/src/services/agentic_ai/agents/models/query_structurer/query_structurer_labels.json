@@ -1,0 +1,27 @@
+{
+  "style": [
+    "athleisure",
+    "boho",
+    "casual",
+    "ethnic",
+    "formal",
+    "minimal",
+    "smart_casual",
+    "streetwear"
+  ],
+  "event": [
+    "beach",
+    "daily_wear",
+    "date_night",
+    "gym",
+    "office",
+    "party",
+    "travel",
+    "wedding"
+  ],
+  "budget": [
+    "high",
+    "low",
+    "mid"
+  ]
+}

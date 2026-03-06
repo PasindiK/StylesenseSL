@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 import time
 from datetime import datetime, timedelta
 from collections import Counter
@@ -32,6 +32,7 @@ from src.services.agentic_ai.agents.personalization_agent import Personalization
 from src.utils.nl_parser import parse_intent
 from src.clients.gemini_client import dynamic_small_talk, parse_query_with_gemini, generate_styling_advice_with_gemini, clarify_ambiguous_query
 from src.services.agentic_ai.agents.order_agent import OrderAgent
+from src.services.agentic_ai.agents.link_order_assistant_agent import LinkOrderAssistantAgent
 
 app = FastAPI(title="CatalogAgent API")
 
@@ -74,6 +75,7 @@ user_agent = UserAgent()
 personalizer = CatalogPersonalizer(user_agent)
 personalization_agent = PersonalizationAgent(user_agent)
 order_agent = OrderAgent(loader=loader)  # Pass loader for shop info lookup (updated)
+link_order_assistant = LinkOrderAssistantAgent(order_agent=order_agent)
 
 # Initialize the orchestrator with all agents
 orchestrator = Orchestrator(
@@ -118,6 +120,14 @@ dashboard_telemetry = {
     },
     "intents": Counter(),
     "recommendation_feed": [],  # [{"ts": float, "user_id": str, "product": str, "score": float}]
+    "runtime_scoring": {
+        "intent_confidences": [],  # float in [0,1]
+        "recommendation_scores": [],  # float in [0,1]
+        "scored_events": [],  # [{"ts": float, "intent": str, "intent_confidence": float|None, "rec_score": float|None}]
+        "clarification_count": 0,
+        "feedback_positive": 0,
+        "feedback_negative": 0,
+    },
 }
 
 
@@ -162,6 +172,86 @@ def _record_recommendation_feed(user_id: Optional[str], products: list):
             },
             cap=300,
         )
+
+
+def _extract_score_fraction(value: Any) -> Optional[float]:
+    """Convert score-like values to [0,1] float where possible."""
+    try:
+        score = float(value)
+        if score > 1.0:
+            score = score / 100.0
+        return max(0.0, min(1.0, score))
+    except Exception:
+        return None
+
+
+def _record_runtime_scoring(response: dict) -> None:
+    """Record online runtime scoring proxies from live responses.
+
+    Notes:
+    - This is not true accuracy (no live labels).
+    - It tracks confidence/score trends and user feedback as quality proxies.
+    """
+    if not isinstance(response, dict):
+        return
+
+    runtime = dashboard_telemetry.get("runtime_scoring", {})
+    intent = str(response.get("intent") or "unknown")
+
+    # Feedback-based quality proxy.
+    if intent == "feedback_positive":
+        runtime["feedback_positive"] = int(runtime.get("feedback_positive", 0)) + 1
+    elif intent == "feedback_negative":
+        runtime["feedback_negative"] = int(runtime.get("feedback_negative", 0)) + 1
+    elif intent == "clarification_request":
+        runtime["clarification_count"] = int(runtime.get("clarification_count", 0)) + 1
+
+    # Intent confidence if available.
+    conf = (
+        response.get("confidence")
+        or (response.get("runtime_scoring") or {}).get("intent_confidence")
+        or (response.get("classification") or {}).get("confidence")
+    )
+    conf_score = _extract_score_fraction(conf)
+    if conf_score is not None:
+        _append_capped(runtime["intent_confidences"], conf_score, cap=3000)
+
+    # Recommendation score proxy from returned products.
+    products = []
+    for key in ["best_matches", "new_suggestions", "results"]:
+        values = response.get(key)
+        if isinstance(values, list):
+            products.extend(values)
+
+    rec_scores = []
+    for p in products[:12]:
+        if not isinstance(p, dict):
+            continue
+        score = (
+            p.get("personalization_score")
+            or p.get("_personalization_score")
+            or p.get("_match_score_percent")
+            or p.get("score")
+        )
+        score_val = _extract_score_fraction(score)
+        if score_val is not None:
+            rec_scores.append(score_val)
+
+    rec_avg = None
+    if rec_scores:
+        rec_avg = sum(rec_scores) / len(rec_scores)
+        _append_capped(runtime["recommendation_scores"], rec_avg, cap=3000)
+
+    _append_capped(
+        runtime["scored_events"],
+        {
+            "ts": time.time(),
+            "intent": intent,
+            "intent_confidence": conf_score,
+            "rec_score": rec_avg,
+        },
+        cap=1000,
+    )
 
 
 def _estimate_graph_metrics() -> tuple[int, int, dict[str, int]]:
@@ -558,6 +648,59 @@ def get_dashboard_metrics():
     }
 
 
+@app.get("/api/runtime/scoring")
+def get_runtime_scoring(window_size: int = 200):
+    """Return live runtime scoring proxies for model quality monitoring.
+
+    Important: this is not true accuracy because ground-truth labels are unknown
+    during live traffic. It exposes confidence, recommendation score trends,
+    clarification pressure, and feedback outcomes.
+    """
+    runtime = dashboard_telemetry.get("runtime_scoring", {})
+    intent_conf = runtime.get("intent_confidences", [])
+    rec_scores = runtime.get("recommendation_scores", [])
+    events = runtime.get("scored_events", [])
+
+    ws = max(20, min(int(window_size), 1000))
+    recent_events = events[-ws:]
+
+    recent_conf = [e.get("intent_confidence") for e in recent_events if e.get("intent_confidence") is not None]
+    recent_rec = [e.get("rec_score") for e in recent_events if e.get("rec_score") is not None]
+
+    def avg(values: list[float]) -> float:
+        return round(sum(values) / len(values), 4) if values else 0.0
+
+    clarifications = int(runtime.get("clarification_count", 0))
+    feedback_pos = int(runtime.get("feedback_positive", 0))
+    feedback_neg = int(runtime.get("feedback_negative", 0))
+    feedback_total = feedback_pos + feedback_neg
+
+    negative_feedback_rate = round((feedback_neg / feedback_total), 4) if feedback_total > 0 else 0.0
+
+    return {
+        "metric_note": "Online scoring proxy. True accuracy requires labeled outcomes.",
+        "window_size": ws,
+        "live": {
+            "intent_confidence_avg": avg(recent_conf),
+            "recommendation_score_avg": avg(recent_rec),
+            "clarification_rate": round((clarifications / max(1, dashboard_telemetry.get("chat_requests", 1))), 4),
+            "negative_feedback_rate": negative_feedback_rate,
+        },
+        "totals": {
+            "chat_requests": int(dashboard_telemetry.get("chat_requests", 0)),
+            "scored_events": len(events),
+            "feedback_positive": feedback_pos,
+            "feedback_negative": feedback_neg,
+            "clarification_count": clarifications,
+        },
+        "series": {
+            "intent_confidence": intent_conf[-200:],
+            "recommendation_scores": rec_scores[-200:],
+            "recent_events": recent_events[-50:],
+        },
+    }
+
+
 def _get_user_id(request: Request, user_id_param: Optional[str] = None) -> Optional[str]:
     """Extract user_id from X-User-Id header or user_id query param."""
     if user_id_param:
@@ -598,6 +741,31 @@ def _get_user_name(user_id: Optional[str]) -> Optional[str]:
     except Exception as e:
         print(f"Error getting user name: {e}")
     return None
+
+
+def _get_user_profile(user_id: Optional[str]) -> dict:
+    """Return lightweight user profile for guided order flows."""
+    if not user_id:
+        return {}
+    try:
+        users_path = ROOT / "data" / "raw" / "users_dataset.csv"
+        if not users_path.exists():
+            return {}
+        df = pd.read_csv(users_path)
+        df["user_id"] = df["user_id"].astype(str)
+        row = df[df["user_id"] == str(user_id)]
+        if row.empty:
+            return {}
+        data = row.iloc[0].to_dict()
+        return {
+            "user_id": str(data.get("user_id") or user_id),
+            "name": data.get("name"),
+            "email": data.get("email"),
+            "phone": data.get("phone"),
+            "shipping_address": data.get("shipping_address"),
+        }
+    except Exception:
+        return {}
 
 
 def _classify_intent(text: str) -> str:
@@ -746,6 +914,11 @@ def search(request: Request, q: str, limit: Optional[int] = 10, user_id: Optiona
     try:
         uid = _get_user_id(request, user_id)
         user_name = _get_user_name(uid)
+        classification_preview = None
+        try:
+            classification_preview = orchestrator.classify_intent(q, user_id=uid, user_name=user_name)
+        except Exception:
+            classification_preview = None
         candidates = agent.search_by_text(q, limit=limit)
         # log interaction
         if uid:
@@ -936,18 +1109,41 @@ def answer(request: Request, payload: dict, user_id: Optional[str] = None):
 
         uid = _get_user_id(request, user_id)
         user_name = _get_user_name(uid)
+        classification_preview = None
+        try:
+            classification_preview = orchestrator.classify_intent(text, user_id=uid, user_name=user_name)
+        except Exception:
+            classification_preview = None
         
         print(f"[DEBUG] User: {user_name or uid or 'anonymous'}, Query: '{text}'")
         
         # Use orchestrator to process the query
         response = orchestrator.process_query(text, user_id=uid, user_name=user_name)
+        if isinstance(classification_preview, dict):
+            response["runtime_scoring"] = {
+                "intent_confidence": classification_preview.get("confidence"),
+                "intent_method": classification_preview.get("method"),
+                "intent_action": classification_preview.get("action"),
+            }
+        _record_runtime_scoring(response)
         dashboard_telemetry["agent_success"] += 1
         if response.get("intent"):
             dashboard_telemetry["intents"][response.get("intent")] += 1
         
         # Log interaction for product searches
         if response.get("intent") == "product_search" and uid:
-            user_agent.record_interaction(uid, "search", {"query": text})
+            parsed = parse_intent(text)
+            first_product = ((response.get("best_matches") or []) + (response.get("new_suggestions") or []) + (response.get("results") or []))
+            first_product = first_product[0] if first_product else {}
+            interaction_payload = {
+                "query": text,
+                "category": parsed.get("category") or response.get("filters", {}).get("category"),
+                "color": parsed.get("color") or response.get("filters", {}).get("color"),
+                "price": parsed.get("max_price") or first_product.get("price") or first_product.get("price_LKR"),
+                "shop_id": first_product.get("shop_id"),
+                "style_tags": first_product.get("normalized_style_tags") or first_product.get("style_tags") or [],
+            }
+            user_agent.record_interaction(uid, "search", interaction_payload)
 
         if response.get("intent") == "product_search":
             products = (response.get("best_matches") or []) + (response.get("new_suggestions") or [])
@@ -1038,6 +1234,34 @@ def answer(request: Request, payload: dict, user_id: Optional[str] = None):
         _append_capped(dashboard_telemetry["latencies"]["retriever"], max(1, int(elapsed_ms * 0.32)), cap=300)
         _append_capped(dashboard_telemetry["latencies"]["ranking"], max(1, int(elapsed_ms * 0.30)), cap=300)
         _append_capped(dashboard_telemetry["latencies"]["styling"], max(1, int(elapsed_ms * 0.16)), cap=300)
+
+
+@app.post("/api/order-assistant/message")
+def order_assistant_message(payload: dict):
+    """Guided order workflow endpoint for real-world product links.
+
+    This endpoint enforces one-question-at-a-time ordering with explicit
+    confirmation at each critical step and secure external payment collection.
+    """
+    try:
+        session_id = payload.get("session_id")
+        text = payload.get("text")
+        user_id = payload.get("user_id")
+        profile = _get_user_profile(str(user_id)) if user_id is not None else {}
+        incoming_profile = payload.get("profile")
+        if isinstance(incoming_profile, dict):
+            for key in ["user_id", "name", "email", "phone", "shipping_address"]:
+                if incoming_profile.get(key) is not None:
+                    profile[key] = incoming_profile.get(key)
+        response = link_order_assistant.process_message(
+            session_id=session_id,
+            text=text,
+            user_id=str(user_id) if user_id is not None else None,
+            user_profile=profile,
+        )
+        return link_order_assistant.decorate_response(response)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Order assistant failed: {str(e)}")
     
     # Handle greeting intent
     if intent_type == "greeting":
@@ -1568,6 +1792,7 @@ async def add_to_cart(request: Request):
         url = body.get("url")
         quantity = body.get("quantity", 1)
         size = body.get("size")  # Optional selected size
+        color = body.get("color")  # Optional selected color
         
         if not url:
             raise HTTPException(status_code=400, detail="Product URL is required")
@@ -1577,7 +1802,7 @@ async def add_to_cart(request: Request):
         
         if product_data:
             # Found in dataset - add directly without scraping
-            result = order_agent.add_product_direct(product_data, quantity, size)
+            result = order_agent.add_product_direct(product_data, quantity, size, color)
             
             if not result.get("success"):
                 return {
@@ -1594,7 +1819,7 @@ async def add_to_cart(request: Request):
             }
         else:
             # URL not in dataset, try to scrape from web
-            result = order_agent.add_product(url, quantity, size)
+            result = order_agent.add_product(url, quantity, size, color)
             
             if not result.get("success"):
                 return {

@@ -19,6 +19,15 @@ type Message = {
 
 type ComponentKey = 'agentic_ai' | 'data_mesh' | 'data_fabric' | 'data_architecture'
 
+type OrderAssistantCheckoutRequest = {
+  id: string
+  url: string
+  quantity?: number
+  size?: string
+  color?: string
+  name?: string
+}
+
 const componentCards: Array<{
   key: ComponentKey
   title: string
@@ -80,6 +89,8 @@ export default function App() {
   const [showCart, setShowCart] = useState(false)
   const [cartData, setCartData] = useState<any>(null)
   const [cartItemCount, setCartItemCount] = useState(0)
+  const [agenticInitialSection, setAgenticInitialSection] = useState<'chat' | 'order_assistant'>('chat')
+  const [orderAssistantCheckoutRequest, setOrderAssistantCheckoutRequest] = useState<OrderAssistantCheckoutRequest | null>(null)
 
   // Message list ref
   const listRef = useRef<HTMLDivElement | null>(null)
@@ -166,6 +177,31 @@ export default function App() {
       request: `user=${signal.userId}`,
       response: signal,
     })
+  }
+
+  async function handleOpenShoppingCartFromOrderAssistant() {
+    await fetchCart()
+    setShowCart(true)
+  }
+
+  function handleCheckoutCartItem(item: any) {
+    const itemUrl = String(item?.url || item?.product_url || '').trim()
+    if (!itemUrl) {
+      appendMessage('system', 'Cannot start checkout for this item because the product URL is missing.')
+      return
+    }
+
+    setOrderAssistantCheckoutRequest({
+      id: crypto.randomUUID(),
+      url: itemUrl,
+      quantity: Number(item?.quantity || 1),
+      size: item?.selected_size ? String(item.selected_size) : undefined,
+      color: item?.selected_color ? String(item.selected_color) : undefined,
+      name: item?.name ? String(item.name) : undefined,
+    })
+    setShowCart(false)
+    setSelectedComponent('agentic_ai')
+    setAgenticInitialSection('order_assistant')
   }
 
   // Landing page component
@@ -372,61 +408,61 @@ export default function App() {
     }
   }
 
-  // Perform the selected action against the backend.
-  // Uses the Vite dev proxy: calls are made to `/api/...` which the dev server proxies to the FastAPI backend.
-  async function handleSubmit(e?: React.FormEvent) {
-    e?.preventDefault()
-    const q = text.trim()
+  async function submitQuery(query: string, displayText?: string) {
+    const q = query.trim()
     if (!q) return
 
-    appendMessage('user', q)
+    appendMessage('user', displayText || q)
     setText('')
     setIsTyping(true)
 
     try {
-      // POST /api/answer (free-text)
       const res = await fetch(`${API_BASE}/answer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
         body: JSON.stringify({ text: q }),
       })
-      
+
       if (!res.ok) {
         const errorText = await res.text()
         setIsTyping(false)
         appendMessage('ai', `Sorry, I encountered an error: ${errorText}`)
         return
       }
-      
+
       const payload = await safeParseResponse(res)
       console.log('[DEBUG] Payload received:', payload)
-      
-      // Check multiple message fields
-      const responseMessage = payload.reply || payload.message || payload.answer || payload.text
-      
+
+      let responseMessage = payload.reply || payload.message || payload.answer || payload.text
+
+      if (payload.intent === 'product_search' && payload.structured_query) {
+        const sq = payload.structured_query
+        const style = sq.style || 'n/a'
+        const event = sq.event || 'n/a'
+        const budget = sq.budget || 'n/a'
+        const suffix = `\n\n[Structured Query] style=${style}, event=${event}, budget=${budget}`
+        responseMessage = `${responseMessage || ''}${suffix}`.trim()
+      }
+
       setIsTyping(false)
-      
+
       if (!responseMessage) {
         console.error('[ERROR] No message in payload:', payload)
         appendMessage('ai', "I'm having trouble generating a response. Please try rephrasing your query.")
       } else {
         appendMessage('ai', responseMessage, { response: payload })
       }
-      
+
       setMeta({ mode: 'answer', request: q, response: payload })
-      
-      // Refresh cart if cart-related intent
+
       if (payload.intent && ['add_to_cart', 'view_cart', 'clear_cart', 'multi_task'].includes(payload.intent)) {
         console.log('[CART] Cart-related intent detected:', payload.intent)
-        // If view_cart intent has cart data, use it directly
         if (payload.intent === 'view_cart' && payload.cart) {
           console.log('[CART] Using cart data from view_cart response')
           setCartData(payload.cart)
           setCartItemCount(payload.cart?.total_items || 0)
-          // Auto-open cart panel for view_cart
           setShowCart(true)
         } else {
-          // Otherwise fetch fresh cart data
           fetchCart()
         }
       }
@@ -434,6 +470,20 @@ export default function App() {
       console.error('[ERROR] Exception in handleSubmit:', err)
       appendMessage('ai', 'Error contacting backend: ' + String(err))
     }
+  }
+
+  function handleClarificationChoice(intent: string, originalQuery?: string) {
+    const clarifyText = originalQuery
+      ? `I meant ${intent}. Original request: ${originalQuery}`
+      : `I meant ${intent}.`
+    submitQuery(clarifyText, `Intent clarification: ${intent}`)
+  }
+
+  // Perform the selected action against the backend.
+  // Uses the Vite dev proxy: calls are made to `/api/...` which the dev server proxies to the FastAPI backend.
+  async function handleSubmit(e?: React.FormEvent) {
+    e?.preventDefault()
+    submitQuery(text)
   }
 
   // --- Response normalization helpers (demo-friendly) ---
@@ -454,89 +504,6 @@ export default function App() {
     } catch (e) {
       return { text: `Failed to parse response: ${String(e)}` }
     }
-  }
-
-  function normalizeSearchResponse(payload: any, q: string) {
-    const products: any[] = Array.isArray(payload?.products) ? payload.products : []
-
-    // If no products returned, synthesize a small demo set
-    if (products.length === 0) {
-      const sample = [
-        { id: 'p-demo-1', name: 'Red A-line Dress', price_LKR: 4500 },
-        { id: 'p-demo-2', name: 'Deep Red Maxi Dress', price_LKR: 6200 },
-        { id: 'p-demo-3', name: 'Casual Red Wrap Dress', price_LKR: 3200 },
-      ]
-      return {
-        products: sample.map((p) => ({ ...p, personalization_score: 0.72, why: guessWhyForProduct(p, q) })),
-        personalization_score: 0.72,
-        why: ['No direct matches — showing relaxed results'],
-        fallback_steps: ['Relax color/size filters', 'Expand price range', 'Use semantic search'],
-      }
-    }
-
-    // Ensure every product has a personalization_score and why
-    const augmentedProducts = products.map((p: any) => ({
-      ...p,
-      personalization_score: p.personalization_score ?? 0.5,
-      why: p.why ?? guessWhyForProduct(p, q),
-    }))
-
-    return {
-      ...payload,
-      products: augmentedProducts,
-      personalization_score: payload.personalization_score ?? augmentedProducts[0]?.personalization_score ?? 0.5,
-      why: payload.why ?? augmentedProducts[0]?.why ?? ['Matches basic filters'],
-      fallback_steps: payload.fallback_steps ?? [],
-    }
-  }
-
-  function normalizeAnswerResponse(payload: any, q: string) {
-    // /api/answer returns { intent, shop, results, fallbacks }
-    const results: any[] = Array.isArray(payload?.results) ? payload.results : []
-
-    // Augment each result with personalization_score and why if missing
-    const augmentedResults = results.map((p: any) => ({
-      ...p,
-      personalization_score: p.personalization_score ?? 0.65,
-      why: p.why ?? guessWhyForProduct(p, q),
-    }))
-
-    return {
-      intent: payload?.intent || {},
-      shop: payload?.shop,
-      results: augmentedResults,
-      fallbacks: payload?.fallbacks || [],
-      answer:
-        augmentedResults.length > 0
-          ? `Found ${augmentedResults.length} product${augmentedResults.length === 1 ? '' : 's'} matching your query.`
-          : `No products found matching your query. Try refining your search (e.g., "affordable dresses under 5000").`,
-    }
-  }
-
-  function normalizeOrchestrateResponse(payload: any, q: string) {
-    if (!payload || (!payload.plan && !payload.trace)) {
-      const plan = [
-        { step: 'parse_intent', detail: 'Extract color and category' },
-        { step: 'catalog_search', detail: 'Search products with filters' },
-        { step: 'personalize', detail: 'Score by user preferences' },
-      ]
-      const trace = [
-        { step: 'parse_intent', ok: true, output: { color: 'red', category: 'dress' } },
-        { step: 'catalog_search', ok: true, output: { found: 3 } },
-        { step: 'personalize', ok: true, output: { top: 'p-demo-1' } },
-      ]
-      return { plan, trace, summary: `Executed ${plan.length} steps. Found 3 candidates.` }
-    }
-    return payload
-  }
-
-  function guessWhyForProduct(p: any, q: string) {
-    const reasons: string[] = []
-    if (/red/i.test(q) || /red/i.test(p?.name)) reasons.push('Matches color preference: red')
-    if (/dress|dresses/i.test(q) || /dress/i.test(p?.name)) reasons.push('Matches category: dress')
-    if (/affordable|cheap|budget|low|under/i.test(q)) reasons.push('Within requested budget')
-    if (!reasons.length) reasons.push('Matches some query attributes')
-    return reasons
   }
 
   const agenticComponent = componentCards.find((c) => c.key === 'agentic_ai')
@@ -594,7 +561,7 @@ export default function App() {
         </aside>
 
         {/* RIGHT CHAT AREA */}
-        <main className="chat-main">
+        <main className={`chat-main ${showCart ? 'cart-open' : ''}`}>
           <div className="chat-header">
             <div>
               <h1>{agenticComponent?.title || 'Agentic AI'}</h1>
@@ -608,6 +575,10 @@ export default function App() {
               users={users}
               onUserChange={handleDashboardUserChange}
               onPreferenceSignal={handlePreferenceSignal}
+              onOpenShoppingCart={handleOpenShoppingCartFromOrderAssistant}
+              initialSection={agenticInitialSection}
+              orderAssistantCheckoutRequest={orderAssistantCheckoutRequest}
+              onOrderAssistantCheckoutRequestConsumed={() => setOrderAssistantCheckoutRequest(null)}
               chatContent={
                 <section className="chat-conversation-pane" style={{ height: '100%' }}>
                   <div className="message-list" ref={listRef}>
@@ -624,6 +595,13 @@ export default function App() {
                   
                   // Get metadata for this specific message
                   const messageMeta = m.metadata
+                  const clarification = messageMeta?.response?.clarification
+                  const hasClarificationChoices = Boolean(
+                    m.sender === 'ai' &&
+                    messageMeta?.response?.intent === 'clarification_request' &&
+                    Array.isArray(clarification?.candidates) &&
+                    clarification.candidates.length > 0
+                  )
                   
                   // Only show products if this is an AI message with product results
                   const showProducts = m.sender === 'ai' && messageMeta?.response && 
@@ -639,6 +617,20 @@ export default function App() {
                         <div className="message-content">
                           <div className="message-sender">{displayName}</div>
                           <div className="message-text" style={{whiteSpace: 'pre-line'}}>{m.text}</div>
+                          {hasClarificationChoices && (
+                            <div className="clarification-choices">
+                              {clarification.candidates.map((c: any, cIdx: number) => (
+                                <button
+                                  key={`${m.id}-clarify-${c.intent}-${cIdx}`}
+                                  type="button"
+                                  className="clarification-choice-btn"
+                                  onClick={() => handleClarificationChoice(c.intent, clarification.original_query)}
+                                >
+                                  {c.intent} ({((Number(c.confidence) || 0) * 100).toFixed(1)}%)
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                       
@@ -927,6 +919,15 @@ export default function App() {
                               <div className="cart-item-subtotal">
                                 Subtotal: {item.currency} {item.subtotal?.toFixed(2)}
                               </div>
+
+                              <button
+                                className="cart-item-checkout-btn"
+                                onClick={() => handleCheckoutCartItem(item)}
+                                disabled={!item.url && !item.product_url}
+                                title={item.url || item.product_url ? 'Checkout this product in Order Assistant' : 'Product URL not available'}
+                              >
+                                Checkout This Item
+                              </button>
                             </div>
                           </div>
                         )

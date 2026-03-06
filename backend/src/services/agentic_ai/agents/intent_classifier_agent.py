@@ -1,322 +1,227 @@
-"""
-Zero-Shot Intent Classifier Agent
+"""Intent classifier using calibrated DistilBERT with LLM fallback."""
 
-Uses OpenAI API for semantic intent understanding with confidence scores.
-This replaces rule-based pattern matching for intelligent routing.
-
-Intent Categories:
-- product_search: Looking for products to buy
-- styling_advice: How to style/wear/match items
-- small_talk: Casual conversation, greetings, "how are you"
-- greeting: Initial hello/hi
-- farewell: Goodbye, thanks
-- feedback: User reactions (positive/negative)
-- cart_action: Add/view/clear cart (caught by rules first)
-- clarification: Vague/unclear queries
-"""
-import logging
-from typing import Dict, Any, Optional
-import os
 import json
+import logging
+import os
+from pathlib import Path
+from typing import Any, Dict, Optional
+
+from src.services.agentic_ai.agents.intent_taxonomy import INTENT_TYPES
 
 logger = logging.getLogger(__name__)
 
-# Check if OpenAI is available
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_AVAILABLE = bool(OPENAI_API_KEY)
 
-if OPENAI_AVAILABLE:
-    try:
-        from openai import OpenAI
-        logger.info("✅ OpenAI SDK loaded - zero-shot classification enabled")
-    except ImportError:
-        OPENAI_AVAILABLE = False
-        logger.warning("⚠️ OpenAI SDK not available - install: pip install openai")
-else:
-    logger.warning("⚠️ OPENAI_API_KEY not found - using fallback rules")
-
 
 class IntentClassifierAgent:
-    """Zero-shot intent classifier using OpenAI API for semantic understanding."""
-    
-    # Supported intent types with descriptions
-    INTENTS = {
-        "product_search": "User wants to find/browse/search for products to buy (e.g., 'show me blue dresses', 'find casual shoes')",
-        "styling_advice": "User wants tips on how to style, wear, or match clothing items (e.g., 'how should I style denim', 'outfit tips')",
-        "small_talk": "Casual conversation, asking how the assistant is, general chat (e.g., 'how are you', 'what's new', 'how's your day')",
-        "greeting": "Initial greeting or hello (e.g., 'hi', 'hello', 'hey there', 'good morning')",
-        "farewell": "Goodbye or thank you message (e.g., 'bye', 'thanks', 'see you later')",
-        "feedback_positive": "User likes/loves the recommendations (e.g., 'I love this', 'perfect', 'amazing')",
-        "feedback_negative": "User dislikes or wants something different (e.g., 'not my style', 'show me something else')",
-        "clarification": "Vague or unclear query needing more details (e.g., 'idk', 'maybe', 'anything')",
-    }
-    
+    """Model-first intent classifier with calibrated confidence thresholding."""
+
     def __init__(self):
-        """Initialize intent classifier."""
-        self.enabled = OPENAI_AVAILABLE
-        if self.enabled:
-            from openai import OpenAI
-            self.client = OpenAI(api_key=OPENAI_API_KEY)
-            logger.info("🧠 Zero-shot intent classifier initialized with OpenAI GPT-3.5-turbo")
-        else:
-            self.client = None
-            logger.warning("⚠️ Intent classifier disabled - OpenAI API not available. Falling back to rules.")
-    
-    def classify_intent(self, query: str, user_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """
-        Classify user intent using zero-shot learning with OpenAI.
-        
-        Args:
-            query: User's natural language query
-            user_context: Optional context (user_name, last_interaction, etc.)
-        
-        Returns:
-            {
-                "intent": str,  # Primary intent type
-                "confidence": float,  # 0.0-1.0
-                "reasoning": str,  # Why this intent was chosen
-                "fallback": bool  # True if using rule-based fallback
-            }
-        """
-        if not self.enabled:
-            return self._fallback_classify(query)
-        
+        self.model_dir = Path("src/services/agentic_ai/agents/models/intent_distilbert")
+        self.inference_config: Dict[str, Any] = {}
+        self.model_loaded = False
+        self.tokenizer = None
+        self.model = None
+
+        self._init_model()
+        self._init_llm()
+
+    def _init_model(self) -> None:
+        if not self.model_dir.exists():
+            logger.warning("DistilBERT intent model directory not found: %s", self.model_dir)
+            return
+
         try:
-            # Build zero-shot prompt
-            prompt = self._build_classification_prompt(query, user_context)
-            
-            # Call OpenAI API
-            response = self._call_openai_api(prompt)
-            
-            # Parse response
-            result = self._parse_openai_response(response, query)
-            result["fallback"] = False
-            
-            logger.info(f"[INTENT-CLASSIFIER] Query: '{query}' → Intent: {result['intent']} "
-                       f"(confidence: {result['confidence']:.2f}) [OpenAI]")
-            return result
-            
-        except Exception as e:
-            logger.warning(f"[INTENT-CLASSIFIER] OpenAI classification failed: {e}, using fallback")
-            return self._fallback_classify(query)
-    
-    def _build_classification_prompt(self, query: str, user_context: Optional[Dict[str, Any]] = None) -> str:
-        """Build zero-shot classification prompt for Gemini."""
-        
-        # Build intent options
-        intent_list = "\n".join([f"- {name}: {desc}" for name, desc in self.INTENTS.items()])
-        
-        # Add user context if available
-        context_str = ""
-        if user_context:
-            user_name = user_context.get("user_name")
-            last_interaction = user_context.get("last_interaction")
-            if user_name:
-                context_str += f"\nUser name: {user_name}"
-            if last_interaction:
-                context_str += f"\nLast interaction: {last_interaction}"
-        
-        prompt = f"""You are an intent classifier for a fashion e-commerce chatbot. 
+            import torch
+            from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
-AVAILABLE INTENTS:
-{intent_list}
+            cfg_path = self.model_dir / "intent_inference_config.json"
+            if cfg_path.exists():
+                self.inference_config = json.loads(cfg_path.read_text(encoding="utf-8"))
+            else:
+                self.inference_config = {
+                    "temperature": 1.0,
+                    "confidence_threshold": 0.65,
+                    "ambiguity_margin": 0.08,
+                    "id2label": {str(i): label for i, label in enumerate(INTENT_TYPES)},
+                }
 
-USER QUERY: "{query}"{context_str}
+            self.tokenizer = AutoTokenizer.from_pretrained(self.model_dir)
+            self.model = AutoModelForSequenceClassification.from_pretrained(self.model_dir)
+            self.model.eval()
+            self._torch = torch
+            self.model_loaded = True
+            logger.info("Loaded calibrated DistilBERT intent model from %s", self.model_dir)
+        except Exception as exc:
+            logger.error("Failed to load DistilBERT intent model: %s", exc)
+            self.model_loaded = False
 
-TASK: Classify the intent of this query. Respond in this EXACT format:
-INTENT: <intent_name>
-CONFIDENCE: <0.0-1.0>
-REASONING: <brief explanation>
+    def _init_llm(self) -> None:
+        self.llm_enabled = OPENAI_AVAILABLE
+        self.client = None
+        if self.llm_enabled:
+            try:
+                from openai import OpenAI
 
-Example:
-INTENT: product_search
-CONFIDENCE: 0.85
-REASONING: User is asking to find specific products (blue dresses)
+                self.client = OpenAI(api_key=OPENAI_API_KEY)
+            except Exception as exc:
+                logger.warning("OpenAI init failed for fallback: %s", exc)
+                self.llm_enabled = False
 
-Now classify the query above:"""
-        
-        return prompt
-    
-    def _call_openai_api(self, prompt: str) -> Dict[str, Any]:
-        """Call OpenAI API for zero-shot classification using official SDK."""
-        try:
-            logger.info("🔗 [OPENAI-API-CALL] Sending request to GPT-3.5-turbo...")
-            response = self.client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are an intent classifier for a fashion e-commerce chatbot. Respond in the exact format requested."
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
-                temperature=0.1,
-                max_tokens=150
-            )
-            
-            # Extract the text content
-            text = response.choices[0].message.content.strip()
-            logger.info("✅ [OPENAI-API-SUCCESS] Received response from OpenAI")
-            return {"content": text}
-            
-        except Exception as e:
-            logger.error(f"❌ [OPENAI-API-FAILED] OpenAI API call failed: {e}")
-            raise
-    
-    def _parse_openai_response(self, response: Dict[str, Any], query: str) -> Dict[str, Any]:
-        """Parse OpenAI API response into structured intent result."""
-        try:
-            # Extract text from OpenAI response
-            text = response.get('content', '').strip()
-            
-            # Parse structured response
-            lines = text.strip().split('\n')
-            intent = "product_search"  # default
-            confidence = 0.5
-            reasoning = "Unable to parse response"
-            
-            for line in lines:
-                line = line.strip()
-                if line.startswith("INTENT:"):
-                    intent_raw = line.replace("INTENT:", "").strip().lower()
-                    # Match to valid intent
-                    if intent_raw in self.INTENTS:
-                        intent = intent_raw
-                    else:
-                        # Try fuzzy match
-                        for valid_intent in self.INTENTS.keys():
-                            if valid_intent in intent_raw or intent_raw in valid_intent:
-                                intent = valid_intent
-                                break
-                
-                elif line.startswith("CONFIDENCE:"):
-                    try:
-                        confidence = float(line.replace("CONFIDENCE:", "").strip())
-                        confidence = max(0.0, min(1.0, confidence))  # Clamp to [0, 1]
-                    except ValueError:
-                        confidence = 0.5
-                
-                elif line.startswith("REASONING:"):
-                    reasoning = line.replace("REASONING:", "").strip()
-            
+    def _predict_with_model(self, query: str) -> Optional[Dict[str, Any]]:
+        if not self.model_loaded:
+            return None
+
+        inputs = self.tokenizer(query, truncation=True, padding=True, max_length=64, return_tensors="pt")
+        with self._torch.no_grad():
+            logits = self.model(**inputs).logits
+
+        temperature = float(self.inference_config.get("temperature", 1.0))
+        probs = self._torch.softmax(logits / max(temperature, 1e-6), dim=-1).cpu().numpy()[0]
+        sorted_indices = probs.argsort()[::-1]
+        pred_idx = int(sorted_indices[0])
+        second_idx = int(sorted_indices[1]) if len(sorted_indices) > 1 else pred_idx
+        confidence = float(probs[pred_idx])
+        second_confidence = float(probs[second_idx])
+        score_margin = confidence - second_confidence
+
+        id2label = self.inference_config.get("id2label", {})
+        intent = id2label.get(str(pred_idx), "product_search")
+        second_intent = id2label.get(str(second_idx), intent)
+        threshold = float(self.inference_config.get("confidence_threshold", 0.65))
+        ambiguity_margin = float(self.inference_config.get("ambiguity_margin", 0.08))
+
+        candidates = [
+            {"intent": intent, "confidence": confidence},
+            {"intent": second_intent, "confidence": second_confidence},
+        ]
+
+        if confidence < threshold:
             return {
                 "intent": intent,
                 "confidence": confidence,
-                "reasoning": reasoning
+                "reasoning": "Calibrated DistilBERT confidence below threshold",
+                "fallback": True,
+                "source": "distilbert_low_confidence",
+                "action": "fallback_low_confidence",
+                "second_intent": second_intent,
+                "second_confidence": second_confidence,
+                "score_margin": score_margin,
+                "confidence_threshold": threshold,
+                "ambiguity_margin": ambiguity_margin,
+                "candidates": candidates,
             }
-            
-        except Exception as e:
-            logger.error(f"Failed to parse Gemini response: {e}")
-            return {
-                "intent": "product_search",
-                "confidence": 0.3,
-                "reasoning": f"Parse error: {str(e)}"
-            }
-    
-    def _fallback_classify(self, query: str) -> Dict[str, Any]:
-        """
-        Simple rule-based fallback when OpenAI is unavailable.
-        Uses basic pattern matching (keep this minimal).
-        Enhanced to detect context-aware queries like "add first one to cart".
-        """
-        text_lower = query.lower().strip()
-        
-        # RULE 0: Cart actions (HIGH PRIORITY - ordinal + cart)
-        # Detects: "add first one to cart", "add the second one", "buy first item"
-        ordinal_patterns = ['first', 'second', 'third', 'fourth', 'fifth', '1st', '2nd', '3rd']
-        cart_keywords = ['add', 'buy', 'purchase', 'cart']
-        
-        if any(ord_p in text_lower for ord_p in ordinal_patterns):
-            if any(cart_kw in text_lower for cart_kw in cart_keywords):
-                return {
-                    "intent": "add_to_cart",
-                    "confidence": 0.95,
-                    "reasoning": "Pattern match: ordinal + cart keyword (context-aware)",
-                    "fallback": True
-                }
-        
-        # RULE 1: Greetings (short and clear)
-        if any(text_lower.startswith(p) or text_lower == p for p in ["hi", "hello", "hey", "good morning"]):
-            if len(query.split()) <= 3:
-                return {
-                    "intent": "greeting",
-                    "confidence": 0.9,
-                    "reasoning": "Pattern match: greeting keyword",
-                    "fallback": True
-                }
-        
-        # RULE 2: Farewells
-        if any(p in text_lower for p in ["bye", "goodbye", "thanks", "thank you"]):
-            if len(query.split()) <= 5:
-                return {
-                    "intent": "farewell",
-                    "confidence": 0.85,
-                    "reasoning": "Pattern match: farewell keyword",
-                    "fallback": True
-                }
-        
-        # RULE 3: Small talk patterns
-        if any(p in text_lower for p in ["how are you", "how's it going", "what's new"]):
-            return {
-                "intent": "small_talk",
-                "confidence": 0.8,
-                "reasoning": "Pattern match: small talk phrase",
-                "fallback": True
-            }
-        
-        # RULE 4: Styling advice (minimal patterns)
-        if any(p in text_lower for p in ["how to style", "how should i", "styling tips", "outfit tips"]):
-            if not any(w in text_lower for w in ["show", "find", "get me"]):
-                return {
-                    "intent": "styling_advice",
-                    "confidence": 0.75,
-                    "reasoning": "Pattern match: styling question",
-                    "fallback": True
-                }
-        
-        # RULE 5: Feedback
-        if any(p in text_lower for p in ["love it", "perfect", "amazing", "awesome"]):
-            return {
-                "intent": "feedback_positive",
-                "confidence": 0.8,
-                "reasoning": "Pattern match: positive feedback",
-                "fallback": True
-            }
-        
-        if any(p in text_lower for p in ["don't like", "not my style", "something else"]):
-            return {
-                "intent": "feedback_negative",
-                "confidence": 0.8,
-                "reasoning": "Pattern match: negative feedback",
-                "fallback": True
-            }
-        
-        # RULE 6: Clarification needed
-        if len(query.split()) <= 2 and any(p in text_lower for p in ["idk", "maybe", "whatever"]):
+
+        if score_margin < ambiguity_margin:
             return {
                 "intent": "clarification",
-                "confidence": 0.85,
-                "reasoning": "Pattern match: vague query",
-                "fallback": True
+                "confidence": confidence,
+                "reasoning": "Top two intents are too close; clarification required",
+                "fallback": True,
+                "source": "distilbert_ambiguous",
+                "action": "ask_clarification",
+                "top_intent": intent,
+                "second_intent": second_intent,
+                "second_confidence": second_confidence,
+                "score_margin": score_margin,
+                "confidence_threshold": threshold,
+                "ambiguity_margin": ambiguity_margin,
+                "candidates": candidates,
             }
-        
-        # DEFAULT: Product search (most common)
+
         return {
-            "intent": "product_search",
-            "confidence": 0.6,
-            "reasoning": "Default fallback - assume product search",
-            "fallback": True
+            "intent": intent,
+            "confidence": confidence,
+            "reasoning": "Calibrated DistilBERT prediction accepted",
+            "fallback": False,
+            "source": "distilbert_calibrated",
+            "action": "accept",
+            "second_intent": second_intent,
+            "second_confidence": second_confidence,
+            "score_margin": score_margin,
+            "confidence_threshold": threshold,
+            "ambiguity_margin": ambiguity_margin,
+            "candidates": candidates,
         }
 
+    def _classify_with_llm(self, query: str, user_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        if not self.llm_enabled or self.client is None:
+            return {
+                "intent": "product_search",
+                "confidence": 0.0,
+                "reasoning": "No model/LLM available",
+                "fallback": True,
+                "source": "default",
+            }
 
-# Singleton instance
+        intents_text = "\n".join([f"- {name}" for name in INTENT_TYPES])
+        context_text = json.dumps(user_context or {}, ensure_ascii=True)
+        prompt = (
+            "Classify fashion assistant intent. Return strict JSON with keys intent, confidence, reasoning.\n"
+            f"Allowed intents:\n{intents_text}\n"
+            f"Context: {context_text}\n"
+            f"Query: {query}"
+        )
+
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "You are a strict JSON intent classifier."},
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=0.0,
+                max_tokens=120,
+            )
+            text = response.choices[0].message.content.strip()
+            parsed = json.loads(text)
+            intent = parsed.get("intent", "product_search")
+            if intent not in INTENT_TYPES:
+                intent = "product_search"
+            confidence = float(parsed.get("confidence", 0.6))
+            return {
+                "intent": intent,
+                "confidence": max(0.0, min(1.0, confidence)),
+                "reasoning": parsed.get("reasoning", "LLM fallback classification"),
+                "fallback": True,
+                "source": "llm_fallback",
+            }
+        except Exception as exc:
+            logger.warning("LLM fallback failed: %s", exc)
+            return {
+                "intent": "product_search",
+                "confidence": 0.0,
+                "reasoning": "LLM fallback failed",
+                "fallback": True,
+                "source": "default",
+            }
+
+    def classify_intent(self, query: str, user_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        result = self._predict_with_model(query)
+        if result:
+            action = result.get("action", "accept")
+            if action == "accept":
+                return result
+            if action == "ask_clarification":
+                return result
+
+            llm_result = self._classify_with_llm(query, user_context)
+            llm_result["model_hint"] = {
+                "reason": result.get("reasoning"),
+                "candidates": result.get("candidates", []),
+                "score_margin": result.get("score_margin"),
+                "confidence_threshold": result.get("confidence_threshold"),
+                "ambiguity_margin": result.get("ambiguity_margin"),
+            }
+            return llm_result
+        return self._classify_with_llm(query, user_context)
+
+
 _intent_classifier = None
 
+
 def get_intent_classifier() -> IntentClassifierAgent:
-    """Get singleton instance of intent classifier."""
     global _intent_classifier
     if _intent_classifier is None:
         _intent_classifier = IntentClassifierAgent()
