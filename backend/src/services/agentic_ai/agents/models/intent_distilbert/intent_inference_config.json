@@ -1,0 +1,53 @@
+{
+  "labels": [
+    "add_to_cart",
+    "clarification",
+    "clear_cart",
+    "farewell",
+    "feedback_negative",
+    "feedback_positive",
+    "greeting",
+    "order_request",
+    "product_search",
+    "small_talk",
+    "styling_advice",
+    "view_cart"
+  ],
+  "label2id": {
+    "add_to_cart": 0,
+    "clarification": 1,
+    "clear_cart": 2,
+    "farewell": 3,
+    "feedback_negative": 4,
+    "feedback_positive": 5,
+    "greeting": 6,
+    "order_request": 7,
+    "product_search": 8,
+    "small_talk": 9,
+    "styling_advice": 10,
+    "view_cart": 11
+  },
+  "id2label": {
+    "0": "add_to_cart",
+    "1": "clarification",
+    "2": "clear_cart",
+    "3": "farewell",
+    "4": "feedback_negative",
+    "5": "feedback_positive",
+    "6": "greeting",
+    "7": "order_request",
+    "8": "product_search",
+    "9": "small_talk",
+    "10": "styling_advice",
+    "11": "view_cart"
+  },
+  "temperature": 0.8222189545631409,
+  "confidence_threshold": 0.3,
+  "ambiguity_margin": 0.08,
+  "val_accuracy": 0.93,
+  "accepted_accuracy": 0.94,
+  "raw_val_accuracy": 1.0,
+  "raw_accepted_accuracy": 1.0,
+  "coverage": 1.0,
+  "dataset_rows": 8400
+}

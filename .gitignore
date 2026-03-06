@@ -2,3 +2,10 @@
 backend/.env
 __pycache__/
 node_modules/
+
+# Generated ML model artifacts and training checkpoints
+backend/src/services/agentic_ai/agents/models/**/training_runs/
+backend/src/services/agentic_ai/agents/models/**/*.safetensors
+backend/src/services/agentic_ai/agents/models/**/*.pt
+backend/src/services/agentic_ai/agents/models/**/*.pth
+backend/src/services/agentic_ai/agents/models/**/*.bin

@@ -1,11 +1,23 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import type { KGPreferenceSignal } from '../services/kgSignals'
+import IntentModelTrainingPanel from '../components/IntentModelTrainingPanel'
+import OrderAssistantPage from './OrderAssistantPage'
 
 type DashboardSection =
   | 'chat'
+  | 'order_assistant'
   | 'system_overview'
   | 'knowledge_graph'
   | 'agent_engine'
+
+type OrderAssistantCheckoutRequest = {
+  id: string
+  url: string
+  quantity?: number
+  size?: string
+  color?: string
+  name?: string
+}
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value))
@@ -122,18 +134,31 @@ export default function AgenticAIDashboard({
   users,
   onUserChange,
   onPreferenceSignal,
+  onOpenShoppingCart,
+  initialSection,
+  orderAssistantCheckoutRequest,
+  onOrderAssistantCheckoutRequestConsumed,
   chatContent,
 }: {
   userId: string
   users?: Array<{ id: string; name?: string }>
   onUserChange?: (nextUserId: string) => void
   onPreferenceSignal?: (signal: KGPreferenceSignal) => void
+  onOpenShoppingCart?: () => void | Promise<void>
+  initialSection?: DashboardSection
+  orderAssistantCheckoutRequest?: OrderAssistantCheckoutRequest | null
+  onOrderAssistantCheckoutRequestConsumed?: () => void
   chatContent?: React.ReactNode
 }) {
   const [activeSection, setActiveSection] = useState<DashboardSection>('chat')
   const [dashboardData, setDashboardData] = useState<any>(null)
   const [metricsError, setMetricsError] = useState<string | null>(null)
   const [lastRefreshTime, setLastRefreshTime] = useState<string>('')
+
+  useEffect(() => {
+    if (!initialSection) return
+    setActiveSection(initialSection)
+  }, [initialSection])
 
   const apiBase = useMemo(() => {
     if (typeof window !== 'undefined' && (window as any).VITE_API_URL) {
@@ -176,6 +201,7 @@ export default function AgenticAIDashboard({
   const navItems = useMemo(
     () => [
       { key: 'chat' as DashboardSection, label: 'AI Stylist' },
+      { key: 'order_assistant' as DashboardSection, label: 'Order Assistant' },
       { key: 'system_overview' as DashboardSection, label: 'System Overview' },
       { key: 'knowledge_graph' as DashboardSection, label: 'Knowledge Graph' },
       { key: 'agent_engine' as DashboardSection, label: 'AI Engine' },
@@ -424,6 +450,17 @@ export default function AgenticAIDashboard({
           </section>
         )}
 
+        {activeSection === 'order_assistant' && (
+          <section style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <OrderAssistantPage
+              userId={userId}
+              onOpenShoppingCart={onOpenShoppingCart}
+              checkoutRequest={orderAssistantCheckoutRequest || undefined}
+              onCheckoutRequestConsumed={onOrderAssistantCheckoutRequestConsumed}
+            />
+          </section>
+        )}
+
         {activeSection === 'system_overview' && (
           <>
             <section
@@ -651,6 +688,8 @@ export default function AgenticAIDashboard({
                 ))}
               </div>
             </article>
+
+            <IntentModelTrainingPanel />
           </>
         )}
 

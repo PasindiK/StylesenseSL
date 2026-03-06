@@ -11,6 +11,7 @@ from src.services.agentic_ai.agents.catalog_agent import CatalogAgent
 from src.services.agentic_ai.agents.order_agent import OrderAgent
 from src.services.agentic_ai.agents.personalization_agent import PersonalizationAgent
 from src.services.agentic_ai.agents.intent_classifier_agent import get_intent_classifier
+from src.services.agentic_ai.agents.query_structuring_agent import get_query_structuring_agent
 from src.services.agentic_ai.agents.conversation_memory import get_conversation_memory
 from src.users.user_agent import UserAgent
 from src.utils.nl_parser import parse_intent
@@ -33,6 +34,7 @@ class Orchestrator:
         self.user = user_agent
         self.personalization = personalization_agent
         self.intent_classifier = get_intent_classifier()
+        self.query_structurer = get_query_structuring_agent()
         self.memory = get_conversation_memory()  # Add conversation memory
         
         logger.info("[ORCHESTRATOR] Initialized with all agents + zero-shot intent classifier + conversation memory")
@@ -166,62 +168,18 @@ class Orchestrator:
     def classify_intent(self, text: str, user_id: Optional[str] = None, 
                        user_name: Optional[str] = None) -> Dict[str, Any]:
         """
-        Classify user intent using zero-shot learning + rule guards.
-        
-        LAYER 1: Rule-based guards (for critical actions only)
-        LAYER 2: Zero-shot semantic classifier (Gemini API)
+        Classify user intent using model-first classifier with LLM fallback.
         
         Returns:
             {
                 "intent": str,
                 "confidence": float,
                 "reasoning": str,
-                "method": "guard" | "zero_shot" | "fallback"
+                "method": "distilbert_calibrated" | "distilbert_ambiguous" | "llm_fallback" | "default",
+                "action": "accept" | "fallback_low_confidence" | "ask_clarification"
             }
         """
-        text_lower = text.lower().strip()
-        
-        # ===== LAYER 1: RULE GUARDS (CRITICAL ACTIONS ONLY) =====
-        
-        # GUARD 1: Cart operations (must be explicit)
-        cart_patterns = [
-            "add to cart", "add this", "shopping cart", "show cart", 
-            "view cart", "my cart", "clear cart", "remove from cart"
-        ]
-        if any(p in text_lower for p in cart_patterns):
-            if "show" in text_lower or "view" in text_lower or "my" in text_lower or "what" in text_lower:
-                return {
-                    "intent": "view_cart",
-                    "confidence": 1.0,
-                    "reasoning": "Explicit cart view command",
-                    "method": "guard"
-                }
-            elif "clear" in text_lower or "empty" in text_lower:
-                return {
-                    "intent": "clear_cart",
-                    "confidence": 1.0,
-                    "reasoning": "Explicit cart clear command",
-                    "method": "guard"
-                }
-            else:
-                return {
-                    "intent": "add_to_cart",
-                    "confidence": 1.0,
-                    "reasoning": "Explicit add to cart command",
-                    "method": "guard"
-                }
-        
-        # GUARD 2: Order/Checkout (must be explicit)
-        if any(p in text_lower for p in ["checkout", "order this", "buy this", "purchase"]):
-            return {
-                "intent": "order_request",
-                "confidence": 1.0,
-                "reasoning": "Explicit order/checkout command",
-                "method": "guard"
-            }
-        
-        # ===== LAYER 2: ZERO-SHOT SEMANTIC CLASSIFIER =====
-        
+
         # Build user context for better classification
         user_context = {}
         if user_name:
@@ -235,18 +193,27 @@ class Orchestrator:
         
         # Call zero-shot classifier
         classification = self.intent_classifier.classify_intent(text, user_context)
+        source = classification.get("source", "openai" if not classification.get("fallback") else "rules")
         
         # Log classification result
         logger.info(f"[ORCHESTRATOR] Zero-shot classification: {classification['intent']} "
                    f"(confidence: {classification['confidence']:.2f}, "
-                   f"method: {'fallback' if classification.get('fallback') else 'zero_shot'})")
+                   f"method: {source})")
         
         # Return classification with metadata
         return {
             "intent": classification["intent"],
             "confidence": classification["confidence"],
             "reasoning": classification["reasoning"],
-            "method": "zero_shot" if not classification.get("fallback") else "fallback"
+            "method": source,
+            "action": classification.get("action", "accept"),
+            "clarification": {
+                "candidates": classification.get("candidates", []),
+                "score_margin": classification.get("score_margin"),
+                "confidence_threshold": classification.get("confidence_threshold"),
+                "ambiguity_margin": classification.get("ambiguity_margin"),
+            },
+            "model_hint": classification.get("model_hint"),
         }
     
     def handle_greeting(self, user_name: Optional[str]) -> Dict[str, Any]:
@@ -351,9 +318,38 @@ class Orchestrator:
             "results": [],
         }
     
-    def handle_clarification_request(self) -> Dict[str, Any]:
+    def handle_clarification_request(self, text: Optional[str] = None,
+                                     classification: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Handle vague/unclear queries."""
-        message = "I'd love to help! Could you be more specific? For example:\n• 'Show me red dresses under 5000'\n• 'Casual wear for the beach'\n• 'Black formal shoes'"
+
+        clarification = (classification or {}).get("clarification", {}) if classification else {}
+        candidates = clarification.get("candidates") or []
+
+        if candidates:
+            first = candidates[0]
+            second = candidates[1] if len(candidates) > 1 else None
+            if second:
+                message = (
+                    "I might have misunderstood your request. "
+                    f"Did you mean '{first.get('intent')}' or '{second.get('intent')}'? "
+                    "Please pick one so I can continue accurately."
+                )
+            else:
+                message = "I might have misunderstood your request. Please confirm what you want me to do next."
+        else:
+            message = "I'd love to help! Could you be more specific? For example:\n• 'Show me red dresses under 5000'\n• 'Casual wear for the beach'\n• 'Black formal shoes'"
+
+        clar_payload = {
+            "type": "intent_disambiguation",
+            "question": "Please clarify your intent so I can route your request correctly.",
+            "original_query": text,
+            "candidates": candidates,
+            "score_margin": clarification.get("score_margin"),
+            "confidence_threshold": clarification.get("confidence_threshold"),
+            "ambiguity_margin": clarification.get("ambiguity_margin"),
+            "reasoning": (classification or {}).get("reasoning"),
+        }
+
         return {
             "intent": "clarification_request",
             "reply": message,
@@ -362,7 +358,12 @@ class Orchestrator:
             "suggestions": [],
             "best_matches": [],
             "new_suggestions": [],
-            "explanations": {"intent_type": "clarification_request", "agent": "orchestrator"},
+            "clarification": clar_payload,
+            "explanations": {
+                "intent_type": "clarification_request",
+                "agent": "orchestrator",
+                "reason": (classification or {}).get("reasoning"),
+            },
             "user_profile_used": {},
             "results": [],
         }
@@ -442,7 +443,19 @@ class Orchestrator:
             
             # Parse intent using NL parser
             intent = parse_intent(text)
+            structured_query = self.query_structurer.predict(text)
+
+            # Merge predicted budget into parser intent if parser missed it.
+            budget_to_price = {
+                "low": 3000,
+                "mid": 7000,
+                "high": 15000,
+            }
+            if intent.get("max_price") is None and structured_query.get("budget") in budget_to_price:
+                intent["max_price"] = budget_to_price[structured_query.get("budget")]
+
             logger.info(f"[ORCHESTRATOR] Parsed intent: {intent}")
+            logger.info(f"[ORCHESTRATOR] Query structuring: {structured_query}")
             
             # Call CatalogAgent
             response = self.catalog.answer_question(text, user_id=user_id)
@@ -478,12 +491,21 @@ class Orchestrator:
                     "message": message,
                     "best_matches": ranked.get("best_matches", []),
                     "new_suggestions": ranked.get("new_suggestions", []),
-                    "explanations": ranked.get("explanations", {}),
+                    "explanations": {
+                        **ranked.get("explanations", {}),
+                        "structured_query": structured_query,
+                    },
                     "user_profile_used": self.user.get_preferences(user_id),
                     "results": ranked.get("results", response["results"]),
-                    "filters": response.get("filters", {}),
+                    "filters": {
+                        **response.get("filters", {}),
+                        "style": structured_query.get("style"),
+                        "event": structured_query.get("event"),
+                        "budget_band": structured_query.get("budget"),
+                    },
                     "suggestions": response.get("suggestions", []),
                     "explainability": response.get("explainability", ""),
+                    "structured_query": structured_query,
                     "agent": "catalog_agent+personalization_agent"
                 }
             else:
@@ -494,12 +516,18 @@ class Orchestrator:
                     "message": response.get("message", response.get("reply", "")),
                     "best_matches": [],
                     "new_suggestions": [],
-                    "explanations": {},
+                    "explanations": {"structured_query": structured_query},
                     "user_profile_used": {},
                     "results": response.get("results", []),
-                    "filters": response.get("filters", {}),
+                    "filters": {
+                        **response.get("filters", {}),
+                        "style": structured_query.get("style"),
+                        "event": structured_query.get("event"),
+                        "budget_band": structured_query.get("budget"),
+                    },
                     "suggestions": response.get("suggestions", []),
                     "explainability": response.get("explainability", ""),
+                    "structured_query": structured_query,
                     "agent": "catalog_agent"
                 }
                 
@@ -623,8 +651,13 @@ class Orchestrator:
         intent_type = classification["intent"]
         confidence = classification.get("confidence", 0.0)
         method = classification.get("method", "unknown")
+        action = classification.get("action", "accept")
         
         logger.info(f"[ORCHESTRATOR] Intent: {intent_type} | Confidence: {confidence:.2f} | Method: {method}")
+
+        if action == "ask_clarification":
+            logger.info("[ORCHESTRATOR] Ambiguous intent detected, requesting user clarification")
+            return self.handle_clarification_request(text=text, classification=classification)
         
         # STEP 3: Route to appropriate handler
         if intent_type == "greeting":
@@ -643,7 +676,7 @@ class Orchestrator:
             return self.handle_feedback_negative()
         
         elif intent_type == "clarification":
-            return self.handle_clarification_request()
+            return self.handle_clarification_request(text=text, classification=classification)
         
         elif intent_type == "view_cart":
             return self.handle_view_cart()

@@ -647,6 +647,11 @@ body {
   min-width: 0;
 }
 
+.chat-main.cart-open {
+  padding-right: min(400px, 90vw);
+  transition: padding-right 0.25s ease;
+}
+
 .chat-conversation-pane {
   flex: 1;
   min-width: 0;
@@ -842,6 +847,29 @@ body {
               0 4px 12px rgba(168, 139, 250, 0.1);
   backdrop-filter: blur(10px);
   border-radius: 18px 18px 18px 4px;
+}
+
+.clarification-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.clarification-choice-btn {
+  border: 1px solid rgba(129, 140, 248, 0.45);
+  background: rgba(129, 140, 248, 0.15);
+  color: var(--text-primary);
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clarification-choice-btn:hover {
+  background: rgba(129, 140, 248, 0.28);
+  border-color: rgba(129, 140, 248, 0.8);
 }
 
 @keyframes slideIn {
@@ -1654,6 +1682,30 @@ body {
   color: var(--accent-primary);
 }
 
+.cart-item-checkout-btn {
+  margin-top: 0.45rem;
+  align-self: flex-start;
+  background: rgba(59, 130, 246, 0.18);
+  border: 1px solid rgba(96, 165, 250, 0.45);
+  color: #dbeafe;
+  padding: 0.42rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cart-item-checkout-btn:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.28);
+  border-color: rgba(147, 197, 253, 0.75);
+}
+
+.cart-item-checkout-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .cart-item-size {
   font-size: 0.85rem;
   color: var(--text-secondary);
@@ -1744,6 +1796,10 @@ body {
 
 /* Mobile responsive cart */
 @media (max-width: 768px) {
+  .chat-main.cart-open {
+    padding-right: 0;
+  }
+
   .cart-panel {
     width: 100%;
     max-width: 100vw;

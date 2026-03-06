@@ -8,3 +8,11 @@ requests
 chromadb
 sentence-transformers
 beautifulsoup4
+extruct
+w3lib
+playwright
+fake-useragent
+tenacity
+structlog
+pydantic
+lxml

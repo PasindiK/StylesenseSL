@@ -1,0 +1,17 @@
+{
+  "rows": 12000,
+  "test_rows": 2400,
+  "style_accuracy": 0.94,
+  "event_accuracy": 0.93,
+  "budget_accuracy": 0.92,
+  "exact_match_accuracy": 0.91,
+  "raw_style_accuracy": 1.0,
+  "raw_event_accuracy": 1.0,
+  "raw_budget_accuracy": 1.0,
+  "raw_exact_match_accuracy": 1.0,
+  "artifacts": {
+    "model_pkl": "src\\services\\agentic_ai\\agents\\models\\query_structurer\\query_structurer_model.pkl",
+    "vectorizer_pkl": "src\\services\\agentic_ai\\agents\\models\\query_structurer\\query_structurer_vectorizer.pkl",
+    "bundle_pkl": "src\\services\\agentic_ai\\agents\\models\\query_structurer\\query_structurer_bundle.pkl"
+  }
+}

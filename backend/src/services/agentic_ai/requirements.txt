@@ -8,3 +8,11 @@ requests
 chromadb
 sentence-transformers
 neo4j
+torch
+transformers
+numpy
+scikit-learn
+joblib
+playwright
+extruct
+w3lib

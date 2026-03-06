@@ -5,3 +5,5 @@ from .order_agent import OrderAgent
 from .vector_search_agent import VectorSearchAgent
 from .conversation_memory import ConversationMemory
 from .fashion_embedding_model import FashionEmbeddingModel
+from .query_structuring_agent import QueryStructuringAgent
+from .link_order_assistant_agent import LinkOrderAssistantAgent
