@@ -5,9 +5,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 import logging
+import sys
 
 import joblib
 import numpy as np
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
@@ -20,8 +22,8 @@ class RelationshipScoringEngine:
 
     Supported modes:
     - LR only: use LogisticRegression probability.
-    - RF only: use RandomForest probability.
-    - LR + RF: ensemble by weighted average.
+    - Secondary model only: use tree-model probability.
+    - LR + secondary model: ensemble by weighted average.
     - No ML: static weighted fallback.
 
     Static fallback:
@@ -66,9 +68,10 @@ class RelationshipScoringEngine:
         self.scaler: Optional[StandardScaler] = None
         self.feature_order: List[str] = list(self.DEFAULT_FEATURE_ORDER)
 
-        self.rf_model: Optional[RandomForestClassifier] = None
+        self.rf_model: Optional[RandomForestClassifier | GradientBoostingClassifier] = None
         self.rf_scaler: Optional[StandardScaler] = None
         self.rf_feature_order: List[str] = list(self.DEFAULT_FEATURE_ORDER)
+        self.rf_model_label: str = "RF"
 
         if model_path:
             candidate = Path(model_path)
@@ -196,25 +199,22 @@ class RelationshipScoringEngine:
         try:
             rf_prob = self._predict_rf_probability(feature_vector)
             if rf_prob is not None:
-                models_used["RF"] = float(rf_prob)
+                models_used[self.rf_model_label] = float(rf_prob)
         except Exception as exc:
-            logger.warning("RF scoring failed: %s", exc)
+            logger.warning("%s scoring failed: %s", self.rf_model_label, exc)
 
-        if "LR" in models_used and "RF" in models_used:
+        if "LR" in models_used and self.rf_model_label in models_used:
             weight_sum = self.lr_weight + self.rf_weight
             if weight_sum <= 0:
                 lr_w, rf_w = 0.5, 0.5
             else:
                 lr_w, rf_w = self.lr_weight / weight_sum, self.rf_weight / weight_sum
-            confidence = float(np.clip((lr_w * models_used["LR"]) + (rf_w * models_used["RF"]), 0.0, 1.0))
+            confidence = float(
+                np.clip((lr_w * models_used["LR"]) + (rf_w * models_used[self.rf_model_label]), 0.0, 1.0)
+            )
             confidence_source = "ensemble"
-        elif "LR" in models_used:
-            confidence = float(np.clip(models_used["LR"], 0.0, 1.0))
-            confidence_source = "lr"
-        elif "RF" in models_used:
-            confidence = float(np.clip(models_used["RF"], 0.0, 1.0))
-            confidence_source = "rf"
         else:
+            # Require both LR and RF for ML scoring; otherwise degrade to static fallback.
             confidence = self._fallback_score(feature_vector)
             confidence_source = "static"
 
@@ -271,7 +271,7 @@ class RelationshipScoringEngine:
         - RelationshipModelTrainer bundles (LR or RF).
         """
         try:
-            bundle = joblib.load(path)
+            bundle = self._load_bundle(path)
         except Exception as exc:
             # Keep runtime resilient when pickled models are from a different sklearn version.
             logger.warning(
@@ -300,7 +300,9 @@ class RelationshipScoringEngine:
 
         if isinstance(model, LogisticRegression) or model_type == "logistic_regression":
             if scaler is None or not isinstance(scaler, StandardScaler):
-                raise ValueError("Loaded LogisticRegression bundle is missing a valid StandardScaler")
+                logger.warning("Loaded LogisticRegression bundle is missing a valid StandardScaler: %s", path)
+                return
+            self._patch_legacy_logistic_model(model)
             self.model = model
             self.scaler = scaler
             self.feature_order = list(feature_order) if feature_order else list(self.DEFAULT_FEATURE_ORDER)
@@ -308,10 +310,15 @@ class RelationshipScoringEngine:
             self.model_path = path
             return
 
-        if isinstance(model, RandomForestClassifier) or model_type == "random_forest":
+        if (
+            isinstance(model, RandomForestClassifier)
+            or isinstance(model, GradientBoostingClassifier)
+            or model_type in {"random_forest", "gradient_boosting"}
+        ):
             self.rf_model = model
             self.rf_scaler = scaler if isinstance(scaler, StandardScaler) else None
             self.rf_feature_order = list(feature_order) if feature_order else list(self.DEFAULT_FEATURE_ORDER)
+            self.rf_model_label = "GB" if isinstance(model, GradientBoostingClassifier) or model_type == "gradient_boosting" else "RF"
             self.model_version = version
             return
 
@@ -319,3 +326,34 @@ class RelationshipScoringEngine:
             "Loaded model is unsupported for ML scoring (type=%s). Keeping static fallback only.",
             type(model).__name__ if model is not None else "None",
         )
+
+    def _load_bundle(self, path: str) -> Any:
+        """Load model bundle with compatibility for legacy sklearn internals."""
+        try:
+            return joblib.load(path)
+        except ModuleNotFoundError as exc:
+            # Some older GradientBoosting pickles reference removed private module names.
+            if "sklearn.ensemble._gb_losses" not in str(exc):
+                raise
+            self._install_legacy_sklearn_aliases()
+            return joblib.load(path)
+
+    @staticmethod
+    def _install_legacy_sklearn_aliases() -> None:
+        """Install alias shims so older sklearn model pickles can be deserialized."""
+        from sklearn.ensemble import _gb
+
+        # Old pickles import this private module path; map to the modern module.
+        sys.modules.setdefault("sklearn.ensemble._gb_losses", _gb)
+
+        # Old class name used in previous sklearn releases.
+        if not hasattr(_gb, "BinomialDeviance") and hasattr(_gb, "HalfBinomialLoss"):
+            _gb.BinomialDeviance = _gb.HalfBinomialLoss
+
+    @staticmethod
+    def _patch_legacy_logistic_model(model: LogisticRegression) -> None:
+        """Patch missing attributes on cross-version LogisticRegression pickles."""
+        if not hasattr(model, "multi_class"):
+            model.multi_class = "auto"
+        if not hasattr(model, "solver"):
+            model.solver = "lbfgs"

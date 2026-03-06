@@ -1291,6 +1291,37 @@ def _relationship_signals(relationship: Dict[str, Any]) -> Dict[str, Dict[str, A
     }
 
 
+def _data_fabric_ensemble_status() -> Dict[str, Any]:
+    """Return runtime readiness for two-model ensemble scoring."""
+    try:
+        from src.services.data_fabric.src.integration.virtual_integration import IntelligentRelationshipDiscovery
+
+        scorer = IntelligentRelationshipDiscovery().scoring_engine
+        ensemble_ready = bool(scorer.has_lr_model and scorer.has_rf_model)
+        if ensemble_ready:
+            reason = "Both LR and secondary model are loaded; ensemble scoring is available."
+        elif scorer.has_lr_model or scorer.has_rf_model:
+            reason = "Only one ML model is available; static fallback will be used for strict two-model policy."
+        else:
+            reason = "No ML models are available; static fallback will be used."
+
+        return {
+            "ensemble_ready": ensemble_ready,
+            "ensemble_reason": reason,
+            "lr_loaded": bool(scorer.has_lr_model),
+            "secondary_model_loaded": bool(scorer.has_rf_model),
+            "secondary_model_label": str(getattr(scorer, "rf_model_label", "RF")),
+        }
+    except Exception as exc:
+        return {
+            "ensemble_ready": False,
+            "ensemble_reason": f"Failed to inspect model readiness: {exc}",
+            "lr_loaded": False,
+            "secondary_model_loaded": False,
+            "secondary_model_label": "RF",
+        }
+
+
 @app.get("/api/data-fabric/overview")
 async def data_fabric_overview():
     """Return Data Fabric dashboard overview from live metadata catalog."""
@@ -1342,10 +1373,17 @@ async def data_fabric_overview():
         except Exception:
             metrics = {}
 
+    ensemble_status = _data_fabric_ensemble_status()
+
     model_info = {
         "model_mode": "ensemble",
         "model_version": "unknown",
         "feature_vector_version": "unknown",
+        "ensemble_ready": bool(ensemble_status.get("ensemble_ready", False)),
+        "ensemble_reason": str(ensemble_status.get("ensemble_reason", "")),
+        "lr_loaded": bool(ensemble_status.get("lr_loaded", False)),
+        "secondary_model_loaded": bool(ensemble_status.get("secondary_model_loaded", False)),
+        "secondary_model_label": str(ensemble_status.get("secondary_model_label", "RF")),
     }
     if relationships:
         model_info["model_version"] = str(relationships[0].get("model_version", "unknown"))
