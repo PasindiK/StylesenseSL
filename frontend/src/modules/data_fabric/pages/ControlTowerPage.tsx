@@ -84,7 +84,7 @@ export default function ControlTowerPage({
     {
       id: 'Phase 06',
       title: 'Scoring Engine',
-      detail: 'LR/RF ensemble + fallback confidence decisions',
+      detail: 'LR 30% + RF 70% ensemble + fallback confidence decisions',
       emoji: '🤖',
       icon: Bot,
       row: 2,
@@ -123,6 +123,22 @@ export default function ControlTowerPage({
     () => phases.find((phase) => phase.id === activeLayerId) ?? phases[0],
     [activeLayerId]
   )
+
+  const lrWeight = Number(overview?.model?.lr_weight ?? 0.3)
+  const secondaryWeight = Number(overview?.model?.secondary_weight ?? 0.7)
+  const secondaryLabel = overview?.model?.secondary_model_label || 'RF'
+  const testAccuracy = overview?.model?.test_metrics?.accuracy || {}
+  const relationshipRows = overview?.relationships || []
+
+  function inferConfidenceSource(row: any): 'ensemble' | 'static' {
+    const featureVector = row?.feature_vector || {}
+    const modelsUsed = featureVector?.models_used || {}
+    const hasLr = typeof modelsUsed?.LR === 'number'
+    const hasSecondary = Object.entries(modelsUsed).some(
+      ([key, value]) => key !== 'LR' && typeof value === 'number'
+    )
+    return hasLr && hasSecondary ? 'ensemble' : 'static'
+  }
 
   if (!overview) {
     return (
@@ -230,8 +246,19 @@ export default function ControlTowerPage({
           <strong>{overview.model.model_version}</strong>
           <p className="muted-text">
             {overview.model.ensemble_ready
-              ? `Ensemble ready: LR + ${overview.model.secondary_model_label || 'RF'}`
+              ? `Ensemble ready: LR + ${secondaryLabel}`
               : 'Static fallback active'}
+          </p>
+          <p className="muted-text">
+            Weights: LR {(lrWeight * 100).toFixed(0)}% / {secondaryLabel} {(secondaryWeight * 100).toFixed(0)}%
+          </p>
+          <p className="muted-text">
+            Test Accuracy: LR {typeof testAccuracy.lr === 'number' ? testAccuracy.lr.toFixed(4) : 'N/A'} | {secondaryLabel}{' '}
+            {typeof testAccuracy.rf === 'number' ? testAccuracy.rf.toFixed(4) : 'N/A'} | Ensemble{' '}
+            {typeof testAccuracy.ensemble === 'number' ? testAccuracy.ensemble.toFixed(4) : 'N/A'}
+          </p>
+          <p className="muted-text">
+            Metrics Source: {overview?.model?.test_metrics?.source || 'Not available'}
           </p>
           <p className="muted-text">{overview.model.ensemble_reason || 'No model readiness details available.'}</p>
         </article>
@@ -274,6 +301,9 @@ export default function ControlTowerPage({
 
         <article className="glass-card">
           <h3>Relationship Discovery</h3>
+          <p className="muted-text">
+            Confidence source follows backend policy: LR+{secondaryLabel} ensemble when both model scores are present, else static 0.3/0.2/0.5 fallback.
+          </p>
           <div className="df-table-wrap">
             <table className="df-table">
               <thead>
@@ -281,12 +311,13 @@ export default function ControlTowerPage({
                   <th>Pair</th>
                   <th>Join Columns</th>
                   <th>Confidence</th>
+                  <th>Source</th>
                   <th>Decision</th>
                   <th>Cardinality</th>
                 </tr>
               </thead>
               <tbody>
-                {overview.relationships.map((row: any) => (
+                {relationshipRows.map((row: any) => (
                   <tr
                     key={row.relationship_key}
                     className={selectedRelationshipKey === row.relationship_key ? 'selected-row' : ''}
@@ -299,6 +330,7 @@ export default function ControlTowerPage({
                       {row.left_column} {'->'} {row.right_column}
                     </td>
                     <td>{row.confidence.toFixed(3)}</td>
+                    <td>{inferConfidenceSource(row)}</td>
                     <td>
                       <span className={`df-decision ${decisionClass(row.decision)}`}>{row.decision}</span>
                     </td>

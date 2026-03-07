@@ -48,8 +48,8 @@ class RelationshipScoringEngine:
         name_weight: float = 0.3,
         type_weight: float = 0.2,
         overlap_weight: float = 0.5,
-        lr_weight: float = 0.5,
-        rf_weight: float = 0.5,
+        lr_weight: float = 0.3,
+        rf_weight: float = 0.7,
         strong_threshold: float = 0.80,
         probable_threshold: float = 0.5,
         rf_model_path: Optional[str] = None,
@@ -206,7 +206,7 @@ class RelationshipScoringEngine:
         if "LR" in models_used and self.rf_model_label in models_used:
             weight_sum = self.lr_weight + self.rf_weight
             if weight_sum <= 0:
-                lr_w, rf_w = 0.5, 0.5
+                lr_w, rf_w = 0.3, 0.7
             else:
                 lr_w, rf_w = self.lr_weight / weight_sum, self.rf_weight / weight_sum
             confidence = float(

@@ -175,10 +175,10 @@ def main() -> int:
         X,
         y,
         test_size=0.2,
-        model_type="gradient_boosting",
+        model_type="random_forest",
         class_weight="balanced",
         positive_oversample_factor=3,
-        hyperparameters={"n_estimators": 180},
+        hyperparameters={"n_estimators": 300, "min_samples_leaf": 2},
     )
     metrics = trainer.evaluate_model(X_test, y_test)
 

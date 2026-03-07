@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react'
 import './DataFabricTestingPage.css'
 import ControlTowerPage from '../pages/ControlTowerPage'
+import AgentMonitorPage from '../pages/AgentMonitorPage'
 import JoinStudioPage from '../pages/JoinStudioPage'
 import LineageGraphPage from '../pages/LineageGraphPage'
 import OpsLogsPage from '../pages/OpsLogsPage'
 
-type TabKey = 'overview' | 'join' | 'lineage' | 'logs'
+type TabKey = 'overview' | 'agent' | 'join' | 'lineage' | 'logs'
 
 type DatasetRow = {
   dataset_name: string
@@ -56,6 +57,18 @@ type OverviewResponse = {
     lr_loaded?: boolean
     secondary_model_loaded?: boolean
     secondary_model_label?: string
+    lr_weight?: number
+    secondary_weight?: number
+    test_metrics?: {
+      weights?: { lr?: number; secondary?: number }
+      accuracy?: { lr?: number; rf?: number; ensemble?: number }
+      f1?: { lr?: number; rf?: number; ensemble?: number }
+      precision?: { lr?: number; rf?: number; ensemble?: number }
+      recall?: { lr?: number; rf?: number; ensemble?: number }
+      roc_auc?: { lr?: number; rf?: number; ensemble?: number }
+      test_set?: { size?: number; positives?: number; negatives?: number; threshold?: number }
+      source?: string
+    }
   }
   datasets: DatasetRow[]
   relationships: RelationshipRow[]
@@ -93,6 +106,20 @@ type JoinExecuteResponse = {
 type LineageResponse = {
   nodes: Array<{ id: string; label: string; domain: string; quality_score: number }>
   edges: Array<{ source: string; target: string }>
+  merge_candidates?: Array<{
+    left_dataset: string
+    right_dataset: string
+    best_confidence: number
+    best_decision: string
+    relationship_key: string
+    reason?: string
+    signals?: {
+      name_similarity?: number
+      overlap_ratio?: number
+      type_score?: number
+      confidence_source?: string
+    }
+  }>
 }
 
 type LogsResponse = {
@@ -140,6 +167,7 @@ type IntakeStep = {
 
 const TAB_ROUTE: Record<TabKey, string> = {
   overview: 'control-tower',
+  agent: 'agent-monitor',
   join: 'join-studio',
   lineage: 'lineage-graph',
   logs: 'ops-logs',
@@ -147,15 +175,17 @@ const TAB_ROUTE: Record<TabKey, string> = {
 
 const tabs: Array<{ key: TabKey; label: string }> = [
   { key: 'overview', label: 'Control Tower' },
+  { key: 'agent', label: 'Agent Monitor' },
   { key: 'join', label: 'Join Studio' },
   { key: 'lineage', label: 'Lineage Graph' },
   { key: 'logs', label: 'Ops Logs' },
 ]
 
 const API_BASE =
-  typeof window !== 'undefined' && (window as any).VITE_API_URL
-    ? (window as any).VITE_API_URL
-    : (typeof import.meta !== 'undefined' && (import.meta.env.VITE_API_URL as string)) || '/api'
+  (typeof import.meta !== 'undefined' && (import.meta.env.VITE_API_URL as string)) ||
+  'http://127.0.0.1:8002/api'
+
+  const DEFAULT_MAX_REFERENCE_DATASETS = 5
 
 function tabFromHash(hash: string): TabKey | null {
   const normalized = hash.replace(/^#/, '').trim().toLowerCase()
@@ -236,7 +266,7 @@ export default function DataFabricTestingPage() {
       { label: 'Step 1: Read intake file(s)', status: 'running' },
       { label: 'Step 2: Compute structural features', status: 'pending' },
       { label: 'Step 3: Compute statistical features', status: 'pending' },
-      { label: 'Step 4: Score with LR + secondary model (or fallback)', status: 'pending' },
+      { label: 'Step 4: Score with LR 30% + secondary 70% (or fallback)', status: 'pending' },
       { label: 'Step 5: Register metadata + relationship suggestions', status: 'pending' },
     ])
   }
@@ -248,6 +278,10 @@ export default function DataFabricTestingPage() {
   }
 
   function buildIntakeReport(result: IntakeResponse, files: File[]) {
+    const lrWeight = Number(overview?.model?.lr_weight ?? 0.3)
+    const secondaryWeight = Number(overview?.model?.secondary_weight ?? 0.7)
+    const secondaryLabel = overview?.model?.secondary_model_label || 'RF'
+
     const lines: string[] = []
     lines.push('Data Fabric Intake Processing Report')
     lines.push(`Generated: ${new Date().toLocaleString()}`)
@@ -263,12 +297,27 @@ export default function DataFabricTestingPage() {
     lines.push('1. Compute structural features')
     lines.push('2. Compute statistical features')
     lines.push('3. Compute behavioral features')
-    lines.push('4. Score relationships (LR + secondary model, fallback if needed)')
+    lines.push(
+      `4. Score relationships (LR ${(lrWeight * 100).toFixed(0)}% + ${secondaryLabel} ${(secondaryWeight * 100).toFixed(0)}%, fallback if needed)`
+    )
     lines.push('5. Register metadata and discovered relationships')
     lines.push('')
     lines.push(`Dataset: ${result.dataset_name || 'N/A'}`)
     lines.push(`Good Matches: ${result.good_match_count || 0}`)
     lines.push(`Bad Matches: ${result.bad_match_count || 0}`)
+
+    const accuracy = overview?.model?.test_metrics?.accuracy
+    if (accuracy) {
+      lines.push('')
+      lines.push('Model Test Accuracy Snapshot:')
+      if (typeof accuracy.lr === 'number') lines.push(`- LR: ${accuracy.lr.toFixed(4)}`)
+      if (typeof accuracy.rf === 'number') lines.push(`- RF: ${accuracy.rf.toFixed(4)}`)
+      if (typeof accuracy.ensemble === 'number') {
+        lines.push(
+          `- Ensemble (${(lrWeight * 100).toFixed(0)}/${(secondaryWeight * 100).toFixed(0)}): ${accuracy.ensemble.toFixed(4)}`
+        )
+      }
+    }
 
     const suggestions = result.suggestions || []
     if (suggestions.length > 0) {
@@ -457,6 +506,7 @@ export default function DataFabricTestingPage() {
 
           formData.append('auto_join_if_single', 'true')
           formData.append('how', 'inner')
+          formData.append('max_reference_datasets', String(DEFAULT_MAX_REFERENCE_DATASETS))
 
           const res = await fetch(`${API_BASE}/data-fabric/intake-upload`, {
             method: 'POST',
@@ -487,6 +537,7 @@ export default function DataFabricTestingPage() {
             dataset_name: intakeDatasetName.trim() || undefined,
             auto_join_if_single: true,
             how: 'inner',
+            max_reference_datasets: DEFAULT_MAX_REFERENCE_DATASETS,
           }),
         })
         if (!res.ok) {
@@ -643,6 +694,15 @@ export default function DataFabricTestingPage() {
           formatNumber={formatNumber}
           safeDate={safeDate}
           decisionClass={decisionClass}
+        />
+      ) : null}
+
+      {activeTab === 'agent' ? (
+        <AgentMonitorPage
+          loading={loading}
+          overview={overview}
+          lineage={lineage}
+          safeDate={safeDate}
         />
       ) : null}
 

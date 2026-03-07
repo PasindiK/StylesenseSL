@@ -98,8 +98,8 @@ class IntelligentRelationshipDiscovery:
         self.scoring_engine = RelationshipScoringEngine(
             model_path=str(lr_model_path) if lr_model_path.exists() else None,
             rf_model_path=str(rf_model_path) if rf_model_path.exists() else None,
-            lr_weight=0.5,
-            rf_weight=0.5,
+            lr_weight=0.3,
+            rf_weight=0.7,
             name_weight=self.NAME_WEIGHT,
             type_weight=self.TYPE_WEIGHT,
             overlap_weight=self.OVERLAP_WEIGHT,

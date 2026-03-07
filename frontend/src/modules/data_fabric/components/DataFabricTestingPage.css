@@ -322,6 +322,130 @@
   grid-template-columns: 1.15fr 1.45fr;
 }
 
+.agent-monitor-card {
+  padding: 0.95rem 1rem;
+}
+
+.agent-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.7rem;
+}
+
+.df-btn.secondary {
+  background: rgba(19, 37, 58, 0.85);
+  border: 1px solid rgba(95, 134, 176, 0.42);
+}
+
+.agent-monitor-grid {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  margin-bottom: 0.75rem;
+}
+
+.agent-metric-chip {
+  border: 1px solid rgba(126, 168, 210, 0.24);
+  border-radius: 12px;
+  background: rgba(18, 36, 58, 0.56);
+  padding: 0.58rem 0.68rem;
+}
+
+.agent-metric-chip span {
+  display: block;
+  color: #8fa7c5;
+  font-size: 0.72rem;
+  margin-bottom: 0.24rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.agent-metric-chip strong {
+  color: #e9f6ff;
+  font-size: 0.84rem;
+}
+
+.agent-insight-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr 1fr;
+}
+
+.agent-insight-block {
+  border: 1px solid rgba(117, 157, 196, 0.23);
+  border-radius: 12px;
+  background: rgba(14, 28, 46, 0.62);
+  padding: 0.6rem 0.7rem;
+}
+
+.agent-insight-block h4 {
+  margin: 0 0 0.45rem;
+  font-size: 0.84rem;
+  color: #dceeff;
+}
+
+.agent-insight-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.28rem;
+}
+
+.agent-insight-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.55rem;
+  border: 1px solid rgba(105, 145, 182, 0.2);
+  border-radius: 8px;
+  background: rgba(20, 38, 61, 0.55);
+  padding: 0.36rem 0.45rem;
+}
+
+.agent-insight-list li span {
+  font-size: 0.76rem;
+  color: #d9eafd;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.agent-insight-list li strong {
+  font-size: 0.73rem;
+  color: #9bd8ff;
+  white-space: nowrap;
+}
+
+.why-merge-btn {
+  border: 1px solid rgba(122, 161, 201, 0.46);
+  border-radius: 999px;
+  background: rgba(35, 66, 98, 0.62);
+  color: #d9efff;
+  font-size: 0.65rem;
+  padding: 0.08rem 0.38rem;
+  cursor: help;
+}
+
+.agent-run-report-preview {
+  margin-top: 0.7rem;
+  margin-bottom: 0;
+}
+
+.agent-report-block {
+  margin-top: 0.55rem;
+}
+
+.agent-report-grid {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  margin-top: 0.45rem;
+}
+
 .df-main-grid article,
 .df-join-grid article {
   padding: 1rem;
@@ -738,31 +862,194 @@
   overflow: auto;
 }
 
+.lineage-canvas-3d {
+  cursor: grab;
+  position: relative;
+}
+
+.lineage-canvas-3d:active {
+  cursor: grabbing;
+}
+
 .lineage-canvas svg {
   width: 100%;
-  min-width: 860px;
-  height: 420px;
+  height: 620px;
+  display: block;
+  user-select: none;
+}
+
+.lineage-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.lineage-controls {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.lineage-controls .df-btn {
+  padding: 0.42rem 0.72rem;
+  font-size: 0.75rem;
+}
+
+.lineage-controls .df-btn.secondary.active {
+  border-color: rgba(162, 216, 255, 0.78);
+  box-shadow: 0 0 0 1px rgba(140, 199, 245, 0.34) inset;
+}
+
+.lineage-help {
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
 }
 
 .lineage-edge {
-  stroke: rgba(135, 172, 215, 0.55);
-  stroke-width: 1.8;
+  stroke: rgba(129, 183, 236, 0.58);
+  stroke-width: 2.2;
+  transition: opacity 0.15s ease, stroke 0.15s ease, stroke-width 0.15s ease;
 }
 
-.arrow-marker {
-  fill: rgba(135, 172, 215, 0.55);
+.lineage-edge.active {
+  stroke: rgba(173, 224, 255, 0.95);
+  stroke-width: 2.9;
+}
+
+.merge-candidate-line {
+  stroke: rgba(255, 205, 96, 0.5);
+  stroke-width: 1.8;
+  stroke-dasharray: 5 5;
+  transition: stroke 0.18s ease, stroke-width 0.18s ease, opacity 0.18s ease;
+  opacity: 0.72;
+}
+
+.merge-candidate-line.active {
+  stroke: rgba(255, 232, 133, 0.96);
+  stroke-width: 2.8;
+  opacity: 1;
+}
+
+.merge-distance-label {
+  fill: #ffe4a4;
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+
+.lineage-node-group {
+  cursor: move;
 }
 
 .lineage-node {
-  fill: rgba(35, 89, 148, 0.44);
-  stroke: rgba(128, 183, 234, 0.9);
-  stroke-width: 1.4;
+  stroke: rgba(215, 244, 255, 0.9);
+  stroke-width: 1.7;
+  transition: transform 0.15s ease, stroke 0.15s ease, stroke-width 0.15s ease;
+}
+
+.lineage-node.active {
+  stroke: rgba(228, 253, 255, 1);
+  stroke-width: 2.4;
+}
+
+.lineage-node-inner {
+  fill: rgba(255, 255, 255, 0.2);
+  stroke: rgba(244, 252, 255, 0.25);
+  stroke-width: 1;
+}
+
+.lineage-shadow {
+  fill: rgba(8, 14, 29, 0.38);
+  filter: blur(4px);
 }
 
 .lineage-label {
-  fill: #e0eeff;
-  font-size: 10px;
+  fill: #eef8ff;
+  font-size: 0.82rem;
   font-weight: 700;
+  letter-spacing: 0.01em;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: rgba(6, 20, 39, 0.85);
+  stroke-width: 2.1px;
+}
+
+.lineage-label-sub {
+  font-size: 0.74rem;
+  font-weight: 650;
+}
+
+.lineage-label-bg {
+  fill: rgba(7, 20, 36, 0.78);
+  stroke: rgba(146, 194, 238, 0.5);
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+.lineage-legend {
+  margin-top: 0.58rem;
+  display: flex;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.closest-merge-panel {
+  margin-top: 0.7rem;
+  border: 1px solid rgba(133, 176, 220, 0.28);
+  border-radius: 12px;
+  background: rgba(12, 24, 40, 0.64);
+  padding: 0.65rem 0.75rem;
+}
+
+.closest-merge-panel h4 {
+  margin: 0 0 0.45rem;
+  font-size: 0.86rem;
+  color: #d7edff;
+}
+
+.closest-merge-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.28rem;
+}
+
+.closest-merge-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.38rem 0.48rem;
+  border: 1px solid rgba(116, 157, 199, 0.18);
+  border-radius: 9px;
+  background: rgba(20, 39, 63, 0.54);
+  cursor: default;
+}
+
+.closest-merge-list li.active {
+  border-color: rgba(255, 226, 136, 0.66);
+  background: rgba(59, 49, 21, 0.4);
+}
+
+.closest-merge-list li span {
+  color: #e8f5ff;
+  font-size: 0.78rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.closest-merge-list li strong {
+  color: #ffd996;
+  font-size: 0.73rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.arrow-marker {
+  fill: rgba(152, 208, 255, 0.84);
 }
 
 @media (max-width: 1200px) {

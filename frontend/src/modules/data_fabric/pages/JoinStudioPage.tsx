@@ -67,10 +67,48 @@ export default function JoinStudioPage({
   formatNumber,
   decisionClass,
 }: Props) {
+  const STATIC_WEIGHTS = { name: 0.3, type: 0.2, overlap: 0.5 }
+
   function confidenceBand(confidence: number): 'strong' | 'probable' | 'weak' {
     if (confidence > 0.9) return 'strong'
     if (confidence >= 0.6) return 'probable'
     return 'weak'
+  }
+
+  function toNumber(value: unknown, fallback = 0): number {
+    return typeof value === 'number' && Number.isFinite(value) ? value : fallback
+  }
+
+  function computeUiConfidence(row: any): { value: number; source: 'ensemble' | 'static' } {
+    const featureVector = row?.feature_vector || {}
+    const modelsUsed = featureVector?.models_used || {}
+    const lrModel = modelsUsed?.LR
+    const secondaryEntry = Object.entries(modelsUsed).find(
+      ([key, value]) => key !== 'LR' && typeof value === 'number' && Number.isFinite(Number(value))
+    )
+
+    if (typeof lrModel === 'number' && Number.isFinite(lrModel) && secondaryEntry) {
+      const secondaryModel = Number(secondaryEntry[1])
+      const weightSum = lrWeight + secondaryWeight
+      const lrW = weightSum > 0 ? lrWeight / weightSum : 0.3
+      const secW = weightSum > 0 ? secondaryWeight / weightSum : 0.7
+      const value = Math.min(1, Math.max(0, lrW * lrModel + secW * secondaryModel))
+      return { value, source: 'ensemble' }
+    }
+
+    const nameSimilarity = toNumber(row?.name_similarity, toNumber(featureVector?.name_similarity, 0))
+    const typeScore = toNumber(row?.type_score, toNumber(featureVector?.type_score, 0))
+    const overlapRatio = toNumber(row?.overlap_ratio, toNumber(featureVector?.overlap_ratio, 0))
+    const value = Math.min(
+      1,
+      Math.max(
+        0,
+        STATIC_WEIGHTS.name * nameSimilarity +
+          STATIC_WEIGHTS.type * typeScore +
+          STATIC_WEIGHTS.overlap * overlapRatio
+      )
+    )
+    return { value, source: 'static' }
   }
 
   if (!overview) {
@@ -91,6 +129,9 @@ export default function JoinStudioPage({
   const intakeSuggestions = (intakeResult?.suggestions as Array<any> | undefined) || []
   const joinSuggestions = (joinOptions?.suggestions as Array<any> | undefined) || []
   const discoveryRows = !hasIntakeRun ? [] : intakeSuggestions.length > 0 ? intakeSuggestions : joinSuggestions
+  const lrWeight = Number(overview?.model?.lr_weight ?? 0.3)
+  const secondaryWeight = Number(overview?.model?.secondary_weight ?? 0.7)
+  const accuracy = overview?.model?.test_metrics?.accuracy || {}
 
   const joinDecisionMessage =
     !hasIntakeRun
@@ -110,7 +151,7 @@ export default function JoinStudioPage({
     const secondaryEntry = Object.entries(modelsUsed).find(([key]) => key !== 'LR')
     const secondaryLabel = secondaryEntry ? secondaryEntry[0] : (overview?.model?.secondary_model_label || 'Secondary')
     const secondary = secondaryEntry && typeof secondaryEntry[1] === 'number' ? Number(secondaryEntry[1]).toFixed(3) : '-'
-    const combined = Number(row?.confidence || 0).toFixed(3)
+    const combined = computeUiConfidence(row).value.toFixed(3)
     return { lr, secondaryLabel, secondary, combined }
   }
 
@@ -226,6 +267,9 @@ export default function JoinStudioPage({
             <span><i className="dot-probable" /> Probable 0.60 - 0.90</span>
             <span><i className="dot-weak" /> Weak {'<'} 0.60</span>
           </div>
+          <p className="muted-text">
+            UI confidence policy: use LR+{overview?.model?.secondary_model_label || 'RF'} when both model scores exist; otherwise use static 0.3/0.2/0.5 fallback.
+          </p>
 
           {discoveryRows.length ? (
             <div className="df-table-wrap">
@@ -236,13 +280,15 @@ export default function JoinStudioPage({
                     <th>Right Column</th>
                     <th>LR</th>
                     <th>{overview?.model?.secondary_model_label || 'Secondary'}</th>
-                    <th>Combined</th>
+                    <th>Combined ({(lrWeight * 100).toFixed(0)} / {(secondaryWeight * 100).toFixed(0)})</th>
+                    <th>Source</th>
                     <th>Decision</th>
                   </tr>
                 </thead>
                 <tbody>
                   {discoveryRows.map((row: any, index: number) => {
-                    const band = confidenceBand(Number(row.confidence || 0))
+                    const computed = computeUiConfidence(row)
+                    const band = confidenceBand(computed.value)
                     const scores = modelScores(row)
                     return (
                       <tr key={`${row.relationship_key || 'row'}-${index}`}>
@@ -253,6 +299,7 @@ export default function JoinStudioPage({
                         <td>
                           <span className={`confidence-chip ${band}`}>{scores.combined}</span>
                         </td>
+                        <td>{computed.source}</td>
                         <td>
                           <span className={`df-decision ${decisionClass(String(row.decision || 'weak'))}`}>
                             {String(row.decision || 'weak')}
@@ -273,6 +320,12 @@ export default function JoinStudioPage({
                 : 'Process a dataset to display discovered relationship candidates.'}
             </p>
           )}
+
+          <p className="muted-text">
+            Model test accuracy snapshot: LR {typeof accuracy.lr === 'number' ? accuracy.lr.toFixed(4) : 'N/A'} |{' '}
+            {overview?.model?.secondary_model_label || 'RF'} {typeof accuracy.rf === 'number' ? accuracy.rf.toFixed(4) : 'N/A'} | Ensemble{' '}
+            {typeof accuracy.ensemble === 'number' ? accuracy.ensemble.toFixed(4) : 'N/A'}
+          </p>
 
           {intakeResult ? (
             <div className="intake-result-box">
