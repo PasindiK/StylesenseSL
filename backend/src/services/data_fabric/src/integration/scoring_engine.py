@@ -213,8 +213,14 @@ class RelationshipScoringEngine:
                 np.clip((lr_w * models_used["LR"]) + (rf_w * models_used[self.rf_model_label]), 0.0, 1.0)
             )
             confidence_source = "ensemble"
+        elif "LR" in models_used:
+            confidence = float(np.clip(models_used["LR"], 0.0, 1.0))
+            confidence_source = "ml_single"
+        elif self.rf_model_label in models_used:
+            confidence = float(np.clip(models_used[self.rf_model_label], 0.0, 1.0))
+            confidence_source = "ml_single"
         else:
-            # Require both LR and RF for ML scoring; otherwise degrade to static fallback.
+            # Static confidence is only used when no ML model output is available.
             confidence = self._fallback_score(feature_vector)
             confidence_source = "static"
 

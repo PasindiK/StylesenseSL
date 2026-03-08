@@ -47,6 +47,41 @@ def _load_catalog() -> MetadataCatalog:
     return MetadataCatalog(db_path=str(db_path))
 
 
+def _data_fabric_ensemble_status() -> Dict[str, Any]:
+    """Inspect runtime readiness for strict two-model relationship scoring."""
+    try:
+        from src.integration.virtual_integration import IntelligentRelationshipDiscovery
+
+        scorer = IntelligentRelationshipDiscovery().scoring_engine
+        ensemble_ready = bool(scorer.has_lr_model and scorer.has_rf_model)
+        if ensemble_ready:
+            reason = "Both LR and secondary model are loaded; ensemble scoring is available."
+        elif scorer.has_lr_model or scorer.has_rf_model:
+            reason = "Only one ML model is available; static fallback is used by strict two-model policy."
+        else:
+            reason = "No ML models are available; static fallback is used."
+
+        return {
+            "ensemble_ready": ensemble_ready,
+            "ensemble_reason": reason,
+            "lr_loaded": bool(scorer.has_lr_model),
+            "secondary_model_loaded": bool(scorer.has_rf_model),
+            "secondary_model_label": str(getattr(scorer, "rf_model_label", "RF")),
+            "lr_weight": float(getattr(scorer, "lr_weight", 0.3)),
+            "secondary_weight": float(getattr(scorer, "rf_weight", 0.7)),
+        }
+    except Exception as exc:
+        return {
+            "ensemble_ready": False,
+            "ensemble_reason": f"Failed to inspect model readiness: {exc}",
+            "lr_loaded": False,
+            "secondary_model_loaded": False,
+            "secondary_model_label": "RF",
+            "lr_weight": 0.3,
+            "secondary_weight": 0.7,
+        }
+
+
 def _normalize_relationship(record: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "relationship_key": str(record.get("relationship_key", "")),
@@ -167,6 +202,88 @@ def _compute_drift_changes(catalog: MetadataCatalog, limit: int = 5) -> List[Dic
     return rows[: max(1, int(limit))]
 
 
+def _behavioral_signals_snapshot(catalog: MetadataCatalog, limit: int = 200) -> Dict[str, Any]:
+    rows: List[Dict[str, Any]] = []
+    for rel in _collect_unique_relationships(catalog):
+        fv = dict(rel.get("feature_vector", {}) or {})
+        history = list(rel.get("history", []))
+        after_confidence = float(rel.get("confidence", 0.0))
+        before_confidence: Optional[float] = None
+        if len(history) >= 2:
+            before_confidence = float(history[-2].get("confidence", 0.0))
+        stability = float(fv.get("relationship_stability", 0.0) or 0.0)
+        usage_count = int(rel.get("join_usage_count", fv.get("join_usage_count", 0)) or 0)
+        behavioral_updated_at = fv.get("behavioral_updated_at")
+        models_used = dict(fv.get("models_used", {}) or {})
+        confidence_source = str(fv.get("confidence_source", "")).strip().lower()
+        if not confidence_source:
+            has_lr = isinstance(models_used.get("LR"), (int, float))
+            has_secondary = any(k != "LR" and isinstance(v, (int, float)) for k, v in models_used.items())
+            confidence_source = "ensemble" if (has_lr and has_secondary) else "static"
+
+        rows.append(
+            {
+                "relationship_key": str(rel.get("relationship_key", "")),
+                "left_dataset": str(rel.get("left_dataset", "")),
+                "right_dataset": str(rel.get("right_dataset", "")),
+                "left_column": str(rel.get("left_column", "")),
+                "right_column": str(rel.get("right_column", "")),
+                "decision": str(rel.get("decision", "weak")),
+                "confidence": after_confidence,
+                "before_confidence": before_confidence,
+                "delta": (after_confidence - before_confidence) if before_confidence is not None else None,
+                "confidence_source": confidence_source,
+                "models_used": models_used,
+                "history_points": len(history),
+                "join_usage_count": usage_count,
+                "relationship_stability": stability,
+                "behavioral_score": float(rel.get("behavioral_score", 0.0) or 0.0),
+                "is_unstable": bool(rel.get("is_unstable", False)),
+                "drift_score": float(rel.get("drift_score", 0.0) or 0.0),
+                "last_scored_at": rel.get("last_scored_at"),
+                "last_used_at": rel.get("last_used_at"),
+                "behavioral_updated_at": behavioral_updated_at,
+                "prior_score_available": before_confidence is not None,
+                "feedback_applied": bool(
+                    ("relationship_stability" in fv)
+                    or ("join_usage_count" in fv)
+                    or ("behavioral_updated_at" in fv)
+                ),
+            }
+        )
+
+    rows.sort(
+        key=lambda item: (
+            str(item.get("behavioral_updated_at") or ""),
+            int(item.get("join_usage_count", 0)),
+            float(item.get("drift_score", 0.0)),
+        ),
+        reverse=True,
+    )
+    trimmed = rows[: max(1, min(int(limit), 1000))]
+
+    total = len(rows)
+    feedback_applied = sum(1 for row in rows if bool(row.get("feedback_applied")))
+    with_usage = sum(1 for row in rows if int(row.get("join_usage_count", 0)) > 0)
+    unstable = sum(1 for row in rows if bool(row.get("is_unstable", False)))
+    avg_stability = (sum(float(row.get("relationship_stability", 0.0)) for row in rows) / total) if total else 0.0
+
+    return {
+        "summary": {
+            "total_relationships": total,
+            "feedback_applied_count": feedback_applied,
+            "usage_tracked_count": with_usage,
+            "unstable_count": unstable,
+            "avg_stability": avg_stability,
+            "feedback_ratio": (float(feedback_applied) / float(total)) if total else 0.0,
+            "feedback_mode": "catalog_history_hydration",
+            "feedback_enabled": True,
+        },
+        "signals": trimmed,
+        "generated_at": pd.Timestamp.utcnow().isoformat(),
+    }
+
+
 def _save_agent_last_run(source: str, report: Dict[str, Any]) -> None:
     path = _agent_last_run_path()
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -205,6 +322,33 @@ def _read_table_for_dataset(catalog: MetadataCatalog, dataset_name: str) -> pd.D
 
     raw_path = _data_fabric_root() / "data" / "raw" / f"{dataset_name}.csv"
     candidate_paths.append(raw_path)
+
+    # Also support datasets originally registered by the monorepo backend.
+    monorepo_backend_root = _data_fabric_root().parents[2]
+    monorepo_raw_path = monorepo_backend_root / "data" / "raw" / f"{dataset_name}.csv"
+    candidate_paths.append(monorepo_raw_path)
+
+    intake_uploads_dir = _data_fabric_root() / "data" / "raw" / "intake_uploads"
+    if intake_uploads_dir.exists() and intake_uploads_dir.is_dir():
+        suffixes = ["csv", "tsv", "txt", "xls", "xlsx", "json"]
+        for suffix in suffixes:
+            matches = sorted(
+                intake_uploads_dir.glob(f"*_{dataset_name}.{suffix}"),
+                key=lambda p: p.stat().st_mtime,
+                reverse=True,
+            )
+            candidate_paths.extend(matches)
+
+    monorepo_intake_uploads_dir = monorepo_backend_root / "data" / "raw" / "intake_uploads"
+    if monorepo_intake_uploads_dir.exists() and monorepo_intake_uploads_dir.is_dir():
+        suffixes = ["csv", "tsv", "txt", "xls", "xlsx", "json"]
+        for suffix in suffixes:
+            matches = sorted(
+                monorepo_intake_uploads_dir.glob(f"*_{dataset_name}.{suffix}"),
+                key=lambda p: p.stat().st_mtime,
+                reverse=True,
+            )
+            candidate_paths.extend(matches)
 
     for path in candidate_paths:
         if not path.exists() or not path.is_file():
@@ -462,19 +606,33 @@ def create_app() -> FastAPI:
             except Exception:
                 metrics = {}
 
+        ensemble_status = _data_fabric_ensemble_status()
+
         model_info = {
             "model_mode": "ensemble",
-            "model_version": str(relationships[0].get("model_version", "unknown")) if relationships else "unknown",
-            "feature_vector_version": str(relationships[0].get("feature_vector_version", "unknown")) if relationships else "unknown",
-            "ensemble_ready": False,
-            "ensemble_reason": "Standalone API running metadata-driven overview.",
-            "lr_loaded": False,
-            "secondary_model_loaded": False,
-            "secondary_model_label": "RF",
-            "lr_weight": 0.3,
-            "secondary_weight": 0.7,
+            "model_version": "unknown",
+            "feature_vector_version": "unknown",
+            "ensemble_ready": bool(ensemble_status.get("ensemble_ready", False)),
+            "ensemble_reason": str(ensemble_status.get("ensemble_reason", "")),
+            "lr_loaded": bool(ensemble_status.get("lr_loaded", False)),
+            "secondary_model_loaded": bool(ensemble_status.get("secondary_model_loaded", False)),
+            "secondary_model_label": str(ensemble_status.get("secondary_model_label", "RF")),
+            "lr_weight": float(ensemble_status.get("lr_weight", 0.3)),
+            "secondary_weight": float(ensemble_status.get("secondary_weight", 0.7)),
             "test_metrics": {},
         }
+        if relationships:
+            model_info["model_version"] = str(relationships[0].get("model_version", "unknown"))
+            model_info["feature_vector_version"] = str(relationships[0].get("feature_vector_version", "unknown"))
+
+        behavioral_feedback_relationships = 0
+        for rel in relationships:
+            fv = dict(rel.get("feature_vector", {}) or {})
+            if any(k in fv for k in ["relationship_stability", "join_usage_count", "behavioral_updated_at"]):
+                behavioral_feedback_relationships += 1
+        model_info["behavioral_feedback_enabled"] = True
+        model_info["behavioral_feedback_mode"] = "catalog_history_hydration"
+        model_info["behavioral_feedback_relationships"] = behavioral_feedback_relationships
 
         return _json_safe(
             {
@@ -522,6 +680,15 @@ def create_app() -> FastAPI:
                 continue
             edges_set.add(key)
             edges.append({"source": left, "target": right})
+        for asset in assets:
+            dataset_info = catalog.get_dataset(asset.name) or {}
+            downstream = dataset_info.get("downstream_datasets", [])
+            for child in downstream:
+                key = (asset.name, str(child))
+                if key in edges_set:
+                    continue
+                edges_set.add(key)
+                edges.append({"source": asset.name, "target": str(child)})
 
         return {
             "nodes": sorted(nodes, key=lambda n: n["id"]),
@@ -603,6 +770,76 @@ def create_app() -> FastAPI:
             "suggestions": suggestions,
         }
 
+    @app.post("/api/data-fabric/join-execute")
+    async def data_fabric_join_execute(request: Request):
+        """Execute autonomous join with optional manual relationship selection."""
+        from src.integration import AutonomousIntegrationAgent, ManualInterventionRequired, VirtualIntegrationLayer
+
+        body = await request.json()
+        left_dataset = str(body.get("left_dataset", "")).strip()
+        right_dataset = str(body.get("right_dataset", "")).strip()
+        selected_relationship_key = body.get("selected_relationship_key")
+        allow_weak_relationship = bool(body.get("allow_weak_relationship", False))
+        how = str(body.get("how", "inner")).strip() or "inner"
+
+        if not left_dataset or not right_dataset:
+            raise HTTPException(status_code=400, detail="left_dataset and right_dataset are required")
+
+        catalog = _load_catalog()
+        try:
+            datasets = {
+                left_dataset: _read_table_for_dataset(catalog, left_dataset),
+                right_dataset: _read_table_for_dataset(catalog, right_dataset),
+            }
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc))
+
+        layer = VirtualIntegrationLayer(metadata_catalog=catalog)
+        try:
+            joined_df, relationship = layer.join_on_demand(
+                datasets=datasets,
+                left_dataset=left_dataset,
+                right_dataset=right_dataset,
+                how=how,
+                selected_relationship_key=str(selected_relationship_key) if selected_relationship_key else None,
+                allow_weak_relationship=allow_weak_relationship,
+            )
+        except ManualInterventionRequired as exc:
+            return {
+                "success": False,
+                "manual_intervention_required": True,
+                "reason": str(exc),
+                "suggestions": [s.to_dict() for s in exc.suggestions],
+            }
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=str(exc))
+
+        relationship_key = (
+            f"{relationship.left_dataset}:{relationship.left_column}->"
+            f"{relationship.right_dataset}:{relationship.right_column}"
+        )
+        agent = AutonomousIntegrationAgent(metadata_catalog=catalog)
+        usage_updates = agent.log_join_usage(
+            left_dataset=left_dataset,
+            right_dataset=right_dataset,
+            relationship_key=relationship_key,
+        )
+
+        preview_limit = int(body.get("preview_limit", 25))
+        preview = joined_df.head(max(1, min(preview_limit, 200))).replace({pd.NA: None}).to_dict(orient="records")
+
+        return _json_safe(
+            {
+                "success": True,
+                "manual_intervention_required": False,
+                "relationship": relationship.to_dict(),
+                "row_count": int(len(joined_df)),
+                "columns": joined_df.columns.tolist(),
+                "preview": preview,
+                "usage_updates": usage_updates,
+            }
+        )
+
     @app.get("/api/data-fabric/agent/status")
     async def data_fabric_agent_status():
         """Return panel-facing transparency status for the autonomous integration agent."""
@@ -639,6 +876,12 @@ def create_app() -> FastAPI:
                 "generated_at": pd.Timestamp.utcnow().isoformat(),
             }
         )
+
+    @app.get("/api/data-fabric/behavioral-signals")
+    async def data_fabric_behavioral_signals(limit: int = 200):
+        """Expose captured behavioral signals and feedback loop status for UI transparency."""
+        catalog = _load_catalog()
+        return _json_safe(_behavioral_signals_snapshot(catalog, limit=limit))
 
     @app.post("/api/data-fabric/agent/run-now")
     async def data_fabric_agent_run_now(request: Request):

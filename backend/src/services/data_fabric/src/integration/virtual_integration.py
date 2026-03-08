@@ -202,12 +202,76 @@ class VirtualIntegrationLayer:
         self.discovery = IntelligentRelationshipDiscovery()
         self.join_executor = JoinExecutor(metadata_catalog=self.catalog)
 
+    def _collect_catalog_relationships(self) -> List[Dict[str, Any]]:
+        """Return unique relationship records currently persisted in catalog."""
+        unique: Dict[str, Dict[str, Any]] = {}
+        for asset in self.catalog.list_assets(asset_type="table"):
+            for record in self.catalog.get_inferred_relationships(asset.name):
+                key = str(record.get("relationship_key", "")).strip()
+                if not key:
+                    continue
+                if key not in unique:
+                    unique[key] = dict(record)
+        return list(unique.values())
+
+    def _hydrate_behavioral_context_from_catalog(self) -> None:
+        """Feed persisted behavioral/catalog history back into discovery features."""
+        join_history: Dict[Tuple[str, str], int] = {}
+        co_query_history: Dict[Tuple[str, str], int] = {}
+        inference_history: Dict[Tuple[str, str], Dict[str, int]] = {}
+
+        lineage_graph: Dict[str, set] = {}
+        for asset in self.catalog.list_assets(asset_type="table"):
+            dataset_name = str(asset.name)
+            dataset_info = self.catalog.get_dataset(dataset_name) or {}
+            lineage_graph[dataset_name] = set(dataset_info.get("downstream_datasets", []))
+
+        for rel in self._collect_catalog_relationships():
+            left_dataset = str(rel.get("left_dataset", "")).strip()
+            right_dataset = str(rel.get("right_dataset", "")).strip()
+            left_column = str(rel.get("left_column", "")).strip()
+            right_column = str(rel.get("right_column", "")).strip()
+            if not left_dataset or not right_dataset or not left_column or not right_column:
+                continue
+
+            usage_count = int(rel.get("join_usage_count", 0) or 0)
+            history = list(rel.get("history", []))
+
+            column_pair = tuple(sorted((left_column, right_column)))
+            dataset_pair = tuple(sorted((left_dataset, right_dataset)))
+
+            join_history[column_pair] = max(join_history.get(column_pair, 0), usage_count)
+            co_query_history[dataset_pair] = co_query_history.get(dataset_pair, 0) + max(1, usage_count)
+
+            total_runs = len(history)
+            if total_runs > 0:
+                latest_decision = str(history[-1].get("decision", ""))
+                stable_runs = sum(1 for item in history if str(item.get("decision", "")) == latest_decision)
+            else:
+                stable_runs = 0
+            if bool(rel.get("is_unstable", False)) and total_runs > 0:
+                stable_runs = min(stable_runs, max(0, total_runs - 1))
+
+            previous = inference_history.get(column_pair, {"stable_runs": 0, "total_runs": 0})
+            inference_history[column_pair] = {
+                "stable_runs": int(previous.get("stable_runs", 0)) + int(stable_runs),
+                "total_runs": int(previous.get("total_runs", 0)) + int(total_runs),
+            }
+
+        extractor = self.discovery.behavioral_extractor
+        extractor.join_history = join_history
+        extractor.co_query_history = co_query_history
+        extractor.total_queries = max(1, sum(co_query_history.values())) if co_query_history else None
+        extractor.lineage_graph = {node: set(neighbors) for node, neighbors in lineage_graph.items()}
+        extractor.inference_history = inference_history
+
     def infer_relationships(
         self,
         datasets: Dict[str, pd.DataFrame],
         register_results: bool = True,
     ) -> List[InferredRelationship]:
         """Infer potential relationships and optionally register in metadata catalog."""
+        self._hydrate_behavioral_context_from_catalog()
         inferences = self.discovery.discover(datasets)
         if register_results:
             for inference in inferences:

@@ -5,8 +5,9 @@ import AgentMonitorPage from '../pages/AgentMonitorPage'
 import JoinStudioPage from '../pages/JoinStudioPage'
 import LineageGraphPage from '../pages/LineageGraphPage'
 import OpsLogsPage from '../pages/OpsLogsPage'
+import BehavioralSignalsPage from '../pages/BehavioralSignalsPage'
 
-type TabKey = 'overview' | 'agent' | 'join' | 'lineage' | 'logs'
+type TabKey = 'overview' | 'agent' | 'behavior' | 'join' | 'lineage' | 'logs'
 
 type DatasetRow = {
   dataset_name: string
@@ -134,6 +135,46 @@ type LogsResponse = {
   }>
 }
 
+type BehavioralSignalRow = {
+  relationship_key: string
+  left_dataset: string
+  right_dataset: string
+  left_column: string
+  right_column: string
+  decision: string
+  confidence: number
+  before_confidence?: number | null
+  delta?: number | null
+  confidence_source?: string
+  models_used?: Record<string, number>
+  prior_score_available?: boolean
+  history_points: number
+  join_usage_count: number
+  relationship_stability: number
+  behavioral_score: number
+  is_unstable: boolean
+  drift_score: number
+  last_scored_at?: string
+  last_used_at?: string
+  behavioral_updated_at?: string
+  feedback_applied: boolean
+}
+
+type BehavioralSignalsResponse = {
+  summary: {
+    total_relationships: number
+    feedback_applied_count: number
+    usage_tracked_count: number
+    unstable_count: number
+    avg_stability: number
+    feedback_ratio: number
+    feedback_mode: string
+    feedback_enabled: boolean
+  }
+  signals: BehavioralSignalRow[]
+  generated_at: string
+}
+
 type IntakeResponse = {
   status: string
   dataset_name?: string
@@ -168,6 +209,7 @@ type IntakeStep = {
 const TAB_ROUTE: Record<TabKey, string> = {
   overview: 'control-tower',
   agent: 'agent-monitor',
+  behavior: 'behavioral-signals',
   join: 'join-studio',
   lineage: 'lineage-graph',
   logs: 'ops-logs',
@@ -176,6 +218,7 @@ const TAB_ROUTE: Record<TabKey, string> = {
 const tabs: Array<{ key: TabKey; label: string }> = [
   { key: 'overview', label: 'Control Tower' },
   { key: 'agent', label: 'Agent Monitor' },
+  { key: 'behavior', label: 'Behavioral Signals' },
   { key: 'join', label: 'Join Studio' },
   { key: 'lineage', label: 'Lineage Graph' },
   { key: 'logs', label: 'Ops Logs' },
@@ -242,6 +285,7 @@ export default function DataFabricTestingPage() {
   const [overview, setOverview] = useState<OverviewResponse | null>(null)
   const [lineage, setLineage] = useState<LineageResponse | null>(null)
   const [logs, setLogs] = useState<LogsResponse | null>(null)
+  const [behavioralSignals, setBehavioralSignals] = useState<BehavioralSignalsResponse | null>(null)
 
   const [selectedRelationshipKey, setSelectedRelationshipKey] = useState<string>('')
 
@@ -386,10 +430,14 @@ export default function DataFabricTestingPage() {
     setLogs(await fetchJson<LogsResponse>('/data-fabric/logs?limit=200'))
   }
 
+  async function fetchBehavioralSignals() {
+    setBehavioralSignals(await fetchJson<BehavioralSignalsResponse>('/data-fabric/behavioral-signals?limit=300'))
+  }
+
   async function refreshAll() {
     setLoading(true)
     setError('')
-    const results = await Promise.allSettled([fetchOverview(), fetchLineage(), fetchLogs()])
+    const results = await Promise.allSettled([fetchOverview(), fetchLineage(), fetchLogs(), fetchBehavioralSignals()])
     const failures = results
       .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
       .map((result) => (result.reason instanceof Error ? result.reason.message : 'Request failed'))
@@ -460,7 +508,7 @@ export default function DataFabricTestingPage() {
         })
       }
 
-      await Promise.all([fetchOverview(), fetchLineage(), fetchLogs()])
+      await Promise.all([fetchOverview(), fetchLineage(), fetchLogs(), fetchBehavioralSignals()])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Join execution failed')
     } finally {
@@ -567,7 +615,7 @@ export default function DataFabricTestingPage() {
         }
       }
 
-      await Promise.all([fetchOverview(), fetchLineage(), fetchLogs()])
+      await Promise.all([fetchOverview(), fetchLineage(), fetchLogs(), fetchBehavioralSignals()])
       setStepStatus(4, 'completed')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Intake workflow failed')
@@ -703,6 +751,16 @@ export default function DataFabricTestingPage() {
           overview={overview}
           lineage={lineage}
           safeDate={safeDate}
+        />
+      ) : null}
+
+      {activeTab === 'behavior' ? (
+        <BehavioralSignalsPage
+          loading={loading}
+          behavioralSignals={behavioralSignals}
+          safeDate={safeDate}
+          formatNumber={formatNumber}
+          decisionClass={decisionClass}
         />
       ) : null}
 

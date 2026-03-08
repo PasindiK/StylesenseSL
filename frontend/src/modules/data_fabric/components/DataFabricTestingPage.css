@@ -1052,6 +1052,36 @@
   fill: rgba(152, 208, 255, 0.84);
 }
 
+.behavioral-signals-card {
+  padding: 0.95rem 1rem;
+}
+
+.behavioral-kpi-grid {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  margin-bottom: 0.75rem;
+}
+
+.behavioral-note-row {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 0.7rem;
+}
+
+.behavior-flag {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(106, 173, 221, 0.35);
+  border-radius: 999px;
+  background: rgba(29, 67, 103, 0.45);
+  color: #d7edff;
+  font-size: 0.72rem;
+  padding: 0.22rem 0.52rem;
+}
+
 @media (max-width: 1200px) {
   .phase-node {
     min-width: 184px;
@@ -1063,6 +1093,10 @@
 
   .df-kpi-grid {
     grid-template-columns: repeat(3, minmax(180px, 1fr));
+  }
+
+  .behavioral-kpi-grid {
+    grid-template-columns: repeat(2, minmax(180px, 1fr));
   }
 
   .df-main-grid,
@@ -1109,6 +1143,10 @@
 
   .df-kpi-grid {
     grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+
+  .behavioral-kpi-grid {
+    grid-template-columns: 1fr;
   }
 
   .join-form-row {
