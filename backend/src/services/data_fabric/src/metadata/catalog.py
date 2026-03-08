@@ -17,6 +17,7 @@ from typing import Any, Callable, Dict, List, Optional
 import json
 import logging
 import sqlite3
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -405,6 +406,195 @@ class MetadataCatalog:
         self._upsert_asset(existing)
         self._log_event("metadata_catalog.asset_updated", dataset_name=asset_id)
         return True
+
+    @staticmethod
+    def _build_relationship_key(relationship: Dict[str, Any]) -> str:
+        left_dataset = str(relationship.get("left_dataset", ""))
+        right_dataset = str(relationship.get("right_dataset", ""))
+        left_column = str(relationship.get("left_column", ""))
+        right_column = str(relationship.get("right_column", ""))
+        return f"{left_dataset}:{left_column}->{right_dataset}:{right_column}"
+
+    @staticmethod
+    def _history_entry(relationship: Dict[str, Any], timestamp: str) -> Dict[str, Any]:
+        return {
+            "timestamp": timestamp,
+            "confidence": float(relationship.get("confidence", 0.0)),
+            "decision": str(relationship.get("decision", "weak")),
+            "cardinality": str(relationship.get("cardinality", "unknown")),
+            "model_version": str(relationship.get("model_version", "unknown")),
+            "feature_vector_version": str(relationship.get("feature_vector_version", "unknown")),
+        }
+
+    def upsert_inferred_relationship(
+        self,
+        dataset_name: str,
+        relationship: Dict[str, Any],
+        counterpart_dataset: Optional[str] = None,
+    ) -> bool:
+        """Insert or update an inferred relationship with timestamped history.
+
+        Stored per dataset under:
+        metadata.properties['inferred_relationships']
+        """
+        asset = self.get_asset(dataset_name)
+        if asset is None:
+            self._log_event(
+                "metadata_catalog.relationship_upsert_skipped",
+                dataset_name=dataset_name,
+                reason="asset_not_found",
+            )
+            return False
+
+        metadata = asset.metadata
+        records = list(metadata.properties.get("inferred_relationships", []))
+
+        now = datetime.now().isoformat()
+        dedup_key = str(relationship.get("relationship_key") or self._build_relationship_key(relationship))
+        history_item = self._history_entry(relationship, now)
+
+        index = next(
+            (i for i, item in enumerate(records) if str(item.get("relationship_key", "")) == dedup_key),
+            -1,
+        )
+
+        if index >= 0:
+            existing = dict(records[index])
+            history = list(existing.get("history", []))
+            history.append(history_item)
+
+            existing.update(
+                {
+                    "left_dataset": relationship.get("left_dataset"),
+                    "right_dataset": relationship.get("right_dataset"),
+                    "left_column": relationship.get("left_column"),
+                    "right_column": relationship.get("right_column"),
+                    "confidence": float(relationship.get("confidence", 0.0)),
+                    "decision": str(relationship.get("decision", "weak")),
+                    "cardinality": str(relationship.get("cardinality", "unknown")),
+                    "model_version": str(relationship.get("model_version", "unknown")),
+                    "feature_vector_version": str(relationship.get("feature_vector_version", "unknown")),
+                    "feature_vector": relationship.get("feature_vector", {}),
+                    "counterpart_dataset": counterpart_dataset or existing.get("counterpart_dataset"),
+                    "history": history,
+                    "last_scored_at": now,
+                }
+            )
+            records[index] = existing
+            action = "updated"
+            relationship_id = str(existing.get("relationship_id", ""))
+        else:
+            record = {
+                "relationship_id": str(uuid.uuid4()),
+                "relationship_key": dedup_key,
+                "left_dataset": relationship.get("left_dataset"),
+                "right_dataset": relationship.get("right_dataset"),
+                "left_column": relationship.get("left_column"),
+                "right_column": relationship.get("right_column"),
+                "confidence": float(relationship.get("confidence", 0.0)),
+                "decision": str(relationship.get("decision", "weak")),
+                "cardinality": str(relationship.get("cardinality", "unknown")),
+                "model_version": str(relationship.get("model_version", "unknown")),
+                "feature_vector_version": str(relationship.get("feature_vector_version", "unknown")),
+                "feature_vector": relationship.get("feature_vector", {}),
+                "counterpart_dataset": counterpart_dataset,
+                "history": [history_item],
+                "created_at": now,
+                "last_scored_at": now,
+            }
+            records.append(record)
+            action = "created"
+            relationship_id = record["relationship_id"]
+
+        metadata.properties = {
+            **metadata.properties,
+            "inferred_relationships": records,
+            "inferred_relationships_last_updated": now,
+            "last_updated": now,
+        }
+        metadata.updated_at = datetime.now()
+
+        updated = self.update_asset_metadata(dataset_name, metadata)
+        if updated:
+            self._log_event(
+                "metadata_catalog.relationship_upserted",
+                dataset_name=dataset_name,
+                relationship_id=relationship_id,
+                relationship_key=dedup_key,
+                action=action,
+                decision=str(relationship.get("decision", "weak")),
+                confidence=float(relationship.get("confidence", 0.0)),
+            )
+        return updated
+
+    def get_inferred_relationships(
+        self,
+        dataset_name: str,
+        decision_filter: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """Return inferred relationships for a dataset from metadata properties."""
+        asset = self.get_asset(dataset_name)
+        if asset is None:
+            return []
+
+        records = list(asset.metadata.properties.get("inferred_relationships", []))
+        if decision_filter is None:
+            return records
+
+        decision_norm = str(decision_filter).lower()
+        return [
+            record
+            for record in records
+            if str(record.get("decision", "")).lower() == decision_norm
+        ]
+
+    def get_relationship_history(
+        self,
+        dataset_name: str,
+        relationship_key: str,
+    ) -> List[Dict[str, Any]]:
+        """Return timestamped history for one relationship."""
+        relationships = self.get_inferred_relationships(dataset_name)
+        for record in relationships:
+            if str(record.get("relationship_key", "")) == relationship_key:
+                return list(record.get("history", []))
+        return []
+
+    def analyze_relationship_drift(
+        self,
+        dataset_name: str,
+        relationship_key: str,
+    ) -> Dict[str, Any]:
+        """Simple confidence/decision drift summary from history."""
+        history = self.get_relationship_history(dataset_name, relationship_key)
+        if len(history) < 2:
+            return {
+                "relationship_key": relationship_key,
+                "has_drift": False,
+                "reason": "insufficient_history",
+                "history_points": len(history),
+            }
+
+        first = history[0]
+        last = history[-1]
+        first_conf = float(first.get("confidence", 0.0))
+        last_conf = float(last.get("confidence", 0.0))
+        confidence_delta = last_conf - first_conf
+        decision_changed = str(first.get("decision", "")) != str(last.get("decision", ""))
+
+        return {
+            "relationship_key": relationship_key,
+            "has_drift": bool(abs(confidence_delta) >= 0.05 or decision_changed),
+            "history_points": len(history),
+            "first_timestamp": first.get("timestamp"),
+            "last_timestamp": last.get("timestamp"),
+            "first_confidence": first_conf,
+            "last_confidence": last_conf,
+            "confidence_delta": confidence_delta,
+            "first_decision": first.get("decision"),
+            "last_decision": last.get("decision"),
+            "decision_changed": decision_changed,
+        }
 
     def list_assets(
         self,
