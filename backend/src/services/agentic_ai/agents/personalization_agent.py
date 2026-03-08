@@ -23,6 +23,18 @@ class PersonalizationAgent:
         self.kg_events = KGEventWriter(self.kg_client)
         self.kg_scorer = KGScoringService(self.kg_client)
 
+    @staticmethod
+    def _to_lower_str(value: Any) -> str:
+        if value is None:
+            return ""
+        return str(value).strip().lower()
+
+    @staticmethod
+    def _normalized_lower_list(values: Any) -> List[str]:
+        if not values or not isinstance(values, list):
+            return []
+        return [str(v).strip().lower() for v in values if v is not None and str(v).strip()]
+
     def rerank(
         self,
         user_id: Optional[str],
@@ -64,11 +76,13 @@ class PersonalizationAgent:
             # PersonalizationScore (user prefs)
             if prefs:
                 if prefs.get("top_categories"):
-                    if (c.get("category") or "").lower() in [x.lower() for x in prefs["top_categories"]]:
+                    pref_categories = self._normalized_lower_list(prefs.get("top_categories"))
+                    if self._to_lower_str(c.get("category")) in pref_categories:
                         personalization += 0.4
                         why.append(f"Matches your favorite {c.get('category')} style")
                 if prefs.get("top_colors"):
-                    if (c.get("color") or "").lower() in [x.lower() for x in prefs["top_colors"]]:
+                    pref_colors = self._normalized_lower_list(prefs.get("top_colors"))
+                    if self._to_lower_str(c.get("color")) in pref_colors:
                         personalization += 0.3
                         why.append(f"One of your preferred colors")
                 if prefs.get("preferred_shops") and str(c.get("shop_id")) in prefs["preferred_shops"]:
@@ -287,7 +301,11 @@ class PersonalizationAgent:
         # Add personalization insight if available
         if prefs and prefs.get("top_categories") and len(best_matches) > 0:
             top_cat = prefs['top_categories'][0]
-            parts.append(f"These are curated based on your love for {top_cat.lower()}.")
+            top_cat_text = self._to_lower_str(top_cat)
+            if top_cat_text:
+                parts.append(f"These are curated based on your love for {top_cat_text}.")
+            else:
+                parts.append("These are curated based on your recent preferences.")
         elif len(best_matches) > 0:
             parts.append("These are curated based on what matches your profile best.")
 

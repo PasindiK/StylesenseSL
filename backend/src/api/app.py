@@ -3,6 +3,9 @@ from typing import Any, Optional
 import time
 from datetime import datetime, timedelta
 from collections import Counter
+import sqlite3
+import threading
+import json
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -48,6 +51,9 @@ app.add_middleware(
 # initialize loader and agent at import time (simple for local dev)
 ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_RAW = ROOT / "data" / "raw"
+DATA_PROCESSED = ROOT / "data" / "processed"
+TELEMETRY_DB_PATH = DATA_PROCESSED / "dashboard_telemetry.db"
+_telemetry_db_lock = threading.Lock()
 
 loader = DataLoader()
 products_path = DATA_RAW / "final_products.csv"
@@ -105,30 +111,321 @@ def _build_url_mapping():
 url_to_product_map = _build_url_mapping()
 
 
-dashboard_telemetry = {
-    "search_requests": 0,
-    "chat_requests": 0,
-    "recommendations_served": 0,
-    "agent_success": 0,
-    "agent_errors": 0,
-    "request_events": [],  # [{"ts": float, "kind": "search"|"chat"|"cart"}]
-    "latencies": {
-        "intent": [],
-        "retriever": [],
-        "ranking": [],
-        "styling": [],
-    },
-    "intents": Counter(),
-    "recommendation_feed": [],  # [{"ts": float, "user_id": str, "product": str, "score": float}]
-    "runtime_scoring": {
-        "intent_confidences": [],  # float in [0,1]
-        "recommendation_scores": [],  # float in [0,1]
-        "scored_events": [],  # [{"ts": float, "intent": str, "intent_confidence": float|None, "rec_score": float|None}]
-        "clarification_count": 0,
-        "feedback_positive": 0,
-        "feedback_negative": 0,
-    },
-}
+def _new_dashboard_telemetry_state() -> dict:
+    return {
+        "search_requests": 0,
+        "chat_requests": 0,
+        "recommendations_served": 0,
+        "agent_success": 0,
+        "agent_errors": 0,
+        "request_events": [],  # [{"ts": float, "kind": "search"|"chat"|"cart"}]
+        "latencies": {
+            "intent": [],
+            "retriever": [],
+            "ranking": [],
+            "styling": [],
+        },
+        "intents": Counter(),
+        "recommendation_feed": [],  # [{"ts": float, "user_id": str, "product": str, "score": float}]
+        "runtime_scoring": {
+            "intent_confidences": [],  # float in [0,1]
+            "recommendation_scores": [],  # float in [0,1]
+            "scored_events": [],  # [{"ts": float, "intent": str, "intent_confidence": float|None, "rec_score": float|None}]
+            "clarification_count": 0,
+            "feedback_positive": 0,
+            "feedback_negative": 0,
+        },
+        "query_logs": [],  # [{ts, user_id, query, intent, uses_kg, personalized, llm_used, fine_tuned_model, pkl_model_used, final_response_weight}]
+        "order_ratings": [],  # [{ts, user_id, action, rating, session_id}]
+    }
+
+
+dashboard_telemetry = _new_dashboard_telemetry_state()
+
+
+def _db_connect() -> sqlite3.Connection:
+    DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
+    return sqlite3.connect(str(TELEMETRY_DB_PATH), timeout=5)
+
+
+def _db_init() -> None:
+    with _telemetry_db_lock:
+        with _db_connect() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS request_events (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ts REAL NOT NULL,
+                    kind TEXT NOT NULL
+                )
+                """
+            )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS recommendation_feed (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ts REAL NOT NULL,
+                    user_id TEXT NOT NULL,
+                    product TEXT NOT NULL,
+                    score REAL NOT NULL
+                )
+                """
+            )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS query_logs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ts REAL NOT NULL,
+                    user_id TEXT NOT NULL,
+                    query TEXT NOT NULL,
+                    intent TEXT NOT NULL,
+                    uses_kg INTEGER NOT NULL,
+                    personalized INTEGER NOT NULL,
+                    llm_used TEXT,
+                    fine_tuned_model TEXT,
+                    pkl_model_used INTEGER NOT NULL,
+                    intent_method TEXT,
+                    intent_confidence REAL,
+                    recommendation_score_avg REAL,
+                    final_response_weight REAL
+                )
+                """
+            )
+            # Backward-compatible column migrations for existing local DB files.
+            try:
+                existing_cols = {
+                    str(row[1])
+                    for row in cursor.execute("PRAGMA table_info(query_logs)").fetchall()
+                }
+                optional_cols = {
+                    "model_route": "TEXT",
+                    "fallback_used": "INTEGER NOT NULL DEFAULT 0",
+                    "recommendation_breakdown_json": "TEXT",
+                    "reasoning_summary": "TEXT",
+                }
+                for col, ddl in optional_cols.items():
+                    if col not in existing_cols:
+                        cursor.execute(f"ALTER TABLE query_logs ADD COLUMN {col} {ddl}")
+            except Exception:
+                pass
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS order_ratings (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ts REAL NOT NULL,
+                    user_id TEXT NOT NULL,
+                    action TEXT NOT NULL,
+                    rating INTEGER NOT NULL,
+                    session_id TEXT
+                )
+                """
+            )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS telemetry_snapshot (
+                    id INTEGER PRIMARY KEY CHECK (id = 1),
+                    updated_ts REAL NOT NULL,
+                    counters_json TEXT NOT NULL,
+                    intents_json TEXT NOT NULL,
+                    latencies_json TEXT NOT NULL,
+                    runtime_json TEXT NOT NULL
+                )
+                """
+            )
+            conn.commit()
+
+
+def _db_insert(sql: str, params: tuple) -> None:
+    try:
+        with _telemetry_db_lock:
+            with _db_connect() as conn:
+                conn.execute(sql, params)
+                conn.commit()
+    except Exception:
+        # Persistence failures should not break API flows.
+        pass
+
+
+def _reset_dashboard_telemetry(clear_db: bool = True) -> None:
+    dashboard_telemetry.clear()
+    dashboard_telemetry.update(_new_dashboard_telemetry_state())
+
+    if not clear_db:
+        return
+
+    try:
+        with _telemetry_db_lock:
+            with _db_connect() as conn:
+                cursor = conn.cursor()
+                for table in ["request_events", "recommendation_feed", "query_logs", "order_ratings", "telemetry_snapshot"]:
+                    cursor.execute(f"DELETE FROM {table}")
+                conn.commit()
+    except Exception:
+        # Reset should be best-effort and not crash the API.
+        pass
+
+
+def _hydrate_telemetry_from_db() -> None:
+    try:
+        with _telemetry_db_lock:
+            with _db_connect() as conn:
+                conn.row_factory = sqlite3.Row
+
+                rows = conn.execute(
+                    "SELECT ts, kind FROM request_events ORDER BY ts DESC LIMIT 8000"
+                ).fetchall()
+                dashboard_telemetry["request_events"] = [
+                    {"ts": float(row["ts"]), "kind": str(row["kind"])}
+                    for row in reversed(rows)
+                ]
+
+                rows = conn.execute(
+                    "SELECT ts, user_id, product, score FROM recommendation_feed ORDER BY ts DESC LIMIT 300"
+                ).fetchall()
+                dashboard_telemetry["recommendation_feed"] = [
+                    {
+                        "ts": float(row["ts"]),
+                        "user_id": str(row["user_id"]),
+                        "product": str(row["product"]),
+                        "score": float(row["score"]),
+                    }
+                    for row in reversed(rows)
+                ]
+
+                rows = conn.execute(
+                    """
+                    SELECT ts, user_id, query, intent, uses_kg, personalized, llm_used,
+                           fine_tuned_model, pkl_model_used, intent_method,
+                           intent_confidence, recommendation_score_avg, final_response_weight,
+                           model_route, fallback_used, recommendation_breakdown_json, reasoning_summary
+                    FROM query_logs
+                    ORDER BY ts DESC
+                    LIMIT 1200
+                    """
+                ).fetchall()
+                dashboard_telemetry["query_logs"] = [
+                    {
+                        "ts": float(row["ts"]),
+                        "user_id": str(row["user_id"]),
+                        "query": str(row["query"]),
+                        "intent": str(row["intent"]),
+                        "uses_kg": bool(row["uses_kg"]),
+                        "personalized": bool(row["personalized"]),
+                        "llm_used": str(row["llm_used"] or ""),
+                        "fine_tuned_model": row["fine_tuned_model"],
+                        "pkl_model_used": bool(row["pkl_model_used"]),
+                        "intent_method": row["intent_method"],
+                        "intent_confidence": row["intent_confidence"],
+                        "recommendation_score_avg": row["recommendation_score_avg"],
+                        "final_response_weight": row["final_response_weight"],
+                        "model_route": row["model_route"],
+                        "fallback_used": bool(row["fallback_used"]) if row["fallback_used"] is not None else False,
+                        "recommendation_breakdown": (
+                            json.loads(row["recommendation_breakdown_json"])
+                            if row["recommendation_breakdown_json"]
+                            else []
+                        ),
+                        "reasoning_summary": row["reasoning_summary"],
+                    }
+                    for row in reversed(rows)
+                ]
+
+                rows = conn.execute(
+                    "SELECT ts, user_id, action, rating, session_id FROM order_ratings ORDER BY ts DESC LIMIT 2000"
+                ).fetchall()
+                dashboard_telemetry["order_ratings"] = [
+                    {
+                        "ts": float(row["ts"]),
+                        "user_id": str(row["user_id"]),
+                        "action": str(row["action"]),
+                        "rating": int(row["rating"]),
+                        "session_id": row["session_id"],
+                    }
+                    for row in reversed(rows)
+                ]
+    except Exception:
+        pass
+
+
+def _persist_aggregate_snapshot() -> None:
+    try:
+        payload_counters = {
+            "search_requests": int(dashboard_telemetry.get("search_requests", 0)),
+            "chat_requests": int(dashboard_telemetry.get("chat_requests", 0)),
+            "recommendations_served": int(dashboard_telemetry.get("recommendations_served", 0)),
+            "agent_success": int(dashboard_telemetry.get("agent_success", 0)),
+            "agent_errors": int(dashboard_telemetry.get("agent_errors", 0)),
+        }
+        payload_intents = dict(dashboard_telemetry.get("intents", Counter()))
+        payload_latencies = dashboard_telemetry.get("latencies", {})
+        payload_runtime = dashboard_telemetry.get("runtime_scoring", {})
+
+        with _telemetry_db_lock:
+            with _db_connect() as conn:
+                conn.execute(
+                    """
+                    INSERT INTO telemetry_snapshot (
+                        id, updated_ts, counters_json, intents_json, latencies_json, runtime_json
+                    ) VALUES (1, ?, ?, ?, ?, ?)
+                    ON CONFLICT(id) DO UPDATE SET
+                        updated_ts = excluded.updated_ts,
+                        counters_json = excluded.counters_json,
+                        intents_json = excluded.intents_json,
+                        latencies_json = excluded.latencies_json,
+                        runtime_json = excluded.runtime_json
+                    """,
+                    (
+                        time.time(),
+                        json.dumps(payload_counters),
+                        json.dumps(payload_intents),
+                        json.dumps(payload_latencies),
+                        json.dumps(payload_runtime),
+                    ),
+                )
+                conn.commit()
+    except Exception:
+        pass
+
+
+def _hydrate_aggregate_snapshot() -> None:
+    try:
+        with _telemetry_db_lock:
+            with _db_connect() as conn:
+                conn.row_factory = sqlite3.Row
+                row = conn.execute(
+                    "SELECT counters_json, intents_json, latencies_json, runtime_json FROM telemetry_snapshot WHERE id = 1"
+                ).fetchone()
+                if not row:
+                    return
+
+                counters = json.loads(row["counters_json"] or "{}")
+                intents = json.loads(row["intents_json"] or "{}")
+                latencies = json.loads(row["latencies_json"] or "{}")
+                runtime = json.loads(row["runtime_json"] or "{}")
+
+                for key in ["search_requests", "chat_requests", "recommendations_served", "agent_success", "agent_errors"]:
+                    dashboard_telemetry[key] = int(counters.get(key, dashboard_telemetry.get(key, 0)))
+
+                dashboard_telemetry["intents"] = Counter({
+                    str(k): int(v) for k, v in (intents or {}).items()
+                })
+
+                existing_lat = dashboard_telemetry.get("latencies", {})
+                for key in ["intent", "retriever", "ranking", "styling"]:
+                    values = latencies.get(key, existing_lat.get(key, []))
+                    existing_lat[key] = [int(v) for v in values if isinstance(v, (int, float))]
+                dashboard_telemetry["latencies"] = existing_lat
+
+                runtime_defaults = dashboard_telemetry.get("runtime_scoring", {})
+                runtime_defaults.update(runtime or {})
+                # Normalize numeric counters in runtime snapshot.
+                runtime_defaults["clarification_count"] = int(runtime_defaults.get("clarification_count", 0) or 0)
+                runtime_defaults["feedback_positive"] = int(runtime_defaults.get("feedback_positive", 0) or 0)
+                runtime_defaults["feedback_negative"] = int(runtime_defaults.get("feedback_negative", 0) or 0)
+                dashboard_telemetry["runtime_scoring"] = runtime_defaults
+    except Exception:
+        pass
 
 
 def _append_capped(items: list, value, cap: int = 5000):
@@ -138,10 +435,15 @@ def _append_capped(items: list, value, cap: int = 5000):
 
 
 def _record_request_event(kind: str):
+    now_ts = time.time()
     _append_capped(
         dashboard_telemetry["request_events"],
-        {"ts": time.time(), "kind": kind},
+        {"ts": now_ts, "kind": kind},
         cap=8000,
+    )
+    _db_insert(
+        "INSERT INTO request_events (ts, kind) VALUES (?, ?)",
+        (now_ts, str(kind)),
     )
 
 
@@ -171,6 +473,10 @@ def _record_recommendation_feed(user_id: Optional[str], products: list):
                 "score": max(0.0, min(1.0, score)),
             },
             cap=300,
+        )
+        _db_insert(
+            "INSERT INTO recommendation_feed (ts, user_id, product, score) VALUES (?, ?, ?, ?)",
+            (now, uid, str(name), float(max(0.0, min(1.0, score)))),
         )
 
 
@@ -252,6 +558,282 @@ def _record_runtime_scoring(response: dict) -> None:
         },
         cap=1000,
     )
+
+
+def _infer_runtime_log(
+    *,
+    user_id: Optional[str],
+    query: str,
+    response: dict,
+    classification_preview: Optional[dict],
+) -> dict:
+    intent = str(response.get("intent") or "unknown")
+    method = str((classification_preview or {}).get("method") or "")
+
+    products = []
+    for key in ["best_matches", "new_suggestions", "results"]:
+        values = response.get(key)
+        if isinstance(values, list):
+            products.extend(values)
+
+    has_personalization_score = False
+    rec_scores: list[float] = []
+    for product in products[:12]:
+        if not isinstance(product, dict):
+            continue
+        raw_score = (
+            product.get("_personalization_score")
+            or product.get("personalization_score")
+            or product.get("_match_score_percent")
+            or product.get("score")
+        )
+        score = _extract_score_fraction(raw_score)
+        if score is not None:
+            has_personalization_score = True
+            rec_scores.append(score)
+
+    uses_kg = bool(
+        intent in {"product_search", "multi_task", "knowledge_graph"}
+        or len(products) > 0
+        or response.get("agent") in {"catalog_agent", "personalization_agent"}
+    )
+    personalized = bool(has_personalization_score or response.get("personalization_score") is not None)
+
+    llm_used = response.get("llm_used")
+    if not llm_used:
+        if intent in {"small_talk", "styling_advice", "clarification_request"}:
+            llm_used = "gemini"
+        else:
+            llm_used = "orchestrator"
+
+    fine_tuned_model = "distilbert_intent_classifier" if "distilbert" in method.lower() else None
+    pkl_model_used = any(k in method.lower() for k in ["pkl", "pickle", "sklearn", "joblib"])
+
+    intent_conf = _extract_score_fraction(
+        (response.get("runtime_scoring") or {}).get("intent_confidence")
+        or response.get("confidence")
+        or (classification_preview or {}).get("confidence")
+    )
+    rec_avg = (sum(rec_scores) / len(rec_scores)) if rec_scores else None
+
+    recommendation_breakdown: list[dict[str, Any]] = []
+    for idx, product in enumerate(products[:8]):
+        if not isinstance(product, dict):
+            continue
+        product_name = str(
+            product.get("name")
+            or product.get("product_name")
+            or product.get("title")
+            or f"item_{idx + 1}"
+        )
+        product_id = str(product.get("product_id") or product.get("id") or "")
+        raw_score = (
+            product.get("_personalization_score")
+            or product.get("personalization_score")
+            or product.get("_match_score_percent")
+            or product.get("score")
+        )
+        rec_score = _extract_score_fraction(raw_score)
+        rec_score = rec_score if rec_score is not None else 0.0
+        final_weight = round(
+            (0.7 * rec_score) + (0.3 * (intent_conf if intent_conf is not None else 0.0)),
+            4,
+        )
+        reason = (
+            product.get("reason")
+            or product.get("why_recommended")
+            or product.get("explainability")
+            or response.get("explainability")
+            or "Matched user intent and preference signals."
+        )
+        recommendation_breakdown.append(
+            {
+                "rank": idx + 1,
+                "product_id": product_id,
+                "product_name": product_name,
+                "score": round(rec_score, 4),
+                "final_weight": final_weight,
+                "reason": str(reason),
+            }
+        )
+
+    fallback_used = bool(
+        response.get("fallback_used")
+        or response.get("fallback")
+        or response.get("agent") == "fallback_agent"
+        or (intent in {"clarification_request", "unknown"} and len(recommendation_breakdown) == 0)
+    )
+
+    model_route = []
+    if method:
+        model_route.append(method)
+    if fine_tuned_model:
+        model_route.append(fine_tuned_model)
+    if pkl_model_used:
+        model_route.append("pkl_model")
+    if llm_used:
+        model_route.append(str(llm_used))
+    model_route_text = " -> ".join(dict.fromkeys(model_route)) or "orchestrator"
+
+    if recommendation_breakdown:
+        top_reasons = [str(item.get("reason") or "") for item in recommendation_breakdown[:2]]
+        reasoning_summary = " | ".join([text for text in top_reasons if text])
+    else:
+        reasoning_summary = str(response.get("explainability") or "No recommendation candidates returned.")
+
+    # Weighted proxy score for final-response confidence.
+    final_response_weight = round(
+        (
+            (0.6 * rec_avg if rec_avg is not None else 0.0)
+            + (0.4 * intent_conf if intent_conf is not None else 0.0)
+        ),
+        4,
+    )
+
+    return {
+        "ts": time.time(),
+        "user_id": str(user_id) if user_id else "anonymous",
+        "query": str(query or ""),
+        "intent": intent,
+        "uses_kg": uses_kg,
+        "personalized": personalized,
+        "llm_used": str(llm_used),
+        "fine_tuned_model": fine_tuned_model,
+        "pkl_model_used": bool(pkl_model_used),
+        "intent_method": method or None,
+        "intent_confidence": intent_conf,
+        "recommendation_score_avg": rec_avg,
+        "final_response_weight": final_response_weight,
+        "model_route": model_route_text,
+        "fallback_used": fallback_used,
+        "recommendation_breakdown": recommendation_breakdown,
+        "reasoning_summary": reasoning_summary,
+    }
+
+
+def _persist_query_log(log: dict) -> None:
+    _db_insert(
+        """
+        INSERT INTO query_logs (
+            ts, user_id, query, intent, uses_kg, personalized, llm_used,
+            fine_tuned_model, pkl_model_used, intent_method,
+            intent_confidence, recommendation_score_avg, final_response_weight,
+            model_route, fallback_used, recommendation_breakdown_json, reasoning_summary
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            float(log.get("ts") or time.time()),
+            str(log.get("user_id") or "anonymous"),
+            str(log.get("query") or ""),
+            str(log.get("intent") or "unknown"),
+            1 if log.get("uses_kg") else 0,
+            1 if log.get("personalized") else 0,
+            str(log.get("llm_used") or ""),
+            log.get("fine_tuned_model"),
+            1 if log.get("pkl_model_used") else 0,
+            log.get("intent_method"),
+            log.get("intent_confidence"),
+            log.get("recommendation_score_avg"),
+            log.get("final_response_weight"),
+            log.get("model_route"),
+            1 if log.get("fallback_used") else 0,
+            json.dumps(log.get("recommendation_breakdown") or []),
+            log.get("reasoning_summary"),
+        ),
+    )
+
+
+def _persist_order_rating(entry: dict) -> None:
+    _db_insert(
+        "INSERT INTO order_ratings (ts, user_id, action, rating, session_id) VALUES (?, ?, ?, ?, ?)",
+        (
+            float(entry.get("ts") or time.time()),
+            str(entry.get("user_id") or "anonymous"),
+            str(entry.get("action") or "unknown"),
+            int(entry.get("rating") or 0),
+            entry.get("session_id"),
+        ),
+    )
+
+
+def _kg_growth_user_wise(limit: int = 12) -> list[dict]:
+    try:
+        feed = dashboard_telemetry.get("recommendation_feed", [])
+        if not feed:
+            return []
+        grouped: dict[str, dict[str, float]] = {}
+        for item in feed:
+            uid = str(item.get("user_id") or "anonymous")
+            state = grouped.setdefault(uid, {"events": 0.0, "score_sum": 0.0})
+            state["events"] += 1.0
+            state["score_sum"] += float(item.get("score") or 0.0)
+
+        ranked = sorted(grouped.items(), key=lambda kv: kv[1]["events"], reverse=True)[:limit]
+        return [
+            {
+                "user_id": uid,
+                "events": int(vals["events"]),
+                "avg_score": round(vals["score_sum"] / max(vals["events"], 1.0), 3),
+            }
+            for uid, vals in ranked
+        ]
+    except Exception:
+        return []
+
+
+def _kg_growth_system_wise(days: int = 7) -> list[dict]:
+    now = datetime.utcnow()
+    buckets = {i: {"requests": 0, "recommendations": 0} for i in range(days)}
+
+    for event in dashboard_telemetry.get("request_events", []):
+        ts = datetime.utcfromtimestamp(float(event.get("ts") or 0))
+        diff_days = (now.date() - ts.date()).days
+        if 0 <= diff_days < days:
+            buckets[diff_days]["requests"] += 1
+
+    for item in dashboard_telemetry.get("recommendation_feed", []):
+        ts = datetime.utcfromtimestamp(float(item.get("ts") or 0))
+        diff_days = (now.date() - ts.date()).days
+        if 0 <= diff_days < days:
+            buckets[diff_days]["recommendations"] += 1
+
+    series = []
+    for day_offset in range(days - 1, -1, -1):
+        day_dt = now - timedelta(days=day_offset)
+        values = buckets.get(day_offset, {"requests": 0, "recommendations": 0})
+        series.append(
+            {
+                "date": day_dt.date().isoformat(),
+                "requests": int(values["requests"]),
+                "recommendations": int(values["recommendations"]),
+            }
+        )
+    return series
+
+
+def _satisfaction_summary() -> dict:
+    ratings = dashboard_telemetry.get("order_ratings", [])
+    if not ratings:
+        return {
+            "avg_rating": 0.0,
+            "count": 0,
+            "checkout_count": 0,
+            "add_to_cart_count": 0,
+        }
+    avg = sum(float(item.get("rating") or 0.0) for item in ratings) / len(ratings)
+    checkout_count = sum(1 for item in ratings if str(item.get("action")) == "checkout")
+    add_to_cart_count = sum(1 for item in ratings if str(item.get("action")) == "add_to_cart")
+    return {
+        "avg_rating": round(avg, 2),
+        "count": len(ratings),
+        "checkout_count": checkout_count,
+        "add_to_cart_count": add_to_cart_count,
+    }
+
+
+_db_init()
+_hydrate_telemetry_from_db()
+_hydrate_aggregate_snapshot()
 
 
 def _estimate_graph_metrics() -> tuple[int, int, dict[str, int]]:
@@ -555,6 +1137,195 @@ def _dataset_fallback_intents() -> dict[str, int]:
         return {}
 
 
+def _build_user_management_payload() -> dict:
+    users_by_id: dict[str, dict] = {}
+    try:
+        users_path = DATA_RAW / "users_dataset.csv"
+        if users_path.exists():
+            users_df = pd.read_csv(users_path)
+            for _, row in users_df.iterrows():
+                uid = str(row.get("user_id") or "").strip()
+                if not uid:
+                    continue
+                is_active_raw = row.get("is_active")
+                if pd.isna(is_active_raw):
+                    is_active = None
+                elif isinstance(is_active_raw, str):
+                    is_active = is_active_raw.strip().lower() in {"true", "1", "yes", "y", "active"}
+                else:
+                    is_active = bool(is_active_raw)
+                users_by_id[uid] = {
+                    "user_id": uid,
+                    "name": str(row.get("name") or uid),
+                    "email": str(row.get("email") or ""),
+                    "joined": str(row.get("signup_ts") or ""),
+                    "is_active": is_active,
+                }
+    except Exception:
+        users_by_id = {}
+
+    query_counts: Counter = Counter()
+    for item in dashboard_telemetry.get("query_logs", []):
+        query_counts[str(item.get("user_id") or "anonymous")] += 1
+
+    rating_agg: dict[str, list[int]] = {}
+    for item in dashboard_telemetry.get("order_ratings", []):
+        uid = str(item.get("user_id") or "anonymous")
+        try:
+            rating = int(item.get("rating"))
+        except Exception:
+            continue
+        rating_agg.setdefault(uid, []).append(rating)
+
+    all_ids = set(users_by_id.keys()) | set(query_counts.keys()) | set(rating_agg.keys())
+    rows = []
+    active_users = 0
+    total_queries = 0
+    sat_values: list[float] = []
+
+    for uid in sorted(all_ids):
+        profile = users_by_id.get(uid, {})
+        queries = int(query_counts.get(uid, 0))
+        ratings = rating_agg.get(uid, [])
+        avg_sat = round(sum(ratings) / len(ratings), 2) if ratings else 0.0
+        status = "active" if profile.get("is_active") is True or queries > 0 else "inactive"
+        if status == "active":
+            active_users += 1
+        total_queries += queries
+        if avg_sat > 0:
+            sat_values.append(avg_sat)
+
+        rows.append(
+            {
+                "user_id": uid,
+                "name": str(profile.get("name") or uid),
+                "email": str(profile.get("email") or ""),
+                "status": status,
+                "queries": queries,
+                "satisfaction": avg_sat,
+                "joined": str(profile.get("joined") or ""),
+            }
+        )
+
+    rows_sorted = sorted(rows, key=lambda row: row.get("queries", 0), reverse=True)
+    avg_satisfaction = round(sum(sat_values) / len(sat_values), 2) if sat_values else 0.0
+
+    return {
+        "total_users": len(rows_sorted),
+        "active_users": active_users,
+        "total_queries": total_queries,
+        "avg_satisfaction": avg_satisfaction,
+        "rows": rows_sorted[:200],
+    }
+
+
+def _build_user_interactions_payload() -> dict:
+    total_interactions = 0
+    product_views = 0
+    cart_additions = 0
+    checkouts = 0
+    weekly = {
+        day: {"views": 0, "clicks": 0, "cart_additions": 0, "checkouts": 0}
+        for day in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    }
+    recent: list[dict] = []
+
+    user_name_map: dict[str, str] = {}
+    try:
+        users_path = DATA_RAW / "users_dataset.csv"
+        if users_path.exists():
+            users_df = pd.read_csv(users_path)
+            for _, row in users_df.iterrows():
+                uid = str(row.get("user_id") or "").strip()
+                if not uid:
+                    continue
+                user_name_map[uid] = str(row.get("name") or uid)
+    except Exception:
+        pass
+
+    try:
+        interactions_path = DATA_RAW / "interactions_dataset.csv"
+        if interactions_path.exists():
+            inter_df = pd.read_csv(interactions_path)
+            total_interactions = len(inter_df)
+            if "interaction_type" in inter_df.columns:
+                kinds = inter_df["interaction_type"].astype(str).str.lower()
+                product_views = int((kinds == "view").sum())
+                cart_additions = int((kinds == "add_to_cart").sum())
+                checkouts = int((kinds == "purchase").sum())
+
+            ts_col = None
+            for candidate in ["interaction_ts", "timestamp", "created_at", "ts"]:
+                if candidate in inter_df.columns:
+                    ts_col = candidate
+                    break
+
+            if ts_col and "interaction_type" in inter_df.columns:
+                parsed_ts = pd.to_datetime(inter_df[ts_col], errors="coerce")
+                for i in range(len(inter_df)):
+                    ts = parsed_ts.iloc[i]
+                    if pd.isna(ts):
+                        continue
+                    day = ts.strftime("%a")
+                    if day not in weekly:
+                        continue
+                    kind = str(inter_df.iloc[i].get("interaction_type") or "").lower()
+                    weekly[day]["clicks"] += 1
+                    if kind == "view":
+                        weekly[day]["views"] += 1
+                    elif kind == "add_to_cart":
+                        weekly[day]["cart_additions"] += 1
+                    elif kind == "purchase":
+                        weekly[day]["checkouts"] += 1
+
+            cols = [c for c in ["user_id", "interaction_type", "product_id"] if c in inter_df.columns]
+            if cols:
+                for _, row in inter_df.tail(10).iterrows():
+                    uid = str(row.get("user_id") or "anonymous")
+                    kind = str(row.get("interaction_type") or "interaction")
+                    product = str(row.get("product_id") or "item")
+                    recent.append(
+                        {
+                            "user": user_name_map.get(uid, uid),
+                            "event": f"{kind} - {product}",
+                            "rating": 0,
+                            "source": "dataset",
+                        }
+                    )
+    except Exception:
+        pass
+
+    # Append live ratings and recent query activity to keep feed dynamic.
+    for item in sorted(dashboard_telemetry.get("order_ratings", []), key=lambda x: x.get("ts", 0), reverse=True)[:10]:
+        uid = str(item.get("user_id") or "anonymous")
+        action = str(item.get("action") or "action")
+        rating = int(item.get("rating") or 0)
+        recent.append(
+            {
+                "user": user_name_map.get(uid, uid),
+                "event": f"{action} completed",
+                "rating": rating,
+                "source": "live",
+            }
+        )
+
+    if total_interactions == 0:
+        # Fallback to telemetry-driven totals when dataset interactions are unavailable.
+        total_interactions = int(dashboard_telemetry.get("chat_requests", 0))
+        product_views = int(total_interactions * 0.68)
+        cart_additions = int(total_interactions * 0.18)
+        checkouts = int(total_interactions * 0.12)
+
+    return {
+        "total_interactions": total_interactions,
+        "product_views": product_views,
+        "cart_additions": cart_additions,
+        "checkouts": checkouts,
+        "weekly_trends": weekly,
+        "recent": recent[:20],
+    }
+
+
 @app.get("/api/dashboard/metrics")
 def get_dashboard_metrics():
     nodes, relationships, distribution = _estimate_graph_metrics()
@@ -604,6 +1375,16 @@ def get_dashboard_metrics():
     elif errors > 0:
         pipeline_status = "Warning"
 
+    satisfaction = _satisfaction_summary()
+    user_management = _build_user_management_payload()
+    user_interactions = _build_user_interactions_payload()
+
+    recommendation_weights = {
+        "collaborative_filtering": round(max(0.0, min(1.0, strategy_usage.get("Knowledge Graph", 0) / 100.0)), 3),
+        "content_based_filtering": round(max(0.0, min(1.0, strategy_usage.get("Content Based", 0) / 100.0)), 3),
+        "hybrid_approach": round(max(0.0, min(1.0, strategy_usage.get("Hybrid ML", 0) / 100.0)), 3),
+    }
+
     return {
         "active_users": users_count,
         "recommendations_served": int(
@@ -644,7 +1425,72 @@ def get_dashboard_metrics():
         "intent_distribution": intents_payload,
         "strategy_usage": strategy_usage,
         "top_recommendation_paths": _top_recommendation_paths(intents_payload, recommendation_feed),
+        "query_logs": dashboard_telemetry.get("query_logs", [])[-60:],
+        "kg_growth": {
+            "user_wise": _kg_growth_user_wise(limit=12),
+            "system_wise": _kg_growth_system_wise(days=7),
+        },
+        "satisfaction": satisfaction,
+        "user_management": user_management,
+        "user_interactions": user_interactions,
+        "recommendation_weights": recommendation_weights,
         "health": "ok",
+    }
+
+
+@app.post("/api/dashboard/reset")
+def reset_dashboard_metrics(confirm: bool = False):
+    """Reset dashboard telemetry counters and event logs.
+
+    Requires `confirm=true` to avoid accidental destructive calls.
+    """
+    if not confirm:
+        raise HTTPException(status_code=400, detail="Pass confirm=true to reset dashboard telemetry")
+
+    _reset_dashboard_telemetry(clear_db=True)
+
+    return {
+        "ok": True,
+        "message": "Dashboard telemetry reset",
+    }
+
+
+@app.post("/api/order-assistant/feedback")
+def submit_order_assistant_feedback(payload: dict):
+    user_id = str(payload.get("user_id") or "anonymous")
+    action = str(payload.get("action") or "unknown")
+    session_id = payload.get("session_id")
+    try:
+        rating = int(payload.get("rating"))
+    except Exception:
+        raise HTTPException(status_code=400, detail="rating must be an integer in [1,5]")
+
+    if rating < 1 or rating > 5:
+        raise HTTPException(status_code=400, detail="rating must be between 1 and 5")
+
+    entry = {
+        "ts": time.time(),
+        "user_id": user_id,
+        "action": action,
+        "rating": rating,
+        "session_id": str(session_id) if session_id is not None else None,
+    }
+    _append_capped(dashboard_telemetry["order_ratings"], entry, cap=2000)
+    _persist_order_rating(entry)
+
+    # Reuse quality proxy counters.
+    runtime = dashboard_telemetry.get("runtime_scoring", {})
+    if rating >= 4:
+        runtime["feedback_positive"] = int(runtime.get("feedback_positive", 0)) + 1
+    elif rating <= 2:
+        runtime["feedback_negative"] = int(runtime.get("feedback_negative", 0)) + 1
+
+    _persist_aggregate_snapshot()
+
+    return {
+        "ok": True,
+        "feedback": entry,
+        "satisfaction": _satisfaction_summary(),
     }
 
 
@@ -1079,6 +1925,519 @@ def list_users():
     return {"users": [{"id": "alice", "name": "alice"}, {"id": "bob", "name": "bob"}]}
 
 
+@app.get("/api/users/{user_id}/profile")
+def get_user_profile_dashboard(user_id: str):
+    """Return dataset-driven user profile payload for dashboard UI."""
+    try:
+        users_path = ROOT / "data" / "raw" / "users_dataset.csv"
+        prefs_path = ROOT / "data" / "raw" / "user_preferences_dataset.csv"
+        tx_path = ROOT / "data" / "raw" / "transactions_dataset.csv"
+        products_path = ROOT / "data" / "raw" / "final_products.csv"
+        shops_path = ROOT / "data" / "raw" / "shops_dataset.csv"
+
+        user_data: dict[str, Any] = {
+            "user_id": str(user_id),
+            "name": str(user_id),
+            "email": None,
+            "phone": None,
+            "shipping_address": None,
+            "signup_ts": None,
+            "is_active": None,
+        }
+
+        if users_path.exists():
+            users_df = pd.read_csv(users_path)
+            users_df["user_id"] = users_df["user_id"].astype(str)
+            row = users_df[users_df["user_id"] == str(user_id)]
+            if not row.empty:
+                r = row.iloc[0]
+                raw_active = r.get("is_active")
+                if pd.isna(raw_active):
+                    parsed_active = None
+                elif isinstance(raw_active, str):
+                    parsed_active = raw_active.strip().lower() in {"true", "1", "yes", "y"}
+                else:
+                    parsed_active = bool(raw_active)
+                user_data = {
+                    "user_id": str(r.get("user_id") or user_id),
+                    "name": None if pd.isna(r.get("name")) else str(r.get("name")).strip() or None,
+                    "email": None if pd.isna(r.get("email")) else str(r.get("email")).strip() or None,
+                    "phone": None if pd.isna(r.get("phone")) else str(r.get("phone")).strip() or None,
+                    "shipping_address": None if pd.isna(r.get("shipping_address")) else str(r.get("shipping_address")).strip() or None,
+                    "signup_ts": None if pd.isna(r.get("signup_ts")) else str(r.get("signup_ts")).strip() or None,
+                    "is_active": parsed_active,
+                }
+
+        def _split_list(raw_value: Any) -> list[str]:
+            if raw_value is None or (isinstance(raw_value, float) and pd.isna(raw_value)):
+                return []
+            text = str(raw_value).strip()
+            if not text:
+                return []
+            return [part.strip() for part in text.split(",") if part and part.strip()]
+
+        preferences: dict[str, Any] = {
+            "categories": [],
+            "colors": [],
+            "fabrics": [],
+            "brands": [],
+            "shops": [],
+            "sizes": [],
+            "styles": [],
+            "skin_tone": None,
+            "body_type": None,
+            "price_sensitivity": None,
+            "updated_ts": None,
+        }
+
+        if prefs_path.exists():
+            prefs_df = pd.read_csv(prefs_path)
+            prefs_df["user_id"] = prefs_df["user_id"].astype(str)
+            pref_row = prefs_df[prefs_df["user_id"] == str(user_id)]
+            if not pref_row.empty:
+                p = pref_row.iloc[0]
+                preferences = {
+                    "categories": _split_list(p.get("preferred_categories")),
+                    "colors": _split_list(p.get("preferred_colors")),
+                    "fabrics": _split_list(p.get("preferred_fabrics")),
+                    "brands": _split_list(p.get("preferred_brands")),
+                    "shops": _split_list(p.get("preferred_shops")),
+                    "styles": _split_list(p.get("preferred_styles")),
+                    "skin_tone": None if pd.isna(p.get("skin_tone")) else str(p.get("skin_tone")).strip() or None,
+                    "body_type": None if pd.isna(p.get("body_type")) else str(p.get("body_type")).strip() or None,
+                    "price_sensitivity": None if pd.isna(p.get("price_sensitivity")) else str(p.get("price_sensitivity")).strip() or None,
+                    "updated_ts": None if pd.isna(p.get("updated_ts")) else str(p.get("updated_ts")).strip() or None,
+                }
+
+        stored_automation = {
+            "auto_fill_checkout": None,
+            "auto_apply_preferences": None,
+            "confirm_before_checkout": None,
+        }
+        if prefs_path.exists():
+            prefs_df_for_flags = pd.read_csv(prefs_path)
+            prefs_df_for_flags["user_id"] = prefs_df_for_flags["user_id"].astype(str)
+            row_flags = prefs_df_for_flags[prefs_df_for_flags["user_id"] == str(user_id)]
+            if not row_flags.empty:
+                rf = row_flags.iloc[0]
+                for key in ["auto_fill_checkout", "auto_apply_preferences", "confirm_before_checkout"]:
+                    if key in rf.index and pd.notna(rf.get(key)):
+                        raw_value = rf.get(key)
+                        if isinstance(raw_value, str):
+                            stored_automation[key] = raw_value.strip().lower() in {"true", "1", "yes", "y", "on"}
+                        else:
+                            stored_automation[key] = bool(raw_value)
+
+        shop_map_by_id: dict[str, str] = {}
+        shop_names_from_dataset: list[str] = []
+        if shops_path.exists():
+            shops_df = pd.read_csv(shops_path)
+            if "shop_id" in shops_df.columns and "shop_name" in shops_df.columns:
+                for _, row in shops_df.iterrows():
+                    sid = row.get("shop_id")
+                    sname = row.get("shop_name")
+                    if pd.notna(sid) and pd.notna(sname):
+                        shop_map_by_id[str(sid)] = str(sname)
+                        shop_names_from_dataset.append(str(sname))
+
+        available_options: dict[str, list[str]] = {
+            "categories": [],
+            "colors": [],
+            "fabrics": [],
+            "styles": [],
+            "sizes": [],
+            "shops": sorted(set(shop_names_from_dataset)),
+            "brands": [],
+            "price_sensitivity": [],
+        }
+
+        if products_path.exists():
+            products_df = pd.read_csv(products_path)
+
+            def _series_values(col: str) -> list[str]:
+                if col not in products_df.columns:
+                    return []
+                values = products_df[col].dropna().astype(str).str.strip()
+                return sorted({v for v in values if v})
+
+            available_options["categories"] = _series_values("category")
+            available_options["colors"] = _series_values("color")
+            available_options["fabrics"] = _series_values("fabric")
+            available_options["sizes"] = _series_values("size_range")
+
+            styles: set[str] = set()
+            if "style_tags" in products_df.columns:
+                for raw in products_df["style_tags"].dropna().astype(str):
+                    for part in raw.split(","):
+                        style = part.strip()
+                        if style:
+                            styles.add(style)
+            available_options["styles"] = sorted(styles)
+
+            if "shop_id" in products_df.columns and shop_map_by_id:
+                product_shop_names = {
+                    shop_map_by_id.get(str(sid), "")
+                    for sid in products_df["shop_id"].dropna().astype(str)
+                }
+                available_options["shops"] = sorted({name for name in product_shop_names if name} | set(available_options["shops"]))
+
+        # There is no dedicated brand column in products; derive available brand options
+        # from preference dataset values and known shops as fallback.
+        available_brands: set[str] = set()
+        if prefs_path.exists():
+            prefs_df_all = pd.read_csv(prefs_path)
+            if "preferred_brands" in prefs_df_all.columns:
+                for raw in prefs_df_all["preferred_brands"].dropna().astype(str):
+                    for item in raw.split(","):
+                        value = item.strip()
+                        if value:
+                            available_brands.add(value)
+        if not available_brands:
+            available_brands = set(available_options["shops"])
+        available_options["brands"] = sorted(available_brands)
+        if prefs_path.exists():
+            prefs_df_all = pd.read_csv(prefs_path)
+            if "price_sensitivity" in prefs_df_all.columns:
+                available_options["price_sensitivity"] = sorted(
+                    {
+                        str(v).strip()
+                        for v in prefs_df_all["price_sensitivity"].dropna().astype(str)
+                        if str(v).strip()
+                    }
+                )
+
+        purchase_summary: dict[str, Any] = {
+            "orders_count": 0,
+            "last_order_date": None,
+            "total_spend": 0.0,
+            "average_order_value": 0.0,
+            "recent_payment_method": None,
+        }
+        cart_summary: dict[str, Any] = {
+            "items_count": 0,
+            "last_activity_date": None,
+            "estimated_total_lkr": 0.0,
+        }
+
+        if tx_path.exists():
+            tx_df = pd.read_csv(tx_path)
+            tx_df["user_id"] = tx_df["user_id"].astype(str)
+            user_tx = tx_df[tx_df["user_id"] == str(user_id)].copy()
+            if not user_tx.empty:
+                if "transaction_date" in user_tx.columns:
+                    user_tx["transaction_date"] = pd.to_datetime(user_tx["transaction_date"], errors="coerce")
+                    user_tx = user_tx.sort_values("transaction_date")
+                spend_series = pd.to_numeric(
+                    user_tx.get("final_amount", user_tx.get("total_amount", 0.0)),
+                    errors="coerce",
+                ).fillna(0.0)
+                purchase_summary = {
+                    "orders_count": int(len(user_tx)),
+                    "last_order_date": (
+                        user_tx["transaction_date"].dropna().iloc[-1].date().isoformat()
+                        if "transaction_date" in user_tx.columns and not user_tx["transaction_date"].dropna().empty
+                        else None
+                    ),
+                    "total_spend": float(spend_series.sum()),
+                    "average_order_value": float(spend_series.mean()) if len(spend_series) else 0.0,
+                    "recent_payment_method": (
+                        str(user_tx.iloc[-1].get("payment_method"))
+                        if "payment_method" in user_tx.columns and pd.notna(user_tx.iloc[-1].get("payment_method"))
+                        else None
+                    ),
+                }
+                quantities = pd.to_numeric(user_tx.get("quantity", 0), errors="coerce").fillna(0)
+                cart_summary = {
+                    "items_count": int(quantities.sum()),
+                    "last_activity_date": purchase_summary.get("last_order_date"),
+                    "estimated_total_lkr": float(spend_series.sum()),
+                }
+
+                if "shop_id" in user_tx.columns and shop_map_by_id:
+                    recent_shop_ids = user_tx["shop_id"].dropna().astype(str).tolist()
+                    recent_shops = [shop_map_by_id.get(sid) for sid in recent_shop_ids]
+                    recent_shops = [s for s in recent_shops if s]
+                    if recent_shops:
+                        # Keep the latest user shopping shop preferences first.
+                        dedup_recent = list(dict.fromkeys(recent_shops[::-1]))[::-1]
+                        preferences["shops"] = dedup_recent[:5]
+
+        # Prefer live cart values from in-memory order agent so profile reflects
+        # add/remove cart operations immediately after refresh.
+        try:
+            live_cart = order_agent.get_cart_summary()
+            if isinstance(live_cart, dict):
+                cart_summary = {
+                    "items_count": int(live_cart.get("total_items") or 0),
+                    "last_activity_date": datetime.utcnow().date().isoformat() if int(live_cart.get("total_items") or 0) > 0 else None,
+                    "estimated_total_lkr": float(live_cart.get("grand_total") or 0.0),
+                }
+        except Exception:
+            pass
+
+        if not preferences.get("shops") and available_options.get("shops"):
+            preferences["shops"] = available_options["shops"][:3]
+
+        auto_fill_checkout_default = bool(user_data.get("email") and user_data.get("phone") and user_data.get("shipping_address"))
+        auto_apply_preferences_default = bool(
+            preferences.get("categories")
+            or preferences.get("colors")
+            or preferences.get("styles")
+            or preferences.get("brands")
+        )
+        price_sensitivity = str(preferences.get("price_sensitivity") or "").strip().lower()
+        confirm_before_checkout_default = price_sensitivity in {"high", "very high"}
+
+        auto_fill_checkout = stored_automation["auto_fill_checkout"] if stored_automation["auto_fill_checkout"] is not None else auto_fill_checkout_default
+        auto_apply_preferences = stored_automation["auto_apply_preferences"] if stored_automation["auto_apply_preferences"] is not None else auto_apply_preferences_default
+        confirm_before_checkout = stored_automation["confirm_before_checkout"] if stored_automation["confirm_before_checkout"] is not None else confirm_before_checkout_default
+
+        return {
+            "user": user_data,
+            "preferences": preferences,
+            "available_options": available_options,
+            "purchase_summary": purchase_summary,
+            "cart_summary": cart_summary,
+            "automation": {
+                "auto_fill_checkout": auto_fill_checkout,
+                "auto_apply_preferences": auto_apply_preferences,
+                "confirm_before_checkout": confirm_before_checkout,
+            },
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to build user profile: {str(e)}")
+
+
+@app.put("/api/users/{user_id}/profile/preferences")
+def update_user_profile_preferences(user_id: str, payload: dict):
+    """Update user profile preferences in dataset and mirror preference signals to KG."""
+    try:
+        prefs_path = ROOT / "data" / "raw" / "user_preferences_dataset.csv"
+
+        def _normalize_list(value: Any) -> list[str]:
+            if value is None:
+                return []
+            if isinstance(value, list):
+                items = [str(v).strip() for v in value]
+            else:
+                items = [part.strip() for part in str(value).split(",")]
+            return [item for item in items if item]
+
+        pref_payload = payload.get("preferences") or {}
+        categories = _normalize_list(pref_payload.get("categories"))
+        colors = _normalize_list(pref_payload.get("colors"))
+        fabrics = _normalize_list(pref_payload.get("fabrics"))
+        brands = _normalize_list(pref_payload.get("brands"))
+        styles = _normalize_list(pref_payload.get("styles"))
+        shops = _normalize_list(pref_payload.get("shops"))
+        price_sensitivity = pref_payload.get("price_sensitivity")
+
+        if prefs_path.exists():
+            prefs_df = pd.read_csv(prefs_path)
+        else:
+            prefs_df = pd.DataFrame(columns=[
+                "preference_id",
+                "user_id",
+                "preferred_categories",
+                "preferred_colors",
+                "preferred_fabrics",
+                "preferred_brands",
+                "preferred_shops",
+                "preferred_styles",
+                "skin_tone",
+                "body_type",
+                "price_sensitivity",
+                "updated_ts",
+            ])
+
+        prefs_df["user_id"] = prefs_df.get("user_id", pd.Series(dtype=str)).astype(str)
+        for missing_col in [
+            "preferred_categories",
+            "preferred_colors",
+            "preferred_fabrics",
+            "preferred_brands",
+            "preferred_shops",
+            "preferred_styles",
+            "price_sensitivity",
+            "updated_ts",
+            "preference_id",
+        ]:
+            if missing_col not in prefs_df.columns:
+                prefs_df[missing_col] = None
+
+        now_iso = datetime.utcnow().isoformat()
+        row_mask = prefs_df["user_id"] == str(user_id)
+
+        if not row_mask.any():
+            next_pref_id = int(pd.to_numeric(prefs_df["preference_id"], errors="coerce").max() or 0) + 1
+            new_row = {
+                "preference_id": next_pref_id,
+                "user_id": str(user_id),
+                "preferred_categories": ", ".join(categories),
+                "preferred_colors": ", ".join(colors),
+                "preferred_fabrics": ", ".join(fabrics),
+                "preferred_brands": ", ".join(brands),
+                "preferred_shops": ", ".join(shops),
+                "preferred_styles": ", ".join(styles),
+                "skin_tone": None,
+                "body_type": None,
+                "price_sensitivity": price_sensitivity,
+                "updated_ts": now_iso,
+            }
+            prefs_df = pd.concat([prefs_df, pd.DataFrame([new_row])], ignore_index=True)
+        else:
+            prefs_df.loc[row_mask, "preferred_categories"] = ", ".join(categories)
+            prefs_df.loc[row_mask, "preferred_colors"] = ", ".join(colors)
+            prefs_df.loc[row_mask, "preferred_fabrics"] = ", ".join(fabrics)
+            prefs_df.loc[row_mask, "preferred_brands"] = ", ".join(brands)
+            prefs_df.loc[row_mask, "preferred_shops"] = ", ".join(shops)
+            prefs_df.loc[row_mask, "preferred_styles"] = ", ".join(styles)
+            prefs_df.loc[row_mask, "price_sensitivity"] = price_sensitivity
+            prefs_df.loc[row_mask, "updated_ts"] = now_iso
+
+        prefs_df.to_csv(prefs_path, index=False)
+
+        # Best-effort KG updates for new preferences.
+        try:
+            kg_events = getattr(agent, "kg_events", None)
+            kg_client = getattr(agent, "kg_client", None)
+
+            if kg_events is not None:
+                for value in categories:
+                    kg_events.record_user_preference(str(user_id), "category", value, 1.0)
+                for value in colors:
+                    kg_events.record_user_preference(str(user_id), "color", value, 1.0)
+                for value in styles:
+                    kg_events.record_user_preference(str(user_id), "style", value, 1.0)
+
+            if kg_client is not None:
+                for brand in brands:
+                    kg_client.execute_write(
+                        """
+                        MERGE (u:User {user_id: toString($user_id)})
+                        MERGE (b:Brand {name: $value})
+                        MERGE (u)-[r:PREFERS_BRAND]->(b)
+                        SET r.weight = coalesce(r.weight, 0) + 1.0,
+                            r.last_ts = $ts
+                        """,
+                        {"user_id": str(user_id), "value": brand, "ts": now_iso},
+                    )
+                for shop in shops:
+                    kg_client.execute_write(
+                        """
+                        MERGE (u:User {user_id: toString($user_id)})
+                        MERGE (s:Shop {shop_name: $value})
+                        MERGE (u)-[r:PREFERS_SHOP]->(s)
+                        SET r.weight = coalesce(r.weight, 0) + 1.0,
+                            r.last_ts = $ts
+                        """,
+                        {"user_id": str(user_id), "value": shop, "ts": now_iso},
+                    )
+        except Exception:
+            # KG updates should not block preference saving.
+            pass
+
+        return get_user_profile_dashboard(str(user_id))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update preferences: {str(e)}")
+
+
+@app.put("/api/users/{user_id}/profile")
+def update_user_profile(user_id: str, payload: dict):
+    """Update personal details and automation settings for a user profile."""
+    try:
+        users_path = ROOT / "data" / "raw" / "users_dataset.csv"
+        prefs_path = ROOT / "data" / "raw" / "user_preferences_dataset.csv"
+
+        user_payload = payload.get("user") or {}
+        automation_payload = payload.get("automation") or {}
+
+        if users_path.exists():
+            users_df = pd.read_csv(users_path)
+            users_df["user_id"] = users_df["user_id"].astype(str)
+            row_mask = users_df["user_id"] == str(user_id)
+            if row_mask.any():
+                for key in ["name", "email", "phone", "shipping_address"]:
+                    if key in user_payload:
+                        users_df.loc[row_mask, key] = user_payload.get(key)
+            users_df.to_csv(users_path, index=False)
+
+        if prefs_path.exists():
+            prefs_df = pd.read_csv(prefs_path)
+        else:
+            prefs_df = pd.DataFrame(columns=[
+                "preference_id",
+                "user_id",
+                "preferred_categories",
+                "preferred_colors",
+                "preferred_fabrics",
+                "preferred_brands",
+                "preferred_shops",
+                "preferred_styles",
+                "skin_tone",
+                "body_type",
+                "price_sensitivity",
+                "auto_fill_checkout",
+                "auto_apply_preferences",
+                "confirm_before_checkout",
+                "updated_ts",
+            ])
+
+        prefs_df["user_id"] = prefs_df.get("user_id", pd.Series(dtype=str)).astype(str)
+        for missing_col in [
+            "auto_fill_checkout",
+            "auto_apply_preferences",
+            "confirm_before_checkout",
+            "updated_ts",
+            "preference_id",
+            "preferred_categories",
+            "preferred_colors",
+            "preferred_fabrics",
+            "preferred_brands",
+            "preferred_shops",
+            "preferred_styles",
+            "skin_tone",
+            "body_type",
+            "price_sensitivity",
+        ]:
+            if missing_col not in prefs_df.columns:
+                prefs_df[missing_col] = None
+
+        row_mask = prefs_df["user_id"] == str(user_id)
+        now_iso = datetime.utcnow().isoformat()
+        next_pref_id = int(pd.to_numeric(prefs_df["preference_id"], errors="coerce").max() or 0) + 1
+
+        if not row_mask.any():
+            new_row = {
+                "preference_id": next_pref_id,
+                "user_id": str(user_id),
+                "preferred_categories": "",
+                "preferred_colors": "",
+                "preferred_fabrics": "",
+                "preferred_brands": "",
+                "preferred_shops": "",
+                "preferred_styles": "",
+                "skin_tone": None,
+                "body_type": None,
+                "price_sensitivity": None,
+                "auto_fill_checkout": automation_payload.get("auto_fill_checkout"),
+                "auto_apply_preferences": automation_payload.get("auto_apply_preferences"),
+                "confirm_before_checkout": automation_payload.get("confirm_before_checkout"),
+                "updated_ts": now_iso,
+            }
+            prefs_df = pd.concat([prefs_df, pd.DataFrame([new_row])], ignore_index=True)
+        else:
+            for key in ["auto_fill_checkout", "auto_apply_preferences", "confirm_before_checkout"]:
+                if key in automation_payload:
+                    prefs_df.loc[row_mask, key] = bool(automation_payload.get(key))
+            prefs_df.loc[row_mask, "updated_ts"] = now_iso
+
+        prefs_df.to_csv(prefs_path, index=False)
+        return get_user_profile_dashboard(str(user_id))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update profile: {str(e)}")
+
+
 @app.post("/api/answer")
 def answer(request: Request, payload: dict, user_id: Optional[str] = None):
     """
@@ -1107,7 +2466,8 @@ def answer(request: Request, payload: dict, user_id: Optional[str] = None):
                 "new_suggestions": [],
             }
 
-        uid = _get_user_id(request, user_id)
+        payload_user_id = payload.get("user_id")
+        uid = _get_user_id(request, user_id or payload_user_id)
         user_name = _get_user_name(uid)
         classification_preview = None
         try:
@@ -1125,7 +2485,17 @@ def answer(request: Request, payload: dict, user_id: Optional[str] = None):
                 "intent_method": classification_preview.get("method"),
                 "intent_action": classification_preview.get("action"),
             }
+        runtime_log = _infer_runtime_log(
+            user_id=uid,
+            query=text,
+            response=response,
+            classification_preview=classification_preview if isinstance(classification_preview, dict) else None,
+        )
+        response["runtime_log"] = runtime_log
+        _append_capped(dashboard_telemetry["query_logs"], runtime_log, cap=1200)
+        _persist_query_log(runtime_log)
         _record_runtime_scoring(response)
+        _persist_aggregate_snapshot()
         dashboard_telemetry["agent_success"] += 1
         if response.get("intent"):
             dashboard_telemetry["intents"][response.get("intent")] += 1
@@ -1234,6 +2604,7 @@ def answer(request: Request, payload: dict, user_id: Optional[str] = None):
         _append_capped(dashboard_telemetry["latencies"]["retriever"], max(1, int(elapsed_ms * 0.32)), cap=300)
         _append_capped(dashboard_telemetry["latencies"]["ranking"], max(1, int(elapsed_ms * 0.30)), cap=300)
         _append_capped(dashboard_telemetry["latencies"]["styling"], max(1, int(elapsed_ms * 0.16)), cap=300)
+        _persist_aggregate_snapshot()
 
 
 @app.post("/api/order-assistant/message")

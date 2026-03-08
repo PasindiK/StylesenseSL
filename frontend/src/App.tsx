@@ -82,9 +82,6 @@ export default function App() {
   // Users for dropdown
   const [users, setUsers] = useState<{ id: string; name: string }[]>([])
   
-  // Collapsible explainability panel
-  const [showExplainability, setShowExplainability] = useState(false)
-
   // Cart state
   const [showCart, setShowCart] = useState(false)
   const [cartData, setCartData] = useState<any>(null)
@@ -170,8 +167,8 @@ export default function App() {
   }
 
   function handlePreferenceSignal(signal: KGPreferenceSignal) {
-    // Keep signals visible in chat so preference capture feels connected to the agent flow.
-    appendMessage('system', `Captured preference: ${signal.type} = ${signal.value}`)
+    // Keep preference updates visible in chat using concise status text.
+    appendMessage('system', signal.value || 'Preference updated.')
     setMeta({
       mode: 'kg_preference_signal',
       request: `user=${signal.userId}`,
@@ -420,7 +417,7 @@ export default function App() {
       const res = await fetch(`${API_BASE}/answer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
-        body: JSON.stringify({ text: q }),
+        body: JSON.stringify({ text: q, user_id: userId }),
       })
 
       if (!res.ok) {
@@ -708,84 +705,6 @@ export default function App() {
                   </div>
                 )}
                 
-                {/* Explainability toggle button */}
-                {meta && (
-                  <div className="meta-toggle-section">
-                    <button
-                      type="button"
-                      onClick={() => setShowExplainability(!showExplainability)}
-                      className="meta-toggle-btn"
-                    >
-                      {showExplainability ? '▼ Hide' : '▶ Show'} Technical Details
-                    </button>
-                  </div>
-                )}
-
-                {/* Explainability Panel */}
-                {showExplainability && meta && (
-                  <div className="explainability-panel">
-                    <h3>Technical Details</h3>
-                    <div className="meta-block">
-                      <h4>Request</h4>
-                      <pre className="small">{meta.request}</pre>
-
-                      <h4>Mode</h4>
-                      <pre className="small">{meta.mode}</pre>
-
-                      <h4>Response (raw)</h4>
-                      <pre className="small">{JSON.stringify(meta.response, null, 2)}</pre>
-
-                      {meta.response?.personalization_score !== undefined && (
-                        <>
-                          <h4>Personalization Score</h4>
-                          <div className="score">{String(meta.response.personalization_score)}</div>
-                        </>
-                      )}
-
-                      {meta.response?.why && (
-                        <>
-                          <h4>Why Recommended</h4>
-                          <div className="why">{String(meta.response.why)}</div>
-                        </>
-                      )}
-
-                      {meta.response?.fallback_steps && (
-                        <>
-                          <h4>Fallback Steps</h4>
-                          <pre className="small">{JSON.stringify(meta.response.fallback_steps, null, 2)}</pre>
-                        </>
-                      )}
-
-                      {meta.response?.fallbacks && (
-                        <>
-                          <h4>Applied Fallbacks</h4>
-                          <pre className="small">{JSON.stringify(meta.response.fallbacks, null, 2)}</pre>
-                        </>
-                      )}
-
-                      {meta.response?.plan && (
-                        <>
-                          <h4>Agent Plan</h4>
-                          <pre className="small">{JSON.stringify(meta.response.plan, null, 2)}</pre>
-                        </>
-                      )}
-
-                      {meta.response?.intent && (
-                        <>
-                          <h4>Parsed Intent</h4>
-                          <pre className="small">{JSON.stringify(meta.response.intent, null, 2)}</pre>
-                        </>
-                      )}
-
-                      {meta.response?.trace && (
-                        <>
-                          <h4>Execution Trace</h4>
-                          <pre className="small">{JSON.stringify(meta.response.trace, null, 2)}</pre>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
 
               <form className="message-input" onSubmit={handleSubmit}>
