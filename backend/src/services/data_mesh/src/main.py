@@ -19,6 +19,10 @@ try:
     from .pipeline_conversational_agent import PipelineConversationalAgent
 except ImportError:
     from pipeline_conversational_agent import PipelineConversationalAgent
+try:
+    from .governance_intelligence import GovernanceIntelligenceEngine
+except ImportError:
+    from governance_intelligence import GovernanceIntelligenceEngine
 
 # Paths for Data Mesh assets (safe after folder relocation)
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -203,6 +207,11 @@ pipeline_chat_agent = PipelineConversationalAgent(
     rerun_trigger=_trigger_pipeline_rerun,
     rerun_status_provider=_get_rerun_state,
     rerun_authorizer=_is_rerun_authorized,
+)
+
+governance_engine = GovernanceIntelligenceEngine(
+    data_path=DATA_PATH,
+    monitoring_history_path=MONITORING_HISTORY_PATH,
 )
 
 # Enable CORS for local frontend access
@@ -557,6 +566,26 @@ def get_data_products():
                 "sample": df.head(3).to_dict(orient="records")
             })
     return {"data": products, "count": len(products)}
+
+
+@app.get("/governance/summary")
+def governance_summary():
+    """Return adaptive governance reliability summary for all domains."""
+    try:
+        return governance_engine.governance_summary()
+    except Exception as exc:
+        return JSONResponse(content={"error": str(exc)}, status_code=500)
+
+
+@app.get("/governance/domain/{domain_name}")
+def governance_domain(domain_name: str):
+    """Return detailed adaptive governance metrics for one domain."""
+    try:
+        return governance_engine.governance_domain(domain_name)
+    except ValueError as exc:
+        return JSONResponse(content={"error": str(exc)}, status_code=404)
+    except Exception as exc:
+        return JSONResponse(content={"error": str(exc)}, status_code=500)
 
 @app.get("/pipeline-status")
 def get_pipeline_status():
