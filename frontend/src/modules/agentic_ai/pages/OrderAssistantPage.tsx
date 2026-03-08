@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { Star } from 'lucide-react'
 import {
   sendOrderAssistantMessage,
   type OrderAssistantProfile,
@@ -44,6 +45,7 @@ type SelectionDraft = {
 }
 
 type EditableProfile = OrderAssistantProfile
+type SatisfactionAction = 'checkout' | 'add_to_cart'
 
 type PriceBreakdown = {
   currency: string
@@ -189,6 +191,8 @@ export default function OrderAssistantPage({
   onOpenShoppingCart,
   checkoutRequest,
   onCheckoutRequestConsumed,
+  automationSettings,
+  onCartUpdated,
 }: {
   userId?: string
   onOpenShoppingCart?: () => void | Promise<void>
@@ -201,6 +205,12 @@ export default function OrderAssistantPage({
     name?: string
   }
   onCheckoutRequestConsumed?: () => void
+  automationSettings?: {
+    auto_fill_checkout?: boolean
+    auto_apply_preferences?: boolean
+    confirm_before_checkout?: boolean
+  }
+  onCartUpdated?: () => void | Promise<void>
 }) {
   const [sessionId, setSessionId] = useState<string>('')
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -220,8 +230,21 @@ export default function OrderAssistantPage({
   const [pendingReplacementLink, setPendingReplacementLink] = useState<string | null>(null)
   const [isCartCheckoutFlow, setIsCartCheckoutFlow] = useState(false)
   const [profileCheckoutOnlyMode, setProfileCheckoutOnlyMode] = useState(false)
+  const [pendingSatisfactionAction, setPendingSatisfactionAction] = useState<SatisfactionAction | null>(null)
+  const [selectedSatisfactionStars, setSelectedSatisfactionStars] = useState(0)
+  const [satisfactionSubmitting, setSatisfactionSubmitting] = useState(false)
+  const [satisfactionMessage, setSatisfactionMessage] = useState<string | null>(null)
   const consumedCheckoutRequestIds = useRef<Set<string>>(new Set())
   const messageListRef = useRef<HTMLDivElement | null>(null)
+
+  const effectiveAutomation = useMemo(
+    () => ({
+      auto_fill_checkout: automationSettings?.auto_fill_checkout !== false,
+      auto_apply_preferences: automationSettings?.auto_apply_preferences !== false,
+      confirm_before_checkout: automationSettings?.confirm_before_checkout !== false,
+    }),
+    [automationSettings],
+  )
 
   function addUserActionMessage(text: string) {
     const cleaned = text.trim()
@@ -235,6 +258,36 @@ export default function OrderAssistantPage({
         at: nowText(),
       },
     ])
+  }
+
+  async function submitSatisfactionRating(rating: number) {
+    if (!pendingSatisfactionAction || !sessionId || satisfactionSubmitting) return
+    setSatisfactionSubmitting(true)
+    setSatisfactionMessage(null)
+    try {
+      const res = await fetch(`${apiBase}/order-assistant/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userId,
+          session_id: sessionId,
+          action: pendingSatisfactionAction,
+          rating,
+        }),
+      })
+      if (!res.ok) {
+        const txt = await res.text()
+        setSatisfactionMessage(`Could not save rating (${res.status}): ${txt}`)
+        return
+      }
+      setSelectedSatisfactionStars(rating)
+      setSatisfactionMessage('Thanks! Rating captured.')
+      setPendingSatisfactionAction(null)
+    } catch {
+      setSatisfactionMessage('Could not save rating right now.')
+    } finally {
+      setSatisfactionSubmitting(false)
+    }
   }
 
   function resetSelectionContext() {
@@ -448,6 +501,8 @@ export default function OrderAssistantPage({
 
       consumedCheckoutRequestIds.current.add(checkoutRequest.id)
       onCheckoutRequestConsumed?.()
+
+      addUserActionMessage('Checkout')
 
       setMessages((prev) => [
         ...prev,
@@ -673,6 +728,30 @@ export default function OrderAssistantPage({
       return
     }
 
+    if (response.state === 'await_profile_confirmation' && !effectiveAutomation.auto_fill_checkout && depth < 5) {
+      const next = await sendOrderAssistantMessage(apiBase, {
+        text: 'yes',
+        session_id: response.session_id,
+        user_id: userId,
+      })
+      await applyAssistantResponse(next, depth + 1)
+      return
+    }
+
+    if (response.state === 'await_checkout_action' && !effectiveAutomation.confirm_before_checkout && depth < 5) {
+      addUserActionMessage('Buy Now')
+      const next = await sendOrderAssistantMessage(apiBase, {
+        text: 'Buy Now',
+        session_id: response.session_id,
+        user_id: userId,
+      })
+      await applyAssistantResponse(next, depth + 1)
+      if (next.checkout_url && typeof window !== 'undefined') {
+        window.open(next.checkout_url, '_blank', 'noopener,noreferrer')
+      }
+      return
+    }
+
     setSelectionPromptShown(false)
 
     const hasSelectionChanges = !!selectionDraft.size || !!selectionDraft.color || selectionDraft.quantity !== 1
@@ -685,12 +764,18 @@ export default function OrderAssistantPage({
           }
         : response.product
 
+    const assistantText =
+      (response.state === 'await_summary_confirmation' || response.state === 'await_profile_confirmation') &&
+      (selectionAppliedProduct || response.profile)
+        ? ''
+        : response.reply
+
     setMessages((prev) => [
       ...prev,
       {
         id: crypto.randomUUID(),
         sender: 'assistant',
-        text: response.reply,
+        text: assistantText,
         at: nowText(),
         product: selectionAppliedProduct,
         summary: response.summary,
@@ -925,15 +1010,21 @@ export default function OrderAssistantPage({
         if (onOpenShoppingCart) {
           await onOpenShoppingCart()
         }
+        if (onCartUpdated) {
+          await onCartUpdated()
+        }
         setMessages((prev) => [
           ...prev,
           {
             id: crypto.randomUUID(),
             sender: 'assistant',
-            text: 'Added to site cart (opened in new tab) and app global cart.',
+            text: 'Added to site cart and app global cart.',
             at: nowText(),
           },
         ])
+        setPendingSatisfactionAction('add_to_cart')
+        setSelectedSatisfactionStars(0)
+        setSatisfactionMessage('How satisfied are you with this Add to Cart experience?')
       } catch (err) {
         setMessages((prev) => [
           ...prev,
@@ -955,16 +1046,18 @@ export default function OrderAssistantPage({
       addUserActionMessage('Checkout')
 
       if (pendingState === 'await_profile_confirmation') {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            sender: 'assistant',
-            text: 'Please confirm your user details first using the Confirm Details button.',
-            at: nowText(),
-          },
-        ])
-        return
+        if (effectiveAutomation.auto_fill_checkout) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              sender: 'assistant',
+              text: 'Please confirm your user details first using the Confirm Details button.',
+              at: nowText(),
+            },
+          ])
+          return
+        }
       }
 
       if (pendingState === 'await_order_placed_confirmation') {
@@ -1030,6 +1123,9 @@ export default function OrderAssistantPage({
       const checkoutTarget = checkoutTargetFromApi || filteredCheckoutUrl
       if (checkoutTarget && typeof window !== 'undefined') {
         window.open(checkoutTarget, '_blank', 'noopener,noreferrer')
+        setPendingSatisfactionAction('checkout')
+        setSelectedSatisfactionStars(0)
+        setSatisfactionMessage('How satisfied are you with this Checkout flow?')
       }
     } catch (err) {
       setMessages((prev) => [
@@ -1081,6 +1177,7 @@ export default function OrderAssistantPage({
 
   async function handleQuickAction(action: 'product-link' | 'cart-checkout') {
     if (action === 'product-link') {
+      addUserActionMessage('I need to place an order with a link.')
       setMessages((prev) => [
         ...prev,
         {
@@ -1097,7 +1194,7 @@ export default function OrderAssistantPage({
       await onOpenShoppingCart()
     }
 
-    addUserActionMessage('Want to checkout from shopping cart?')
+    addUserActionMessage('Checkout')
     // Cart quick action should only show user action + open cart.
   }
 
@@ -1131,11 +1228,12 @@ export default function OrderAssistantPage({
 
   async function handleConfirmProfileDetails() {
     if (!sessionId || loading) return
-    addUserActionMessage(profileCheckoutOnlyMode ? 'Checkout' : 'Confirm Details')
+    const actionLabel = profileCheckoutOnlyMode ? 'Checkout' : 'Confirmed'
+    addUserActionMessage(actionLabel)
     setLoading(true)
     try {
       const first = await sendOrderAssistantMessage(apiBase, {
-        text: 'Confirm Details',
+        text: 'yes',
         session_id: sessionId,
         user_id: userId,
         profile: editableProfile || undefined,
@@ -1143,6 +1241,7 @@ export default function OrderAssistantPage({
       await applyAssistantResponse(first)
 
       if (first.state === 'await_checkout_action') {
+        addUserActionMessage('Buy Now')
         const second = await sendOrderAssistantMessage(apiBase, {
           text: 'Buy Now',
           session_id: first.session_id,
@@ -1152,6 +1251,9 @@ export default function OrderAssistantPage({
         await applyAssistantResponse(second)
         if (second.checkout_url && typeof window !== 'undefined') {
           window.open(second.checkout_url, '_blank', 'noopener,noreferrer')
+          setPendingSatisfactionAction('checkout')
+          setSelectedSatisfactionStars(0)
+          setSatisfactionMessage('How satisfied are you with this Checkout flow?')
         }
       }
     } catch (err) {
@@ -1221,6 +1323,55 @@ export default function OrderAssistantPage({
             Want to checkout from shopping cart?
           </button>
         </div>
+        {(pendingSatisfactionAction || satisfactionMessage) && (
+          <div
+            style={{
+              marginTop: 2,
+              borderRadius: 10,
+              border: '1px solid rgba(148,163,184,0.3)',
+              background: 'rgba(2,6,23,0.35)',
+              padding: '8px 10px',
+              display: 'grid',
+              gap: 6,
+            }}
+          >
+            <div style={{ fontSize: 12, color: '#cbd5e1' }}>
+              {satisfactionMessage || 'Rate your recent action'}
+            </div>
+            {pendingSatisfactionAction && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {[1, 2, 3, 4, 5].map((star) => {
+                  const active = selectedSatisfactionStars >= star
+                  return (
+                    <button
+                      key={`satisfaction-star-${star}`}
+                      type="button"
+                      onClick={() => {
+                        setSelectedSatisfactionStars(star)
+                        void submitSatisfactionRating(star)
+                      }}
+                      disabled={satisfactionSubmitting}
+                      style={{
+                        border: 'none',
+                        background: 'transparent',
+                        padding: 0,
+                        cursor: satisfactionSubmitting ? 'not-allowed' : 'pointer',
+                        color: active ? '#facc15' : '#64748b',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                      title={`Rate ${star}`}
+                      aria-label={`Rate ${star}`}
+                    >
+                      <Star size={18} fill={active ? '#facc15' : 'none'} />
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'flex', gap: 12, padding: 14, flex: 1, minHeight: 0 }}>
@@ -1242,9 +1393,11 @@ export default function OrderAssistantPage({
                   lineHeight: 1.45,
                 }}
               >
-                <div style={{ fontSize: 11, color: '#93c5fd', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                  {m.sender === 'user' ? 'You' : 'Agent'}
-                </div>
+                {m.sender === 'user' && (
+                  <div style={{ fontSize: 11, color: '#93c5fd', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                    You
+                  </div>
+                )}
                 {m.sender === 'assistant' ? (m.text.trim() ? renderTextWithLinks(m.text) : null) : m.text}
                 <div style={{ marginTop: 6, fontSize: 11, color: '#94a3b8', textAlign: 'right' }}>{m.at}</div>
                 {m.sender === 'assistant' && m.pendingLink && pendingReplacementLink === m.pendingLink && (
@@ -1332,18 +1485,20 @@ export default function OrderAssistantPage({
                     <div>
                       Price: <strong>{String(m.product.currency || 'LKR').toUpperCase()} {Number(m.product.price || 0).toFixed(2)}</strong>
                     </div>
-                    <div>
-                      Stock:{' '}
-                      <strong style={stockOut ? { color: '#ef4444' } : undefined}>
-                        {stockCount !== null ? stockCount : stockLabel}
-                      </strong>
-                    </div>
-                    {normalizeOptionValues(m.product.available_options || m.product.variants?.sizes).length > 0 && (
+                    {!hasCardSelectionChanges && (
+                      <div>
+                        Stock:{' '}
+                        <strong style={stockOut ? { color: '#ef4444' } : undefined}>
+                          {stockCount !== null ? stockCount : stockLabel}
+                        </strong>
+                      </div>
+                    )}
+                    {!hasCardSelectionChanges && normalizeOptionValues(m.product.available_options || m.product.variants?.sizes).length > 0 && (
                       <div>
                         Available Sizes: <strong>{normalizeOptionValues(m.product.available_options || m.product.variants?.sizes).join(', ')}</strong>
                       </div>
                     )}
-                    {normalizeOptionValues(m.product.available_colors || m.product.variants?.colors).length > 0 && (
+                    {!hasCardSelectionChanges && normalizeOptionValues(m.product.available_colors || m.product.variants?.colors).length > 0 && (
                       <div>
                         Available Colors: <strong>{normalizeOptionValues(m.product.available_colors || m.product.variants?.colors).join(', ')}</strong>
                       </div>
@@ -1457,6 +1612,11 @@ export default function OrderAssistantPage({
                     }}
                   >
                     <div style={{ color: '#93c5fd', fontWeight: 600 }}>User Details</div>
+                    {!effectiveAutomation.auto_fill_checkout && (
+                      <div style={{ color: '#cbd5e1', fontSize: 11 }}>
+                        Auto-fill checkout is OFF. Personal detail confirmation is skipped in checkout flow.
+                      </div>
+                    )}
                     {profileEditMode && editableProfile ? (
                       <>
                         <label>
@@ -1512,22 +1672,24 @@ export default function OrderAssistantPage({
                         <div>Phone: <strong>{(editableProfile?.phone ?? m.profile.phone) || 'N/A'}</strong></div>
                         <div>Shipping Address: <strong>{(editableProfile?.shipping_address ?? m.profile.shipping_address) || 'N/A'}</strong></div>
                         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              addUserActionMessage('Edit Profile')
-                              setEditableProfile({
-                                name: editableProfile?.name ?? m.profile?.name,
-                                email: editableProfile?.email ?? m.profile?.email,
-                                phone: editableProfile?.phone ?? m.profile?.phone,
-                                shipping_address: editableProfile?.shipping_address ?? m.profile?.shipping_address,
-                              })
-                              setProfileEditMode(true)
-                            }}
-                            disabled={loading}
-                          >
-                            Edit Profile
-                          </button>
+                          {effectiveAutomation.auto_fill_checkout && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                addUserActionMessage('Edit Profile')
+                                setEditableProfile({
+                                  name: editableProfile?.name ?? m.profile?.name,
+                                  email: editableProfile?.email ?? m.profile?.email,
+                                  phone: editableProfile?.phone ?? m.profile?.phone,
+                                  shipping_address: editableProfile?.shipping_address ?? m.profile?.shipping_address,
+                                })
+                                setProfileEditMode(true)
+                              }}
+                              disabled={loading}
+                            >
+                              Edit Profile
+                            </button>
+                          )}
                           {pendingState === 'await_profile_confirmation' && (
                             <button
                               type="button"

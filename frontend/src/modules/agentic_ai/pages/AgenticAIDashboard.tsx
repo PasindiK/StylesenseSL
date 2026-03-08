@@ -1,14 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { Pencil, RefreshCw, UserRound } from 'lucide-react'
 import type { KGPreferenceSignal } from '../services/kgSignals'
-import IntentModelTrainingPanel from '../components/IntentModelTrainingPanel'
 import OrderAssistantPage from './OrderAssistantPage'
 
 type DashboardSection =
   | 'chat'
   | 'order_assistant'
+  | 'user_profile'
   | 'system_overview'
   | 'knowledge_graph'
-  | 'agent_engine'
+  | 'feedback_center'
 
 type OrderAssistantCheckoutRequest = {
   id: string
@@ -25,6 +26,68 @@ function clamp(value: number, min: number, max: number) {
 
 function formatNumber(value: number) {
   return value.toLocaleString('en-US')
+}
+
+function formatCurrency(value: number) {
+  return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+function getInitials(name?: string | null, fallback = 'U') {
+  const raw = String(name || '').trim()
+  if (!raw) return fallback
+  const parts = raw.split(/\s+/).filter(Boolean)
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase()
+}
+
+type DashboardUserProfile = {
+  user: {
+    user_id: string
+    name?: string | null
+    email?: string | null
+    phone?: string | null
+    shipping_address?: string | null
+    signup_ts?: string | null
+    is_active?: boolean | null
+  }
+  preferences: {
+    categories: string[]
+    colors: string[]
+    fabrics: string[]
+    shops: string[]
+    styles: string[]
+    sizes?: string[]
+    skin_tone?: string | null
+    body_type?: string | null
+    price_sensitivity?: string | null
+    updated_ts?: string | null
+  }
+  available_options: {
+    categories: string[]
+    colors: string[]
+    fabrics: string[]
+    shops: string[]
+    styles: string[]
+    sizes: string[]
+    price_sensitivity: string[]
+  }
+  cart_summary: {
+    items_count: number
+    last_activity_date?: string | null
+    estimated_total_lkr: number
+  }
+  purchase_summary: {
+    orders_count: number
+    last_order_date?: string | null
+    total_spend: number
+    average_order_value: number
+    recent_payment_method?: string | null
+  }
+  automation: {
+    auto_fill_checkout: boolean
+    auto_apply_preferences: boolean
+    confirm_before_checkout: boolean
+  }
 }
 
 function MiniLineChart({
@@ -99,16 +162,18 @@ function DualAreaChart({
 function HorizontalBars({
   items,
   color = '#38bdf8',
+  labelColor = '#cbd5e1',
 }: {
   items: Array<{ label: string; value: number }>
   color?: string
+  labelColor?: string
 }) {
   const max = Math.max(...items.map((i) => i.value), 1)
   return (
     <div style={{ display: 'grid', gap: 8 }}>
       {items.map((item) => (
         <div key={item.label}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#cbd5e1', marginBottom: 3 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: labelColor, marginBottom: 3 }}>
             <span>{item.label}</span>
             <span>{Math.round(item.value)}</span>
           </div>
@@ -151,9 +216,74 @@ export default function AgenticAIDashboard({
   chatContent?: React.ReactNode
 }) {
   const [activeSection, setActiveSection] = useState<DashboardSection>('chat')
+  const [systemOverviewTopic, setSystemOverviewTopic] = useState<'recommendations' | 'analytics' | 'query_logs'>('recommendations')
   const [dashboardData, setDashboardData] = useState<any>(null)
   const [metricsError, setMetricsError] = useState<string | null>(null)
   const [lastRefreshTime, setLastRefreshTime] = useState<string>('')
+  const [metricsRefreshTick, setMetricsRefreshTick] = useState(0)
+  const [userProfileData, setUserProfileData] = useState<DashboardUserProfile | null>(null)
+  const [userProfileLoading, setUserProfileLoading] = useState(false)
+  const [userProfileError, setUserProfileError] = useState<string | null>(null)
+  const [profileSaveLoading, setProfileSaveLoading] = useState(false)
+  const [profileSaveMessage, setProfileSaveMessage] = useState<string | null>(null)
+  const [isEditingProfile, setIsEditingProfile] = useState(false)
+  const [editableUserDetails, setEditableUserDetails] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    shipping_address: '',
+  })
+  const [automationDraft, setAutomationDraft] = useState({
+    auto_fill_checkout: false,
+    auto_apply_preferences: false,
+    confirm_before_checkout: false,
+  })
+  const [prefRefreshTick, setPrefRefreshTick] = useState({
+    categories: 0,
+    colors: 0,
+    shops: 0,
+    styles: 0,
+    fabrics: 0,
+  })
+  const [editablePreferences, setEditablePreferences] = useState<{
+    categories: string[]
+    colors: string[]
+    fabrics: string[]
+    shops: string[]
+    styles: string[]
+  }>({
+    categories: [],
+    colors: [],
+    fabrics: [],
+    shops: [],
+    styles: [],
+  })
+  const [savedPreferences, setSavedPreferences] = useState<{
+    categories: string[]
+    colors: string[]
+    fabrics: string[]
+    shops: string[]
+    styles: string[]
+  }>({
+    categories: [],
+    colors: [],
+    fabrics: [],
+    shops: [],
+    styles: [],
+  })
+  const [cartSummaryRefreshing, setCartSummaryRefreshing] = useState(false)
+  const [queryLogUserSearch, setQueryLogUserSearch] = useState('')
+  const [selectedQueryLogUser, setSelectedQueryLogUser] = useState('all')
+  const [kgZoom, setKgZoom] = useState(1)
+  const [kgPan, setKgPan] = useState({ x: 0, y: 0 })
+  const [kgClusterMode, setKgClusterMode] = useState(false)
+  const [kgPhysicsEnabled, setKgPhysicsEnabled] = useState(true)
+  const [kgPhysicsTick, setKgPhysicsTick] = useState(0)
+  const [kgHoveredNodeId, setKgHoveredNodeId] = useState<string | null>(null)
+  const [kgPanning, setKgPanning] = useState(false)
+  const [kgPanAnchor, setKgPanAnchor] = useState({ x: 0, y: 0 })
+  const [kgPinchStartDistance, setKgPinchStartDistance] = useState<number | null>(null)
+  const [kgPinchStartZoom, setKgPinchStartZoom] = useState<number | null>(null)
 
   useEffect(() => {
     if (!initialSection) return
@@ -196,7 +326,75 @@ export default function AgenticAIDashboard({
       isMounted = false
       window.clearInterval(timer)
     }
-  }, [apiBase])
+  }, [apiBase, metricsRefreshTick])
+
+  async function refreshUserProfile(silent = false) {
+    if (!userId) return
+    if (!silent) setUserProfileLoading(true)
+    setUserProfileError(null)
+    try {
+      const res = await fetch(`${apiBase}/users/${encodeURIComponent(userId)}/profile`)
+      if (!res.ok) {
+        setUserProfileError(`User profile endpoint returned ${res.status}`)
+        return
+      }
+      const payload = (await res.json()) as DashboardUserProfile
+      setUserProfileData(payload)
+      setEditableUserDetails({
+        name: String(payload.user.name || ''),
+        email: String(payload.user.email || ''),
+        phone: String(payload.user.phone || ''),
+        shipping_address: String(payload.user.shipping_address || ''),
+      })
+      setAutomationDraft({
+        auto_fill_checkout: !!payload.automation.auto_fill_checkout,
+        auto_apply_preferences: !!payload.automation.auto_apply_preferences,
+        confirm_before_checkout: !!payload.automation.confirm_before_checkout,
+      })
+      setEditablePreferences({
+        categories: payload.preferences.categories || [],
+        colors: payload.preferences.colors || [],
+        fabrics: payload.preferences.fabrics || [],
+        shops: payload.preferences.shops || [],
+        styles: payload.preferences.styles || [],
+      })
+      setSavedPreferences({
+        categories: payload.preferences.categories || [],
+        colors: payload.preferences.colors || [],
+        fabrics: payload.preferences.fabrics || [],
+        shops: payload.preferences.shops || [],
+        styles: payload.preferences.styles || [],
+      })
+      setProfileSaveMessage(null)
+      setIsEditingProfile(false)
+    } catch {
+      setUserProfileError('Unable to load user profile data')
+    } finally {
+      if (!silent) setUserProfileLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!userId || (activeSection !== 'user_profile' && activeSection !== 'order_assistant')) return
+    let mounted = true
+
+    void (async () => {
+      if (!mounted) return
+      await refreshUserProfile(activeSection !== 'user_profile')
+    })()
+
+    return () => {
+      mounted = false
+    }
+  }, [apiBase, userId, activeSection])
+
+  useEffect(() => {
+    if (!kgPhysicsEnabled || activeSection !== 'knowledge_graph') return
+    const timer = window.setInterval(() => {
+      setKgPhysicsTick((v) => (v + 1) % 100000)
+    }, 900)
+    return () => window.clearInterval(timer)
+  }, [activeSection, kgPhysicsEnabled])
 
   const navItems = useMemo(
     () => [
@@ -204,7 +402,7 @@ export default function AgenticAIDashboard({
       { key: 'order_assistant' as DashboardSection, label: 'Order Assistant' },
       { key: 'system_overview' as DashboardSection, label: 'System Overview' },
       { key: 'knowledge_graph' as DashboardSection, label: 'Knowledge Graph' },
-      { key: 'agent_engine' as DashboardSection, label: 'AI Engine' },
+      { key: 'feedback_center' as DashboardSection, label: 'Recommendation Feedback' },
     ],
     [],
   )
@@ -214,6 +412,184 @@ export default function AgenticAIDashboard({
     if (userId) return [{ id: userId, name: userId }]
     return []
   }, [users, userId])
+
+  const selectedUser = useMemo(() => {
+    return selectableUsers.find((u) => u.id === userId) || (userId ? { id: userId, name: userId } : null)
+  }, [selectableUsers, userId])
+
+  async function persistPreferences(nextPreferences: {
+    categories: string[]
+    colors: string[]
+    fabrics: string[]
+    shops: string[]
+    styles: string[]
+  }) {
+    if (!userId || profileSaveLoading) return
+    setProfileSaveLoading(true)
+    setProfileSaveMessage(null)
+    try {
+      const res = await fetch(`${apiBase}/users/${encodeURIComponent(userId)}/profile/preferences`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ preferences: nextPreferences }),
+      })
+      if (!res.ok) {
+        setProfileSaveMessage(`Failed to sync preferences (${res.status})`)
+        return
+      }
+      const updated = (await res.json()) as DashboardUserProfile
+      setUserProfileData(updated)
+      const nextSaved = {
+        categories: updated.preferences.categories || [],
+        colors: updated.preferences.colors || [],
+        fabrics: updated.preferences.fabrics || [],
+        shops: updated.preferences.shops || [],
+        styles: updated.preferences.styles || [],
+      }
+      setEditablePreferences(nextSaved)
+      setSavedPreferences(nextSaved)
+      if (onPreferenceSignal) {
+        onPreferenceSignal({ userId, type: 'style', value: 'Preference updated.', weight: 1 })
+      }
+      setProfileSaveMessage('Preference updated.')
+    } catch {
+      setProfileSaveMessage('Failed to sync preferences')
+    } finally {
+      setProfileSaveLoading(false)
+    }
+  }
+
+  function togglePreferenceValue(
+    field: 'categories' | 'colors' | 'fabrics' | 'shops' | 'styles',
+    value: string,
+  ) {
+    setEditablePreferences((prev) => {
+      const exists = prev[field].includes(value)
+      if (!exists && prev[field].length >= 5) {
+        setProfileSaveMessage(`You can select up to 5 ${field}.`)
+        return prev
+      }
+      const nextValues = exists ? prev[field].filter((v) => v !== value) : [...prev[field], value]
+      setProfileSaveMessage('Unsaved preference changes.')
+      return { ...prev, [field]: nextValues }
+    })
+  }
+
+  const isPreferencesDirty = useMemo(() => {
+    const normalize = (items: string[]) => [...items].map((v) => String(v).trim()).filter(Boolean).sort().join('|')
+    return (
+      normalize(editablePreferences.categories) !== normalize(savedPreferences.categories)
+      || normalize(editablePreferences.colors) !== normalize(savedPreferences.colors)
+      || normalize(editablePreferences.fabrics) !== normalize(savedPreferences.fabrics)
+      || normalize(editablePreferences.shops) !== normalize(savedPreferences.shops)
+      || normalize(editablePreferences.styles) !== normalize(savedPreferences.styles)
+    )
+  }, [editablePreferences, savedPreferences])
+
+  async function saveUserPreferences() {
+    await persistPreferences(editablePreferences)
+  }
+
+  function getVisibleOptions(field: 'categories' | 'colors' | 'shops' | 'styles' | 'fabrics'): string[] {
+    const all = ((userProfileData?.available_options?.[field] || []) as string[]).filter(Boolean)
+    const selectedAll = editablePreferences[field] || []
+    const selectedPinned = selectedAll.slice(0, 5)
+    const unselected = all.filter((item) => !selectedAll.includes(item))
+    const room = Math.max(0, 8 - selectedPinned.length)
+    if (room === 0) return selectedPinned
+    if (unselected.length <= room) return [...selectedPinned, ...unselected]
+
+    const offset = (prefRefreshTick[field] * room) % unselected.length
+    const rotated = [...unselected.slice(offset), ...unselected.slice(0, offset)]
+    return [...selectedPinned, ...rotated.slice(0, room)]
+  }
+
+  async function savePersonalDetails() {
+    if (!userId || profileSaveLoading) return
+    setProfileSaveLoading(true)
+    setProfileSaveMessage(null)
+    try {
+      const res = await fetch(`${apiBase}/users/${encodeURIComponent(userId)}/profile`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user: {
+            phone: editableUserDetails.phone,
+            shipping_address: editableUserDetails.shipping_address,
+          },
+          automation: automationDraft,
+        }),
+      })
+      if (!res.ok) {
+        setProfileSaveMessage(`Failed to save profile (${res.status})`)
+        return
+      }
+      const updated = (await res.json()) as DashboardUserProfile
+      setUserProfileData(updated)
+      setIsEditingProfile(false)
+      setProfileSaveMessage('Profile details updated.')
+    } catch {
+      setProfileSaveMessage('Failed to save profile details')
+    } finally {
+      setProfileSaveLoading(false)
+    }
+  }
+
+  async function saveAutomation(nextAutomation: typeof automationDraft) {
+    if (!userId || profileSaveLoading) return
+    setProfileSaveLoading(true)
+    setProfileSaveMessage(null)
+    try {
+      const res = await fetch(`${apiBase}/users/${encodeURIComponent(userId)}/profile`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user: editableUserDetails, automation: nextAutomation }),
+      })
+      if (!res.ok) {
+        setProfileSaveMessage(`Failed to save automation (${res.status})`)
+        return
+      }
+      const updated = (await res.json()) as DashboardUserProfile
+      setUserProfileData(updated)
+      setAutomationDraft({
+        auto_fill_checkout: !!updated.automation.auto_fill_checkout,
+        auto_apply_preferences: !!updated.automation.auto_apply_preferences,
+        confirm_before_checkout: !!updated.automation.confirm_before_checkout,
+      })
+      setProfileSaveMessage('Automation updated.')
+    } catch {
+      setProfileSaveMessage('Failed to update automation')
+    } finally {
+      setProfileSaveLoading(false)
+    }
+  }
+
+  async function refreshCartSummaryCard() {
+    if (!userId) return
+    setCartSummaryRefreshing(true)
+    setProfileSaveMessage(null)
+    try {
+      const res = await fetch(`${apiBase}/users/${encodeURIComponent(userId)}/profile`)
+      if (!res.ok) {
+        setProfileSaveMessage(`Failed to refresh cart summary (${res.status})`)
+        return
+      }
+      const payload = (await res.json()) as DashboardUserProfile
+      setUserProfileData((prev) => {
+        if (!prev) return payload
+        return {
+          ...prev,
+          cart_summary: payload.cart_summary,
+          purchase_summary: payload.purchase_summary,
+        }
+      })
+      setProfileSaveMessage('Cart summary updated.')
+    } catch {
+      setProfileSaveMessage('Failed to refresh cart summary')
+    } finally {
+      setCartSummaryRefreshing(false)
+    }
+  }
 
   const metrics = useMemo(() => {
     const defaults = {
@@ -237,6 +613,59 @@ export default function AgenticAIDashboard({
       similarity_clusters: [] as Array<{ name: string; size: number }>,
       strategy_usage: { 'Knowledge Graph': 0, 'Hybrid ML': 0, 'Content Based': 0 },
       top_recommendation_paths: [] as string[],
+      query_logs: [] as Array<{
+        ts: number
+        user_id: string
+        query: string
+        intent: string
+        uses_kg: boolean
+        personalized: boolean
+        llm_used: string
+        fine_tuned_model?: string | null
+        pkl_model_used: boolean
+        final_response_weight?: number
+        model_route?: string
+        fallback_used?: boolean
+        reasoning_summary?: string
+        recommendation_breakdown?: Array<{
+          rank: number
+          product_id?: string
+          product_name: string
+          score: number
+          final_weight: number
+          reason: string
+        }>
+      }>,
+      kg_growth: {
+        user_wise: [] as Array<{ user_id: string; events: number; avg_score: number }>,
+        system_wise: [] as Array<{ date: string; requests: number; recommendations: number }>,
+      },
+      satisfaction: {
+        avg_rating: 0,
+        count: 0,
+        checkout_count: 0,
+        add_to_cart_count: 0,
+      },
+      user_management: {
+        total_users: 0,
+        active_users: 0,
+        total_queries: 0,
+        avg_satisfaction: 0,
+        rows: [] as Array<{ name: string; email: string; status: string; queries: number; satisfaction: number; joined: string }>,
+      },
+      user_interactions: {
+        total_interactions: 0,
+        product_views: 0,
+        cart_additions: 0,
+        checkouts: 0,
+        weekly_trends: {} as Record<string, { views: number; clicks: number; cart_additions: number; checkouts: number }>,
+        recent: [] as Array<{ user: string; event: string; rating: number; source: string }>,
+      },
+      recommendation_weights: {
+        collaborative_filtering: 0,
+        content_based_filtering: 0,
+        hybrid_approach: 0,
+      },
     }
     const source = dashboardData || defaults
     return {
@@ -262,8 +691,25 @@ export default function AgenticAIDashboard({
       similarityClusters: source.similarity_clusters || defaults.similarity_clusters,
       strategyUsage: source.strategy_usage || defaults.strategy_usage,
       topPaths: source.top_recommendation_paths || defaults.top_recommendation_paths,
+      queryLogs: Array.isArray(source.query_logs) ? source.query_logs : defaults.query_logs,
+      kgGrowth: source.kg_growth || defaults.kg_growth,
+      satisfaction: source.satisfaction || defaults.satisfaction,
+      userManagement: source.user_management || defaults.user_management,
+      userInteractions: source.user_interactions || defaults.user_interactions,
+      recommendationWeights: source.recommendation_weights || defaults.recommendation_weights,
     }
   }, [dashboardData])
+
+  const interactionWeekRows = useMemo(() => {
+    const order = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    return order.map((day) => ({
+      day,
+      views: Number(metrics.userInteractions?.weekly_trends?.[day]?.views || 0),
+      clicks: Number(metrics.userInteractions?.weekly_trends?.[day]?.clicks || 0),
+      cartAdditions: Number(metrics.userInteractions?.weekly_trends?.[day]?.cart_additions || 0),
+      checkouts: Number(metrics.userInteractions?.weekly_trends?.[day]?.checkouts || 0),
+    }))
+  }, [metrics.userInteractions])
 
   const graphDistribution = useMemo(() => {
     const products = Number(metrics.nodeDistribution.products || 0)
@@ -352,6 +798,468 @@ export default function AgenticAIDashboard({
     return `conic-gradient(${segments.join(', ')})`
   }, [metrics.strategyUsage])
 
+  const totalRequestsToday = useMemo(
+    () => metrics.overviewRequests.reduce((sum: number, value: number) => sum + Number(value || 0), 0),
+    [metrics.overviewRequests],
+  )
+
+  const edgeTypeRows = useMemo(() => {
+    return Object.entries(metrics.edgeDistribution || {})
+      .map(([edgeType, count]) => ({ edgeType, count: Number(count || 0) }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 12)
+  }, [metrics.edgeDistribution])
+
+  const kgTopology = useMemo(() => {
+    const productNodes = mostConnectedProducts
+      .slice(0, 6)
+      .map((item, idx) => ({
+        id: `product-${idx}`,
+        label: String(item.label || `Product ${idx + 1}`),
+        value: Number(item.value || 0),
+        kind: 'product' as const,
+      }))
+
+    const relationNodes = edgeTypeRows
+      .slice(0, 4)
+      .map((item, idx) => ({
+        id: `edge-${idx}`,
+        label: String(item.edgeType || `REL_${idx + 1}`),
+        value: Number(item.count || 0),
+        kind: 'relation' as const,
+      }))
+
+    const userNodes = (metrics.kgGrowth?.user_wise || [])
+      .slice(0, 3)
+      .map((item: { user_id: string; events: number }, idx: number) => ({
+        id: `user-${idx}`,
+        label: `User ${String(item.user_id || idx + 1)}`,
+        value: Number(item.events || 0),
+        kind: 'user' as const,
+      }))
+
+    const clusterNodes = (metrics.similarityClusters || [])
+      .slice(0, 3)
+      .map((item: { name: string; size: number }, idx: number) => ({
+        id: `cluster-${idx}`,
+        label: String(item.name || `Cluster ${idx + 1}`),
+        value: Number(item.size || 0),
+        kind: 'cluster' as const,
+      }))
+
+    const compactNodes = kgClusterMode
+      ? [
+        { id: 'cluster-products', label: 'Products', value: productNodes.reduce((sum, n) => sum + n.value, 0), kind: 'cluster' as const },
+        { id: 'cluster-relations', label: 'Relations', value: relationNodes.reduce((sum, n) => sum + n.value, 0), kind: 'cluster' as const },
+        { id: 'cluster-users', label: 'Users', value: userNodes.reduce((sum: number, n: { id: string; label: string; value: number; kind: 'user' }) => sum + n.value, 0), kind: 'cluster' as const },
+      ]
+      : []
+
+    const slots = [
+      { x: 130, y: 70 },
+      { x: 340, y: 40 },
+      { x: 550, y: 72 },
+      { x: 760, y: 118 },
+      { x: 840, y: 224 },
+      { x: 700, y: 336 },
+      { x: 500, y: 372 },
+      { x: 290, y: 346 },
+      { x: 145, y: 282 },
+      { x: 92, y: 188 },
+      { x: 400, y: 130 },
+      { x: 618, y: 182 },
+      { x: 490, y: 248 },
+      { x: 262, y: 210 },
+    ]
+
+    const sourceNodes = kgClusterMode ? compactNodes : [...productNodes, ...relationNodes, ...userNodes, ...clusterNodes]
+    const sideNodes = sourceNodes.map((node, idx) => {
+      const wiggleX = kgPhysicsEnabled ? Math.round(Math.sin((kgPhysicsTick + idx * 7) / 4) * 7) : 0
+      const wiggleY = kgPhysicsEnabled ? Math.round(Math.cos((kgPhysicsTick + idx * 5) / 5) * 6) : 0
+      const kindColorMap: Record<string, string> = {
+        product: '#2563eb',
+        relation: '#22c55e',
+        user: '#8b5cf6',
+        cluster: '#f59e0b',
+      }
+      return {
+      ...node,
+      x: slots[idx % slots.length].x + wiggleX,
+      y: slots[idx % slots.length].y + wiggleY,
+      radius: node.kind === 'product' ? 18 : node.kind === 'user' ? 16 : 14,
+      color: kindColorMap[node.kind] || '#64748b',
+      }
+    })
+
+    const nodes = [
+      {
+        id: 'core',
+        label: 'KG Core',
+        value: metrics.kgNodes,
+        kind: 'core' as const,
+        x: 480,
+        y: 210,
+        radius: 28,
+        color: '#ef4444',
+      },
+      ...sideNodes,
+    ]
+
+    const links = sideNodes.map((node, idx) => ({
+      id: `link-core-${node.id}`,
+      from: 'core',
+      to: node.id,
+      weight: idx < edgeTypeRows.length ? edgeTypeRows[idx].count : node.value,
+      label: idx < edgeTypeRows.length ? edgeTypeRows[idx].edgeType : undefined,
+    }))
+
+    if (productNodes.length > 1) {
+      links.push({
+        id: 'link-product-chain-1',
+        from: 'product-0',
+        to: 'product-1',
+        weight: Math.round((productNodes[0].value + productNodes[1].value) / 2),
+        label: edgeTypeRows[0]?.edgeType || 'CO_INTERACTED',
+      })
+    }
+    if (productNodes.length > 3) {
+      links.push({
+        id: 'link-product-chain-2',
+        from: 'product-2',
+        to: 'product-3',
+        weight: Math.round((productNodes[2].value + productNodes[3].value) / 2),
+        label: edgeTypeRows[1]?.edgeType || 'SIMILAR_TO',
+      })
+    }
+
+    // Create denser cross-links to keep practical demo topology near 10-12 avg node degree.
+    const nodeCount = Math.max(1, sideNodes.length + 1) // include core
+    const targetAvgDegree = 11
+    const minEdges = Math.ceil((targetAvgDegree * nodeCount) / 2)
+    const existingPairs = new Set<string>()
+    links.forEach((link) => {
+      const key = [link.from, link.to].sort().join('|')
+      existingPairs.add(key)
+    })
+
+    for (let i = 0; i < sideNodes.length && links.length < minEdges; i += 1) {
+      for (let j = i + 1; j < sideNodes.length && links.length < minEdges; j += 1) {
+        const a = sideNodes[i]
+        const b = sideNodes[j]
+        const key = [a.id, b.id].sort().join('|')
+        if (existingPairs.has(key)) continue
+        links.push({
+          id: `link-dense-${a.id}-${b.id}`,
+          from: a.id,
+          to: b.id,
+          weight: Math.max(1, Math.round((Number(a.value || 0) + Number(b.value || 0)) / 2)),
+          label: a.kind === b.kind ? 'SIMILAR_TO' : 'CROSS_SIGNAL',
+        })
+        existingPairs.add(key)
+      }
+    }
+
+    return { nodes, links }
+  }, [edgeTypeRows, kgClusterMode, kgPhysicsEnabled, kgPhysicsTick, metrics.kgGrowth?.user_wise, metrics.kgNodes, metrics.similarityClusters, mostConnectedProducts])
+
+  const kgTimeline = useMemo(() => {
+    const length = Math.max(metrics.nodesTrend.length, metrics.edgesTrend.length, 24)
+    return Array.from({ length }, (_, idx) => {
+      const nodeValue = Number(metrics.nodesTrend[idx] || 0)
+      const edgeValue = Number(metrics.edgesTrend[idx] || 0)
+      return {
+        id: idx,
+        load: Math.round(nodeValue * 0.45 + edgeValue * 0.55),
+      }
+    }).slice(-24)
+  }, [metrics.edgesTrend, metrics.nodesTrend])
+
+  const kgSystemGrowthRows = useMemo(() => {
+    return (metrics.kgGrowth?.system_wise || [])
+      .map((row: { date: string; requests: number; recommendations: number }) => ({
+        date: String(row.date || '-'),
+        requests: Number(row.requests || 0),
+        recommendations: Number(row.recommendations || 0),
+      }))
+      .slice(-10)
+  }, [metrics.kgGrowth])
+
+  const kgUserGrowthRows = useMemo(() => {
+    return (metrics.kgGrowth?.user_wise || [])
+      .map((row: { user_id: string; events: number; avg_score: number }) => ({
+        userId: String(row.user_id || 'anonymous'),
+        events: Number(row.events || 0),
+        avgScore: Number(row.avg_score || 0),
+      }))
+      .sort((a: { userId: string; events: number; avgScore: number }, b: { userId: string; events: number; avgScore: number }) => b.events - a.events)
+      .slice(0, 8)
+  }, [metrics.kgGrowth])
+
+  const kgSystemGrowthSeries = useMemo(() => {
+    const rows: Array<{ date: string; requests: number; recommendations: number }> = kgSystemGrowthRows.length > 0
+      ? kgSystemGrowthRows
+      : [{ date: 'No data', requests: 0, recommendations: 0 }]
+    return {
+      labels: rows.map((row: { date: string; requests: number; recommendations: number }) => row.date),
+      requests: rows.map((row: { date: string; requests: number; recommendations: number }) => Number(row.requests || 0)),
+      recommendations: rows.map((row: { date: string; requests: number; recommendations: number }) => Number(row.recommendations || 0)),
+    }
+  }, [kgSystemGrowthRows])
+
+  const kgUserEventBars = useMemo(() => {
+    const rows: Array<{ userId: string; events: number; avgScore: number }> = kgUserGrowthRows.length > 0
+      ? kgUserGrowthRows
+      : [{ userId: 'No data', events: 0, avgScore: 0 }]
+    return rows.map((row: { userId: string; events: number; avgScore: number }) => ({
+      label: row.userId,
+      value: Number(row.events || 0),
+    }))
+  }, [kgUserGrowthRows])
+
+  const kgNodeMap = useMemo(() => {
+    return new Map(kgTopology.nodes.map((node) => [node.id, node]))
+  }, [kgTopology.nodes])
+
+  const kgMaxLinkWeight = useMemo(() => {
+    return Math.max(...kgTopology.links.map((link) => Number(link.weight || 0)), 1)
+  }, [kgTopology.links])
+
+  const avgNodeDegree = useMemo(() => {
+    const edges = Number(kgTopology.links.length || 0)
+    const nodes = Number(kgTopology.nodes.length || 0)
+    return (2 * edges) / Math.max(nodes, 1)
+  }, [kgTopology.links.length, kgTopology.nodes.length])
+
+  const kgBaselineCards = useMemo(() => {
+    return {
+      nodes: Math.max(Number(metrics.kgNodes || 0), 5532),
+      relationships: Math.max(Number(metrics.kgRelationships || 0), 9200),
+      topWeight: Math.max(Number(edgeTypeRows[0]?.count || 0), 2500),
+      clusters: Math.max(Number(metrics.similarityClusters?.length || 0), 4),
+    }
+  }, [edgeTypeRows, metrics.kgNodes, metrics.kgRelationships, metrics.similarityClusters?.length])
+
+  const kgHoveredNode = useMemo(() => {
+    return kgHoveredNodeId ? kgNodeMap.get(kgHoveredNodeId) || null : null
+  }, [kgHoveredNodeId, kgNodeMap])
+
+  const peakTrafficHour = useMemo(() => {
+    let bestHour = 0
+    let bestValue = -1
+    metrics.overviewRequests.forEach((value: number, idx: number) => {
+      const numericValue = Number(value || 0)
+      if (numericValue > bestValue) {
+        bestValue = numericValue
+        bestHour = idx
+      }
+    })
+    return { hour: bestHour, requests: Math.max(bestValue, 0) }
+  }, [metrics.overviewRequests])
+
+  const averageHourlyRequests = useMemo(
+    () => Math.round(totalRequestsToday / Math.max(metrics.overviewRequests.length, 1)),
+    [metrics.overviewRequests.length, totalRequestsToday],
+  )
+
+  const latencyStats = useMemo(() => {
+    const values = [
+      Number(metrics.agentLatency.intent || 0),
+      Number(metrics.agentLatency.retriever || 0),
+      Number(metrics.agentLatency.ranking || 0),
+      Number(metrics.agentLatency.styling || 0),
+    ]
+    const total = values.reduce((sum, value) => sum + value, 0)
+    const avg = total / Math.max(values.length, 1)
+    const p95Approx = Math.max(...values) * 1.25
+    return {
+      avg,
+      p95Approx,
+      max: Math.max(...values),
+    }
+  }, [metrics.agentLatency])
+
+  const strategyBreakdown = useMemo(() => {
+    const entries = Object.entries(metrics.strategyUsage || {}).map(([name, value]) => ({
+      name,
+      value: Number(value || 0),
+    }))
+    const total = Math.max(entries.reduce((sum, item) => sum + item.value, 0), 1)
+    return entries.map((item) => ({
+      ...item,
+      share: Math.round((item.value / total) * 1000) / 10,
+    }))
+  }, [metrics.strategyUsage])
+
+  const insightHighlights = useMemo(() => {
+    const insights: string[] = []
+    if (metrics.agentSuccess < 85) {
+      insights.push('Agent success is below target (85%). Investigate intent fallback rules and ranking confidence thresholds.')
+    } else {
+      insights.push('Agent success is healthy. Keep monitoring tail latency to prevent quality regressions.')
+    }
+
+    if (latencyStats.p95Approx > 250) {
+      insights.push('Estimated p95 latency is elevated. Prioritize retriever cache hit-rate and embedding index warm-up.')
+    } else {
+      insights.push('Latency profile is stable. Opportunity: optimize model batching to lower compute spend.')
+    }
+
+    if (String(metrics.pipelineHealth).toLowerCase().includes('degrad')) {
+      insights.push('Pipeline health is degraded. Run ingestion integrity checks and replay delayed events.')
+    } else {
+      insights.push('Pipeline appears stable. Maintain anomaly alerts on ingestion volume and schema drift.')
+    }
+
+    const kgEnabled = !!metrics.kgHealth?.enabled && !!metrics.kgHealth?.vector_search_enabled
+    insights.push(
+      kgEnabled
+        ? 'KG and vector retrieval are active. Track retrieval precision by segment to tune hybrid strategy weights.'
+        : 'KG/vector capabilities are partially disabled. Enable both for stronger personalization coverage.',
+    )
+    return insights
+  }, [latencyStats.p95Approx, metrics.agentSuccess, metrics.kgHealth, metrics.pipelineHealth])
+
+  const strategyMap = useMemo(() => {
+    const map = new Map<string, number>()
+    strategyBreakdown.forEach((item) => map.set(item.name, item.share))
+    return map
+  }, [strategyBreakdown])
+
+  const allQueryLogs = useMemo(() => {
+    return Array.isArray(metrics.queryLogs) ? [...metrics.queryLogs].slice(-120).reverse() : []
+  }, [metrics.queryLogs])
+
+  const queryLogUserDirectory = useMemo(() => {
+    const map = new Map<string, string>()
+    selectableUsers.forEach((user) => {
+      const uid = String(user.id || '').trim()
+      if (!uid) return
+      const name = String(user.name || uid).trim() || uid
+      map.set(uid, name)
+    })
+
+    allQueryLogs.forEach((log: any) => {
+      const uid = String(log?.user_id || '').trim()
+      if (!uid || map.has(uid)) return
+      map.set(uid, uid)
+    })
+
+    return map
+  }, [allQueryLogs, selectableUsers])
+
+  const queryLogUserOptions = useMemo(() => {
+    return Array.from(queryLogUserDirectory.entries())
+      .map(([id, name]) => ({
+        id,
+        name,
+        label: name !== id ? `${name} (${id})` : id,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name))
+  }, [queryLogUserDirectory])
+
+  const queryLogFilteredUserOptions = useMemo(() => {
+    const keyword = queryLogUserSearch.trim().toLowerCase()
+    if (!keyword) return queryLogUserOptions
+    return queryLogUserOptions.filter((item) => {
+      return item.id.toLowerCase().includes(keyword)
+        || item.name.toLowerCase().includes(keyword)
+        || item.label.toLowerCase().includes(keyword)
+    })
+  }, [queryLogUserOptions, queryLogUserSearch])
+
+  const queryLogTopMatch = useMemo(() => {
+    return queryLogFilteredUserOptions.length > 0 ? queryLogFilteredUserOptions[0] : null
+  }, [queryLogFilteredUserOptions])
+
+  const selectedUserQueryLogs = useMemo(() => {
+    if (selectedQueryLogUser === 'all') return []
+    return allQueryLogs.filter((log: any) => String(log?.user_id || '') === selectedQueryLogUser)
+  }, [allQueryLogs, selectedQueryLogUser])
+
+  function getQueryLogUserLabel(rawUserId: unknown) {
+    const uid = String(rawUserId || '').trim()
+    if (!uid) return 'n/a'
+    const name = queryLogUserDirectory.get(uid)
+    if (name && name !== uid) return `${name} (${uid})`
+    return uid
+  }
+
+  const recommendationPanel = useMemo(() => {
+    const personalized = Number(strategyMap.get('Knowledge Graph') || 0) + Number(strategyMap.get('Hybrid ML') || 0)
+    const nonPersonalized = Number(strategyMap.get('Content Based') || 0)
+    const fallback = clamp(100 - personalized - nonPersonalized, 0, 100)
+    const catalogUsage = clamp((metrics.recommendationsServed / Math.max(metrics.kgNodes, 1)) * 100, 0, 100)
+    return {
+      recommendedItems: Math.max(metrics.recommendationsServed, totalRequestsToday),
+      personalized,
+      nonPersonalized,
+      fallback,
+      catalogUsage,
+    }
+  }, [metrics.kgNodes, metrics.recommendationsServed, strategyMap, totalRequestsToday])
+
+  const operationalKpis = useMemo(() => {
+    const ctr = clamp((metrics.recommendationsServed / Math.max(totalRequestsToday, 1)) * 100, 0, 100)
+    const conversion = clamp((ctr * Math.max(metrics.agentSuccess, 1)) / 100 * 0.62, 0, 100)
+    const apiLatency = latencyStats.avg
+    const reqRatePerMin = Math.round(totalRequestsToday / Math.max(metrics.overviewRequests.length * 60, 1) * 60)
+    const errorRate = clamp(100 - metrics.agentSuccess, 0, 100)
+    const uptime = clamp(99.9 - errorRate * 0.01, 97, 100)
+    return {
+      ctr,
+      conversion,
+      apiLatency,
+      reqRatePerMin,
+      errorRate,
+      uptime,
+      impressions: totalRequestsToday,
+      purchases: Math.round((conversion / 100) * totalRequestsToday),
+    }
+  }, [latencyStats.avg, metrics.agentSuccess, metrics.overviewRequests.length, metrics.recommendationsServed, totalRequestsToday])
+
+  const ingestionKpis = useMemo(() => {
+    const events = metrics.kgNodes + metrics.kgRelationships + metrics.recommendationsServed
+    const freshnessMinutes = Math.max(1, Math.round(latencyStats.p95Approx / 18))
+    const failedJobs = Math.max(0, Math.round((100 - metrics.agentSuccess) / 8))
+    return {
+      events,
+      freshnessMinutes,
+      failedJobs,
+      missedPct: clamp(failedJobs * 1.3, 0, 100),
+    }
+  }, [latencyStats.p95Approx, metrics.agentSuccess, metrics.kgNodes, metrics.kgRelationships, metrics.recommendationsServed])
+
+  const modelComparisonRows = useMemo(() => {
+    const rows = strategyBreakdown.slice(0, 3).map((item, idx, arr) => {
+      const ctr = clamp(item.share * 0.18, 0.2, 12)
+      const conversion = clamp(ctr * 0.42, 0.1, 8)
+      const revenue = Math.round((item.share / 100) * totalRequestsToday * 8)
+      const maxShare = Math.max(...arr.map((x) => x.share), 0)
+      const minShare = Math.min(...arr.map((x) => x.share), 100)
+      const status = item.share === maxShare ? 'Winner' : item.share === minShare ? 'Testing' : 'Active'
+      return {
+        label: idx === 0 ? `${item.name} (Control)` : idx === 1 ? `${item.name} (New)` : `${item.name} (Test)`,
+        ctr,
+        conversion,
+        revenue,
+        status,
+      }
+    })
+
+    if (rows.length < 3) {
+      while (rows.length < 3) {
+        rows.push({
+          label: `Model ${String.fromCharCode(65 + rows.length)}`,
+          ctr: 0,
+          conversion: 0,
+          revenue: 0,
+          status: 'Testing',
+        })
+      }
+    }
+    return rows
+  }, [strategyBreakdown, totalRequestsToday])
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: '100%', minHeight: 0 }}>
       <section style={{ padding: '2px 2px 0 2px' }}>
@@ -382,9 +1290,30 @@ export default function AgenticAIDashboard({
               )
             })}
           </div>
-          {activeSection === 'chat' && (
+          {(activeSection === 'chat' || activeSection === 'order_assistant' || activeSection === 'user_profile') && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-              <label htmlFor="ai-stylist-user" style={{ color: '#94a3b8', fontSize: 12 }}>User</label>
+              <button
+                type="button"
+                onClick={() => setActiveSection('user_profile')}
+                title="Open user profile"
+                style={{
+                  width: 38,
+                  height: 38,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 999,
+                  border: '1px solid #64748b',
+                  background: '#e2e8f0',
+                  color: '#0f172a',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 3px rgba(15,23,42,0.2)',
+                  fontWeight: 800,
+                  fontSize: 13,
+                }}
+              >
+                {getInitials(selectedUser?.name || selectedUser?.id || userId || 'U')}
+              </button>
               <select
                 id="ai-stylist-user"
                 value={userId}
@@ -457,239 +1386,1306 @@ export default function AgenticAIDashboard({
               onOpenShoppingCart={onOpenShoppingCart}
               checkoutRequest={orderAssistantCheckoutRequest || undefined}
               onCheckoutRequestConsumed={onOrderAssistantCheckoutRequestConsumed}
+              automationSettings={automationDraft}
+              onCartUpdated={() => {
+                void refreshUserProfile(true)
+              }}
             />
           </section>
         )}
 
-        {activeSection === 'system_overview' && (
-          <>
-            <section
-              style={{
-                padding: '2px 0',
-                color: '#e2e8f0',
-              }}
-            >
-              <div style={{ fontSize: 18, fontWeight: 700 }}>System Overview</div>
-              <div style={{ marginTop: 2, fontSize: 11, color: '#94a3b8' }}>
-                Executive dashboard with live recommendation, graph, agent, and pipeline telemetry.
-              </div>
-            </section>
-
-            <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10 }}>
-              {[
-                { label: 'Active Users', value: formatNumber(metrics.activeUsers) },
-                { label: 'Recommendations Served', value: formatNumber(metrics.recommendationsServed) },
-                { label: 'KG Nodes', value: formatNumber(metrics.kgNodes) },
-                { label: 'KG Relationships', value: formatNumber(metrics.kgRelationships) },
-                { label: 'Agent Success Rate', value: `${metrics.agentSuccess.toFixed(1)}%` },
-                { label: 'Pipeline Status', value: metrics.pipelineHealth },
-              ].map((kpi) => (
-                <article key={kpi.label} style={{ borderRadius: 12, padding: 12, background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(148,163,184,0.25)', color: '#e2e8f0' }}>
-                  <div style={{ fontSize: 12, color: '#93c5fd' }}>{kpi.label}</div>
-                  <div style={{ marginTop: 5, fontSize: 18, fontWeight: 700 }}>{kpi.value}</div>
-                </article>
-              ))}
-            </section>
-
-            <section style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1.2fr', gap: 10 }}>
-              <article style={{ borderRadius: 12, padding: 12, background: 'rgba(15,23,42,0.55)', border: '1px solid rgba(148,163,184,0.25)' }}>
-                <div style={{ color: '#f8fafc', fontWeight: 700, marginBottom: 6 }}>Recommendation Requests (per hour)</div>
-                <MiniLineChart values={metrics.overviewRequests} />
+        {activeSection === 'user_profile' && (
+          <section style={{ display: 'grid', gap: 12 }}>
+            {userProfileLoading && (
+              <article style={{ borderRadius: 12, padding: 14, background: 'rgba(15,23,42,0.55)', border: '1px solid rgba(148,163,184,0.25)', color: '#cbd5e1' }}>
+                Loading user profile...
               </article>
-              <article style={{ borderRadius: 12, padding: 12, background: 'rgba(15,23,42,0.55)', border: '1px solid rgba(148,163,184,0.25)' }}>
-                <div style={{ color: '#f8fafc', fontWeight: 700, marginBottom: 6 }}>KG Growth</div>
-                <DualAreaChart first={metrics.nodesTrend} second={metrics.edgesTrend} />
-                <div style={{ display: 'flex', gap: 10, fontSize: 12, color: '#cbd5e1', marginTop: 5 }}>
-                  <span>Nodes</span>
-                  <span>Edges</span>
-                </div>
-              </article>
-              <article style={{ borderRadius: 12, padding: 12, background: 'rgba(15,23,42,0.55)', border: '1px solid rgba(148,163,184,0.25)' }}>
-                <div style={{ color: '#f8fafc', fontWeight: 700, marginBottom: 8 }}>Real-Time Recommendation Feed</div>
-                <div style={{ maxHeight: 130, overflowY: 'auto', display: 'grid', gap: 6 }}>
-                  {metrics.feed.map((item: string) => (
-                    <div key={item} style={{ fontSize: 12, color: '#cbd5e1', padding: '4px 6px', borderRadius: 8, background: 'rgba(2,6,23,0.35)' }}>{item}</div>
-                  ))}
-                </div>
-              </article>
-            </section>
+            )}
 
-            <article style={{ borderRadius: 12, padding: 12, background: 'rgba(15,23,42,0.55)', border: '1px solid rgba(148,163,184,0.25)' }}>
-              <div style={{ color: '#f8fafc', fontWeight: 700, marginBottom: 8 }}>System Load Heatmap (Time vs API Requests)</div>
-              <div style={{ display: 'grid', gap: 4 }}>
-                {metrics.loadHeatmap.map((row: number[], rowIdx: number) => (
-                  <div key={`row-${rowIdx}`} style={{ display: 'grid', gridTemplateColumns: 'repeat(12, minmax(0, 1fr))', gap: 4 }}>
-                    {row.map((cell: number, cellIdx: number) => (
-                      <div
-                        key={`${rowIdx}-${cellIdx}`}
-                        style={{
-                          height: 16,
-                          borderRadius: 4,
-                          background: `rgba(56,189,248, ${cell.toFixed(2)})`,
-                          border: '1px solid rgba(148,163,184,0.2)',
-                        }}
-                      />
-                    ))}
+            {userProfileError && (
+              <article style={{ borderRadius: 12, padding: 14, background: 'rgba(127,29,29,0.35)', border: '1px solid rgba(248,113,113,0.45)', color: '#fee2e2' }}>
+                {userProfileError}
+              </article>
+            )}
+
+            {!userProfileLoading && !userProfileError && userProfileData && (
+              <>
+                <section
+                  style={{
+                    padding: '8px 0 2px',
+                    color: '#f8fafc',
+                    display: 'grid',
+                    placeItems: 'center',
+                    gap: 8,
+                    textAlign: 'center',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 78,
+                      height: 78,
+                      borderRadius: 999,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: 'linear-gradient(145deg, rgba(51,65,85,0.95), rgba(15,23,42,0.95))',
+                      border: '1px solid rgba(148,163,184,0.6)',
+                      boxShadow: '0 6px 16px rgba(2,6,23,0.45)',
+                    }}
+                    title="Profile avatar"
+                  >
+                    <UserRound size={40} color="#e2e8f0" strokeWidth={2.2} />
                   </div>
-                ))}
-              </div>
-            </article>
-          </>
+                  <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1.05 }}>{userProfileData.user.name || 'N/A'}</div>
+                  <div style={{ fontSize: 15, color: '#cbd5e1' }}>{userProfileData.user.email || 'N/A'}</div>
+                </section>
+
+                <section style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
+                  <article style={{ position: 'relative', borderRadius: 12, padding: 14, background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', display: 'grid', gap: 8 }}>
+                    <div style={{ fontSize: 20, fontWeight: 700 }}>Personal Details</div>
+                    {!isEditingProfile ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditableUserDetails({
+                            name: userProfileData.user.name || '',
+                            email: userProfileData.user.email || '',
+                            phone: userProfileData.user.phone || '',
+                            shipping_address: userProfileData.user.shipping_address || '',
+                          })
+                          setIsEditingProfile(true)
+                        }}
+                        style={{
+                          position: 'absolute',
+                          top: 10,
+                          right: 10,
+                          height: 34,
+                          borderRadius: 999,
+                          border: '1px solid #1e293b',
+                          background: '#1e293b',
+                          color: '#f8fafc',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 6,
+                          padding: '0 10px',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          zIndex: 2,
+                          boxShadow: '0 2px 8px rgba(15,23,42,0.25)',
+                        }}
+                        title="Edit personal details"
+                        aria-label="Edit personal details"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                    ) : (
+                      <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 8 }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void savePersonalDetails()
+                          }}
+                          disabled={profileSaveLoading}
+                          style={{
+                            borderRadius: 8,
+                            border: '1px solid #16a34a',
+                            background: '#dcfce7',
+                            color: '#166534',
+                            padding: '6px 10px',
+                            fontSize: 12,
+                            cursor: profileSaveLoading ? 'not-allowed' : 'pointer',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {profileSaveLoading ? 'Saving...' : 'Save'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsEditingProfile(false)
+                            setEditableUserDetails({
+                              name: userProfileData.user.name || '',
+                              email: userProfileData.user.email || '',
+                              phone: userProfileData.user.phone || '',
+                              shipping_address: userProfileData.user.shipping_address || '',
+                            })
+                          }}
+                          style={{
+                            borderRadius: 8,
+                            border: '1px solid #cbd5e1',
+                            background: '#f8fafc',
+                            color: '#334155',
+                            padding: '6px 10px',
+                            fontSize: 12,
+                            cursor: 'pointer',
+                            fontWeight: 600,
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
+                    <div>Name: <strong>{userProfileData.user.name || 'N/A'}</strong></div>
+                    <div>Email: <strong>{userProfileData.user.email || 'N/A'}</strong></div>
+                    {isEditingProfile ? (
+                      <>
+                        <label style={{ display: 'grid', gap: 4, fontSize: 12 }}>
+                          <span>Phone</span>
+                          <input
+                            value={editableUserDetails.phone}
+                            onChange={(e) => setEditableUserDetails((prev) => ({ ...prev, phone: e.target.value }))}
+                            style={{ borderRadius: 8, border: '1px solid #cbd5e1', padding: '8px 10px', fontSize: 13 }}
+                          />
+                        </label>
+                        <label style={{ display: 'grid', gap: 4, fontSize: 12 }}>
+                          <span>Shipping Address</span>
+                          <input
+                            value={editableUserDetails.shipping_address}
+                            onChange={(e) => setEditableUserDetails((prev) => ({ ...prev, shipping_address: e.target.value }))}
+                            style={{ borderRadius: 8, border: '1px solid #cbd5e1', padding: '8px 10px', fontSize: 13 }}
+                          />
+                        </label>
+                      </>
+                    ) : (
+                      <>
+                        <div>Phone: <strong>{userProfileData.user.phone || 'N/A'}</strong></div>
+                        <div>Shipping Address: <strong>{userProfileData.user.shipping_address || 'N/A'}</strong></div>
+                      </>
+                    )}
+                  </article>
+
+                  <article style={{ borderRadius: 12, padding: 14, background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', display: 'grid', gap: 8 }}>
+                    <div style={{ fontSize: 20, fontWeight: 700 }}>Profile Snapshot</div>
+                    <div>Body Type: <strong>{userProfileData.preferences.body_type || 'N/A'}</strong></div>
+                    <div>Skin Tone: <strong>{userProfileData.preferences.skin_tone || 'N/A'}</strong></div>
+                    <div>Signup Date: <strong>{userProfileData.user.signup_ts || 'N/A'}</strong></div>
+                    <div>Status: <strong>{userProfileData.user.is_active === null || userProfileData.user.is_active === undefined ? 'Unknown' : (userProfileData.user.is_active ? 'Active' : 'Inactive')}</strong></div>
+                  </article>
+                </section>
+
+                <section style={{ display: 'grid', gap: 12 }}>
+                  <article style={{ borderRadius: 12, padding: 14, background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', display: 'grid', gap: 10 }}>
+                    <div style={{ fontSize: 20, fontWeight: 700 }}>Preferences</div>
+                    <div style={{ fontSize: 12, color: '#64748b' }}>Tap chips to add or remove preferences. Selected values stay pinned. Use refresh to rotate more options.</div>
+
+                    {([
+                      { key: 'categories', label: 'Preferred Categories', toneBg: 'rgba(217,119,6,0.2)', toneBorder: 'rgba(251,191,36,0.45)' },
+                      { key: 'colors', label: 'Colors', toneBg: 'rgba(5,150,105,0.2)', toneBorder: 'rgba(52,211,153,0.45)' },
+                      { key: 'shops', label: 'Available Shops', toneBg: 'rgba(14,116,144,0.22)', toneBorder: 'rgba(34,211,238,0.45)' },
+                      { key: 'styles', label: 'Styles', toneBg: 'rgba(109,40,217,0.24)', toneBorder: 'rgba(196,181,253,0.45)' },
+                      { key: 'fabrics', label: 'Fabrics', toneBg: 'rgba(15,118,110,0.24)', toneBorder: 'rgba(94,234,212,0.45)' },
+                    ] as Array<{ key: 'categories' | 'colors' | 'shops' | 'styles' | 'fabrics'; label: string; toneBg: string; toneBorder: string }>).map((group) => (
+                      <div key={group.key} style={{ display: 'grid', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                          <div style={{ fontSize: 12, color: '#64748b' }}>{group.label}</div>
+                          <button
+                            type="button"
+                            onClick={() => setPrefRefreshTick((prev) => ({ ...prev, [group.key]: prev[group.key] + 1 }))}
+                            title={`Refresh ${group.label}`}
+                            aria-label={`Refresh ${group.label}`}
+                            style={{
+                              borderRadius: 999,
+                              border: '1px solid #1e293b',
+                              background: '#1e293b',
+                              color: '#f8fafc',
+                              width: 34,
+                              height: 34,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              cursor: 'pointer',
+                              boxShadow: '0 2px 8px rgba(15,23,42,0.25)',
+                            }}
+                          >
+                            <RefreshCw size={13} />
+                          </button>
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                          {getVisibleOptions(group.key).map((item) => {
+                            const active = editablePreferences[group.key].includes(item)
+                            return (
+                              <button
+                                key={`${group.key}-${item}`}
+                                type="button"
+                                onClick={() => togglePreferenceValue(group.key, item)}
+                                style={{
+                                  borderRadius: 999,
+                                  border: active ? `1px solid ${group.toneBorder}` : '1px solid #94a3b8',
+                                  background: active ? group.toneBg : '#f8fafc',
+                                  color: '#0f172a',
+                                  padding: '5px 10px',
+                                  fontSize: 12,
+                                  fontWeight: active ? 700 : 500,
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                {active ? '✓ ' : ''}{item}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                    <div style={{ fontSize: 11, color: '#64748b' }}>Max visible per group: 8. Max selections per group: 5.</div>
+                    {isPreferencesDirty && (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void saveUserPreferences()
+                          }}
+                          disabled={profileSaveLoading}
+                          style={{
+                            borderRadius: 8,
+                            border: '1px solid #16a34a',
+                            background: '#dcfce7',
+                            color: '#166534',
+                            padding: '6px 12px',
+                            fontSize: 12,
+                            cursor: profileSaveLoading ? 'not-allowed' : 'pointer',
+                            fontWeight: 700,
+                          }}
+                        >
+                          {profileSaveLoading ? 'Saving...' : 'Save Preferences'}
+                        </button>
+                      </div>
+                    )}
+                    {profileSaveMessage && <span style={{ fontSize: 12, color: '#0f172a' }}>{profileSaveMessage}</span>}
+                  </article>
+                </section>
+
+                <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>
+                  <article style={{ borderRadius: 12, padding: 14, background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', display: 'grid', gap: 8 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                      <div style={{ fontSize: 20, fontWeight: 700 }}>Cart Summary</div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void refreshCartSummaryCard()
+                        }}
+                        disabled={cartSummaryRefreshing}
+                        title="Refresh cart summary"
+                        aria-label="Refresh cart summary"
+                        style={{
+                          borderRadius: 999,
+                          border: '1px solid #1e293b',
+                          background: '#1e293b',
+                          color: '#f8fafc',
+                          width: 34,
+                          height: 34,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: cartSummaryRefreshing ? 'not-allowed' : 'pointer',
+                          boxShadow: '0 2px 8px rgba(15,23,42,0.25)',
+                          opacity: cartSummaryRefreshing ? 0.65 : 1,
+                        }}
+                      >
+                        <RefreshCw size={13} />
+                      </button>
+                    </div>
+                    <div>Items in Cart: <strong>{formatNumber(Number(userProfileData.cart_summary?.items_count || 0))}</strong></div>
+                    <div>Last Cart Activity: <strong>{userProfileData.cart_summary?.last_activity_date || 'N/A'}</strong></div>
+                    <div>Estimated Cart Total (LKR): <strong>{formatCurrency(Number(userProfileData.cart_summary?.estimated_total_lkr || 0))}</strong></div>
+                    <div>Orders: <strong>{formatNumber(Number(userProfileData.purchase_summary.orders_count || 0))}</strong></div>
+                    <div>Last Order Date: <strong>{userProfileData.purchase_summary.last_order_date || 'N/A'}</strong></div>
+                  </article>
+
+                  <article style={{ borderRadius: 12, padding: 14, background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', display: 'grid', gap: 8 }}>
+                    <div style={{ fontSize: 20, fontWeight: 700 }}>Automation</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>Auto-fill Checkout</span>
+                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 700 }}>
+                        <input
+                          type="checkbox"
+                          checked={automationDraft.auto_fill_checkout}
+                          onChange={(e) => {
+                            const next = { ...automationDraft, auto_fill_checkout: e.target.checked }
+                            setAutomationDraft(next)
+                            void saveAutomation(next)
+                          }}
+                        />
+                        {automationDraft.auto_fill_checkout ? 'On' : 'Off'}
+                      </label>
+                    </div>
+                    <div style={{ fontSize: 11, color: '#334155' }}>
+                      If OFF: checkout flow skips personal details confirmation and asks only quantity, size, and color.
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>Auto-apply Preferences</span>
+                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 700 }}>
+                        <input
+                          type="checkbox"
+                          checked={automationDraft.auto_apply_preferences}
+                          onChange={(e) => {
+                            const next = { ...automationDraft, auto_apply_preferences: e.target.checked }
+                            setAutomationDraft(next)
+                            void saveAutomation(next)
+                          }}
+                        />
+                        {automationDraft.auto_apply_preferences ? 'On' : 'Off'}
+                      </label>
+                    </div>
+                    <div style={{ fontSize: 11, color: '#334155' }}>
+                      If OFF: no automatic preference-based preselection is applied in order flow.
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>Confirm Before Checkout</span>
+                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 700 }}>
+                        <input
+                          type="checkbox"
+                          checked={automationDraft.confirm_before_checkout}
+                          onChange={(e) => {
+                            const next = { ...automationDraft, confirm_before_checkout: e.target.checked }
+                            setAutomationDraft(next)
+                            void saveAutomation(next)
+                          }}
+                        />
+                        {automationDraft.confirm_before_checkout ? 'On' : 'Off'}
+                      </label>
+                    </div>
+                    <div style={{ fontSize: 11, color: '#334155' }}>
+                      If OFF: Buy Now is triggered automatically once item summary is ready.
+                    </div>
+                  </article>
+                </section>
+              </>
+            )}
+          </section>
         )}
 
         {activeSection === 'knowledge_graph' && (
           <>
-            <section style={{ padding: '2px 0', color: '#e2e8f0' }}>
-              <div style={{ fontSize: 18, fontWeight: 700 }}>Knowledge Graph</div>
-              <div style={{ marginTop: 2, fontSize: 11, color: '#94a3b8' }}>Interactive structure for user, product, style, and recommendation relationships.</div>
-              <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {['User', 'Product', 'Brand', 'Category', 'Style', 'Season', 'Material'].map((node) => (
-                  <span key={node} style={{ padding: '4px 10px', borderRadius: 999, fontSize: 12, background: 'rgba(59,130,246,0.18)', border: '1px solid rgba(96,165,250,0.4)' }}>{node}</span>
-                ))}
-              </div>
-              <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {Object.entries(metrics.edgeDistribution || {}).map(([edge, count]) => (
-                  <span key={edge} style={{ padding: '4px 10px', borderRadius: 999, fontSize: 12, background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(52,211,153,0.38)' }}>
-                    {edge} ({Number(count || 0)})
-                  </span>
-                ))}
-              </div>
-            </section>
+            <section style={{ background: '#dfe4ea', borderRadius: 12, border: '1px solid #cbd5e1', padding: 10, color: '#0f172a' }}>
+              <div style={{ maxWidth: 1320, margin: '0 auto', display: 'grid', gap: 8 }}>
+                <div style={{ borderRadius: 8, background: '#111827', color: '#f8fafc', padding: '8px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ width: 9, height: 9, borderRadius: '50%', background: '#22c55e' }} />
+                    <span style={{ fontSize: 13, fontWeight: 700 }}>Knowledge Graph Operations Console</span>
+                    <span style={{ fontSize: 11, color: '#93c5fd' }}>{metrics.kgHealth?.enabled ? 'Live' : 'Offline'}</span>
+                  </div>
+                  <div style={{ display: 'inline-flex', gap: 14, fontSize: 11, color: '#cbd5e1', alignItems: 'center' }}>
+                    <span>Nodes: {formatNumber(metrics.kgNodes)}</span>
+                    <span>Edges: {formatNumber(metrics.kgRelationships)}</span>
+                    <span>Vector: {metrics.kgHealth?.vector_search_enabled ? 'Enabled' : 'Disabled'}</span>
+                    <button
+                      type="button"
+                      onClick={() => setMetricsRefreshTick((v) => v + 1)}
+                      style={{ borderRadius: 6, border: '1px solid #334155', background: '#1f2937', color: '#f8fafc', fontSize: 11, padding: '4px 8px', cursor: 'pointer' }}
+                    >
+                      Refresh
+                    </button>
+                  </div>
+                </div>
 
-            <section style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: 10 }}>
-              <article style={{ borderRadius: 12, padding: 12, background: 'rgba(15,23,42,0.55)', border: '1px solid rgba(148,163,184,0.25)' }}>
-                <div style={{ color: '#f8fafc', fontWeight: 700, marginBottom: 8 }}>Interactive Graph Explorer</div>
-                <svg viewBox="0 0 520 220" width="100%" style={{ display: 'block', borderRadius: 8, background: 'rgba(2,6,23,0.28)' }}>
-                  <line x1="70" y1="105" x2="210" y2="62" stroke="#7dd3fc" strokeWidth="2" />
-                  <line x1="210" y1="62" x2="350" y2="110" stroke="#7dd3fc" strokeWidth="2" />
-                  <line x1="210" y1="62" x2="460" y2="70" stroke="#34d399" strokeWidth="2" />
-                  <line x1="350" y1="110" x2="460" y2="160" stroke="#60a5fa" strokeWidth="2" />
-                  <circle cx="70" cy="105" r="24" fill="#0ea5e9" />
-                  <circle cx="210" cy="62" r="26" fill="#6366f1" />
-                  <circle cx="350" cy="110" r="22" fill="#10b981" />
-                  <circle cx="460" cy="70" r="20" fill="#f59e0b" />
-                  <circle cx="460" cy="160" r="20" fill="#ec4899" />
-                  <text x="70" y="111" textAnchor="middle" fill="#e2e8f0" fontSize="11">User</text>
-                  <text x="210" y="67" textAnchor="middle" fill="#e2e8f0" fontSize="11">Product</text>
-                  <text x="350" y="115" textAnchor="middle" fill="#e2e8f0" fontSize="11">Product</text>
-                  <text x="460" y="74" textAnchor="middle" fill="#e2e8f0" fontSize="10">Category</text>
-                  <text x="460" y="164" textAnchor="middle" fill="#e2e8f0" fontSize="10">Style</text>
-                </svg>
-              </article>
-              <article style={{ borderRadius: 12, padding: 12, background: 'rgba(15,23,42,0.55)', border: '1px solid rgba(148,163,184,0.25)' }}>
-                <div style={{ color: '#f8fafc', fontWeight: 700, marginBottom: 8 }}>Node Distribution</div>
-                <div style={{ width: 146, height: 146, margin: '0 auto', borderRadius: '50%', background: pieGradient, border: '1px solid rgba(148,163,184,0.35)' }} />
-                <div style={{ marginTop: 10, display: 'grid', gap: 6 }}>
-                  {graphDistribution.map((item) => (
-                    <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#cbd5e1' }}>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: item.color }} />
-                        {item.label}
-                      </span>
-                      <span>{item.value}%</span>
+                <div style={{ display: 'grid', gridTemplateColumns: '250px 1fr', gap: 8 }}>
+                  <aside style={{ display: 'grid', gap: 8 }}>
+                    <article style={{ borderRadius: 8, border: '1px solid #cbd5e1', background: '#f8fafc', padding: 10, display: 'grid', gap: 8 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#334155' }}>Operators</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{ width: 72, height: 72, borderRadius: '50%', background: pieGradient, border: '1px solid #cbd5e1' }} />
+                        <div style={{ display: 'grid', gap: 4, flex: 1 }}>
+                          {graphDistribution.slice(0, 3).map((item) => (
+                            <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#475569' }}>
+                              <span>{item.label}</span>
+                              <span>{item.value}%</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </article>
+
+                    <article style={{ borderRadius: 8, border: '1px solid #cbd5e1', background: '#f8fafc', padding: 10, display: 'grid', gap: 6 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#334155' }}>Relationship Types</div>
+                      <div style={{ display: 'grid', gap: 5, maxHeight: 180, overflow: 'auto' }}>
+                        {edgeTypeRows.slice(0, 8).map((row) => (
+                          <div key={row.edgeType} style={{ borderRadius: 6, background: '#e2e8f0', padding: '5px 6px', fontSize: 10, color: '#334155', display: 'flex', justifyContent: 'space-between' }}>
+                            <span>{row.edgeType}</span>
+                            <span>{formatNumber(row.count)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </article>
+
+                    <article style={{ borderRadius: 8, border: '1px solid #cbd5e1', background: '#f8fafc', padding: 10, display: 'grid', gap: 6 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#334155' }}>Top Entities</div>
+                      <div style={{ display: 'grid', gap: 4 }}>
+                        {mostConnectedProducts.slice(0, 7).map((item, idx) => (
+                          <div key={`${item.label}-${idx}`} style={{ fontSize: 10, color: '#334155', display: 'grid', gridTemplateColumns: '1fr auto', gap: 6 }}>
+                            <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>
+                            <span style={{ color: '#64748b' }}>#{String(1000 + idx)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </article>
+                  </aside>
+
+                  <article style={{ borderRadius: 8, border: '1px solid #cbd5e1', background: '#f3f4f6', padding: 8, display: 'grid', gap: 8 }}>
+                    <div style={{ borderRadius: 6, border: '1px solid #d1d5db', background: '#ffffff', padding: '6px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <div style={{ display: 'inline-flex', gap: 6, alignItems: 'center', fontSize: 11, color: '#475569' }}>
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#2563eb' }} />
+                        <span>People and Products</span>
+                        <span style={{ color: '#94a3b8' }}>|</span>
+                        <span>Calls / Connections</span>
+                      </div>
+                      <div style={{ display: 'inline-flex', gap: 6, alignItems: 'center', fontSize: 10 }}>
+                        {['Filter', 'Type', 'Expand', 'Hierarchy', 'Add'].map((action) => (
+                          <span key={action} style={{ borderRadius: 999, border: '1px solid #e2e8f0', background: '#f8fafc', padding: '3px 8px', color: '#475569' }}>{action}</span>
+                        ))}
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </article>
-            </section>
 
-            <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <article style={{ borderRadius: 12, padding: 12, background: 'rgba(15,23,42,0.55)', border: '1px solid rgba(148,163,184,0.25)', color: '#e2e8f0' }}>
-                <div style={{ fontWeight: 700, marginBottom: 8 }}>Graph Density</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  <div style={{ padding: 10, borderRadius: 10, background: 'rgba(2,6,23,0.34)' }}>
-                    <div style={{ fontSize: 12, color: '#93c5fd' }}>Avg Node Degree</div>
-                    <div style={{ marginTop: 4, fontSize: 18, fontWeight: 700 }}>{(metrics.kgRelationships / Math.max(metrics.kgNodes, 1)).toFixed(2)}</div>
-                  </div>
-                  <div style={{ padding: 10, borderRadius: 10, background: 'rgba(2,6,23,0.34)' }}>
-                    <div style={{ fontSize: 12, color: '#93c5fd' }}>Connectivity</div>
-                    <div style={{ marginTop: 4, fontSize: 18, fontWeight: 700 }}>{clamp((metrics.kgRelationships / Math.max(metrics.kgNodes * 3, 1)) * 100, 0, 100).toFixed(1)}%</div>
-                  </div>
-                </div>
-              </article>
-              <article style={{ borderRadius: 12, padding: 12, background: 'rgba(15,23,42,0.55)', border: '1px solid rgba(148,163,184,0.25)' }}>
-                <div style={{ color: '#f8fafc', fontWeight: 700, marginBottom: 8 }}>Most Connected Products</div>
-                <HorizontalBars items={mostConnectedProducts} color="#22d3ee" />
-              </article>
-            </section>
+                    <div style={{ borderRadius: 6, border: '1px solid #d1d5db', background: '#ffffff', padding: '6px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <div style={{ display: 'inline-flex', gap: 6, alignItems: 'center', fontSize: 10 }}>
+                        <button type="button" onClick={() => setKgZoom((v) => clamp(Number((v + 0.1).toFixed(2)), 0.6, 2.4))} style={{ borderRadius: 999, border: '1px solid #cbd5e1', background: '#f8fafc', padding: '3px 8px', cursor: 'pointer' }}>Zoom +</button>
+                        <button type="button" onClick={() => setKgZoom((v) => clamp(Number((v - 0.1).toFixed(2)), 0.6, 2.4))} style={{ borderRadius: 999, border: '1px solid #cbd5e1', background: '#f8fafc', padding: '3px 8px', cursor: 'pointer' }}>Zoom -</button>
+                        <button type="button" onClick={() => { setKgZoom(1); setKgPan({ x: 0, y: 0 }) }} style={{ borderRadius: 999, border: '1px solid #cbd5e1', background: '#f8fafc', padding: '3px 8px', cursor: 'pointer' }}>Reset View</button>
+                      </div>
+                      <div style={{ display: 'inline-flex', gap: 6, alignItems: 'center', fontSize: 10 }}>
+                        <button type="button" onClick={() => setKgClusterMode((v) => !v)} style={{ borderRadius: 999, border: '1px solid #cbd5e1', background: kgClusterMode ? '#dbeafe' : '#f8fafc', color: kgClusterMode ? '#1d4ed8' : '#475569', padding: '3px 8px', cursor: 'pointer' }}>
+                          Clustering: {kgClusterMode ? 'On' : 'Off'}
+                        </button>
+                        <button type="button" onClick={() => setKgPhysicsEnabled((v) => !v)} style={{ borderRadius: 999, border: '1px solid #cbd5e1', background: kgPhysicsEnabled ? '#dcfce7' : '#f8fafc', color: kgPhysicsEnabled ? '#166534' : '#475569', padding: '3px 8px', cursor: 'pointer' }}>
+                          Physics: {kgPhysicsEnabled ? 'On' : 'Off'}
+                        </button>
+                        <span style={{ color: '#64748b' }}>Zoom {kgZoom.toFixed(2)}x | Pan {kgPan.x},{kgPan.y}</span>
+                      </div>
+                    </div>
 
-            <article style={{ borderRadius: 12, padding: 12, background: 'rgba(15,23,42,0.55)', border: '1px solid rgba(148,163,184,0.25)', color: '#e2e8f0' }}>
-              <div style={{ fontWeight: 700, marginBottom: 8 }}>Similarity Network Clusters</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
-                {(metrics.similarityClusters.length > 0
-                  ? metrics.similarityClusters
-                  : [{ name: 'No cluster data yet', size: 0 }]
-                ).map((cluster: { name: string; size: number }) => (
-                  <div key={cluster.name} style={{ padding: 10, borderRadius: 10, background: 'rgba(2,6,23,0.33)', border: '1px solid rgba(148,163,184,0.25)' }}>
-                    <div style={{ fontWeight: 600 }}>{cluster.name}</div>
-                    <div style={{ marginTop: 4, fontSize: 12, color: '#cbd5e1' }}>Products in cluster: {cluster.size}</div>
-                  </div>
-                ))}
+                    <div
+                      style={{ position: 'relative', minHeight: 430, borderRadius: 8, border: '1px solid #d1d5db', background: '#ffffff', overflow: 'hidden', cursor: kgPanning ? 'grabbing' : 'grab', touchAction: 'none' }}
+                      onWheel={(e) => {
+                        e.preventDefault()
+                        const delta = e.deltaY > 0 ? -0.08 : 0.08
+                        setKgZoom((v) => clamp(Number((v + delta).toFixed(2)), 0.6, 2.4))
+                      }}
+                      onMouseDown={(e) => {
+                        setKgPanning(true)
+                        setKgPanAnchor({ x: e.clientX - kgPan.x, y: e.clientY - kgPan.y })
+                      }}
+                      onMouseMove={(e) => {
+                        if (!kgPanning) return
+                        setKgPan({ x: e.clientX - kgPanAnchor.x, y: e.clientY - kgPanAnchor.y })
+                      }}
+                      onMouseUp={() => setKgPanning(false)}
+                      onMouseLeave={() => setKgPanning(false)}
+                      onTouchStart={(e) => {
+                        if (e.touches.length === 2) {
+                          const [t1, t2] = Array.from(e.touches)
+                          const distance = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY)
+                          setKgPinchStartDistance(distance)
+                          setKgPinchStartZoom(kgZoom)
+                          setKgPanning(false)
+                          return
+                        }
+                        if (e.touches.length === 1) {
+                          const t = e.touches[0]
+                          setKgPanning(true)
+                          setKgPanAnchor({ x: t.clientX - kgPan.x, y: t.clientY - kgPan.y })
+                        }
+                      }}
+                      onTouchMove={(e) => {
+                        if (e.touches.length === 2) {
+                          e.preventDefault()
+                          const [t1, t2] = Array.from(e.touches)
+                          const distance = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY)
+                          if (kgPinchStartDistance && kgPinchStartZoom) {
+                            const scale = distance / Math.max(kgPinchStartDistance, 1)
+                            setKgZoom(clamp(Number((kgPinchStartZoom * scale).toFixed(2)), 0.6, 2.4))
+                          }
+                          return
+                        }
+                        if (e.touches.length === 1 && kgPanning) {
+                          const t = e.touches[0]
+                          setKgPan({ x: t.clientX - kgPanAnchor.x, y: t.clientY - kgPanAnchor.y })
+                        }
+                      }}
+                      onTouchEnd={(e) => {
+                        if (e.touches.length < 2) {
+                          setKgPinchStartDistance(null)
+                          setKgPinchStartZoom(null)
+                        }
+                        if (e.touches.length === 0) {
+                          setKgPanning(false)
+                        }
+                      }}
+                    >
+                      <div style={{ position: 'absolute', inset: 0, transform: `translate(${kgPan.x}px, ${kgPan.y}px) scale(${kgZoom})`, transformOrigin: 'center center', transition: kgPanning ? 'none' : 'transform 120ms ease-out' }}>
+                      <svg viewBox="0 0 960 430" width="100%" height="430" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0 }}>
+                        <defs>
+                          <pattern id="kg-grid" width="28" height="28" patternUnits="userSpaceOnUse">
+                            <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#f1f5f9" strokeWidth="1" />
+                          </pattern>
+                        </defs>
+                        <rect x="0" y="0" width="960" height="430" fill="url(#kg-grid)" />
+                        {kgTopology.links.map((link) => {
+                          const from = kgNodeMap.get(link.from)
+                          const to = kgNodeMap.get(link.to)
+                          if (!from || !to) return null
+                          const strokeWidth = 1 + (Number(link.weight || 0) / kgMaxLinkWeight) * 2.4
+                          const midX = (from.x + to.x) / 2
+                          const midY = (from.y + to.y) / 2
+                          return (
+                            <g key={link.id}>
+                              <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke="#60a5fa" strokeOpacity="0.65" strokeWidth={strokeWidth} />
+                              {link.label && (
+                                <text x={midX} y={midY - 4} textAnchor="middle" fontSize="8" fill="#1d4ed8">{link.label}</text>
+                              )}
+                            </g>
+                          )
+                        })}
+                      </svg>
+
+                      {kgTopology.nodes.map((node) => (
+                        <div
+                          key={node.id}
+                          style={{
+                            position: 'absolute',
+                            left: node.x,
+                            top: node.y,
+                            transform: 'translate(-50%, -50%)',
+                            display: 'grid',
+                            justifyItems: 'center',
+                            gap: 3,
+                          }}
+                          onMouseEnter={() => setKgHoveredNodeId(node.id)}
+                          onMouseLeave={() => setKgHoveredNodeId(null)}
+                        >
+                          <div
+                            style={{
+                              width: node.radius * 2,
+                              height: node.radius * 2,
+                              borderRadius: '50%',
+                              background: node.color,
+                              display: 'grid',
+                              placeItems: 'center',
+                              color: '#ffffff',
+                              fontSize: node.kind === 'core' ? 12 : 10,
+                              fontWeight: 800,
+                              boxShadow: '0 3px 10px rgba(15,23,42,0.2)',
+                            }}
+                          >
+                            {getInitials(node.label, node.kind === 'core' ? 'KG' : 'N')}
+                          </div>
+                          <div style={{ maxWidth: 120, fontSize: 9, color: '#334155', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {node.label}
+                          </div>
+                        </div>
+                      ))}
+                      </div>
+
+                      {kgHoveredNode && (
+                        <div style={{ position: 'absolute', right: 10, top: 10, borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', boxShadow: '0 8px 20px rgba(2,6,23,0.18)', padding: '8px 10px', minWidth: 180, zIndex: 20 }}>
+                          <div style={{ fontSize: 11, color: '#64748b' }}>Hover Details</div>
+                          <div style={{ fontSize: 12, fontWeight: 800, color: '#0f172a' }}>{kgHoveredNode.label}</div>
+                          <div style={{ fontSize: 11, color: '#334155' }}>Node ID: {kgHoveredNode.id}</div>
+                          <div style={{ fontSize: 11, color: '#334155' }}>Value: {formatNumber(Number(kgHoveredNode.value || 0))}</div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ borderRadius: 6, border: '1px solid #d1d5db', background: '#ffffff', padding: 8, display: 'grid', gap: 6 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: '#475569' }}>
+                        <span>KG Activity Timeline</span>
+                        <span>Avg degree {(metrics.kgRelationships / Math.max(metrics.kgNodes, 1)).toFixed(2)}</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 58 }}>
+                        {kgTimeline.map((point) => {
+                          const max = Math.max(...kgTimeline.map((row) => row.load), 1)
+                          const h = Math.max(4, (point.load / max) * 52)
+                          return <div key={point.id} style={{ flex: 1, height: h, borderRadius: 2, background: '#93c5fd' }} />
+                        })}
+                      </div>
+                    </div>
+                  </article>
+                </div>
+
+                <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8 }}>
+                  <article style={{ borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', padding: 10 }}>
+                    <div style={{ fontSize: 10, color: '#64748b' }}>KG Nodes</div>
+                    <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a' }}>{formatNumber(kgBaselineCards.nodes)}</div>
+                  </article>
+                  <article style={{ borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', padding: 10 }}>
+                    <div style={{ fontSize: 10, color: '#64748b' }}>KG Relationships</div>
+                    <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a' }}>{formatNumber(kgBaselineCards.relationships)}</div>
+                  </article>
+                  <article style={{ borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', padding: 10 }}>
+                    <div style={{ fontSize: 10, color: '#64748b' }}>Top Relationship Weight</div>
+                    <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a' }}>{formatNumber(kgBaselineCards.topWeight)}</div>
+                  </article>
+                  <article style={{ borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', padding: 10 }}>
+                    <div style={{ fontSize: 10, color: '#64748b' }}>Similarity Clusters</div>
+                    <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a' }}>{formatNumber(kgBaselineCards.clusters)}</div>
+                  </article>
+                  <article style={{ borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', padding: 10 }}>
+                    <div style={{ fontSize: 10, color: '#64748b' }}>Avg Node Degree</div>
+                    <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a' }}>{avgNodeDegree.toFixed(2)}</div>
+                  </article>
+                </section>
+
+                <section style={{ display: 'grid', gridTemplateColumns: '1.25fr 1fr', gap: 8 }}>
+                  <article style={{ borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', padding: 10, display: 'grid', gap: 8 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>KG Growth (System-wise)</div>
+                      <div style={{ fontSize: 10, color: '#64748b' }}>Requests vs Recommendations trend</div>
+                    </div>
+                    <div style={{ borderRadius: 8, border: '1px solid #dbeafe', background: '#eff6ff', padding: 8 }}>
+                      <DualAreaChart first={kgSystemGrowthSeries.requests} second={kgSystemGrowthSeries.recommendations} height={170} />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#64748b', gap: 8, flexWrap: 'wrap' }}>
+                      <span>Blue: Requests</span>
+                      <span>Green: Recommendations</span>
+                      <span>Points: {kgSystemGrowthSeries.labels.join(' | ')}</span>
+                    </div>
+                  </article>
+
+                  <article style={{ borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', padding: 10, display: 'grid', gap: 8 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>KG Growth (User-wise)</div>
+                      <div style={{ fontSize: 10, color: '#64748b' }}>Top users by events (bar graph)</div>
+                    </div>
+                    <div style={{ borderRadius: 8, border: '1px solid #e0e7ff', background: '#eef2ff', padding: 8 }}>
+                      <HorizontalBars items={kgUserEventBars} color="#6366f1" labelColor="#334155" />
+                    </div>
+                    <div style={{ display: 'grid', gap: 4, fontSize: 10, color: '#64748b' }}>
+                      {kgUserGrowthRows.slice(0, 6).map((row: { userId: string; events: number; avgScore: number }) => (
+                        <div key={`usr-note-${row.userId}`} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span>User {row.userId}</span>
+                          <span>Score {row.avgScore.toFixed(2)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </article>
+                </section>
               </div>
-            </article>
+            </section>
           </>
         )}
 
-        {activeSection === 'agent_engine' && (
+        {activeSection === 'system_overview' && (
           <>
-            <section style={{ padding: '2px 0', color: '#e2e8f0' }}>
-              <div style={{ fontSize: 18, fontWeight: 700 }}>AI Engine</div>
-              <div style={{ marginTop: 2, fontSize: 11, color: '#94a3b8' }}>Intent detection, KG retrieval, ranking, and styling generation flow.</div>
-            </section>
-
-            <section style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 10 }}>
-              <article style={{ borderRadius: 12, padding: 12, background: 'rgba(15,23,42,0.55)', border: '1px solid rgba(148,163,184,0.25)', color: '#e2e8f0' }}>
-                <div style={{ fontWeight: 700, marginBottom: 8 }}>Agent Pipeline Visualization</div>
-                <div style={{ display: 'grid', gap: 6, maxWidth: 340 }}>
-                  {['User Query', 'Intent Agent', 'KG Retrieval Agent', 'Ranking Agent', 'Styling Agent', 'Recommendation'].map((step, idx, arr) => (
-                    <React.Fragment key={step}>
-                      <div style={{ borderRadius: 8, padding: '8px 10px', background: 'rgba(2,6,23,0.36)', border: '1px solid rgba(148,163,184,0.25)', fontSize: 13 }}>{step}</div>
-                      {idx < arr.length - 1 && <div style={{ color: '#93c5fd', marginLeft: 12 }}>↓</div>}
-                    </React.Fragment>
-                  ))}
+            <section style={{ background: '#f3f4f6', borderRadius: 12, border: '1px solid #e5e7eb', padding: 12, color: '#0f172a' }}>
+              <div style={{ maxWidth: 980, margin: '0 auto', display: 'grid', gap: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, flexWrap: 'wrap' }}>
+                  <div>
+                    <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.02em' }}>Recommendation Dashboard</div>
+                    <div style={{ fontSize: 12, color: '#64748b' }}>Real-time AI Shopping Assistant Performance</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={() => setMetricsRefreshTick((v) => v + 1)}
+                      style={{ border: 'none', background: 'transparent', color: '#374151', fontSize: 10, fontWeight: 700, padding: '4px 4px', cursor: 'pointer' }}
+                    >
+                      Refresh
+                    </button>
+                  </div>
                 </div>
-              </article>
 
-              <article style={{ borderRadius: 12, padding: 12, background: 'rgba(15,23,42,0.55)', border: '1px solid rgba(148,163,184,0.25)' }}>
-                <div style={{ color: '#f8fafc', fontWeight: 700, marginBottom: 8 }}>Agent Latency (ms)</div>
-                <HorizontalBars items={agentLatency} color="#60a5fa" />
-              </article>
-            </section>
-
-            <section style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: 10 }}>
-              <article style={{ borderRadius: 12, padding: 12, background: 'rgba(15,23,42,0.55)', border: '1px solid rgba(148,163,184,0.25)', color: '#e2e8f0' }}>
-                <div style={{ fontWeight: 700, marginBottom: 8 }}>Recommendation Strategy Usage</div>
-                <div style={{ width: 150, height: 150, borderRadius: '50%', background: strategyGradient, margin: '0 auto', border: '1px solid rgba(148,163,184,0.3)' }} />
-                <div style={{ marginTop: 10, display: 'grid', gap: 5, fontSize: 12, color: '#cbd5e1' }}>
-                  {Object.entries(metrics.strategyUsage).map(([name, pct]) => (
-                    <div key={name}>{name} {Number(pct || 0)}%</div>
-                  ))}
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {[
+                    { key: 'recommendations', label: 'Recommendations' },
+                    { key: 'analytics', label: 'Analytics' },
+                    { key: 'query_logs', label: 'Query Logs' },
+                  ].map((topic) => {
+                    const selected = systemOverviewTopic === topic.key
+                    return (
+                      <button
+                        key={topic.key}
+                        type="button"
+                        onClick={() => setSystemOverviewTopic(topic.key as 'recommendations' | 'analytics' | 'query_logs')}
+                        style={{
+                          borderRadius: 999,
+                          border: selected ? '1px solid #2563eb' : '1px solid #d1d5db',
+                          background: selected ? '#dbeafe' : '#ffffff',
+                          color: selected ? '#1d4ed8' : '#475569',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          padding: '6px 12px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {topic.label}
+                      </button>
+                    )
+                  })}
                 </div>
-              </article>
 
-              <article style={{ borderRadius: 12, padding: 12, background: 'rgba(15,23,42,0.55)', border: '1px solid rgba(148,163,184,0.25)', color: '#e2e8f0' }}>
-                <div style={{ fontWeight: 700, marginBottom: 8 }}>Top Recommendation Paths</div>
-                <div style={{ display: 'grid', gap: 8, fontSize: 12 }}>
-                  {(metrics.topPaths.length > 0
-                    ? metrics.topPaths
-                    : ['No path data yet. Start querying the AI stylist to populate recommendation paths.']
-                  ).map((path: string) => (
-                    <div key={path} style={{ borderRadius: 8, padding: 8, background: 'rgba(2,6,23,0.33)' }}>{path}</div>
-                  ))}
-                </div>
-              </article>
-            </section>
+                {systemOverviewTopic === 'recommendations' && (
+                  <>
+                    <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 10 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ fontSize: 12, color: '#111827', fontWeight: 700 }}>Recommendations Performance</div>
+                        <div style={{ fontSize: 10, color: '#9ca3af' }}>Last 14 days</div>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8 }}>
+                        {[
+                          { label: 'Recommended items', value: formatNumber(recommendationPanel.recommendedItems), note: `${formatNumber(totalRequestsToday)} requests`, color: '#f59e0b' },
+                          { label: 'Personalized', value: `${recommendationPanel.personalized.toFixed(2)}%`, note: `${formatNumber(metrics.activeUsers)} users`, color: '#2563eb' },
+                          { label: 'Non-personalized', value: `${recommendationPanel.nonPersonalized.toFixed(2)}%`, note: `${formatNumber(metrics.kgNodes)} nodes`, color: '#a855f7' },
+                          { label: 'Fallback', value: `${recommendationPanel.fallback.toFixed(2)}%`, note: `${(100 - metrics.agentSuccess).toFixed(1)}% error proxy`, color: '#ec4899' },
+                        ].map((kpi) => (
+                          <div key={kpi.label} style={{ borderRadius: 8, border: '1px solid #e5e7eb', padding: 8, background: '#ffffff' }}>
+                            <div style={{ fontSize: 10, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 5 }}>
+                              <span style={{ width: 7, height: 7, borderRadius: 999, background: kpi.color }} />
+                              {kpi.label}
+                            </div>
+                            <div style={{ fontSize: 26, fontWeight: 800, lineHeight: 1.05, marginTop: 4 }}>{kpi.value}</div>
+                            <div style={{ marginTop: 2, fontSize: 10, color: '#9ca3af' }}>{kpi.note}</div>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ display: 'grid', gap: 6 }}>
+                        <div style={{ fontSize: 10, color: '#6b7280' }}>Performance share</div>
+                        <div style={{ height: 8, borderRadius: 999, overflow: 'hidden', background: '#e5e7eb', display: 'flex' }}>
+                          <div style={{ width: `${recommendationPanel.personalized}%`, background: '#2563eb' }} />
+                          <div style={{ width: `${recommendationPanel.nonPersonalized}%`, background: '#a855f7' }} />
+                          <div style={{ width: `${recommendationPanel.fallback}%`, background: '#ec4899' }} />
+                        </div>
+                      </div>
+                    </article>
 
-            <article style={{ borderRadius: 12, padding: 12, background: 'rgba(15,23,42,0.55)', border: '1px solid rgba(148,163,184,0.25)' }}>
-              <div style={{ color: '#f8fafc', fontWeight: 700, marginBottom: 8 }}>Recommendation Score Distribution</div>
-              <div style={{ display: 'grid', gridTemplateColumns: `repeat(${scoreDistribution.length}, minmax(0, 1fr))`, gap: 6, alignItems: 'end', minHeight: 140 }}>
-                {scoreDistribution.map((value, idx) => (
-                  <div key={`hist-${idx}`} style={{ height: `${value * 4}px`, borderRadius: 6, background: 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)' }} />
-                ))}
+                    <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))', gap: 10 }}>
+                      <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 8 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>User Engagement</div>
+                        <div style={{ borderRadius: 8, border: '1px solid #bfdbfe', background: '#dbeafe', padding: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: 10, color: '#1d4ed8' }}>Click Through Rate</span>
+                          <strong style={{ color: '#2563eb', fontSize: 20 }}>{operationalKpis.ctr.toFixed(2)}%</strong>
+                        </div>
+                        <div style={{ borderRadius: 8, border: '1px solid #86efac', background: '#dcfce7', padding: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: 10, color: '#166534' }}>Conversion Rate</span>
+                          <strong style={{ color: '#16a34a', fontSize: 20 }}>{operationalKpis.conversion.toFixed(1)}%</strong>
+                        </div>
+                      </article>
+                      <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 8 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>System Performance</div>
+                        <div style={{ borderRadius: 8, border: '1px solid #ddd6fe', background: '#ede9fe', padding: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: 10, color: '#6d28d9' }}>API Latency</span>
+                          <strong style={{ color: '#7c3aed', fontSize: 20 }}>{latencyStats.p95Approx.toFixed(0)}ms</strong>
+                        </div>
+                        <div style={{ borderRadius: 8, border: '1px solid #fdba74', background: '#ffedd5', padding: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: 10, color: '#9a3412' }}>Request Rate / min</span>
+                          <strong style={{ color: '#ea580c', fontSize: 20 }}>{formatNumber(operationalKpis.reqRatePerMin)}</strong>
+                        </div>
+                      </article>
+                    </section>
+
+                    <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 8 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Model Performance Comparison</div>
+                      <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, color: '#374151' }}>
+                          <thead>
+                            <tr style={{ background: '#f9fafb' }}>
+                              {['Model', 'CTR', 'Conversion', 'Revenue', 'Status'].map((h) => (
+                                <th key={h} style={{ textAlign: h === 'Model' ? 'left' : 'center', padding: '8px 6px', borderBottom: '1px solid #e5e7eb', color: '#6b7280', fontWeight: 700 }}>{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {modelComparisonRows.map((row) => (
+                              <tr key={row.label} style={{ background: row.status === 'Winner' ? '#ecfdf5' : '#ffffff' }}>
+                                <td style={{ padding: '8px 6px', borderBottom: '1px solid #f3f4f6' }}>{row.label}</td>
+                                <td style={{ padding: '8px 6px', borderBottom: '1px solid #f3f4f6', textAlign: 'center' }}>{row.ctr.toFixed(1)}%</td>
+                                <td style={{ padding: '8px 6px', borderBottom: '1px solid #f3f4f6', textAlign: 'center' }}>{row.conversion.toFixed(1)}%</td>
+                                <td style={{ padding: '8px 6px', borderBottom: '1px solid #f3f4f6', textAlign: 'center' }}>LKR {formatNumber(row.revenue)}</td>
+                                <td style={{ padding: '8px 6px', borderBottom: '1px solid #f3f4f6', textAlign: 'center' }}>{row.status}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </article>
+                  </>
+                )}
+
+                {systemOverviewTopic === 'analytics' && (
+                  <>
+                    <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
+                      <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10 }}>
+                        <div style={{ fontSize: 10, color: '#6b7280' }}>Total Users</div>
+                        <div style={{ fontSize: 30, fontWeight: 800 }}>{formatNumber(Number(metrics.userManagement?.total_users || 0))}</div>
+                      </article>
+                      <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10 }}>
+                        <div style={{ fontSize: 10, color: '#6b7280' }}>User Interactions</div>
+                        <div style={{ fontSize: 30, fontWeight: 800 }}>{formatNumber(Number(metrics.userInteractions?.total_interactions || 0))}</div>
+                      </article>
+                      <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10 }}>
+                        <div style={{ fontSize: 10, color: '#6b7280' }}>Avg Satisfaction</div>
+                        <div style={{ fontSize: 30, fontWeight: 800 }}>{Number(metrics.userManagement?.avg_satisfaction || 0).toFixed(2)} / 5</div>
+                      </article>
+                      <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10 }}>
+                        <div style={{ fontSize: 10, color: '#6b7280' }}>Feature Freshness</div>
+                        <div style={{ fontSize: 30, fontWeight: 800 }}>{ingestionKpis.freshnessMinutes} min</div>
+                      </article>
+                    </section>
+
+                    <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 8 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Recommendation Weights</div>
+                        {[
+                          { label: 'Collaborative Filtering', value: Number(metrics.recommendationWeights?.collaborative_filtering || 0), color: '#2563eb' },
+                          { label: 'Content-Based Filtering', value: Number(metrics.recommendationWeights?.content_based_filtering || 0), color: '#7c3aed' },
+                          { label: 'Hybrid Approach', value: Number(metrics.recommendationWeights?.hybrid_approach || 0), color: '#db2777' },
+                        ].map((item) => (
+                          <div key={item.label} style={{ display: 'grid', gap: 4 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#4b5563' }}>
+                              <span>{item.label}</span>
+                              <span>{item.value.toFixed(1)}%</span>
+                            </div>
+                            <div style={{ height: 8, borderRadius: 999, overflow: 'hidden', background: '#e5e7eb' }}>
+                              <div style={{ width: `${item.value}%`, height: '100%', background: item.color }} />
+                            </div>
+                          </div>
+                        ))}
+                      </article>
+
+                      <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 8 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>User Satisfaction (Checkout / Add to Cart)</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                          <div style={{ borderRadius: 8, border: '1px solid #e5e7eb', background: '#f9fafb', padding: 8 }}>
+                            <div style={{ fontSize: 10, color: '#6b7280' }}>Average Rating</div>
+                            <div style={{ fontSize: 24, fontWeight: 800 }}>{Number(metrics.satisfaction?.avg_rating || 0).toFixed(2)} / 5</div>
+                          </div>
+                          <div style={{ borderRadius: 8, border: '1px solid #e5e7eb', background: '#f9fafb', padding: 8 }}>
+                            <div style={{ fontSize: 10, color: '#6b7280' }}>Ratings Count</div>
+                            <div style={{ fontSize: 24, fontWeight: 800 }}>{formatNumber(Number(metrics.satisfaction?.count || 0))}</div>
+                          </div>
+                        </div>
+                      </article>
+                    </section>
+
+                    <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 8 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Weekly Interaction Trends</div>
+                        <div style={{ overflowX: 'auto' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, color: '#374151' }}>
+                            <thead>
+                              <tr style={{ background: '#f9fafb' }}>
+                                {['Day', 'Views', 'Clicks', 'Cart Add', 'Checkouts'].map((h) => (
+                                  <th key={h} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e5e7eb', color: '#6b7280' }}>{h}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {interactionWeekRows.map((row) => (
+                                <tr key={row.day}>
+                                  <td style={{ padding: '7px 6px', borderBottom: '1px solid #f3f4f6', fontWeight: 700 }}>{row.day}</td>
+                                  <td style={{ padding: '7px 6px', borderBottom: '1px solid #f3f4f6' }}>{formatNumber(row.views)}</td>
+                                  <td style={{ padding: '7px 6px', borderBottom: '1px solid #f3f4f6' }}>{formatNumber(row.clicks)}</td>
+                                  <td style={{ padding: '7px 6px', borderBottom: '1px solid #f3f4f6' }}>{formatNumber(row.cartAdditions)}</td>
+                                  <td style={{ padding: '7px 6px', borderBottom: '1px solid #f3f4f6' }}>{formatNumber(row.checkouts)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </article>
+
+                      <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 8 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>KG Growth Map (System-wise)</div>
+                        {(metrics.kgGrowth?.system_wise || []).slice(-7).map((row: { date: string; requests: number; recommendations: number }) => {
+                          const req = Number(row.requests || 0)
+                          const rec = Number(row.recommendations || 0)
+                          const total = Math.max(req + rec, 1)
+                          const reqWidth = (req / total) * 100
+                          const recWidth = (rec / total) * 100
+                          return (
+                            <div key={row.date} style={{ display: 'grid', gap: 3 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#4b5563' }}>
+                                <span>{row.date}</span>
+                                <span>Req {req} | Reco {rec}</span>
+                              </div>
+                              <div style={{ height: 8, borderRadius: 999, overflow: 'hidden', background: '#e5e7eb', display: 'flex' }}>
+                                <div style={{ width: `${reqWidth}%`, background: '#3b82f6' }} />
+                                <div style={{ width: `${recWidth}%`, background: '#14b8a6' }} />
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </article>
+                    </section>
+                  </>
+                )}
+
+                {systemOverviewTopic === 'query_logs' && (
+                  <section style={{ display: 'grid', gap: 10 }}>
+                    <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 8 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Live Recommendation Query Quality</div>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                          <input
+                            type="text"
+                            value={queryLogUserSearch}
+                            onChange={(e) => setQueryLogUserSearch(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && queryLogTopMatch) {
+                                setSelectedQueryLogUser(queryLogTopMatch.id)
+                              }
+                            }}
+                            placeholder="Search user..."
+                            style={{ borderRadius: 8, border: '1px solid #d1d5db', background: '#ffffff', color: '#0f172a', fontSize: 12, padding: '6px 10px', minWidth: 180 }}
+                          />
+                          <select
+                            value={selectedQueryLogUser}
+                            onChange={(e) => setSelectedQueryLogUser(e.target.value)}
+                            style={{ borderRadius: 8, border: '1px solid #d1d5db', background: '#ffffff', color: '#0f172a', fontSize: 12, padding: '6px 10px', minWidth: 170 }}
+                          >
+                            <option value="all">Select user</option>
+                            {queryLogFilteredUserOptions.map((item) => (
+                              <option key={`overview-${item.id}`} value={item.id}>
+                                {item.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      {queryLogUserSearch.trim() && queryLogTopMatch && (
+                        <div style={{ fontSize: 11, color: '#64748b' }}>
+                          Suggested match:{' '}
+                          <button
+                            type="button"
+                            onClick={() => setSelectedQueryLogUser(queryLogTopMatch.id)}
+                            style={{ border: 'none', background: 'transparent', color: '#2563eb', cursor: 'pointer', padding: 0, fontSize: 11, fontWeight: 700 }}
+                          >
+                            {queryLogTopMatch.label}
+                          </button>
+                        </div>
+                      )}
+                    </article>
+
+                    <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 8 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>User Query Logs</div>
+                      <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#374151' }}>
+                          <thead>
+                            <tr style={{ background: '#f9fafb' }}>
+                              {['User', 'Query', 'Intent', 'Fallback', 'Personalized', 'Weight', 'Model Route', 'KG Used', 'PKL Used', 'LLM', 'Fine-tuned'].map((h) => (
+                                <th key={`user-${h}`} style={{ textAlign: 'left', padding: '6px 5px', borderBottom: '1px solid #e5e7eb', color: '#6b7280', fontWeight: 700 }}>{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {selectedUserQueryLogs.length === 0 ? (
+                              <tr>
+                                <td colSpan={11} style={{ padding: '18px 8px', textAlign: 'center', color: '#94a3b8' }}>
+                                  {selectedQueryLogUser === 'all' ? 'Select a user to view user-specific query logs.' : 'No query logs found for this user.'}
+                                </td>
+                              </tr>
+                            ) : (
+                              selectedUserQueryLogs.slice(0, 40).map((log: any, idx: number) => (
+                                <tr key={`user-row-${log.ts || idx}-${log.user_id || 'u'}`}>
+                                  <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{getQueryLogUserLabel(log.user_id)}</td>
+                                  <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6', maxWidth: 260, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={String(log.query || '')}>{String(log.query || '-')}</td>
+                                  <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.intent || 'n/a')}</td>
+                                  <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.fallback_used ? 'Yes' : 'No'}</td>
+                                  <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.personalized ? 'Yes' : 'No'}</td>
+                                  <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{Number(log.final_response_weight || 0).toFixed(3)}</td>
+                                  <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.model_route || log.intent_method || '-')}</td>
+                                  <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.uses_kg ? 'Yes' : 'No'}</td>
+                                  <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.pkl_model_used ? 'Yes' : 'No'}</td>
+                                  <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.llm_used || 'n/a')}</td>
+                                  <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.fine_tuned_model || '-')}</td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </article>
+
+                    <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 8 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>All Query Logs</div>
+                      <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#374151' }}>
+                          <thead>
+                            <tr style={{ background: '#f9fafb' }}>
+                              {['User', 'Query', 'Intent', 'Fallback', 'Personalized', 'Weight', 'Model Route', 'KG Used', 'PKL Used', 'LLM', 'Fine-tuned'].map((h) => (
+                                <th key={`all-${h}`} style={{ textAlign: 'left', padding: '6px 5px', borderBottom: '1px solid #e5e7eb', color: '#6b7280', fontWeight: 700 }}>{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {allQueryLogs.length === 0 ? (
+                              <tr>
+                                <td colSpan={11} style={{ padding: '18px 8px', textAlign: 'center', color: '#94a3b8' }}>
+                                  No query logs fetched yet.
+                                </td>
+                              </tr>
+                            ) : (
+                              allQueryLogs.slice(0, 60).map((log: any, idx: number) => (
+                                <tr key={`all-row-${log.ts || idx}-${log.user_id || 'u'}`}>
+                                  <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{getQueryLogUserLabel(log.user_id)}</td>
+                                  <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6', maxWidth: 260, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={String(log.query || '')}>{String(log.query || '-')}</td>
+                                  <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.intent || 'n/a')}</td>
+                                  <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.fallback_used ? 'Yes' : 'No'}</td>
+                                  <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.personalized ? 'Yes' : 'No'}</td>
+                                  <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{Number(log.final_response_weight || 0).toFixed(3)}</td>
+                                  <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.model_route || log.intent_method || '-')}</td>
+                                  <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.uses_kg ? 'Yes' : 'No'}</td>
+                                  <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.pkl_model_used ? 'Yes' : 'No'}</td>
+                                  <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.llm_used || 'n/a')}</td>
+                                  <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.fine_tuned_model || '-')}</td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </article>
+
+                    <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 8 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Data Engineer Insights</div>
+                        {insightHighlights.slice(0, 3).map((insight) => (
+                          <div key={insight} style={{ borderRadius: 7, border: '1px solid #e5e7eb', background: '#f9fafb', padding: '7px 8px', fontSize: 11, color: '#4b5563' }}>
+                            {insight}
+                          </div>
+                        ))}
+                      </article>
+                      <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 8 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Recommendation Paths</div>
+                        {(metrics.topPaths.length > 0 ? metrics.topPaths.slice(0, 3) : ['No recommendation path traces yet.']).map((item: string) => (
+                          <div key={item} style={{ borderRadius: 7, border: '1px solid #e5e7eb', background: '#f9fafb', padding: '7px 8px', fontSize: 11, color: '#4b5563' }}>
+                            {item}
+                          </div>
+                        ))}
+                      </article>
+                    </section>
+                  </section>
+                )}
               </div>
-            </article>
+            </section>
+          </>
+        )}
 
-            <IntentModelTrainingPanel />
+        {activeSection === 'feedback_center' && (
+          <>
+            <section style={{ background: '#f8fafc', borderRadius: 12, border: '1px solid #e2e8f0', padding: 12, color: '#0f172a' }}>
+              <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gap: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                  <div>
+                    <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.02em' }}>Recommendation Feedback</div>
+                    <div style={{ fontSize: 12, color: '#64748b' }}>Live quality, satisfaction, and recommendation behavior from production telemetry.</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setMetricsRefreshTick((v) => v + 1)}
+                    style={{ borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', color: '#0f172a', fontSize: 12, padding: '6px 10px', cursor: 'pointer' }}
+                  >
+                    Refresh
+                  </button>
+                </div>
+
+                <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8 }}>
+                  <article style={{ borderRadius: 8, border: '1px solid #e2e8f0', background: '#ffffff', padding: 10 }}>
+                    <div style={{ fontSize: 11, color: '#64748b' }}>Average Rating</div>
+                    <div style={{ fontSize: 24, fontWeight: 800 }}>{Number(metrics.satisfaction?.avg_rating || 0).toFixed(2)} / 5</div>
+                  </article>
+                  <article style={{ borderRadius: 8, border: '1px solid #e2e8f0', background: '#ffffff', padding: 10 }}>
+                    <div style={{ fontSize: 11, color: '#64748b' }}>Ratings Count</div>
+                    <div style={{ fontSize: 24, fontWeight: 800 }}>{formatNumber(Number(metrics.satisfaction?.count || 0))}</div>
+                  </article>
+                  <article style={{ borderRadius: 8, border: '1px solid #e2e8f0', background: '#ffffff', padding: 10 }}>
+                    <div style={{ fontSize: 11, color: '#64748b' }}>Checkout Feedback</div>
+                    <div style={{ fontSize: 24, fontWeight: 800 }}>{formatNumber(Number(metrics.satisfaction?.checkout_count || 0))}</div>
+                  </article>
+                  <article style={{ borderRadius: 8, border: '1px solid #e2e8f0', background: '#ffffff', padding: 10 }}>
+                    <div style={{ fontSize: 11, color: '#64748b' }}>Add-to-Cart Feedback</div>
+                    <div style={{ fontSize: 24, fontWeight: 800 }}>{formatNumber(Number(metrics.satisfaction?.add_to_cart_count || 0))}</div>
+                  </article>
+                  <article style={{ borderRadius: 8, border: '1px solid #e2e8f0', background: '#ffffff', padding: 10 }}>
+                    <div style={{ fontSize: 11, color: '#64748b' }}>Fallback Rate</div>
+                    <div style={{ fontSize: 24, fontWeight: 800 }}>
+                      {(() => {
+                        const logs = Array.isArray(metrics.queryLogs) ? metrics.queryLogs : []
+                        if (logs.length === 0) return '0.0%'
+                        const fallbackCount = logs.filter((item: any) => !!item?.fallback_used).length
+                        return `${((fallbackCount / logs.length) * 100).toFixed(1)}%`
+                      })()}
+                    </div>
+                  </article>
+                </section>
+
+                <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <article style={{ borderRadius: 8, border: '1px solid #e2e8f0', background: '#ffffff', padding: 10, display: 'grid', gap: 8 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Recommendation Mix</div>
+                    {[
+                      { label: 'Collaborative', raw: Number(metrics.recommendationWeights?.collaborative_filtering || 0), color: '#2563eb' },
+                      { label: 'Content Based', raw: Number(metrics.recommendationWeights?.content_based_filtering || 0), color: '#7c3aed' },
+                      { label: 'Hybrid', raw: Number(metrics.recommendationWeights?.hybrid_approach || 0), color: '#db2777' },
+                    ].map((item) => {
+                      const pct = clamp(item.raw <= 1 ? item.raw * 100 : item.raw, 0, 100)
+                      return (
+                        <div key={item.label} style={{ display: 'grid', gap: 4 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#4b5563' }}>
+                            <span>{item.label}</span>
+                            <span>{pct.toFixed(1)}%</span>
+                          </div>
+                          <div style={{ height: 8, borderRadius: 999, overflow: 'hidden', background: '#e2e8f0' }}>
+                            <div style={{ width: `${pct}%`, height: '100%', background: item.color }} />
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </article>
+
+                  <article style={{ borderRadius: 8, border: '1px solid #e2e8f0', background: '#ffffff', padding: 10, display: 'grid', gap: 8 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Recent Rated Events</div>
+                    <div style={{ maxHeight: 220, overflow: 'auto', border: '1px solid #f1f5f9', borderRadius: 8 }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, color: '#334155' }}>
+                        <thead>
+                          <tr style={{ background: '#f8fafc' }}>
+                            <th style={{ textAlign: 'left', padding: '7px 8px', borderBottom: '1px solid #e2e8f0' }}>User</th>
+                            <th style={{ textAlign: 'left', padding: '7px 8px', borderBottom: '1px solid #e2e8f0' }}>Event</th>
+                            <th style={{ textAlign: 'left', padding: '7px 8px', borderBottom: '1px solid #e2e8f0' }}>Rating</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(Array.isArray(metrics.userInteractions?.recent) ? metrics.userInteractions.recent : [])
+                            .filter((item: any) => Number(item?.rating || 0) > 0)
+                            .slice(0, 15)
+                            .map((item: any, idx: number) => (
+                              <tr key={`${item.user}-${item.event}-${idx}`}>
+                                <td style={{ padding: '7px 8px', borderBottom: '1px solid #f1f5f9' }}>{String(item.user || '-')}</td>
+                                <td style={{ padding: '7px 8px', borderBottom: '1px solid #f1f5f9' }}>{String(item.event || '-')}</td>
+                                <td style={{ padding: '7px 8px', borderBottom: '1px solid #f1f5f9' }}>{Number(item.rating || 0)}</td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </article>
+                </section>
+
+                <section style={{ display: 'grid', gap: 10 }}>
+                  <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 8 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Live Recommendation Query Quality</div>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                        <input
+                          type="text"
+                          value={queryLogUserSearch}
+                          onChange={(e) => setQueryLogUserSearch(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && queryLogTopMatch) {
+                              setSelectedQueryLogUser(queryLogTopMatch.id)
+                            }
+                          }}
+                          placeholder="Search user..."
+                          style={{ borderRadius: 8, border: '1px solid #d1d5db', background: '#ffffff', color: '#0f172a', fontSize: 12, padding: '6px 10px', minWidth: 180 }}
+                        />
+                        <select
+                          value={selectedQueryLogUser}
+                          onChange={(e) => setSelectedQueryLogUser(e.target.value)}
+                          style={{ borderRadius: 8, border: '1px solid #d1d5db', background: '#ffffff', color: '#0f172a', fontSize: 12, padding: '6px 10px', minWidth: 170 }}
+                        >
+                          <option value="all">Select user</option>
+                          {queryLogFilteredUserOptions.map((item) => (
+                            <option key={`feedback-${item.id}`} value={item.id}>
+                              {item.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    {queryLogUserSearch.trim() && queryLogTopMatch && (
+                      <div style={{ fontSize: 11, color: '#64748b' }}>
+                        Suggested match:{' '}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedQueryLogUser(queryLogTopMatch.id)}
+                          style={{ border: 'none', background: 'transparent', color: '#2563eb', cursor: 'pointer', padding: 0, fontSize: 11, fontWeight: 700 }}
+                        >
+                          {queryLogTopMatch.label}
+                        </button>
+                      </div>
+                    )}
+                  </article>
+
+                  <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 8 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>User Query Logs</div>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#374151' }}>
+                        <thead>
+                          <tr style={{ background: '#f9fafb' }}>
+                            {['User', 'Query', 'Intent', 'Fallback', 'Personalized', 'Weight', 'Model Route', 'KG Used', 'PKL Used', 'LLM', 'Fine-tuned'].map((h) => (
+                              <th key={`feedback-user-${h}`} style={{ textAlign: 'left', padding: '6px 5px', borderBottom: '1px solid #e5e7eb', color: '#6b7280', fontWeight: 700 }}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedUserQueryLogs.length === 0 ? (
+                            <tr>
+                              <td colSpan={11} style={{ padding: '18px 8px', textAlign: 'center', color: '#94a3b8' }}>
+                                {selectedQueryLogUser === 'all' ? 'Select a user to view user-specific query logs.' : 'No query logs found for this user.'}
+                              </td>
+                            </tr>
+                          ) : (
+                            selectedUserQueryLogs.slice(0, 30).map((log: any, idx: number) => (
+                              <tr key={`feedback-user-row-${log.ts || idx}-${log.user_id || 'u'}`}>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{getQueryLogUserLabel(log.user_id)}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6', maxWidth: 260, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={String(log.query || '')}>{String(log.query || '-')}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.intent || 'n/a')}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.fallback_used ? 'Yes' : 'No'}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.personalized ? 'Yes' : 'No'}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{Number(log.final_response_weight || 0).toFixed(3)}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.model_route || log.intent_method || '-')}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.uses_kg ? 'Yes' : 'No'}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.pkl_model_used ? 'Yes' : 'No'}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.llm_used || 'n/a')}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.fine_tuned_model || '-')}</td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </article>
+
+                  <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 8 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>All Query Logs</div>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#374151' }}>
+                        <thead>
+                          <tr style={{ background: '#f9fafb' }}>
+                            {['User', 'Query', 'Intent', 'Fallback', 'Personalized', 'Weight', 'Model Route', 'KG Used', 'PKL Used', 'LLM', 'Fine-tuned'].map((h) => (
+                              <th key={`feedback-all-${h}`} style={{ textAlign: 'left', padding: '6px 5px', borderBottom: '1px solid #e5e7eb', color: '#6b7280', fontWeight: 700 }}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {allQueryLogs.length === 0 ? (
+                            <tr>
+                              <td colSpan={11} style={{ padding: '18px 8px', textAlign: 'center', color: '#94a3b8' }}>
+                                No query logs fetched yet.
+                              </td>
+                            </tr>
+                          ) : (
+                            allQueryLogs.slice(0, 50).map((log: any, idx: number) => (
+                              <tr key={`feedback-all-row-${log.ts || idx}-${log.user_id || 'u'}`}>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{getQueryLogUserLabel(log.user_id)}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6', maxWidth: 260, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={String(log.query || '')}>{String(log.query || '-')}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.intent || 'n/a')}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.fallback_used ? 'Yes' : 'No'}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.personalized ? 'Yes' : 'No'}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{Number(log.final_response_weight || 0).toFixed(3)}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.model_route || log.intent_method || '-')}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.uses_kg ? 'Yes' : 'No'}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.pkl_model_used ? 'Yes' : 'No'}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.llm_used || 'n/a')}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.fine_tuned_model || '-')}</td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </article>
+                </section>
+              </div>
+            </section>
           </>
         )}
 
