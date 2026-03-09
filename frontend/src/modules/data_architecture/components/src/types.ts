@@ -1,5 +1,6 @@
 export type DashboardPageId =
   | 'overview'
+  | 'live_validation'
   | 'governance'
   | 'explainability'
   | 'actions'
@@ -385,4 +386,66 @@ export interface SeasonalStorageAnalyticsResponse {
   }>;
   highlighted_datasets: string[];
   optimization_insight: string;
+}
+
+export interface LiveInputSchemaColumn {
+  column: string;
+  dtype: string;
+}
+
+export interface LiveInputDataset {
+  id: string;
+  dataset_name: string;
+  file_name: string;
+  path: string;
+  source_layer: string;
+  size_bytes: number;
+  row_count_estimate: number;
+  last_modified: string;
+  columns: string[];
+  schema: LiveInputSchemaColumn[];
+  sample_rows: Array<Record<string, unknown>>;
+}
+
+export interface LiveInputDatasetsResponse {
+  generated_at: string;
+  count: number;
+  datasets: LiveInputDataset[];
+}
+
+export interface LiveValidationMetricsSnapshot {
+  total_records_ingested_today: number;
+  bronze_files_count: number;
+  active_drift_alerts: number;
+  data_quality_score: number;
+  total_storage_used_gb: number;
+  pipeline_status: string;
+}
+
+export interface LiveValidationResult {
+  generated_at: string;
+  status_message: string;
+  drift_detected: boolean;
+  risk_level: string;
+  drift_counts: DriftCounts;
+  diff: {
+    new_columns?: string[];
+    missing_columns?: string[];
+    dtype_changes?: Array<{ column: string; expected: string; actual: string }>;
+    renames?: Array<{ old_name: string; new_name: string; similarity: number; type_match: boolean }>;
+  };
+  event_id: string | null;
+  baseline_dataset_id: string;
+  baseline_schema: LiveInputSchemaColumn[];
+  uploaded_schema: LiveInputSchemaColumn[];
+  uploaded_preview: Array<Record<string, unknown>>;
+  ingestion: {
+    saved: boolean;
+    local_path: string | null;
+    size_bytes?: number;
+    azure_blob_path?: string;
+    azure_upload_error?: string;
+  };
+  before_metrics: LiveValidationMetricsSnapshot;
+  after_metrics: LiveValidationMetricsSnapshot;
 }

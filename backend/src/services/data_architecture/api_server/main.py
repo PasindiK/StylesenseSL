@@ -3,7 +3,7 @@ FastAPI Server for Lakehouse Dashboard
 Provides REST endpoints to serve backend data to the frontend
 """
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -17,6 +17,8 @@ import logging
 import runpy
 import io
 import contextlib
+import re
+from difflib import SequenceMatcher
 from collections import defaultdict
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
@@ -1146,6 +1148,9 @@ async def approve_drift(request: ApproveRejectRequest):
         with open(event_path, 'w', encoding='utf-8') as f:
             json.dump(event_data, f, indent=2)
         
+        # Invalidate cache so dashboard reflects approval immediately
+        _invalidate_metrics_cache()
+        
         return {
             "status": "approved",
             "table": request.table,
@@ -2192,6 +2197,471 @@ def _generate_stakeholder_views_job() -> Dict[str, Any]:
         }
 
 
+def _path_within(child_path: str, parent_path: str) -> bool:
+    try:
+        child_abs = os.path.abspath(child_path)
+        parent_abs = os.path.abspath(parent_path)
+        return os.path.commonpath([child_abs, parent_abs]) == parent_abs
+    except Exception:
+        return False
+
+
+def _sanitize_name_token(raw_value: str) -> str:
+    cleaned = re.sub(r"[^A-Za-z0-9_-]+", "_", (raw_value or "").strip())
+    cleaned = re.sub(r"_+", "_", cleaned).strip("_").lower()
+    return cleaned or "dataset"
+
+
+def _collect_live_input_csv_paths() -> List[str]:
+    discovered: List[str] = []
+    for root_dir in [DATA_DIR, BRONZE_RAW_DIR]:
+        if not os.path.exists(root_dir):
+            continue
+
+        for root, _, names in os.walk(root_dir):
+            for name in names:
+                if not name.lower().endswith(".csv"):
+                    continue
+                full_path = os.path.join(root, name)
+                if os.path.isfile(full_path):
+                    discovered.append(full_path)
+
+    unique_paths = sorted(set(discovered), key=lambda path: os.path.getmtime(path), reverse=True)
+    return unique_paths
+
+
+def _resolve_live_input_dataset_path(dataset_id: str) -> str:
+    normalized = os.path.normpath(str(dataset_id or "").replace("/", os.sep).replace("\\", os.sep))
+    candidate = os.path.abspath(os.path.join(BASE_DIR, normalized))
+
+    if not _path_within(candidate, BASE_DIR):
+        raise HTTPException(status_code=400, detail="Invalid baseline dataset path.")
+
+    if not os.path.exists(candidate) or not os.path.isfile(candidate):
+        raise HTTPException(status_code=404, detail="Baseline dataset not found.")
+
+    if not candidate.lower().endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Baseline dataset must be a CSV file.")
+
+    if not (_path_within(candidate, DATA_DIR) or _path_within(candidate, BRONZE_RAW_DIR)):
+        raise HTTPException(status_code=400, detail="Baseline dataset must be under data or bronze/raw.")
+
+    return candidate
+
+
+def _read_csv_preview_rows(csv_path: str, sample_rows: int = 5) -> List[Dict[str, Any]]:
+    import pandas as pd
+
+    df = pd.read_csv(csv_path, nrows=max(1, sample_rows), low_memory=False)
+    return json.loads(df.to_json(orient="records", date_format="iso"))
+
+
+def _infer_series_dtype(series: Any) -> str:
+    import pandas as pd
+    from pandas.api.types import is_bool_dtype, is_datetime64_any_dtype, is_float_dtype, is_integer_dtype
+
+    if is_bool_dtype(series):
+        return "boolean"
+    if is_integer_dtype(series):
+        return "integer"
+    if is_float_dtype(series):
+        return "float"
+    if is_datetime64_any_dtype(series):
+        return "datetime"
+
+    non_null = series.dropna()
+    if non_null.empty:
+        return "string"
+
+    sample = non_null.astype(str).str.strip()
+    if sample.empty:
+        return "string"
+
+    bool_tokens = {"true", "false", "yes", "no", "0", "1"}
+    bool_ratio = float(sample.str.lower().isin(bool_tokens).mean())
+    if bool_ratio >= 0.98:
+        return "boolean"
+
+    numeric = pd.to_numeric(sample, errors="coerce")
+    numeric_ratio = float(numeric.notna().mean())
+    if numeric_ratio >= 0.98:
+        if bool((numeric.dropna() % 1 == 0).all()):
+            return "integer"
+        return "float"
+
+    dt_ratio = float(pd.to_datetime(sample, errors="coerce", utc=True).notna().mean())
+    if dt_ratio >= 0.98:
+        return "datetime"
+
+    return "string"
+
+
+def _infer_schema_map_from_dataframe(df: Any) -> Dict[str, str]:
+    schema: Dict[str, str] = {}
+    for col_name in list(df.columns):
+        schema[str(col_name)] = _infer_series_dtype(df[col_name])
+    return schema
+
+
+def _infer_schema_map_from_csv(csv_path: str, row_limit: int = 5000) -> Dict[str, str]:
+    import pandas as pd
+
+    df = pd.read_csv(csv_path, nrows=max(100, row_limit), low_memory=False)
+    return _infer_schema_map_from_dataframe(df)
+
+
+def _detect_schema_renames(
+    missing_columns: List[str],
+    new_columns: List[str],
+    expected_types: Dict[str, str],
+    actual_types: Dict[str, str],
+    similarity_threshold: float = 0.72,
+) -> Dict[str, Any]:
+    renames: List[Dict[str, Any]] = []
+    used_missing = set()
+    used_new = set()
+
+    for missing_col in missing_columns:
+        best_match = None
+        best_score = 0.0
+        for new_col in new_columns:
+            if new_col in used_new:
+                continue
+
+            similarity = SequenceMatcher(None, missing_col.lower(), new_col.lower()).ratio()
+            type_match = expected_types.get(missing_col) == actual_types.get(new_col)
+            weighted_score = similarity + (0.15 if type_match else 0.0)
+
+            if similarity >= similarity_threshold and weighted_score > best_score:
+                best_score = weighted_score
+                best_match = (new_col, similarity, type_match)
+
+        if best_match is None:
+            continue
+
+        matched_name, similarity, type_match = best_match
+        used_missing.add(missing_col)
+        used_new.add(matched_name)
+        renames.append(
+            {
+                "old_name": missing_col,
+                "new_name": matched_name,
+                "similarity": round(float(similarity), 3),
+                "type_match": bool(type_match),
+            }
+        )
+
+    remaining_missing = [col for col in missing_columns if col not in used_missing]
+    remaining_new = [col for col in new_columns if col not in used_new]
+    return {
+        "renames": renames,
+        "remaining_missing": remaining_missing,
+        "remaining_new": remaining_new,
+    }
+
+
+def _compare_schema_maps(expected_schema: Dict[str, str], actual_schema: Dict[str, str]) -> Dict[str, Any]:
+    expected_cols = list(expected_schema.keys())
+    actual_cols = list(actual_schema.keys())
+
+    new_columns = [col for col in actual_cols if col not in expected_schema]
+    missing_columns = [col for col in expected_cols if col not in actual_schema]
+
+    dtype_changes: List[Dict[str, str]] = []
+    for col in expected_cols:
+        if col not in actual_schema:
+            continue
+        expected_dtype = expected_schema.get(col)
+        actual_dtype = actual_schema.get(col)
+        if expected_dtype != actual_dtype:
+            dtype_changes.append(
+                {
+                    "column": col,
+                    "expected": str(expected_dtype),
+                    "actual": str(actual_dtype),
+                }
+            )
+
+    rename_detection = _detect_schema_renames(
+        missing_columns=missing_columns,
+        new_columns=new_columns,
+        expected_types=expected_schema,
+        actual_types=actual_schema,
+    )
+
+    return {
+        "new_columns": rename_detection["remaining_new"],
+        "missing_columns": rename_detection["remaining_missing"],
+        "dtype_changes": dtype_changes,
+        "renames": rename_detection["renames"],
+    }
+
+
+def _build_drift_counts(diff_payload: Dict[str, Any]) -> Dict[str, int]:
+    return {
+        "new": len(diff_payload.get("new_columns", [])),
+        "missing": len(diff_payload.get("missing_columns", [])),
+        "dtype": len(diff_payload.get("dtype_changes", [])),
+        "renames": len(diff_payload.get("renames", [])),
+    }
+
+
+def _derive_drift_risk(diff_payload: Dict[str, Any]) -> str:
+    counts = _build_drift_counts(diff_payload)
+    total_changes = sum(counts.values())
+
+    if counts["missing"] > 0 or counts["dtype"] >= 4 or total_changes >= 8:
+        return "high"
+    if counts["dtype"] > 0 or counts["renames"] > 0 or counts["new"] >= 3:
+        return "medium"
+    return "low"
+
+
+def _snapshot_demo_metrics(summary_payload: Dict[str, Any]) -> Dict[str, Any]:
+    overview = summary_payload.get("overview", {}) if isinstance(summary_payload, dict) else {}
+    overview_metrics = overview.get("metrics", {}) if isinstance(overview, dict) else {}
+
+    storage = summary_payload.get("storage", {}) if isinstance(summary_payload, dict) else {}
+    storage_cards = storage.get("metric_cards", {}) if isinstance(storage, dict) else {}
+
+    actions = summary_payload.get("actions", {}) if isinstance(summary_payload, dict) else {}
+
+    return {
+        "total_records_ingested_today": int(overview_metrics.get("total_records_ingested_today", 0) or 0),
+        "bronze_files_count": int(overview_metrics.get("bronze_files_count", 0) or 0),
+        "active_drift_alerts": int(overview_metrics.get("active_drift_alerts", 0) or 0),
+        "data_quality_score": float(overview_metrics.get("data_quality_score", 0.0) or 0.0),
+        "total_storage_used_gb": float(storage_cards.get("total_storage_used", 0.0) or 0.0),
+        "pipeline_status": str(actions.get("pipeline_status", "Unknown") or "Unknown"),
+    }
+
+
+def _persist_live_upload_to_bronze(file_bytes: bytes, dataset_token: str, original_filename: str) -> Dict[str, Any]:
+    os.makedirs(BRONZE_RAW_DIR, exist_ok=True)
+    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    safe_name = _sanitize_name_token(dataset_token or _extract_dataset_name(original_filename))
+    output_name = f"{safe_name}_live_{timestamp}.csv"
+    output_path = os.path.join(BRONZE_RAW_DIR, output_name)
+
+    with open(output_path, "wb") as file_handle:
+        file_handle.write(file_bytes)
+
+    result: Dict[str, Any] = {
+        "saved": True,
+        "local_path": os.path.relpath(output_path, BASE_DIR).replace("\\", "/"),
+        "size_bytes": len(file_bytes),
+    }
+
+    conn_str = get_azure_connection_string()
+    if not conn_str:
+        return result
+
+    try:
+        from azure.storage.blob import BlobServiceClient
+
+        client = BlobServiceClient.from_connection_string(conn_str)
+        container_name = "bronze"
+        container = client.get_container_client(container_name)
+        if not container.exists():
+            container.create_container()
+
+        blob_name = f"live_uploads/{output_name}"
+        blob_client = container.get_blob_client(blob_name)
+        blob_client.upload_blob(file_bytes, overwrite=True)
+        result["azure_blob_path"] = f"{container_name}/{blob_name}"
+    except Exception as exc:
+        logger.warning("Live upload saved locally but Azure upload failed: %s", exc)
+        result["azure_upload_error"] = str(exc)
+
+    return result
+
+
+def _write_live_drift_event(
+    table_name: str,
+    source_file: str,
+    baseline_dataset_id: str,
+    diff_payload: Dict[str, Any],
+    ingestion_payload: Optional[Dict[str, Any]] = None,
+) -> str:
+    os.makedirs(DRIFT_EVENTS_DIR, exist_ok=True)
+
+    counts = _build_drift_counts(diff_payload)
+    risk_level = _derive_drift_risk(diff_payload)
+    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    event_filename = f"drift_{_sanitize_name_token(table_name)}_{timestamp}.json"
+    event_path = os.path.join(DRIFT_EVENTS_DIR, event_filename)
+
+    event_payload = {
+        "timestamp": _utc_iso_now(),
+        "table": table_name,
+        "source_file": source_file,
+        "baseline_dataset": baseline_dataset_id,
+        "decision": "REQUIRES_APPROVAL",
+        "requires_approval": True,
+        "risk_level": risk_level,
+        "counts": counts,
+        "diff": diff_payload,
+    }
+    if ingestion_payload:
+        event_payload["ingestion"] = ingestion_payload
+
+    with open(event_path, "w", encoding="utf-8") as file_handle:
+        json.dump(event_payload, file_handle, indent=2)
+
+    return event_filename
+
+
+@app.get('/api/drift/live-inputs')
+async def get_live_input_datasets(
+    limit: int = Query(15, description="Maximum baseline datasets to return", ge=1, le=50),
+    sample_rows: int = Query(5, description="Rows to preview per baseline dataset", ge=1, le=10),
+):
+    """
+    Returns baseline input datasets with schema and sample rows for viva demo comparisons.
+    """
+    try:
+        datasets = []
+        candidates = _collect_live_input_csv_paths()[:limit]
+
+        for csv_path in candidates:
+            relative_path = os.path.relpath(csv_path, BASE_DIR).replace("\\", "/")
+            modified_dt = datetime.fromtimestamp(os.path.getmtime(csv_path), tz=timezone.utc)
+            schema_map = _infer_schema_map_from_csv(csv_path)
+            datasets.append(
+                {
+                    "id": relative_path,
+                    "dataset_name": _extract_dataset_name(csv_path),
+                    "file_name": os.path.basename(csv_path),
+                    "path": relative_path,
+                    "source_layer": "data" if _path_within(csv_path, DATA_DIR) else "bronze",
+                    "size_bytes": int(os.path.getsize(csv_path)),
+                    "row_count_estimate": int(_estimate_file_rows(csv_path)),
+                    "last_modified": _safe_iso(modified_dt),
+                    "columns": list(schema_map.keys()),
+                    "schema": [
+                        {"column": col_name, "dtype": dtype_name}
+                        for col_name, dtype_name in schema_map.items()
+                    ],
+                    "sample_rows": _read_csv_preview_rows(csv_path, sample_rows=sample_rows),
+                }
+            )
+
+        return {
+            "generated_at": _utc_iso_now(),
+            "count": len(datasets),
+            "datasets": datasets,
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post('/api/drift/live-validate-upload')
+async def live_validate_uploaded_dataset(
+    baseline_dataset_id: str = Form(...),
+    upload_file: UploadFile = File(...),
+    dataset_name: Optional[str] = Form(None),
+    ingest_to_bronze: str = Form("true"),
+):
+    """
+    Upload a dataset for live schema drift validation and optional ingestion into bronze.
+    """
+    try:
+        if not upload_file.filename:
+            raise HTTPException(status_code=400, detail="Upload file name is required.")
+
+        if not str(upload_file.filename).lower().endswith(".csv"):
+            raise HTTPException(status_code=400, detail="Only CSV uploads are supported.")
+
+        baseline_path = _resolve_live_input_dataset_path(baseline_dataset_id)
+
+        file_bytes = await upload_file.read()
+        if not file_bytes:
+            raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+
+        import pandas as pd
+
+        baseline_df = pd.read_csv(baseline_path, nrows=5000, low_memory=False)
+        uploaded_df = pd.read_csv(io.BytesIO(file_bytes), low_memory=False)
+
+        if uploaded_df.empty and len(uploaded_df.columns) == 0:
+            raise HTTPException(status_code=400, detail="Uploaded CSV does not contain tabular data.")
+
+        baseline_schema = _infer_schema_map_from_dataframe(baseline_df)
+        uploaded_schema = _infer_schema_map_from_dataframe(uploaded_df)
+        diff_payload = _compare_schema_maps(baseline_schema, uploaded_schema)
+        drift_counts = _build_drift_counts(diff_payload)
+        drift_detected = any(value > 0 for value in drift_counts.values())
+
+        before_summary = _build_summary_payload()
+        before_metrics = _snapshot_demo_metrics(before_summary)
+
+        ingest_enabled = str(ingest_to_bronze).strip().lower() not in {"false", "0", "no", "off"}
+        ingestion_result = {
+            "saved": False,
+            "local_path": None,
+        }
+        if ingest_enabled:
+            ingestion_result = _persist_live_upload_to_bronze(
+                file_bytes=file_bytes,
+                dataset_token=dataset_name or _extract_dataset_name(upload_file.filename),
+                original_filename=upload_file.filename,
+            )
+
+        event_id = None
+        risk_level = "none"
+        if drift_detected:
+            table_name = _sanitize_name_token(dataset_name or _extract_dataset_name(baseline_path))
+            event_id = _write_live_drift_event(
+                table_name=table_name,
+                source_file=upload_file.filename,
+                baseline_dataset_id=baseline_dataset_id,
+                diff_payload=diff_payload,
+                ingestion_payload=ingestion_result,
+            )
+            risk_level = _derive_drift_risk(diff_payload)
+
+        _invalidate_metrics_cache()
+        after_summary = _build_summary_payload()
+        after_metrics = _snapshot_demo_metrics(after_summary)
+
+        status_message = (
+            "Schema drift detected and logged for approval."
+            if drift_detected
+            else "No schema drift detected. Uploaded dataset matches the selected baseline schema."
+        )
+
+        uploaded_preview = json.loads(uploaded_df.head(5).to_json(orient="records", date_format="iso"))
+
+        return {
+            "generated_at": _utc_iso_now(),
+            "status_message": status_message,
+            "drift_detected": drift_detected,
+            "risk_level": risk_level,
+            "drift_counts": drift_counts,
+            "diff": diff_payload,
+            "event_id": event_id,
+            "baseline_dataset_id": baseline_dataset_id,
+            "baseline_schema": [
+                {"column": col_name, "dtype": dtype_name}
+                for col_name, dtype_name in baseline_schema.items()
+            ],
+            "uploaded_schema": [
+                {"column": col_name, "dtype": dtype_name}
+                for col_name, dtype_name in uploaded_schema.items()
+            ],
+            "uploaded_preview": uploaded_preview,
+            "ingestion": ingestion_result,
+            "before_metrics": before_metrics,
+            "after_metrics": after_metrics,
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
 @app.get('/api/dashboard/summary')
 async def get_dashboard_summary():
     """
@@ -2573,6 +3043,9 @@ async def reject_drift(request: ApproveRejectRequest):
         
         with open(event_path, 'w', encoding='utf-8') as f:
             json.dump(event_data, f, indent=2)
+        
+        # Invalidate cache so dashboard reflects rejection immediately
+        _invalidate_metrics_cache()
         
         return {
             "status": "rejected",

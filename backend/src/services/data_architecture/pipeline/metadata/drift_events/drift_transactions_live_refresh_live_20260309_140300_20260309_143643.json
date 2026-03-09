@@ -1,0 +1,56 @@
+{
+  "timestamp": "2026-03-09T14:36:43.342026Z",
+  "table": "transactions_live_refresh_live_20260309_140300",
+  "source_file": "fashion_items.csv",
+  "baseline_dataset": "medallions/bronze/raw/transactions_live_refresh_live_20260309_140300.csv",
+  "decision": "REQUIRES_APPROVAL",
+  "requires_approval": true,
+  "risk_level": "high",
+  "counts": {
+    "new": 6,
+    "missing": 19,
+    "dtype": 0,
+    "renames": 0
+  },
+  "diff": {
+    "new_columns": [
+      "item_id",
+      "item_name",
+      "category",
+      "color",
+      "brand",
+      "price"
+    ],
+    "missing_columns": [
+      "transaction_id",
+      "user_id",
+      "product_id",
+      "shop_id",
+      "quantity",
+      "unit_price",
+      "total_amount",
+      "discount_percent",
+      "discount_amount",
+      "tax_percent",
+      "tax_amount",
+      "final_amount",
+      "payment_method",
+      "transaction_status",
+      "transaction_date",
+      "transaction_ts",
+      "delivery_date",
+      "delivery_address",
+      "notes"
+    ],
+    "dtype_changes": [],
+    "renames": []
+  },
+  "ingestion": {
+    "saved": true,
+    "local_path": "medallions/bronze/raw/transactions_live_refresh_live_20260309_140300_live_20260309_143643.csv",
+    "size_bytes": 219
+  },
+  "approved": true,
+  "approved_at": "2026-03-09T14:38:11.321208Z",
+  "approved_by": "user"
+}
