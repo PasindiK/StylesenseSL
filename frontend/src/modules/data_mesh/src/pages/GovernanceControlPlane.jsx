@@ -25,6 +25,31 @@ function relativeTime(value) {
   return `Updated ${hours} hour${hours === 1 ? "" : "s"} ago`;
 }
 
+function businessDateText(value) {
+  if (!value) return "Not available for this domain";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "Not available for this domain";
+  return parsed.toLocaleString();
+}
+
+function trendPresentation(direction, adgriScore) {
+  const trend = String(direction || "stable").toLowerCase();
+  const score = Number(adgriScore || 0);
+
+  if (trend === "deteriorating") {
+    if (score >= 85) return { label: "Healthy but declining", color: "gold" };
+    if (score >= 80) return { label: "Slight downward trend", color: "orange" };
+    return { label: "Mild deterioration", color: "volcano" };
+  }
+
+  if (trend === "improving") {
+    if (score >= 85) return { label: "Healthy and improving", color: "green" };
+    return { label: "Improving trend", color: "green" };
+  }
+
+  return { label: "Stable trend", color: "blue" };
+}
+
 export default function GovernanceControlPlane() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -95,7 +120,7 @@ export default function GovernanceControlPlane() {
     <div style={{ padding: 16, maxWidth: 1400, margin: "0 auto", width: "100%" }}>
       <Title level={2} style={{ marginBottom: 8 }}>Governance Control Plane</Title>
       <Paragraph style={{ color: "#64748b", marginBottom: 16 }}>
-        Adaptive computational governance across domains using statistical stability modeling for volume, freshness, and distribution behaviour.
+        Primary ADGRI reliability assessment across domains using statistical stability modeling for volume, freshness, and distribution behaviour.
       </Paragraph>
 
       <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
@@ -105,11 +130,9 @@ export default function GovernanceControlPlane() {
         <Col>
           <Tag color="geekblue">As of: {formatTime(summary?.as_of || summary?.generated_at)}</Tag>
         </Col>
-        {domainDetails?.latest_business_data_date ? (
-          <Col>
-            <Tag color="purple">Latest business data date: {formatTime(domainDetails.latest_business_data_date)}</Tag>
-          </Col>
-        ) : null}
+        <Col>
+          <Tag color="purple">Latest business data date: {businessDateText(domainDetails?.latest_business_data_date)}</Tag>
+        </Col>
       </Row>
 
       {error ? <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} /> : null}
@@ -234,7 +257,7 @@ export default function GovernanceControlPlane() {
                     </Col>
                     <Col xs={24} md={8}>
                       <div style={{ fontWeight: 600, marginBottom: 4 }}>Latest Business Data Date</div>
-                      <div>{formatTime(domainDetails?.latest_business_data_date)}</div>
+                      <div>{businessDateText(domainDetails?.latest_business_data_date)}</div>
                     </Col>
                     <Col xs={24} md={8}>
                       <div style={{ fontWeight: 600, marginBottom: 4 }}>Confidence</div>
@@ -244,8 +267,8 @@ export default function GovernanceControlPlane() {
                     </Col>
                     <Col xs={24} md={8}>
                       <div style={{ fontWeight: 600, marginBottom: 4 }}>Trend Direction</div>
-                      <Tag color={domainDetails?.trend_direction === "improving" ? "green" : domainDetails?.trend_direction === "deteriorating" ? "red" : "blue"}>
-                        {String(domainDetails?.trend_direction || "stable").toUpperCase()}
+                      <Tag color={trendPresentation(domainDetails?.trend_direction, domainDetails?.adgri_score || domainDetails?.governance_score).color}>
+                        {trendPresentation(domainDetails?.trend_direction, domainDetails?.adgri_score || domainDetails?.governance_score).label}
                       </Tag>
                     </Col>
                     <Col xs={24} md={8}>
@@ -255,6 +278,9 @@ export default function GovernanceControlPlane() {
                   </Row>
 
                   <div style={{ marginTop: 12, marginBottom: 8 }}>
+                    <div style={{ color: "#64748b", marginBottom: 10 }}>
+                      Current score reflects present reliability; trend shows recent movement over time and does not by itself indicate domain failure.
+                    </div>
                     <div style={{ fontWeight: 600 }}>Top Reason</div>
                     <div>{domainDetails?.top_reason || "-"}</div>
                   </div>

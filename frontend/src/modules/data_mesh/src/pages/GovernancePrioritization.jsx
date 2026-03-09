@@ -19,6 +19,19 @@ function confidenceColor(level) {
   return "red";
 }
 
+function chartTooltip({ active, payload }) {
+  if (!active || !payload || !payload.length) return null;
+  const point = payload[0]?.payload || {};
+  return (
+    <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 8, padding: "8px 10px" }}>
+      <div style={{ fontWeight: 600, marginBottom: 4 }}>{point.domain_name || "-"}</div>
+      <div>Reliability (ADGRI): {Number(point.reliability || 0).toFixed(2)}</div>
+      <div>Governance Impact: {Number(point.impact || 0).toFixed(2)}</div>
+      <div>Criticality: {Number(point.criticality || 0).toFixed(2)}</div>
+    </div>
+  );
+}
+
 export default function GovernancePrioritization() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -41,6 +54,9 @@ export default function GovernancePrioritization() {
   const lowCount = Number(payload?.low_priority_domains_count || 0);
   const actionStrategy = payload?.action_strategy || "Routine";
   const actionSummary = payload?.action_summary || "No urgent governance actions required.";
+  const noActionMessage = mediumCount > 0
+    ? "No urgent governance actions are required. Medium-priority domains should be monitored."
+    : "No urgent governance actions are required. Continue routine observation of low-priority domains.";
 
   const chartData = useMemo(
     () =>
@@ -65,7 +81,7 @@ export default function GovernancePrioritization() {
     <div style={{ padding: 16, maxWidth: 1400, margin: "0 auto", width: "100%" }}>
       <Title level={2} style={{ marginBottom: 8 }}>Governance Prioritization</Title>
       <Paragraph style={{ color: "#64748b", marginBottom: 16 }}>
-        Impact-aware governance decision-support layer built on ADGRI to identify domains requiring the most urgent governance attention.
+        Built on ADGRI to prioritize governance attention across domains. This is a secondary decision-support extension to the Governance Control Plane.
       </Paragraph>
 
       {error ? <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} /> : null}
@@ -146,13 +162,28 @@ export default function GovernancePrioritization() {
             <ResponsiveContainer width="100%" height={320}>
               <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                 <CartesianGrid />
-                <XAxis type="number" dataKey="reliability" name="ADGRI" domain={[0, 100]} />
-                <YAxis type="number" dataKey="impact" name="Impact" domain={[0, 100]} />
+                <XAxis
+                  type="number"
+                  dataKey="reliability"
+                  name="Reliability / ADGRI"
+                  domain={[0, 100]}
+                  label={{ value: "Reliability / ADGRI", position: "insideBottom", offset: -8 }}
+                />
+                <YAxis
+                  type="number"
+                  dataKey="impact"
+                  name="Governance Impact"
+                  domain={[0, 100]}
+                  label={{ value: "Governance Impact", angle: -90, position: "insideLeft" }}
+                />
                 <ZAxis type="number" dataKey="criticality" range={[60, 280]} name="Criticality" />
-                <Tooltip cursor={{ strokeDasharray: "3 3" }} />
+                <Tooltip cursor={{ strokeDasharray: "3 3" }} content={chartTooltip} />
                 <Scatter data={chartData} fill="#2563eb" />
               </ScatterChart>
             </ResponsiveContainer>
+            <Paragraph style={{ marginTop: 10, marginBottom: 0, color: "#64748b" }}>
+              Domains in the upper-left or upper-middle region need more governance attention.
+            </Paragraph>
           </Card>
 
           <Card title="Recommended Governance Actions" style={{ marginBottom: 16 }}>
@@ -168,7 +199,7 @@ export default function GovernancePrioritization() {
                 ))}
               </ul>
             ) : (
-              <div>No urgent governance interventions at the moment.</div>
+              <div>{noActionMessage}</div>
             )}
           </Card>
 

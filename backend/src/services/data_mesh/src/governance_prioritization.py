@@ -48,7 +48,7 @@ class GovernancePrioritizationEngine:
       governance_impact = f(governance_risk, domain_criticality, trend_deterioration, confidence)
 
     Impact formulation used in this module:
-      impact_raw = 0.50*risk + 0.35*criticality + 0.15*trend_factor
+            impact_raw = 0.55*risk + 0.30*criticality + 0.15*trend_factor
       governance_impact = impact_raw * confidence_factor
 
     Where all components are normalized to [0, 100].
@@ -112,17 +112,17 @@ class GovernancePrioritizationEngine:
             action_summary = "High-priority domains exist. Apply intervention actions for unstable high-impact domains first."
         elif medium_priority:
             action_strategy = "Monitoring"
-            action_summary = "No high-priority domains. Focus on monitoring and preventive governance actions for medium-priority domains."
+            action_summary = "No urgent governance actions are required. Medium-priority domains should be monitored."
         else:
             action_strategy = "Routine"
-            action_summary = "No urgent governance actions required. Continue routine governance monitoring."
+            action_summary = "No urgent governance actions are required. Continue routine observation of low-priority domains."
 
         return {
             "layer_name": "Adaptive Explainable Governance Prioritization Layer",
             "model_name": "Governance Impact Prioritization Index (built on ADGRI)",
             "formula": {
                 "risk": "governance_risk = 100 - ADGRI",
-                "impact_raw": "impact_raw = 0.50*risk + 0.35*criticality + 0.15*trend_factor",
+                "impact_raw": "impact_raw = 0.55*risk + 0.30*criticality + 0.15*trend_factor",
                 "impact_weighted": "governance_impact = impact_raw * confidence_factor",
             },
             "generated_at": datetime.now().isoformat(timespec="seconds"),
@@ -323,6 +323,16 @@ class GovernancePrioritizationEngine:
 
         return " ".join(actions[:2])
 
+    def _dominant_reason_text(self, dominant_factor: str) -> str:
+        mapping = {
+            "freshness": "worsening freshness instability",
+            "volume": "volume instability",
+            "distribution": "distribution instability",
+            "criticality": "high business criticality",
+            "trend": "worsening trend",
+        }
+        return mapping.get(dominant_factor, "mixed governance instability")
+
     def _dominant_factor(self, governance_payload: dict[str, Any], criticality_component: float, trend_component: float) -> str:
         contributions = governance_payload.get("contribution_breakdown") or {}
         risk_component = 0.0
@@ -359,21 +369,11 @@ class GovernancePrioritizationEngine:
         dominant_factor: str,
     ) -> str:
         level_text = priority_level.lower()
-        base = (
-            f"{domain_name} is classified as {level_text} priority (impact {impact_score:.1f}). "
-            f"Governance risk is {governance_risk:.1f}, criticality is {criticality:.1f}, "
-            f"trend is {trend_direction}, and confidence is {confidence_level}."
+        reason_text = self._dominant_reason_text(dominant_factor)
+        return (
+            f"{domain_name}: {priority_level} priority due to {reason_text}. "
+            f"(impact {impact_score:.1f}, ADGRI {100.0 - governance_risk:.1f}, confidence {confidence_level})"
         )
-
-        factor_reason = {
-            "freshness": "Freshness instability is the dominant factor.",
-            "volume": "Volume instability is the dominant factor.",
-            "distribution": "Distribution instability is the dominant factor.",
-            "criticality": "Business criticality is amplifying governance impact.",
-            "trend": "Trend deterioration is increasing governance urgency.",
-        }.get(dominant_factor, "Governance signals are mixed and should be monitored.")
-
-        return f"{base} {factor_reason}"
 
     def _bounded_100(self, value: float) -> float:
         return max(0.0, min(100.0, float(value)))
