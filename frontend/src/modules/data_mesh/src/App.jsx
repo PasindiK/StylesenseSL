@@ -13,6 +13,7 @@ import Home from "./pages/Home";
 import Domains from "./pages/Domains";
 import ShopAnalysis from "./pages/ShopAnalysis";
 import GovernanceControlPlane from "./pages/GovernanceControlPlane";
+import GovernancePrioritization from "./pages/GovernancePrioritization";
 import Catalog from "./pages/Catalog";
 import PipelineMonitoring from "./pages/PipelineMonitoring";
 import DomainHealthDashboard from "./components/DomainHealthDashboard";
@@ -72,6 +73,7 @@ export default function App() {
             { key: "pipeline-monitoring", icon: <SafetyOutlined />, label: "Pipeline Monitoring" },
             { key: "domain-analytics", icon: <DatabaseOutlined />, label: "Domain-wise Analytics" },
             { key: "governance", icon: <SafetyOutlined />, label: "Governance" },
+            { key: "governance-prioritization", icon: <SafetyOutlined />, label: "Governance Prioritization" },
             { key: "mlhealth", icon: <SafetyOutlined />, label: "ML Health" },
           ]}
         />
@@ -111,6 +113,7 @@ export default function App() {
             {selected === "shop" && "Shop Analysis"}
             {selected === "pipeline-monitoring" && "Pipeline Monitoring"}
             {selected === "governance" && "Governance Control Plane"}
+            {selected === "governance-prioritization" && "Governance Prioritization"}
             {selected === "mlhealth" && "ML Health & Anomalies"}
             {selected === "domain-analytics" && "Domain-wise Analytics"}
             </div>
@@ -124,6 +127,7 @@ export default function App() {
           {selected === "shop" && <ShopAnalysis />}
           {selected === "pipeline-monitoring" && <PipelineMonitoring />}
           {selected === "governance" && <GovernanceControlPlane />}
+          {selected === "governance-prioritization" && <GovernancePrioritization />}
           {selected === "mlhealth" && (
             <div style={{ maxWidth: 1200, margin: "0 auto", background: "#fff", borderRadius: 14, border: "1px solid #e2e8f0", boxShadow: "0 8px 24px rgba(15, 23, 42, 0.06)", padding: "2rem 1.75rem" }}>
               <DomainHealthDashboard />

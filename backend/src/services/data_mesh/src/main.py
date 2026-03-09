@@ -23,6 +23,10 @@ try:
     from .governance_intelligence import GovernanceIntelligenceEngine
 except ImportError:
     from governance_intelligence import GovernanceIntelligenceEngine
+try:
+    from .governance_prioritization import GovernancePrioritizationEngine
+except ImportError:
+    from governance_prioritization import GovernancePrioritizationEngine
 
 # Paths for Data Mesh assets (safe after folder relocation)
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -212,6 +216,10 @@ pipeline_chat_agent = PipelineConversationalAgent(
 governance_engine = GovernanceIntelligenceEngine(
     data_path=DATA_PATH,
     monitoring_history_path=MONITORING_HISTORY_PATH,
+)
+
+governance_prioritization_engine = GovernancePrioritizationEngine(
+    governance_engine=governance_engine,
 )
 
 # Enable CORS for local frontend access
@@ -582,6 +590,26 @@ def governance_domain(domain_name: str):
     """Return detailed adaptive governance metrics for one domain."""
     try:
         return governance_engine.governance_domain(domain_name)
+    except ValueError as exc:
+        return JSONResponse(content={"error": str(exc)}, status_code=404)
+    except Exception as exc:
+        return JSONResponse(content={"error": str(exc)}, status_code=500)
+
+
+@app.get("/governance/priorities")
+def governance_priorities():
+    """Return impact-aware governance prioritization across all domains."""
+    try:
+        return governance_prioritization_engine.priorities_summary()
+    except Exception as exc:
+        return JSONResponse(content={"error": str(exc)}, status_code=500)
+
+
+@app.get("/governance/priorities/{domain_name}")
+def governance_priority_for_domain(domain_name: str):
+    """Return impact-aware governance prioritization details for one domain."""
+    try:
+        return governance_prioritization_engine.priority_for_domain(domain_name)
     except ValueError as exc:
         return JSONResponse(content={"error": str(exc)}, status_code=404)
     except Exception as exc:
