@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Badge } from './Badge';
-import { DriftEvent } from '../types';
+import type { DriftEvent } from '../types';
 
 interface DriftEventsPageProps {
   driftEvents: DriftEvent[];

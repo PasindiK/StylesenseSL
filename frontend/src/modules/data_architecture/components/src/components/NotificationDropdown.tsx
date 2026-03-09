@@ -1,4 +1,4 @@
-import { Notification } from '../types';
+import type { Notification } from '../types';
 
 interface NotificationDropdownProps {
   notifications: Notification[];
@@ -32,7 +32,7 @@ export function NotificationDropdown({ notifications, isOpen, onClose, onNotific
               key={idx} 
               className={`notification-item type-${notif.type}`}
               onClick={() => {
-                if (onNotificationClick) {
+                if (onNotificationClick && notif.table) {
                   onNotificationClick(notif.table);
                   onClose();
                 }

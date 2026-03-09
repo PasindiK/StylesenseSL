@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Badge } from './Badge';
-import { DashboardData } from '../types';
+import type { DashboardData } from '../types';
 
 interface MedallionPageProps {
   architecture: NonNullable<DashboardData['architecture']>;
@@ -11,8 +11,9 @@ interface MedallionPageProps {
 export function MedallionPage({ architecture, datasetOverview, csvPreviews }: MedallionPageProps) {
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
   const [selectedDataset, setSelectedDataset] = useState<string | null>(null);
+  const stages = architecture.stages ?? [];
 
-  const stageDatasets: Record<string, string[]> = architecture.stages.reduce((acc, stage) => {
+  const stageDatasets: Record<string, string[]> = stages.reduce((acc, stage) => {
     acc[stage.name] = stage.datasets || [];
     return acc;
   }, {} as Record<string, string[]>);
@@ -51,7 +52,7 @@ export function MedallionPage({ architecture, datasetOverview, csvPreviews }: Me
           )}
         </div>
         <div className="medallion-pipeline">
-          {architecture.stages.map((stage, idx) => (
+          {stages.map((stage, idx) => (
             <div key={stage.name} className="pipeline-stage-group">
               <button
                 className={`pipeline-stage ${stage.status === 'drift-gate' ? 'gate' : ''} ${selectedStage === stage.name ? 'selected' : ''}`}
@@ -75,7 +76,7 @@ export function MedallionPage({ architecture, datasetOverview, csvPreviews }: Me
                   </div>
                 )}
               </button>
-              {idx < architecture.stages.length - 1 && (
+              {idx < stages.length - 1 && (
                 <div className="pipeline-arrow">→</div>
               )}
             </div>
