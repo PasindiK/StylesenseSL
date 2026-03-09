@@ -1,0 +1,43 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "compile:backend-python",
+			"type": "shell",
+			"command": "/Users/nandunmadawa/Desktop/DATAMESHSTYLESENSESL/backend/.venv/bin/python",
+			"args": [
+				"-m",
+				"compileall",
+				"backend/src"
+			],
+			"group": "build"
+		},
+		{
+			"label": "build:frontend-data-mesh",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"/Users/nandunmadawa/Desktop/DATAMESHSTYLESENSESL/frontend/src/modules/data_mesh",
+				"run",
+				"build"
+			],
+			"group": "build"
+		},
+		{
+			"label": "build:frontend-main",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"--prefix",
+				"/Users/nandunmadawa/Desktop/DATAMESHSTYLESENSESL/frontend",
+				"run",
+				"build"
+			],
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		}
+	]
+}

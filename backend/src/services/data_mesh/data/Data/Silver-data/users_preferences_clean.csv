@@ -1,472 +1,472 @@
 preference_id,user_id,preferred_categories,preferred_colors,preferred_fabrics,preferred_brands,preferred_styles,skin_tone,body_type,price_sensitivity,updated_ts
-1,1,"UTILITY PANTS, CHINOS, OVERSIZE TEE","Brown, Off-white, Teal","Modal, Cotton",Brand_3,"Casual, Athleisure, Formal",Medium Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-2,2,"JOGGERS & PANTS, BLAZERS, SHORTS","Polka Dot, Teal, Tan","Linen, Denim",Brand_6,"Athleisure, Formal, Beach Wear",Medium Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-3,3,"COATS, JOGGERS & PANTS, SWEATSHIRTS","Brown, Tan, Yellow","Denim, Modal",Brand_19,"Hipster, Beach Wear, Eco-friendly",Dark Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-4,4,"BEACH WEAR, COATS, UTILITY PANTS","Red, Striped, Peach","Linen, Fleece",Brand_8,"Hipster, Luxury, Y2K",Fair Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-5,5,"SHORTS, OVERSIZE TEE, UTILITY PANTS","Tie-dye, Orange, Charcoal","Bamboo, Tencel",Brand_1,"Luxury, Casual, Preppy",Dark Skin,Curvy Friendly,High,2026-01-28 14:56:19
-6,6,"SWEATSHIRTS, BEACH WEAR, TRACK PANTS","Peach, Pastel Pink, Mustard","Linen, Bamboo",Brand_1,"Y2K, Hipster, Eco-friendly",Fair Skin,Tall Friendly,High,2026-01-28 14:56:19
-7,7,"SHORTS, DENIM JACKETS, POLOS","Multi-color, Beige, Green","Bamboo, Tencel",Brand_1,"Formal, Preppy, Luxury",Dark Skin,Curvy Friendly,High,2026-01-28 14:56:19
-8,8,"JOGGERS & PANTS, TRACK PANTS, POLOS","Nude, Blue, Off-white","Bamboo, Tencel",Brand_9,"Eco-friendly, Minimalist, Party Wear",Fair Skin,Skinny Friendly,High,2026-01-28 14:56:19
-9,9,"SHORTS, T-SHIRTS, HOODIES & JACKETS","Charcoal, Red, Blue","Polyester, Cotton",Brand_13,"Formal, Cottagecore, Casual",Dark Skin,Curvy Friendly,High,2026-01-28 14:56:19
-11,11,"CARDIGANS, TANKS, TRACK PANTS","Sky Blue, Green, Grey","Tencel, Linen",Brand_19,"Office Wear, Formal, Beach Wear",Medium Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-12,12,"JOGGERS & PANTS, CHINOS, BLAZERS","Pastel Blue, Off-white, Navy","Denim, Corduroy",Brand_19,"Office Wear, Preppy, Cottagecore",Medium Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-13,13,"CHINOS, DENIM JACKETS, KIMONO","Nude, Striped, Mustard","Fleece, Rayon",Brand_2,"Y2K, Eco-friendly, Cottagecore",Dark Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-14,14,"COATS, OVERSIZE TEE, DENIM JACKETS","Orange, Blue, Olive","Corduroy, Rayon",Brand_18,"Streetwear, Party Wear, Preppy",Neutral Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-16,16,"TRACK PANTS, BEACH WEAR, TANKS","Black, Brown, Crimson","Linen, Cotton",Brand_5,"Eco-friendly, Y2K, Cottagecore",Neutral Skin,Skinny Friendly,High,2026-01-28 14:56:19
-17,17,"POLOS, UTILITY PANTS, HOODIES & JACKETS","Tie-dye, Peach, Crimson","Silk, Polyester",Brand_12,"Office Wear, Hipster, Beach Wear",Dark Skin,Petite Friendly,High,2026-01-28 14:56:19
-18,18,"HOODIES & JACKETS, TRACK PANTS, POLOS","White, Mustard, Pastel Blue","Wool, Rayon",Brand_13,"Preppy, Cottagecore, Streetwear",Medium Skin,Curvy Friendly,High,2026-01-28 14:56:19
-19,19,"CARDIGANS, TRACK PANTS, KIMONO","Maroon, White, Navy","Fleece, Wool",Brand_15,"Hipster, Office Wear, Beach Wear",Medium Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-20,20,"T-SHIRTS, COATS, BLAZERS","Striped, Grey, Pink","Silk, Leather",Brand_2,"Athleisure, Y2K, Formal",Neutral Skin,Skinny Friendly,High,2026-01-28 14:56:19
-21,21,"TRACK PANTS, POLOS, COATS","Beige, Blue, Striped","Bamboo, Cotton",Brand_8,"Cottagecore, Casual, Beach Wear",Dark Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-22,22,"UTILITY PANTS, TRACK PANTS, TANKS","Black, Navy, Crimson","Corduroy, Cotton",Brand_1,"Luxury, Y2K, Beach Wear",Neutral Skin,Curvy Friendly,High,2026-01-28 14:56:19
-23,23,"CHINOS, DENIM JACKETS, BLAZERS","Pastel Green, Chocolate, White","Wool, Silk",Brand_6,"Casual, Vintage, Formal",Fair Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-24,24,"SHORTS, HOODIES & JACKETS, DENIM JACKETS","Mint, Chocolate, Tie-dye","Denim, Polyester",Brand_14,"Minimalist, Athleisure, Preppy",Neutral Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-25,25,"BLAZERS, TANKS, HOODIES & JACKETS","Navy, Plaid, Mustard","Linen, Bamboo",Brand_8,"Luxury, Casual, Preppy",Dark Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-26,26,"HOODIES & JACKETS, POLOS, SHORTS","Camouflage, Plaid, Tie-dye","Wool, Leather",Brand_3,"Vintage, Casual, Minimalist",Neutral Skin,Curvy Friendly,High,2026-01-28 14:56:19
-28,28,"OVERSIZE TEE, SHORTS, HOODIES & JACKETS","Mint, Red, Camouflage","Velvet, Wool",Brand_5,"Vintage, Preppy, Formal",Neutral Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-29,29,"OVERSIZE TEE, T-SHIRTS, KIMONO","Red, White, Plaid","Leather, Wool",Brand_9,"Party Wear, Beach Wear, Preppy",Medium Skin,Skinny Friendly,High,2026-01-28 14:56:19
-30,30,"POLOS, COATS, KIMONO","Blush, Striped, Tie-dye","Leather, Cotton",Brand_5,"Party Wear, Hipster, Beach Wear",Medium Skin,Petite Friendly,Low,2026-01-28 14:56:19
-31,31,"OVERSIZE TEE, HOODIES & JACKETS, JOGGERS & PANTS","Beige, Striped, Green","Fleece, Denim",Brand_2,"Streetwear, Eco-friendly, Minimalist",Neutral Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-32,32,"KIMONO, CHINOS, COATS","Chocolate, Beige, Pastel Green","Polyester, Linen",Brand_2,"Luxury, Eco-friendly, Hipster",Dark Skin,Petite Friendly,Low,2026-01-28 14:56:19
-33,33,"DENIM JACKETS, CHINOS, BEACH WEAR","Peach, Multi-color, Checked","Polyester, Velvet",Brand_7,"Preppy, Streetwear, Office Wear",Fair Skin,Petite Friendly,Low,2026-01-28 14:56:19
-34,34,"TRACK PANTS, T-SHIRTS, TANKS","Multi-color, Camouflage, Tie-dye","Fleece, Corduroy",Brand_13,"Casual, Y2K, Streetwear",Dark Skin,Petite Friendly,High,2026-01-28 14:56:19
-35,35,"POLOS, TANKS, TRACK PANTS","Crimson, Blush, White","Wool, Linen",Brand_19,"Minimalist, Beach Wear, Athleisure",Dark Skin,Petite Friendly,Low,2026-01-28 14:56:19
-36,36,"T-SHIRTS, UTILITY PANTS, POLOS","Blush, Plaid, Beige","Cotton, Bamboo",Brand_15,"Casual, Cottagecore, Vintage",Medium Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-37,37,"COATS, TRACK PANTS, KIMONO","Nude, Pastel Green, Chocolate","Corduroy, Silk",Brand_17,"Y2K, Streetwear, Preppy",Neutral Skin,Curvy Friendly,High,2026-01-28 14:56:19
-38,38,"TANKS, UTILITY PANTS, TRACK PANTS","Brown, Red, Blue","Modal, Linen",Brand_18,"Minimalist, Cottagecore, Luxury",Dark Skin,Petite Friendly,High,2026-01-28 14:56:19
-39,39,"TANKS, T-SHIRTS, CARDIGANS","Olive, Red, Beige","Polyester, Leather",Brand_9,"Athleisure, Streetwear, Beach Wear",Dark Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-40,40,"UTILITY PANTS, POLOS, TANKS","Black, Charcoal, Teal","Corduroy, Fleece",Brand_6,"Vintage, Hipster, Luxury",Medium Skin,Petite Friendly,Low,2026-01-28 14:56:19
-41,41,"SWEATSHIRTS, COATS, CHINOS","Pastel Blue, Red, Nude","Polyester, Denim",Brand_15,"Y2K, Casual, Beach Wear",Neutral Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-42,42,"BEACH WEAR, T-SHIRTS, CARDIGANS","Pastel Blue, Sky Blue, Peach","Cotton, Modal",Brand_13,"Y2K, Hipster, Cottagecore",Medium Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-43,43,"JOGGERS & PANTS, TRACK PANTS, BEACH WEAR","Yellow, Grey, Green","Linen, Velvet",Brand_13,"Luxury, Minimalist, Office Wear",Neutral Skin,Tall Friendly,High,2026-01-28 14:56:19
-44,44,"T-SHIRTS, KIMONO, SWEATSHIRTS","Polka Dot, Orange, Pastel Blue","Modal, Leather",Brand_5,"Preppy, Streetwear, Minimalist",Medium Skin,Tall Friendly,High,2026-01-28 14:56:19
-45,45,"POLOS, BLAZERS, JOGGERS & PANTS","Black, Striped, Red","Leather, Tencel",Brand_4,"Formal, Streetwear, Beach Wear",Dark Skin,Petite Friendly,Low,2026-01-28 14:56:19
-46,46,"BEACH WEAR, BLAZERS, COATS","Plaid, White, Pastel Pink","Modal, Leather",Brand_18,"Casual, Y2K, Beach Wear",Fair Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-47,47,"CHINOS, OVERSIZE TEE, SWEATSHIRTS","White, Peach, Multi-color","Corduroy, Bamboo",Brand_13,"Office Wear, Luxury, Hipster",Neutral Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-48,48,"SHORTS, DENIM JACKETS, POLOS","Black, Brown, Crimson","Tencel, Linen",Brand_9,"Luxury, Casual, Preppy",Dark Skin,Curvy Friendly,High,2026-01-28 14:56:19
-49,49,"BEACH WEAR, KIMONO, DENIM JACKETS","Blush, Pastel Blue, Tan","Denim, Velvet",Brand_14,"Casual, Streetwear, Preppy",Medium Skin,Curvy Friendly,High,2026-01-28 14:56:19
-50,50,"CARDIGANS, OVERSIZE TEE, COATS","Charcoal, Olive, Plaid","Corduroy, Tencel",Brand_2,"Hipster, Formal, Cottagecore",Fair Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-51,51,"COATS, OVERSIZE TEE, CARDIGANS","Pink, Olive, Nude","Jacquard, Velvet",Brand_10,"Minimalist, Streetwear, Luxury",Medium Skin,Tall Friendly,High,2026-01-28 14:56:19
-52,52,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Tie-dye, Sky Blue, Olive","Bamboo, Corduroy",Brand_17,"Luxury, Preppy, Athleisure",Medium Skin,Petite Friendly,High,2026-01-28 14:56:19
-53,53,"TANKS, T-SHIRTS, SHORTS","Blush, Chocolate, Beige","Leather, Rayon",Brand_11,"Luxury, Casual, Preppy",Medium Skin,Petite Friendly,Low,2026-01-28 14:56:19
-54,54,"SHORTS, UTILITY PANTS, BEACH WEAR","Maroon, Yellow, Blush","Leather, Fleece",Brand_13,"Y2K, Beach Wear, Athleisure",Neutral Skin,Petite Friendly,Low,2026-01-28 14:56:19
-55,55,"SWEATSHIRTS, COATS, SHORTS","Green, Navy, Mustard","Rayon, Wool",Brand_17,"Eco-friendly, Minimalist, Athleisure",Neutral Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-56,56,"CARDIGANS, TANKS, KIMONO","Black, Brown, Crimson","Corduroy, Fleece",Brand_4,"Streetwear, Minimalist, Cottagecore",Dark Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-57,57,"COATS, BLAZERS, SHORTS","Orange, Maroon, Crimson","Velvet, Modal",Brand_14,"Luxury, Vintage, Cottagecore",Medium Skin,Curvy Friendly,High,2026-01-28 14:56:19
-58,58,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Pastel Pink, Brown, Striped","Jacquard, Bamboo",Brand_19,"Party Wear, Preppy, Athleisure",Dark Skin,Petite Friendly,High,2026-01-28 14:56:19
-59,59,"DENIM JACKETS, T-SHIRTS, BLAZERS","Nude, Grey, Pastel Green","Cotton, Jacquard",Brand_1,"Eco-friendly, Casual, Beach Wear",Neutral Skin,Petite Friendly,High,2026-01-28 14:56:19
-60,60,"DENIM JACKETS, POLOS, TANKS","Striped, Blush, Mustard","Leather, Modal",Brand_17,"Formal, Streetwear, Vintage",Medium Skin,Petite Friendly,Medium,2026-03-08 21:50:44
-61,61,"POLOS, SHORTS, CHINOS","Pastel Green, Blue, Grey","Leather, Fleece",Brand_13,"Minimalist, Luxury, Formal",Fair Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-62,62,"DENIM JACKETS, T-SHIRTS, BEACH WEAR","White, Pastel Pink, Checked","Tencel, Silk",Brand_5,"Party Wear, Casual, Hipster",Medium Skin,Tall Friendly,Low,2026-01-28 14:56:19
-63,63,"SHORTS, JOGGERS & PANTS, CHINOS","Mustard, Blue, Striped","Wool, Polyester",Brand_15,"Vintage, Office Wear, Preppy",Dark Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-64,64,"BEACH WEAR, UTILITY PANTS, SHORTS","Pastel Pink, Navy, Camouflage","Linen, Cotton",Brand_4,"Vintage, Athleisure, Office Wear",Neutral Skin,Petite Friendly,High,2026-01-28 14:56:19
-65,65,"HOODIES & JACKETS, OVERSIZE TEE, BLAZERS","Pastel Pink, Peach, Grey","Corduroy, Rayon",Brand_10,"Minimalist, Casual, Luxury",Medium Skin,Petite Friendly,Low,2026-01-28 14:56:19
-66,66,"UTILITY PANTS, POLOS, KIMONO","Coral, Olive, Off-white","Rayon, Linen",Brand_13,"Luxury, Cottagecore, Streetwear",Neutral Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-67,67,"POLOS, JOGGERS & PANTS, DENIM JACKETS","Checked, Navy, Multi-color","Corduroy, Tencel",Brand_1,"Luxury, Vintage, Streetwear",Dark Skin,Petite Friendly,High,2026-01-28 14:56:19
-68,68,"COATS, KIMONO, BEACH WEAR","Green, Peach, Coral","Silk, Tencel",Brand_18,"Beach Wear, Luxury, Cottagecore",Fair Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-69,69,"BLAZERS, BEACH WEAR, TANKS","Mustard, Crimson, Yellow","Modal, Jacquard",Brand_12,"Athleisure, Hipster, Office Wear",Dark Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-70,70,"JOGGERS & PANTS, T-SHIRTS, SWEATSHIRTS","Checked, Yellow, Coral","Linen, Polyester",Brand_14,"Casual, Cottagecore, Eco-friendly",Medium Skin,Petite Friendly,Medium,2026-03-08 21:50:44
-74,74,"TRACK PANTS, SWEATSHIRTS, BEACH WEAR","Navy, Brown, Tan","Polyester, Bamboo",Brand_14,"Athleisure, Party Wear, Streetwear",Medium Skin,Petite Friendly,High,2026-01-28 14:56:19
-75,75,"CHINOS, SHORTS, BLAZERS","Nude, Pastel Pink, Beige","Jacquard, Bamboo",Brand_17,"Vintage, Eco-friendly, Beach Wear",Medium Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-76,76,"UTILITY PANTS, SHORTS, POLOS","Camouflage, Charcoal, White","Jacquard, Fleece",Brand_2,"Casual, Luxury, Party Wear",Medium Skin,Tall Friendly,High,2026-01-28 14:56:19
-77,77,"TRACK PANTS, T-SHIRTS, POLOS","Pastel Pink, Chocolate, Tie-dye","Tencel, Polyester",Brand_11,"Cottagecore, Athleisure, Party Wear",Dark Skin,Skinny Friendly,High,2026-01-28 14:56:19
-78,78,"HOODIES & JACKETS, BLAZERS, SHORTS","Striped, Teal, Olive","Corduroy, Jacquard",Brand_13,"Vintage, Hipster, Streetwear",Dark Skin,Curvy Friendly,High,2026-01-28 14:56:19
-79,79,"TANKS, CARDIGANS, BLAZERS","Green, Yellow, White","Silk, Corduroy",Brand_1,"Beach Wear, Casual, Eco-friendly",Dark Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-80,80,"OVERSIZE TEE, T-SHIRTS, TANKS","Pastel Green, Pastel Blue, Black","Velvet, Polyester",Brand_16,"Vintage, Hipster, Cottagecore",Fair Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-81,81,"SWEATSHIRTS, POLOS, JOGGERS & PANTS","Multi-color, Navy, Tie-dye","Wool, Polyester",Brand_3,"Athleisure, Cottagecore, Formal",Medium Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-82,82,"CARDIGANS, TRACK PANTS, TANKS","Peach, Off-white, Striped","Wool, Jacquard",Brand_7,"Athleisure, Casual, Hipster",Dark Skin,Petite Friendly,High,2026-01-28 14:56:19
-83,83,"SHORTS, TRACK PANTS, TANKS","Nude, White, Black","Velvet, Denim",Brand_18,"Preppy, Y2K, Eco-friendly",Neutral Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-84,84,"SHORTS, BLAZERS, SWEATSHIRTS","Polka Dot, Tie-dye, Teal","Polyester, Cotton",Brand_10,"Beach Wear, Preppy, Casual",Dark Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-85,85,"SHORTS, COATS, T-SHIRTS","Tan, Teal, Charcoal","Denim, Bamboo",Brand_3,"Athleisure, Streetwear, Party Wear",Medium Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-86,86,"BLAZERS, SHORTS, DENIM JACKETS","Beige, Grey, Maroon","Denim, Bamboo",Brand_10,"Beach Wear, Preppy, Hipster",Fair Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-87,87,"JOGGERS & PANTS, UTILITY PANTS, SHORTS","Brown, Checked, Green","Fleece, Silk",Brand_13,"Preppy, Party Wear, Cottagecore",Medium Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-88,88,"OVERSIZE TEE, COATS, T-SHIRTS","Crimson, Tan, Charcoal","Tencel, Rayon",Brand_9,"Hipster, Luxury, Minimalist",Neutral Skin,Skinny Friendly,High,2026-01-28 14:56:19
-89,89,"T-SHIRTS, BLAZERS, SHORTS","Orange, Navy, Charcoal","Tencel, Denim",Brand_10,"Streetwear, Hipster, Minimalist",Neutral Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-91,91,"T-SHIRTS, POLOS, TANKS","Yellow, Chocolate, Brown","Denim, Linen",Brand_11,"Cottagecore, Vintage, Preppy",Medium Skin,Tall Friendly,High,2026-01-28 14:56:19
-93,93,"CARDIGANS, HOODIES & JACKETS, TANKS","Polka Dot, Pastel Pink, Red","Corduroy, Polyester",Brand_11,"Hipster, Streetwear, Party Wear",Medium Skin,Petite Friendly,High,2026-01-28 14:56:19
-94,94,"SHORTS, KIMONO, SWEATSHIRTS","Tie-dye, Orange, Maroon","Fleece, Cotton",Brand_7,"Athleisure, Cottagecore, Formal",Medium Skin,Curvy Friendly,High,2026-01-28 14:56:19
-95,95,"SWEATSHIRTS, CHINOS, BEACH WEAR","Pink, Peach, Camouflage","Linen, Modal",Brand_13,"Casual, Hipster, Vintage",Medium Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-96,96,"JOGGERS & PANTS, TRACK PANTS, BLAZERS","Polka Dot, Camouflage, Green","Wool, Corduroy",Brand_13,"Eco-friendly, Beach Wear, Party Wear",Neutral Skin,Petite Friendly,High,2026-01-28 14:56:19
-97,97,"CARDIGANS, SHORTS, SWEATSHIRTS","Pastel Green, Mustard, Brown","Jacquard, Bamboo",Brand_19,"Formal, Hipster, Preppy",Fair Skin,Skinny Friendly,High,2026-01-28 14:56:19
-98,98,"CARDIGANS, DENIM JACKETS, BLAZERS","Maroon, Blush, Polka Dot","Corduroy, Rayon",Brand_9,"Streetwear, Casual, Luxury",Medium Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-99,99,"OVERSIZE TEE, POLOS, CARDIGANS","Beige, Pastel Blue, Camouflage","Denim, Cotton",Brand_7,"Beach Wear, Y2K, Hipster",Neutral Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-100,100,"SWEATSHIRTS, BEACH WEAR, TANKS","Black, Brown, Crimson","Bamboo, Cotton",Brand_3,"Office Wear, Eco-friendly, Luxury",Medium Skin,Petite Friendly,High,2026-01-28 14:56:19
-101,101,"KIMONO, JOGGERS & PANTS, POLOS","Pastel Pink, Red, Crimson","Wool, Corduroy",Brand_3,"Streetwear, Athleisure, Office Wear",Dark Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-102,102,"BLAZERS, BEACH WEAR, DENIM JACKETS","Off-white, Black, Navy","Linen, Cotton",Brand_6,"Cottagecore, Vintage, Preppy",Neutral Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-103,103,"BEACH WEAR, DENIM JACKETS, CARDIGANS","Plaid, Pastel Green, Grey","Fleece, Velvet",Brand_6,"Streetwear, Minimalist, Beach Wear",Fair Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-104,104,"TRACK PANTS, BLAZERS, JOGGERS & PANTS","Green, Nude, Plaid","Polyester, Fleece",Brand_11,"Cottagecore, Office Wear, Y2K",Fair Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-105,105,"TRACK PANTS, CARDIGANS, HOODIES & JACKETS","Polka Dot, Sky Blue, Brown","Linen, Leather",Brand_6,"Vintage, Cottagecore, Y2K",Medium Skin,Tall Friendly,High,2026-01-28 14:56:19
-106,106,"SWEATSHIRTS, T-SHIRTS, BLAZERS","Brown, Maroon, Teal","Rayon, Cotton",Brand_16,"Office Wear, Preppy, Vintage",Dark Skin,Tall Friendly,High,2026-01-28 14:56:19
-107,107,"BEACH WEAR, CHINOS, BLAZERS","Tie-dye, Mint, White","Bamboo, Silk",Brand_13,"Eco-friendly, Beach Wear, Office Wear",Medium Skin,Petite Friendly,High,2026-01-28 14:56:19
-108,108,"OVERSIZE TEE, CHINOS, T-SHIRTS","Pink, Polka Dot, Mustard","Fleece, Denim",Brand_13,"Office Wear, Athleisure, Y2K",Fair Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-109,109,"CARDIGANS, BEACH WEAR, POLOS","Olive, Striped, Charcoal","Cotton, Velvet",Brand_13,"Casual, Streetwear, Hipster",Neutral Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-110,110,"POLOS, BLAZERS, CARDIGANS","Tie-dye, Crimson, Blue","Corduroy, Silk",Brand_14,"Vintage, Minimalist, Preppy",Fair Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-111,111,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","White, Green, Striped","Rayon, Velvet",Brand_1,"Beach Wear, Luxury, Y2K",Neutral Skin,Skinny Friendly,High,2026-01-28 14:56:19
-112,112,"CARDIGANS, TRACK PANTS, DENIM JACKETS","Off-white, Checked, Tan","Jacquard, Bamboo",Brand_13,"Beach Wear, Hipster, Party Wear",Fair Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-113,113,"TRACK PANTS, COATS, HOODIES & JACKETS","Maroon, Camouflage, White","Bamboo, Velvet",Brand_5,"Vintage, Preppy, Athleisure",Medium Skin,Curvy Friendly,High,2026-01-28 14:56:19
-114,114,"HOODIES & JACKETS, POLOS, JOGGERS & PANTS","Plaid, Pastel Pink, Sky Blue","Jacquard, Corduroy",Brand_4,"Y2K, Eco-friendly, Hipster",Medium Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-115,115,"SHORTS, POLOS, OVERSIZE TEE","Mint, Pink, Chocolate","Cotton, Rayon",Brand_8,"Beach Wear, Party Wear, Vintage",Neutral Skin,Curvy Friendly,High,2026-01-28 14:56:19
-117,117,"OVERSIZE TEE, UTILITY PANTS, JOGGERS & PANTS","Blush, Sky Blue, Red","Leather, Fleece",Brand_16,"Party Wear, Athleisure, Beach Wear",Fair Skin,Petite Friendly,High,2026-01-28 14:56:19
-118,118,"DENIM JACKETS, JOGGERS & PANTS, SWEATSHIRTS","White, Black, Brown","Tencel, Wool",Brand_8,"Vintage, Casual, Cottagecore",Medium Skin,Petite Friendly,High,2026-01-28 14:56:19
-119,119,"KIMONO, TRACK PANTS, UTILITY PANTS","Green, Coral, Orange","Leather, Tencel",Brand_18,"Party Wear, Formal, Minimalist",Fair Skin,Tall Friendly,High,2026-01-28 14:56:19
-120,120,"SWEATSHIRTS, TANKS, KIMONO","Off-white, Navy, Peach","Denim, Bamboo",Brand_4,"Formal, Party Wear, Beach Wear",Fair Skin,Curvy Friendly,High,2026-01-28 14:56:19
-121,121,"TRACK PANTS, BEACH WEAR, KIMONO","Pastel Blue, Nude, Chocolate","Cotton, Corduroy",Brand_10,"Party Wear, Formal, Athleisure",Dark Skin,Petite Friendly,High,2026-01-28 14:56:19
-122,122,"UTILITY PANTS, HOODIES & JACKETS, T-SHIRTS","Nude, Mustard, Camouflage","Polyester, Velvet",Brand_13,"Formal, Cottagecore, Hipster",Medium Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-123,123,"SWEATSHIRTS, HOODIES & JACKETS, BLAZERS","Red, Plaid, Teal","Polyester, Modal",Brand_5,"Athleisure, Beach Wear, Office Wear",Medium Skin,Skinny Friendly,High,2026-01-28 14:56:19
-124,124,"KIMONO, HOODIES & JACKETS, DENIM JACKETS","Beige, Grey, Brown","Fleece, Rayon",Brand_17,"Office Wear, Eco-friendly, Athleisure",Fair Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-125,125,"TANKS, SWEATSHIRTS, COATS","Yellow, Checked, Sky Blue","Bamboo, Tencel",Brand_6,"Hipster, Eco-friendly, Streetwear",Fair Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-126,126,"HOODIES & JACKETS, SWEATSHIRTS, CHINOS","Crimson, Nude, Olive","Velvet, Jacquard",Brand_9,"Formal, Minimalist, Beach Wear",Dark Skin,Petite Friendly,Low,2026-01-28 14:56:19
-128,128,"UTILITY PANTS, CARDIGANS, HOODIES & JACKETS","Blush, Checked, Olive","Bamboo, Tencel",Brand_7,"Cottagecore, Beach Wear, Hipster",Medium Skin,Skinny Friendly,High,2026-01-28 14:56:19
-129,129,"SHORTS, T-SHIRTS, POLOS","Maroon, Mustard, Olive","Rayon, Leather",Brand_11,"Streetwear, Luxury, Party Wear",Fair Skin,Tall Friendly,High,2026-01-28 14:56:19
-130,130,"SHORTS, CHINOS, COATS","Green, Orange, Camouflage","Wool, Jacquard",Brand_16,"Cottagecore, Beach Wear, Office Wear",Dark Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-131,131,"CHINOS, JOGGERS & PANTS, T-SHIRTS","Pastel Green, Orange, Red","Rayon, Linen",Brand_6,"Cottagecore, Formal, Eco-friendly",Medium Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-133,133,"UTILITY PANTS, OVERSIZE TEE, CARDIGANS","Pink, Yellow, Checked","Tencel, Linen",Brand_3,"Office Wear, Luxury, Eco-friendly",Neutral Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-134,134,"JOGGERS & PANTS, OVERSIZE TEE, DENIM JACKETS","Navy, Pastel Blue, Multi-color","Rayon, Velvet",Brand_19,"Cottagecore, Streetwear, Formal",Fair Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-135,135,###typo,"Nude, Peach, Tie-dye","Cotton, Denim",Brand_2,"Eco-friendly, Hipster, Y2K",Dark Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-136,136,"HOODIES & JACKETS, BLAZERS, CHINOS","Red, Coral, Beige","Modal, Tencel",Brand_15,"Athleisure, Office Wear, Casual",Medium Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-137,137,"JOGGERS & PANTS, TRACK PANTS, DENIM JACKETS","Blush, Multi-color, Polka Dot","Fleece, Modal",Brand_4,"Eco-friendly, Athleisure, Minimalist",Fair Skin,Skinny Friendly,High,2026-01-28 14:56:19
-138,138,"JOGGERS & PANTS, DENIM JACKETS, CHINOS","Tie-dye, Pastel Pink, Multi-color","Denim, Rayon",Brand_10,"Formal, Beach Wear, Casual",Dark Skin,Tall Friendly,High,2026-01-28 14:56:19
-140,140,"KIMONO, UTILITY PANTS, SHORTS","Mint, Nude, Coral","Velvet, Corduroy",Brand_8,"Eco-friendly, Casual, Preppy",Medium Skin,Tall Friendly,High,2026-01-28 14:56:19
-141,141,"BLAZERS, HOODIES & JACKETS, CHINOS","Green, Orange, Red","Leather, Polyester",Brand_12,"Streetwear, Cottagecore, Athleisure",Dark Skin,Tall Friendly,Low,2026-01-28 14:56:19
-143,143,"JOGGERS & PANTS, POLOS, BEACH WEAR","Green, Charcoal, Grey","Tencel, Silk",Brand_7,"Vintage, Luxury, Preppy",Dark Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-144,144,"COATS, SHORTS, TANKS","Pastel Green, Pink, Teal","Denim, Rayon",Brand_5,"Streetwear, Cottagecore, Y2K",Medium Skin,Curvy Friendly,High,2026-01-28 14:56:19
-145,145,"JOGGERS & PANTS, T-SHIRTS, SWEATSHIRTS","Checked, Camouflage, Grey","Wool, Corduroy",Brand_6,"Athleisure, Office Wear, Minimalist",Neutral Skin,Tall Friendly,Low,2026-01-28 14:56:19
-146,146,"OVERSIZE TEE, BEACH WEAR, SWEATSHIRTS","Crimson, Black, Sky Blue","Rayon, Jacquard",Brand_13,"Streetwear, Preppy, Office Wear",Dark Skin,Petite Friendly,Low,2026-01-28 14:56:19
-147,147,"TANKS, CHINOS, OVERSIZE TEE","Pink, Nude, Multi-color","Fleece, Linen",Brand_12,"Beach Wear, Hipster, Vintage",Neutral Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-148,148,"KIMONO, T-SHIRTS, HOODIES & JACKETS","Tie-dye, Coral, Mustard","Fleece, Jacquard",Brand_15,"Vintage, Preppy, Beach Wear",Dark Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-149,149,"UTILITY PANTS, COATS, HOODIES & JACKETS","Tan, Red, Blush","Cotton, Rayon",Brand_16,"Office Wear, Streetwear, Luxury",Dark Skin,Skinny Friendly,High,2026-01-28 14:56:19
-150,150,"HOODIES & JACKETS, DENIM JACKETS, SHORTS","Navy, Plaid, Coral","Denim, Wool",Brand_7,"Casual, Formal, Beach Wear",Neutral Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-151,151,"HOODIES & JACKETS, UTILITY PANTS, BLAZERS","Blush, Sky Blue, Teal","Jacquard, Polyester",Brand_7,"Preppy, Vintage, Beach Wear",Dark Skin,Skinny Friendly,High,2026-01-28 14:56:19
-152,152,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Checked, Peach, Mustard","Silk, Bamboo",Brand_16,"Office Wear, Casual, Beach Wear",Medium Skin,Skinny Friendly,Medium,2026-03-08 21:50:44
-153,153,"COATS, OVERSIZE TEE, T-SHIRTS","Black, Blue, Chocolate","Leather, Velvet",Brand_4,"Casual, Preppy, Formal",Dark Skin,Petite Friendly,High,2026-01-28 14:56:19
-154,154,"TRACK PANTS, BEACH WEAR, UTILITY PANTS","Olive, Charcoal, Teal","Fleece, Wool",Brand_10,"Vintage, Cottagecore, Preppy",Neutral Skin,Tall Friendly,High,2026-01-28 14:56:19
-155,155,"POLOS, KIMONO, UTILITY PANTS","Red, Mint, Grey","Velvet, Jacquard",Brand_13,"Beach Wear, Casual, Athleisure",Medium Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-156,156,"TANKS, KIMONO, COATS","Striped, Pink, Peach","Cotton, Leather",Brand_3,"Cottagecore, Formal, Streetwear",Dark Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-157,157,"COATS, BLAZERS, POLOS","Teal, Maroon, Camouflage","Corduroy, Wool",Brand_16,"Hipster, Athleisure, Cottagecore",Neutral Skin,Petite Friendly,Low,2026-01-28 14:56:19
-158,158,"T-SHIRTS, BEACH WEAR, COATS","Tie-dye, Sky Blue, Blue","Fleece, Corduroy",Brand_16,"Vintage, Beach Wear, Formal",Medium Skin,Tall Friendly,High,2026-01-28 14:56:19
-159,159,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Charcoal, Mint, Teal","Wool, Denim",Brand_18,"Office Wear, Athleisure, Party Wear",Dark Skin,Skinny Friendly,High,2026-01-28 14:56:19
-160,160,"TANKS, COATS, UTILITY PANTS","Blue, Tan, Navy","Denim, Wool",Brand_11,"Hipster, Luxury, Eco-friendly",Medium Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-161,161,"HOODIES & JACKETS, OVERSIZE TEE, BEACH WEAR","Orange, Checked, Olive","Rayon, Denim",Brand_15,"Cottagecore, Luxury, Casual",Fair Skin,Curvy Friendly,High,2026-01-28 14:56:19
-162,162,"POLOS, T-SHIRTS, DENIM JACKETS","Pastel Blue, Brown, Yellow","Bamboo, Tencel",Brand_19,"Luxury, Minimalist, Casual",Fair Skin,Tall Friendly,High,2026-01-28 14:56:19
-163,163,"SWEATSHIRTS, JOGGERS & PANTS, CHINOS","Tie-dye, Peach, Coral","Wool, Velvet",Brand_18,"Y2K, Streetwear, Vintage",Fair Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-165,165,"DENIM JACKETS, OVERSIZE TEE, CHINOS","Red, Pastel Green, Yellow","Corduroy, Silk",Brand_3,"Streetwear, Vintage, Eco-friendly",Fair Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-166,166,"T-SHIRTS, CARDIGANS, KIMONO","Pink, Camouflage, Blue","Jacquard, Polyester",Brand_4,"Vintage, Beach Wear, Athleisure",Fair Skin,Curvy Friendly,High,2026-01-28 14:56:19
-167,167,"BEACH WEAR, OVERSIZE TEE, POLOS","Grey, Mustard, Beige","Cotton, Corduroy",Brand_4,"Office Wear, Eco-friendly, Athleisure",Neutral Skin,Petite Friendly,High,2026-01-28 14:56:19
-168,168,"POLOS, TRACK PANTS, SWEATSHIRTS","Teal, Off-white, Olive","Wool, Jacquard",Brand_13,"Casual, Cottagecore, Athleisure",Neutral Skin,Tall Friendly,Low,2026-01-28 14:56:19
-169,169,"JOGGERS & PANTS, BLAZERS, TANKS","Blue, Mustard, Crimson","Cotton, Linen",Brand_16,"Y2K, Vintage, Cottagecore",Neutral Skin,Curvy Friendly,High,2026-01-28 14:56:19
-170,170,"JOGGERS & PANTS, SWEATSHIRTS, UTILITY PANTS","Navy, Multi-color, Orange","Denim, Modal",Brand_6,"Formal, Minimalist, Office Wear",Medium Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-171,171,"SHORTS, TRACK PANTS, OVERSIZE TEE","Plaid, Off-white, Checked","Rayon, Velvet",Brand_8,"Minimalist, Office Wear, Luxury",Fair Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-172,172,"TANKS, HOODIES & JACKETS, CHINOS","Mint, Orange, Crimson","Leather, Wool",Brand_7,"Party Wear, Office Wear, Preppy",Fair Skin,Petite Friendly,High,2026-01-28 14:56:19
-173,173,"SWEATSHIRTS, BLAZERS, T-SHIRTS","Beige, Nude, Brown","Velvet, Linen",Brand_14,"Minimalist, Casual, Streetwear",Neutral Skin,Skinny Friendly,High,2026-01-28 14:56:19
-175,175,"COATS, BEACH WEAR, OVERSIZE TEE","Tan, Polka Dot, Chocolate","Cotton, Fleece",Brand_9,"Beach Wear, Casual, Office Wear",Fair Skin,Skinny Friendly,High,2026-01-28 14:56:19
-176,176,"COATS, DENIM JACKETS, BLAZERS","Pink, Checked, Red","Jacquard, Leather",Brand_6,"Formal, Y2K, Cottagecore",Dark Skin,Petite Friendly,Low,2026-01-28 14:56:19
-177,177,"CARDIGANS, DENIM JACKETS, KIMONO","Pastel Pink, Pastel Blue, Multi-color","Wool, Polyester",Brand_1,"Eco-friendly, Streetwear, Cottagecore",Fair Skin,Tall Friendly,High,2026-01-28 14:56:19
-178,178,"SWEATSHIRTS, TANKS, BLAZERS","Black, Brown, Crimson","Bamboo, Tencel",Brand_15,"Athleisure, Vintage, Hipster",Fair Skin,Petite Friendly,High,2026-01-28 14:56:19
-179,179,"OVERSIZE TEE, BEACH WEAR, TANKS","Brown, Crimson, Mustard","Fleece, Silk",Brand_19,"Streetwear, Party Wear, Vintage",Medium Skin,Tall Friendly,Low,2026-01-28 14:56:19
-180,180,"OVERSIZE TEE, JOGGERS & PANTS, HOODIES & JACKETS","Beige, Mustard, Checked","Fleece, Leather",Brand_6,"Hipster, Beach Wear, Eco-friendly",Medium Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-181,181,"OVERSIZE TEE, SWEATSHIRTS, TANKS","Charcoal, Peach, Black","Rayon, Velvet",Brand_17,"Luxury, Eco-friendly, Vintage",Fair Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-182,182,"POLOS, SWEATSHIRTS, OVERSIZE TEE","Polka Dot, Green, Chocolate","Modal, Tencel",Brand_16,"Formal, Athleisure, Beach Wear",Medium Skin,Skinny Friendly,High,2026-01-28 14:56:19
-183,183,"TANKS, OVERSIZE TEE, DENIM JACKETS","Brown, Mustard, Pastel Blue","Leather, Wool",Brand_4,"Cottagecore, Hipster, Preppy",Medium Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-184,184,"TANKS, BLAZERS, T-SHIRTS","Grey, Green, Chocolate","Fleece, Cotton",Brand_10,"Beach Wear, Streetwear, Hipster",Neutral Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-185,185,"TRACK PANTS, CARDIGANS, KIMONO","Peach, Off-white, Blush","Silk, Fleece",Brand_2,"Beach Wear, Athleisure, Eco-friendly",Dark Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-187,187,"SHORTS, TANKS, SWEATSHIRTS","Grey, Tan, Multi-color","Silk, Denim",Brand_13,"Athleisure, Party Wear, Minimalist",Fair Skin,Skinny Friendly,High,2026-01-28 14:56:19
-188,188,"TRACK PANTS, TANKS, KIMONO","Plaid, Yellow, Peach","Silk, Tencel",Brand_14,"Athleisure, Casual, Streetwear",Medium Skin,Petite Friendly,High,2026-01-28 14:56:19
-189,189,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Yellow, Chocolate, Blue","Modal, Fleece",Brand_14,"Vintage, Luxury, Casual",Fair Skin,Petite Friendly,Low,2026-01-28 14:56:19
-190,190,"CARDIGANS, T-SHIRTS, TRACK PANTS","Coral, White, Blue","Wool, Fleece",Brand_17,"Minimalist, Cottagecore, Streetwear",Neutral Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-191,191,"TANKS, BLAZERS, JOGGERS & PANTS","Teal, Peach, Olive","Bamboo, Tencel",Brand_9,"Preppy, Minimalist, Luxury",Medium Skin,Tall Friendly,Low,2026-01-28 14:56:19
-192,192,"POLOS, COATS, TRACK PANTS","Checked, Pink, Plaid","Jacquard, Corduroy",Brand_16,"Cottagecore, Luxury, Preppy",Fair Skin,Skinny Friendly,High,2026-01-28 14:56:19
-193,193,"HOODIES & JACKETS, DENIM JACKETS, TANKS","Checked, Black, Brown","Denim, Silk",Brand_17,"Minimalist, Luxury, Cottagecore",Medium Skin,Petite Friendly,High,2026-01-28 14:56:19
-194,194,"BEACH WEAR, CHINOS, DENIM JACKETS","Multi-color, Grey, Crimson","Cotton, Denim",Brand_17,"Formal, Beach Wear, Preppy",Dark Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-195,195,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Grey, Sky Blue, Pink","Silk, Rayon",Brand_12,"Beach Wear, Office Wear, Eco-friendly",Dark Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-197,197,"HOODIES & JACKETS, SHORTS, TRACK PANTS","Checked, Pastel Pink, Nude","Denim, Corduroy",Brand_18,"Formal, Y2K, Hipster",Neutral Skin,Tall Friendly,High,2026-01-28 14:56:19
-198,198,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Sky Blue, Multi-color, Maroon","Corduroy, Rayon",Brand_7,"Eco-friendly, Casual, Office Wear",Fair Skin,Skinny Friendly,High,2026-01-28 14:56:19
-199,199,"CHINOS, POLOS, HOODIES & JACKETS","Sky Blue, Blue, Chocolate","Wool, Jacquard",Brand_13,"Cottagecore, Minimalist, Y2K",Neutral Skin,Curvy Friendly,High,2026-01-28 14:56:19
-200,200,"DENIM JACKETS, BLAZERS, T-SHIRTS","Off-white, Maroon, Coral","Wool, Modal",Brand_17,"Formal, Office Wear, Party Wear",Neutral Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-201,201,"SHORTS, JOGGERS & PANTS, CHINOS","Multi-color, Grey, Red","Linen, Velvet",Brand_3,"Office Wear, Preppy, Vintage",Dark Skin,Tall Friendly,High,2026-01-28 14:56:19
-202,202,"KIMONO, JOGGERS & PANTS, BLAZERS","Multi-color, Pink, Maroon","Leather, Denim",Brand_12,"Office Wear, Casual, Streetwear",Fair Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-203,203,"SWEATSHIRTS, SHORTS, CHINOS","Mint, Red, Tie-dye","Wool, Silk",Brand_7,"Hipster, Eco-friendly, Casual",Medium Skin,Petite Friendly,High,2026-01-28 14:56:19
-204,204,"BEACH WEAR, BLAZERS, JOGGERS & PANTS","Polka Dot, Red, Grey","Bamboo, Denim",Brand_15,"Luxury, Eco-friendly, Streetwear",Neutral Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-205,205,"BEACH WEAR, DENIM JACKETS, COATS","Sky Blue, Pastel Green, Teal","Bamboo, Tencel",Brand_8,"Beach Wear, Formal, Vintage",Neutral Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-206,206,"CHINOS, POLOS, SWEATSHIRTS","Nude, Navy, White","Bamboo, Modal",Brand_2,"Vintage, Cottagecore, Hipster",Fair Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-207,207,"BEACH WEAR, JOGGERS & PANTS, OVERSIZE TEE","Plaid, White, Teal","Fleece, Linen",Brand_9,"Formal, Party Wear, Luxury",Medium Skin,Tall Friendly,High,2026-01-28 14:56:19
-208,208,"KIMONO, OVERSIZE TEE, UTILITY PANTS","Pink, Mint, Yellow","Cotton, Leather",Brand_18,"Vintage, Beach Wear, Minimalist",Medium Skin,Petite Friendly,Medium,2026-03-08 21:50:44
-209,209,"KIMONO, SHORTS, JOGGERS & PANTS","Plaid, White, Coral","Cotton, Tencel",Brand_13,"Preppy, Hipster, Casual",Neutral Skin,Tall Friendly,High,2026-01-28 14:56:19
-211,211,"UTILITY PANTS, T-SHIRTS, OVERSIZE TEE","Sky Blue, Olive, Crimson","Jacquard, Leather",Brand_4,"Eco-friendly, Streetwear, Party Wear",Dark Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-212,212,"SWEATSHIRTS, SHORTS, OVERSIZE TEE","Navy, Red, Orange","Bamboo, Tencel",Brand_7,"Luxury, Formal, Office Wear",Medium Skin,Petite Friendly,Low,2026-01-28 14:56:19
-213,213,"CHINOS, BLAZERS, UTILITY PANTS","Crimson, Peach, Chocolate","Denim, Bamboo",Brand_10,"Eco-friendly, Formal, Casual",Fair Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-214,214,"SWEATSHIRTS, BEACH WEAR, COATS","Maroon, Olive, Mustard","Cotton, Bamboo",Brand_12,"Cottagecore, Vintage, Athleisure",Medium Skin,Skinny Friendly,High,2026-01-28 14:56:19
-215,215,"COATS, BLAZERS, DENIM JACKETS","Orange, Striped, Pastel Green","Rayon, Silk",Brand_19,"Eco-friendly, Formal, Hipster",Neutral Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-216,216,"HOODIES & JACKETS, TANKS, DENIM JACKETS","Orange, Navy, Nude","Modal, Jacquard",Brand_14,"Cottagecore, Streetwear, Eco-friendly",Medium Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-217,217,"KIMONO, JOGGERS & PANTS, DENIM JACKETS","Camouflage, Teal, Off-white","Bamboo, Fleece",Brand_7,"Beach Wear, Minimalist, Party Wear",Fair Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-218,218,"POLOS, JOGGERS & PANTS, BEACH WEAR","Tie-dye, Polka Dot, Orange","Silk, Velvet",Brand_12,"Hipster, Vintage, Streetwear",Medium Skin,Skinny Friendly,High,2026-01-28 14:56:19
-220,220,"COATS, BLAZERS, T-SHIRTS","White, Red, Polka Dot","Polyester, Velvet",Brand_15,"Formal, Y2K, Beach Wear",Fair Skin,Curvy Friendly,High,2026-01-28 14:56:19
-221,221,"POLOS, HOODIES & JACKETS, SHORTS","Tan, Peach, Navy","Corduroy, Wool",Brand_15,"Y2K, Eco-friendly, Office Wear",Medium Skin,Tall Friendly,High,2026-01-28 14:56:19
-222,222,"HOODIES & JACKETS, CARDIGANS, CHINOS","Multi-color, Charcoal, Grey","Linen, Tencel",Brand_18,"Preppy, Vintage, Cottagecore",Medium Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-223,223,"JOGGERS & PANTS, BEACH WEAR, BLAZERS","White, Tie-dye, Coral","Polyester, Corduroy",Brand_15,"Hipster, Casual, Preppy",Medium Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-224,224,"TANKS, COATS, CARDIGANS","Multi-color, Charcoal, Peach","Fleece, Jacquard",Brand_16,"Beach Wear, Streetwear, Cottagecore",Medium Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-225,225,"T-SHIRTS, KIMONO, SHORTS","Plaid, Pastel Pink, Pastel Blue","Jacquard, Rayon",Brand_6,"Hipster, Casual, Luxury",Medium Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-226,226,"SHORTS, SWEATSHIRTS, KIMONO","Maroon, Orange, Tan","Tencel, Silk",Brand_18,"Formal, Vintage, Minimalist",Medium Skin,Skinny Friendly,High,2026-01-28 14:56:19
-227,227,"KIMONO, DENIM JACKETS, BLAZERS","Nude, Blue, Striped","Wool, Linen",Brand_9,"Beach Wear, Streetwear, Vintage",Neutral Skin,Tall Friendly,Low,2026-01-28 14:56:19
-228,228,"UTILITY PANTS, TANKS, OVERSIZE TEE","Mint, Pastel Blue, Coral","Fleece, Rayon",Brand_8,"Y2K, Beach Wear, Cottagecore",Medium Skin,Petite Friendly,Low,2026-01-28 14:56:19
-229,229,"KIMONO, POLOS, BLAZERS","Pastel Blue, White, Navy","Fleece, Cotton",Brand_8,"Formal, Streetwear, Casual",Dark Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-230,230,"DENIM JACKETS, UTILITY PANTS, CHINOS","Brown, Pink, Striped","Corduroy, Cotton",Brand_17,"Office Wear, Y2K, Preppy",Dark Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-231,231,"T-SHIRTS, BLAZERS, TANKS","Tie-dye, Polka Dot, Orange","Tencel, Modal",Brand_14,"Cottagecore, Athleisure, Beach Wear",Fair Skin,Tall Friendly,Low,2026-03-08 21:50:44
-232,232,"BEACH WEAR, SWEATSHIRTS, T-SHIRTS","Brown, Maroon, Olive","Leather, Rayon",Brand_3,"Casual, Office Wear, Preppy",Fair Skin,Tall Friendly,High,2026-01-28 14:56:19
-233,233,"POLOS, SHORTS, HOODIES & JACKETS","Off-white, Polka Dot, Orange","Rayon, Fleece",Brand_13,"Preppy, Beach Wear, Eco-friendly",Neutral Skin,Tall Friendly,High,2026-01-28 14:56:19
-234,234,"TANKS, CHINOS, KIMONO","Beige, Tie-dye, Chocolate","Rayon, Tencel",Brand_19,"Luxury, Vintage, Minimalist",Dark Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-235,235,"BLAZERS, TANKS, CHINOS","Teal, Chocolate, Sky Blue","Fleece, Tencel",Brand_9,"Minimalist, Hipster, Streetwear",Neutral Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-236,236,"KIMONO, POLOS, JOGGERS & PANTS","Tan, Green, Orange","Velvet, Denim",Brand_15,"Preppy, Y2K, Vintage",Fair Skin,Tall Friendly,High,2026-01-28 14:56:19
-237,237,"OVERSIZE TEE, TRACK PANTS, POLOS","Orange, Chocolate, Charcoal","Bamboo, Rayon",Brand_6,"Beach Wear, Formal, Office Wear",Dark Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-238,238,"HOODIES & JACKETS, TRACK PANTS, DENIM JACKETS","Crimson, Charcoal, Camouflage","Leather, Corduroy",Brand_16,"Party Wear, Vintage, Beach Wear",Dark Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-239,239,"BEACH WEAR, JOGGERS & PANTS, UTILITY PANTS","White, Grey, Brown","Fleece, Rayon",Brand_10,"Casual, Vintage, Formal",Medium Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-240,240,"KIMONO, OVERSIZE TEE, TANKS","Pastel Pink, Grey, Peach","Modal, Linen",Brand_16,"Preppy, Luxury, Casual",Dark Skin,Skinny Friendly,High,2026-01-28 14:56:19
-241,241,"TRACK PANTS, UTILITY PANTS, OVERSIZE TEE","Grey, Pastel Blue, Beige","Cotton, Bamboo",Brand_2,"Hipster, Athleisure, Y2K",Dark Skin,Tall Friendly,Low,2026-01-28 14:56:19
-242,242,"POLOS, CARDIGANS, UTILITY PANTS","Sky Blue, Tie-dye, Pastel Green","Bamboo, Polyester",Brand_3,"Beach Wear, Athleisure, Streetwear",Dark Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-243,243,"JOGGERS & PANTS, COATS, CHINOS","Chocolate, Camouflage, Beige","Corduroy, Tencel",Brand_10,"Vintage, Beach Wear, Casual",Neutral Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-244,244,"CHINOS, BEACH WEAR, JOGGERS & PANTS","Pastel Green, Red, Olive","Bamboo, Tencel",Brand_18,"Hipster, Beach Wear, Athleisure",Fair Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-245,245,"SWEATSHIRTS, CHINOS, OVERSIZE TEE","Polka Dot, Green, Off-white","Fleece, Polyester",Brand_4,"Streetwear, Vintage, Y2K",Medium Skin,Petite Friendly,Medium,2026-03-08 21:50:44
-246,246,"BLAZERS, OVERSIZE TEE, CHINOS","Beige, Pastel Green, Brown","Tencel, Leather",Brand_7,"Luxury, Casual, Preppy",Dark Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-247,247,"SHORTS, COATS, POLOS","Black, Grey, Multi-color","Corduroy, Silk",Brand_18,"Luxury, Casual, Party Wear",Neutral Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-248,248,"SHORTS, SWEATSHIRTS, BEACH WEAR","Blue, Tan, Multi-color","Jacquard, Fleece",Brand_19,"Streetwear, Preppy, Athleisure",Neutral Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-249,249,"HOODIES & JACKETS, TANKS, DENIM JACKETS","Off-white, Tie-dye, Red","Jacquard, Fleece",Brand_5,"Athleisure, Streetwear, Hipster",Neutral Skin,Petite Friendly,Low,2026-01-28 14:56:19
-250,250,"CARDIGANS, BEACH WEAR, BLAZERS","Orange, Pastel Green, Tie-dye","Wool, Jacquard",Brand_13,"Beach Wear, Office Wear, Eco-friendly",Fair Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-251,251,"TRACK PANTS, CARDIGANS, UTILITY PANTS","Pink, Polka Dot, Striped","Polyester, Corduroy",Brand_11,"Athleisure, Cottagecore, Preppy",Fair Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-252,252,"DENIM JACKETS, TRACK PANTS, BEACH WEAR","Plaid, Black, White","Leather, Fleece",Brand_18,"Office Wear, Party Wear, Y2K",Neutral Skin,Skinny Friendly,High,2026-01-28 14:56:19
-253,253,"HOODIES & JACKETS, BLAZERS, OVERSIZE TEE","Red, Green, Pink","Linen, Silk",Brand_5,"Luxury, Casual, Preppy",Neutral Skin,Petite Friendly,Low,2026-01-28 14:56:19
-254,254,"JOGGERS & PANTS, KIMONO, OVERSIZE TEE","White, Nude, Red","Modal, Bamboo",Brand_11,"Formal, Vintage, Beach Wear",Medium Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-255,255,"SHORTS, TRACK PANTS, POLOS","Tie-dye, Pastel Pink, Camouflage","Velvet, Modal",Brand_5,"Preppy, Vintage, Luxury",Fair Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-256,256,"SWEATSHIRTS, POLOS, DENIM JACKETS","Mustard, Off-white, Sky Blue","Denim, Fleece",Brand_12,"Beach Wear, Casual, Eco-friendly",Dark Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-257,257,"BLAZERS, DENIM JACKETS, SWEATSHIRTS","Grey, Red, Tie-dye","Polyester, Bamboo",Brand_15,"Preppy, Streetwear, Eco-friendly",Neutral Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-258,258,"POLOS, BLAZERS, DENIM JACKETS","Sky Blue, Mustard, Maroon","Wool, Rayon",Brand_1,"Casual, Eco-friendly, Athleisure",Neutral Skin,Tall Friendly,Low,2026-01-28 14:56:19
-259,259,"DENIM JACKETS, TRACK PANTS, SHORTS","Camouflage, Pastel Green, Black","Bamboo, Tencel",Brand_13,"Streetwear, Vintage, Cottagecore",Medium Skin,Petite Friendly,High,2026-01-28 14:56:19
-260,260,"POLOS, COATS, TANKS","Maroon, Striped, Sky Blue","Tencel, Rayon",Brand_3,"Luxury, Y2K, Party Wear",Medium Skin,Petite Friendly,Low,2026-01-28 14:56:19
-261,261,"T-SHIRTS, TRACK PANTS, COATS","Orange, Maroon, Crimson","Silk, Rayon",Brand_4,"Athleisure, Beach Wear, Vintage",Dark Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-262,262,"TRACK PANTS, POLOS, CHINOS","Camouflage, Blush, Nude","Silk, Cotton",Brand_8,"Athleisure, Party Wear, Beach Wear",Medium Skin,Petite Friendly,High,2026-01-28 14:56:19
-263,263,"SWEATSHIRTS, DENIM JACKETS, COATS","Off-white, Beige, Striped","Velvet, Bamboo",Brand_15,"Streetwear, Minimalist, Eco-friendly",Neutral Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-265,265,"T-SHIRTS, COATS, UTILITY PANTS","Pastel Pink, Pastel Blue, Multi-color","Silk, Velvet",Brand_16,"Party Wear, Minimalist, Cottagecore",Neutral Skin,Tall Friendly,High,2026-01-28 14:56:19
-266,266,"TRACK PANTS, OVERSIZE TEE, HOODIES & JACKETS","Peach, Pastel Pink, Polka Dot","Polyester, Modal",Brand_8,"Party Wear, Preppy, Athleisure",Dark Skin,Tall Friendly,High,2026-01-28 14:56:19
-267,267,"CHINOS, CARDIGANS, POLOS","Blue, Camouflage, Pastel Blue","Bamboo, Tencel",Brand_9,"Athleisure, Preppy, Hipster",Medium Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-268,268,"SWEATSHIRTS, COATS, BLAZERS","Mustard, Off-white, Striped","Polyester, Rayon",Brand_13,"Y2K, Athleisure, Beach Wear",Fair Skin,Petite Friendly,Low,2026-01-28 14:56:19
-269,269,"TANKS, POLOS, OVERSIZE TEE","Beige, Navy, Off-white","Linen, Corduroy",Brand_10,"Preppy, Casual, Streetwear",Fair Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-270,270,"KIMONO, CHINOS, COATS","Tan, Pastel Pink, Blush","Jacquard, Corduroy",Brand_8,"Formal, Casual, Office Wear",Fair Skin,Petite Friendly,High,2026-01-28 14:56:19
-271,271,"SHORTS, SWEATSHIRTS, BEACH WEAR","White, Teal, Yellow","Bamboo, Tencel",Brand_8,"Party Wear, Preppy, Eco-friendly",Dark Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-272,272,"BEACH WEAR, SHORTS, CARDIGANS","Mint, Pastel Blue, Teal","Corduroy, Velvet",Brand_11,"Office Wear, Athleisure, Streetwear",Neutral Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-273,273,"CARDIGANS, HOODIES & JACKETS, T-SHIRTS","Off-white, Multi-color, White","Linen, Wool",Brand_9,"Athleisure, Preppy, Eco-friendly",Medium Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-274,274,"HOODIES & JACKETS, TRACK PANTS, KIMONO","Multi-color, Green, Pastel Green","Velvet, Polyester",Brand_10,"Streetwear, Cottagecore, Office Wear",Medium Skin,Tall Friendly,High,2026-01-28 14:56:19
-275,275,"UTILITY PANTS, TANKS, KIMONO","Navy, Tan, Polka Dot","Polyester, Denim",Brand_7,"Luxury, Office Wear, Cottagecore",Neutral Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-276,276,"T-SHIRTS, OVERSIZE TEE, JOGGERS & PANTS","Black, Checked, Mint","Linen, Modal",Brand_19,"Cottagecore, Preppy, Beach Wear",Medium Skin,Curvy Friendly,High,2026-01-28 14:56:19
-277,277,"KIMONO, HOODIES & JACKETS, POLOS","Tan, Mustard, Green","Modal, Leather",Brand_10,"Cottagecore, Streetwear, Office Wear",Medium Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-278,278,"DENIM JACKETS, POLOS, CHINOS","Blue, Pastel Green, Pastel Blue","Wool, Polyester",Brand_4,"Party Wear, Preppy, Formal",Fair Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-279,279,"SWEATSHIRTS, CARDIGANS, OVERSIZE TEE","Mustard, Blush, Coral","Bamboo, Silk",Brand_7,"Luxury, Vintage, Formal",Medium Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-280,280,"SWEATSHIRTS, COATS, TANKS","Black, Nude, Chocolate","Modal, Wool",Brand_6,"Party Wear, Y2K, Minimalist",Dark Skin,Curvy Friendly,High,2026-01-28 14:56:19
-281,281,"KIMONO, T-SHIRTS, TRACK PANTS","White, Camouflage, Tan","Corduroy, Denim",Brand_8,"Casual, Streetwear, Eco-friendly",Neutral Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-282,282,"BLAZERS, CHINOS, TRACK PANTS","Striped, Chocolate, Orange","Bamboo, Modal",Brand_2,"Minimalist, Formal, Eco-friendly",Medium Skin,Curvy Friendly,High,2026-01-28 14:56:19
-283,283,"OVERSIZE TEE, SHORTS, JOGGERS & PANTS","Mint, Camouflage, Tan","Bamboo, Jacquard",Brand_4,"Preppy, Hipster, Minimalist",Medium Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-284,284,"OVERSIZE TEE, UTILITY PANTS, TRACK PANTS","Maroon, Blue, Yellow","Polyester, Leather",Brand_2,"Cottagecore, Minimalist, Eco-friendly",Dark Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-285,285,"TRACK PANTS, COATS, T-SHIRTS","Mustard, Plaid, Beige","Velvet, Denim",Brand_13,"Casual, Minimalist, Preppy",Fair Skin,Petite Friendly,Low,2026-01-28 14:56:19
-286,286,"DENIM JACKETS, CHINOS, UTILITY PANTS","Off-white, Navy, Olive","Rayon, Corduroy",Brand_16,"Office Wear, Vintage, Casual",Fair Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-287,287,"BEACH WEAR, TRACK PANTS, TANKS","Blue, Pink, Maroon","Modal, Fleece",Brand_10,"Office Wear, Formal, Luxury",Medium Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-288,288,"BLAZERS, CHINOS, JOGGERS & PANTS","Chocolate, Mint, Yellow","Denim, Polyester",Brand_1,"Y2K, Athleisure, Streetwear",Neutral Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-289,289,"COATS, CHINOS, TRACK PANTS","Grey, Blue, Charcoal","Wool, Tencel",Brand_15,"Casual, Luxury, Party Wear",Fair Skin,Petite Friendly,High,2026-01-28 14:56:19
-290,290,"DENIM JACKETS, BLAZERS, T-SHIRTS","Pink, Mint, Grey","Leather, Velvet",Brand_9,"Casual, Streetwear, Luxury",Medium Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-291,291,"POLOS, CHINOS, BLAZERS","Camouflage, Orange, Tan","Bamboo, Tencel",Brand_17,"Party Wear, Y2K, Cottagecore",Dark Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-293,293,"CHINOS, SHORTS, TANKS","Blue, Grey, Striped","Modal, Polyester",Brand_17,"Vintage, Formal, Casual",Fair Skin,Curvy Friendly,High,2026-01-28 14:56:19
-294,294,"BEACH WEAR, TANKS, KIMONO","Black, Navy, Peach","Jacquard, Cotton",Brand_12,"Formal, Hipster, Athleisure",Medium Skin,Tall Friendly,Low,2026-01-28 14:56:19
-295,295,"OVERSIZE TEE, HOODIES & JACKETS, BEACH WEAR","Green, Nude, Off-white","Leather, Linen",Brand_2,"Athleisure, Office Wear, Party Wear",Neutral Skin,Petite Friendly,High,2026-01-28 14:56:19
-296,296,"JOGGERS & PANTS, T-SHIRTS, CHINOS","Green, Maroon, Olive","Velvet, Cotton",Brand_16,"Cottagecore, Minimalist, Beach Wear",Dark Skin,Curvy Friendly,High,2026-01-28 14:56:19
-297,297,"UTILITY PANTS, POLOS, SWEATSHIRTS","Navy, Olive, Grey","Corduroy, Wool",Brand_3,"Luxury, Casual, Preppy",Medium Skin,Petite Friendly,High,2026-01-28 14:56:19
-298,298,"TRACK PANTS, T-SHIRTS, SHORTS","Blue, Chocolate, Beige","Corduroy, Silk",Brand_7,"Beach Wear, Formal, Party Wear",Neutral Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-299,299,"CARDIGANS, OVERSIZE TEE, UTILITY PANTS","Orange, Coral, Green","Silk, Rayon",Brand_11,"Vintage, Office Wear, Hipster",Dark Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-300,300,"CHINOS, SWEATSHIRTS, SHORTS","White, Multi-color, Pastel Green","Bamboo, Velvet",Brand_7,"Office Wear, Preppy, Minimalist",Medium Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-301,301,"CARDIGANS, CHINOS, BLAZERS","Tie-dye, Teal, Plaid","Cotton, Bamboo",Brand_12,"Hipster, Y2K, Preppy",Fair Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-302,302,"JOGGERS & PANTS, CHINOS, CARDIGANS","White, Chocolate, Blush","Leather, Fleece",Brand_18,"Party Wear, Cottagecore, Y2K",Dark Skin,Tall Friendly,High,2026-01-28 14:56:19
-303,303,"OVERSIZE TEE, HOODIES & JACKETS, BEACH WEAR","Charcoal, Camouflage, Mustard","Denim, Cotton",Brand_16,"Minimalist, Y2K, Streetwear",Dark Skin,Petite Friendly,Low,2026-01-28 14:56:19
-304,304,"HOODIES & JACKETS, TANKS, JOGGERS & PANTS","Multi-color, Pastel Blue, Maroon","Velvet, Wool",Brand_18,"Preppy, Y2K, Beach Wear",Dark Skin,Tall Friendly,High,2026-01-28 14:56:19
-305,305,"TANKS, SWEATSHIRTS, SHORTS","Tie-dye, Beige, Mustard","Corduroy, Leather",Brand_16,"Eco-friendly, Luxury, Office Wear",Medium Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-306,306,"SWEATSHIRTS, JOGGERS & PANTS, BLAZERS","Striped, Plaid, Red","Silk, Fleece",Brand_3,"Casual, Beach Wear, Y2K",Medium Skin,Tall Friendly,Low,2026-01-28 14:56:19
-307,307,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Orange, Multi-color, Yellow","Denim, Fleece",Brand_1,"Beach Wear, Cottagecore, Vintage",Fair Skin,Skinny Friendly,High,2026-01-28 14:56:19
-309,309,"COATS, T-SHIRTS, UTILITY PANTS","Red, Pink, Pastel Green","Fleece, Silk",Brand_19,"Luxury, Casual, Streetwear",Dark Skin,Tall Friendly,Low,2026-01-28 14:56:19
-310,310,"TANKS, HOODIES & JACKETS, BEACH WEAR","Olive, Camouflage, Yellow","Silk, Polyester",Brand_18,"Beach Wear, Eco-friendly, Party Wear",Neutral Skin,Curvy Friendly,High,2026-01-28 14:56:19
-311,311,"TRACK PANTS, HOODIES & JACKETS, BEACH WEAR","Blush, White, Black","Silk, Tencel",Brand_2,"Vintage, Hipster, Minimalist",Dark Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-312,312,"DENIM JACKETS, UTILITY PANTS, T-SHIRTS","Off-white, Grey, Nude","Rayon, Fleece",Brand_4,"Office Wear, Luxury, Casual",Dark Skin,Curvy Friendly,High,2026-01-28 14:56:19
-313,313,"BLAZERS, UTILITY PANTS, DENIM JACKETS","Teal, White, Polka Dot","Fleece, Cotton",Brand_9,"Vintage, Preppy, Beach Wear",Dark Skin,Tall Friendly,Low,2026-01-28 14:56:19
-314,314,"DENIM JACKETS, BEACH WEAR, CHINOS","White, Tan, Mustard","Jacquard, Cotton",Brand_16,"Party Wear, Athleisure, Streetwear",Medium Skin,Tall Friendly,Low,2026-01-28 14:56:19
-315,315,"SHORTS, JOGGERS & PANTS, HOODIES & JACKETS","Grey, Teal, Beige","Tencel, Leather",Brand_9,"Cottagecore, Casual, Athleisure",Neutral Skin,Curvy Friendly,High,2026-01-28 14:56:19
-316,316,"HOODIES & JACKETS, OVERSIZE TEE, TRACK PANTS","Yellow, Tan, Coral","Fleece, Rayon",Brand_9,"Luxury, Party Wear, Vintage",Fair Skin,Tall Friendly,High,2026-01-28 14:56:19
-317,317,"HOODIES & JACKETS, SWEATSHIRTS, TRACK PANTS","Checked, Striped, Teal","Modal, Jacquard",Brand_3,"Athleisure, Hipster, Casual",Medium Skin,Petite Friendly,High,2026-01-28 14:56:19
-318,318,"UTILITY PANTS, OVERSIZE TEE, TANKS","Blush, Crimson, Brown","Bamboo, Leather",Brand_3,"Y2K, Hipster, Streetwear",Medium Skin,Curvy Friendly,High,2026-01-28 14:56:19
-319,319,"OVERSIZE TEE, SHORTS, BLAZERS","Maroon, Black, Off-white","Denim, Silk",Brand_11,"Luxury, Formal, Party Wear",Dark Skin,Skinny Friendly,High,2026-01-28 14:56:19
-320,320,"COATS, KIMONO, UTILITY PANTS","Camouflage, Yellow, Polka Dot","Linen, Rayon",Brand_16,"Vintage, Eco-friendly, Party Wear",Neutral Skin,Petite Friendly,High,2026-01-28 14:56:19
-321,321,"T-SHIRTS, JOGGERS & PANTS, TANKS","Mustard, Multi-color, Striped","Wool, Modal",Brand_6,"Eco-friendly, Vintage, Minimalist",Medium Skin,Curvy Friendly,High,2026-01-28 14:56:19
-322,322,"BLAZERS, JOGGERS & PANTS, T-SHIRTS","Pastel Green, Navy, Off-white","Rayon, Polyester",Brand_13,"Casual, Beach Wear, Preppy",Fair Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-323,323,"SWEATSHIRTS, OVERSIZE TEE, KIMONO","Teal, White, Brown","Bamboo, Denim",Brand_13,"Luxury, Eco-friendly, Y2K",Fair Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-325,325,"JOGGERS & PANTS, BLAZERS, TRACK PANTS","Black, Brown, Crimson","Cotton, Fleece",Brand_13,"Office Wear, Streetwear, Eco-friendly",Neutral Skin,Tall Friendly,High,2026-01-28 14:56:19
-326,326,"UTILITY PANTS, DENIM JACKETS, POLOS","Black, Brown, Crimson","Velvet, Linen",Brand_16,"Luxury, Casual, Preppy",Medium Skin,Tall Friendly,High,2026-01-28 14:56:19
-327,327,"TANKS, DENIM JACKETS, SHORTS","Blue, Tie-dye, Charcoal","Jacquard, Tencel",Brand_17,"Minimalist, Casual, Office Wear",Medium Skin,Skinny Friendly,High,2026-03-08 21:50:44
-328,328,"TRACK PANTS, BLAZERS, COATS","Grey, Off-white, Mustard","Modal, Silk",Brand_9,"Vintage, Eco-friendly, Office Wear",Medium Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-329,329,"DENIM JACKETS, KIMONO, TRACK PANTS","Brown, Mint, Coral","Tencel, Cotton",Brand_15,"Office Wear, Eco-friendly, Hipster",Dark Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-330,330,"TANKS, JOGGERS & PANTS, CARDIGANS","Pastel Blue, Tan, Yellow","Wool, Cotton",Brand_15,"Luxury, Vintage, Casual",Medium Skin,Petite Friendly,High,2026-01-28 14:56:19
-331,331,"OVERSIZE TEE, COATS, DENIM JACKETS","Plaid, Mustard, Beige","Fleece, Rayon",Brand_17,"Cottagecore, Streetwear, Minimalist",Neutral Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-332,332,"JOGGERS & PANTS, T-SHIRTS, UTILITY PANTS","Peach, Nude, Green","Linen, Leather",Brand_7,"Luxury, Casual, Preppy",Dark Skin,Petite Friendly,High,2026-01-28 14:56:19
-333,333,"SWEATSHIRTS, DENIM JACKETS, T-SHIRTS","Sky Blue, Blue, Mint","Rayon, Wool",Brand_13,"Minimalist, Y2K, Formal",Medium Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-334,334,"UTILITY PANTS, TRACK PANTS, CHINOS","Off-white, Pastel Pink, Pastel Green","Linen, Fleece",Brand_4,"Party Wear, Hipster, Y2K",Neutral Skin,Curvy Friendly,High,2026-01-28 14:56:19
-335,335,"T-SHIRTS, BLAZERS, HOODIES & JACKETS","Green, Navy, Blue","Cotton, Leather",Brand_10,"Beach Wear, Hipster, Athleisure",Dark Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-336,336,"TANKS, BEACH WEAR, UTILITY PANTS","Orange, Checked, Maroon","Wool, Corduroy",Brand_6,"Y2K, Athleisure, Hipster",Neutral Skin,Petite Friendly,High,2026-01-28 14:56:19
-337,337,"SWEATSHIRTS, UTILITY PANTS, CARDIGANS","Camouflage, Navy, Sky Blue","Velvet, Denim",Brand_17,"Preppy, Formal, Streetwear",Medium Skin,Curvy Friendly,High,2026-03-08 21:50:44
-338,338,"SWEATSHIRTS, HOODIES & JACKETS, T-SHIRTS","Black, Brown, Crimson","Cotton, Corduroy",Brand_17,"Athleisure, Office Wear, Preppy",Neutral Skin,Tall Friendly,High,2026-01-28 14:56:19
-339,339,"CHINOS, JOGGERS & PANTS, TANKS","Grey, Pink, Tan","Wool, Cotton",Brand_9,"Eco-friendly, Streetwear, Athleisure",Medium Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-340,340,"POLOS, TRACK PANTS, COATS","Off-white, Grey, Sky Blue","Leather, Cotton",Brand_10,"Cottagecore, Party Wear, Casual",Fair Skin,Petite Friendly,Low,2026-01-28 14:56:19
-341,341,"COATS, TRACK PANTS, KIMONO","Navy, Striped, Checked","Denim, Bamboo",Brand_2,"Y2K, Casual, Cottagecore",Neutral Skin,Skinny Friendly,High,2026-01-28 14:56:19
-342,342,"CARDIGANS, JOGGERS & PANTS, HOODIES & JACKETS","Olive, Polka Dot, Tan","Velvet, Jacquard",Brand_8,"Cottagecore, Eco-friendly, Beach Wear",Fair Skin,Tall Friendly,High,2026-01-28 14:56:19
-343,343,"CHINOS, JOGGERS & PANTS, OVERSIZE TEE","Green, Crimson, Checked","Leather, Linen",Brand_2,"Luxury, Vintage, Party Wear",Neutral Skin,Tall Friendly,Low,2026-01-28 14:56:19
-344,344,"POLOS, HOODIES & JACKETS, TANKS","Teal, Tan, Camouflage","Silk, Polyester",Brand_8,"Office Wear, Preppy, Hipster",Neutral Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-345,345,"SWEATSHIRTS, JOGGERS & PANTS, TANKS","Coral, Chocolate, Multi-color","Rayon, Bamboo",Brand_17,"Luxury, Athleisure, Casual",Neutral Skin,Petite Friendly,Low,2026-01-28 14:56:19
-346,346,"CARDIGANS, POLOS, BEACH WEAR","Sky Blue, Chocolate, Beige","Silk, Tencel",Brand_11,"Beach Wear, Preppy, Office Wear",Dark Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-347,347,"OVERSIZE TEE, HOODIES & JACKETS, SHORTS","Olive, Checked, Pink","Cotton, Wool",Brand_8,"Y2K, Beach Wear, Luxury",Neutral Skin,Petite Friendly,Low,2026-01-28 14:56:19
-348,348,"KIMONO, DENIM JACKETS, SHORTS","Tan, Coral, Yellow","Bamboo, Denim",Brand_6,"Minimalist, Vintage, Eco-friendly",Dark Skin,Tall Friendly,High,2026-01-28 14:56:19
-350,350,"OVERSIZE TEE, CARDIGANS, T-SHIRTS","Pink, Grey, Pastel Blue","Denim, Wool",Brand_18,"Formal, Luxury, Vintage",Dark Skin,Petite Friendly,Low,2026-01-28 14:56:19
-351,351,"CHINOS, T-SHIRTS, TANKS","Polka Dot, Pastel Blue, Black","Tencel, Denim",Brand_5,"Vintage, Streetwear, Luxury",Fair Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-352,352,"COATS, T-SHIRTS, TANKS","Teal, Brown, Nude","Bamboo, Tencel",Brand_18,"Party Wear, Hipster, Vintage",Medium Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-353,353,"COATS, POLOS, TANKS","Navy, Coral, Pink","Polyester, Jacquard",Brand_17,"Cottagecore, Preppy, Streetwear",Dark Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-354,354,"POLOS, COATS, BEACH WEAR","Pastel Pink, Black, Navy","Polyester, Rayon",Brand_13,"Luxury, Minimalist, Y2K",Neutral Skin,Tall Friendly,Low,2026-01-28 14:56:19
-355,355,"SWEATSHIRTS, OVERSIZE TEE, TRACK PANTS","Camouflage, Coral, Red","Tencel, Rayon",Brand_18,"Beach Wear, Eco-friendly, Preppy",Fair Skin,Curvy Friendly,High,2026-01-28 14:56:19
-356,356,"TRACK PANTS, DENIM JACKETS, UTILITY PANTS","Yellow, Maroon, Multi-color","Jacquard, Fleece",Brand_17,"Office Wear, Party Wear, Beach Wear",Neutral Skin,Petite Friendly,Medium,2026-03-08 21:50:44
-357,357,"BEACH WEAR, SWEATSHIRTS, T-SHIRTS","Peach, Off-white, Polka Dot","Tencel, Leather",Brand_5,"Y2K, Minimalist, Casual",Fair Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-359,359,"HOODIES & JACKETS, SHORTS, UTILITY PANTS","Grey, Olive, White","Polyester, Denim",Brand_4,"Luxury, Athleisure, Party Wear",Fair Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-360,360,"COATS, CARDIGANS, HOODIES & JACKETS","Off-white, Navy, Teal","Cotton, Bamboo",Brand_4,"Luxury, Casual, Preppy",Fair Skin,Tall Friendly,High,2026-01-28 14:56:19
-361,361,"JOGGERS & PANTS, CHINOS, BEACH WEAR","Plaid, Chocolate, Brown","Jacquard, Corduroy",Brand_10,"Hipster, Minimalist, Office Wear",Neutral Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-362,362,"BLAZERS, UTILITY PANTS, HOODIES & JACKETS","Pastel Green, Green, Olive","Cotton, Linen",Brand_13,"Streetwear, Casual, Party Wear",Medium Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-363,363,"CARDIGANS, KIMONO, COATS","Striped, Crimson, Sky Blue","Fleece, Velvet",Brand_13,"Y2K, Luxury, Athleisure",Medium Skin,Tall Friendly,Low,2026-01-28 14:56:19
-364,364,"TRACK PANTS, TANKS, BEACH WEAR","Peach, Blue, Chocolate","Denim, Silk",Brand_2,"Minimalist, Beach Wear, Casual",Fair Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-365,365,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Pink, Beige, Green","Jacquard, Modal",Brand_13,"Eco-friendly, Minimalist, Streetwear",Medium Skin,Curvy Friendly,High,2026-01-28 14:56:19
-366,366,"DENIM JACKETS, HOODIES & JACKETS, T-SHIRTS","Navy, Nude, Brown","Jacquard, Corduroy",Brand_2,"Athleisure, Y2K, Eco-friendly",Dark Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-367,367,"HOODIES & JACKETS, SHORTS, TRACK PANTS","Pastel Blue, Tan, Chocolate","Cotton, Wool",Brand_8,"Casual, Y2K, Cottagecore",Medium Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-368,368,"COATS, TANKS, KIMONO","Tan, Pink, Red","Cotton, Jacquard",Brand_10,"Eco-friendly, Casual, Hipster",Fair Skin,Petite Friendly,Low,2026-01-28 14:56:19
-369,369,"CARDIGANS, POLOS, CHINOS","Pastel Green, Maroon, Navy","Polyester, Denim",Brand_7,"Vintage, Preppy, Party Wear",Medium Skin,Skinny Friendly,High,2026-03-08 21:50:44
-370,370,"TANKS, DENIM JACKETS, BLAZERS","Beige, Olive, Multi-color","Velvet, Linen",Brand_2,"Beach Wear, Luxury, Casual",Medium Skin,Curvy Friendly,High,2026-03-08 21:50:44
-371,371,"HOODIES & JACKETS, JOGGERS & PANTS, SWEATSHIRTS","Teal, Polka Dot, Black","Velvet, Denim",Brand_9,"Eco-friendly, Y2K, Minimalist",Dark Skin,Skinny Friendly,High,2026-03-08 21:50:44
-372,372,"SWEATSHIRTS, SHORTS, CARDIGANS","Navy, Teal, Crimson","Rayon, Fleece",Brand_2,"Office Wear, Vintage, Beach Wear",Medium Skin,Tall Friendly,Low,2026-01-28 14:56:19
-373,373,"HOODIES & JACKETS, JOGGERS & PANTS, UTILITY PANTS","Mint, Camouflage, White","Fleece, Velvet",Brand_15,"Hipster, Vintage, Preppy",Dark Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-374,374,"KIMONO, SWEATSHIRTS, CARDIGANS","Checked, Pastel Pink, Polka Dot","Fleece, Silk",Brand_9,"Athleisure, Hipster, Eco-friendly",Fair Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-375,375,"HOODIES & JACKETS, POLOS, TANKS","Beige, Chocolate, Multi-color","Velvet, Silk",Brand_19,"Hipster, Beach Wear, Preppy",Fair Skin,Tall Friendly,Low,2026-01-28 14:56:19
-376,376,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Pastel Pink, Chocolate, Pastel Blue","Jacquard, Polyester",Brand_1,"Preppy, Luxury, Y2K",Medium Skin,Curvy Friendly,High,2026-01-28 14:56:19
-377,377,"TANKS, UTILITY PANTS, JOGGERS & PANTS","Peach, Tie-dye, Pastel Pink","Cotton, Wool",Brand_10,"Cottagecore, Luxury, Streetwear",Dark Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-378,378,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Navy, Charcoal, Pink","Silk, Modal",Brand_3,"Party Wear, Vintage, Hipster",Dark Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-379,379,"JOGGERS & PANTS, COATS, TRACK PANTS","Camouflage, Green, Blue","Tencel, Modal",Brand_16,"Vintage, Casual, Cottagecore",Fair Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-380,380,"TRACK PANTS, COATS, UTILITY PANTS","Black, Grey, Olive","Velvet, Polyester",Brand_14,"Athleisure, Luxury, Vintage",Neutral Skin,Skinny Friendly,High,2026-01-28 14:56:19
-381,381,"JOGGERS & PANTS, CHINOS, TANKS","Maroon, Sky Blue, Tie-dye","Velvet, Corduroy",Brand_17,"Party Wear, Preppy, Luxury",Fair Skin,Petite Friendly,High,2026-01-28 14:56:19
-384,384,"CHINOS, POLOS, SWEATSHIRTS","Charcoal, Olive, Tan","Fleece, Bamboo",Brand_6,"Eco-friendly, Vintage, Casual",Medium Skin,Tall Friendly,High,2026-01-28 14:56:19
-385,385,"JOGGERS & PANTS, POLOS, TANKS","Tie-dye, Pastel Blue, Sky Blue","Corduroy, Wool",Brand_4,"Office Wear, Athleisure, Streetwear",Neutral Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-386,386,"BLAZERS, CARDIGANS, COATS","Crimson, Peach, Striped","Rayon, Velvet",Brand_7,"Office Wear, Athleisure, Luxury",Dark Skin,Tall Friendly,High,2026-01-28 14:56:19
-387,387,"COATS, OVERSIZE TEE, CHINOS","Olive, Maroon, Chocolate","Cotton, Tencel",Brand_2,"Luxury, Casual, Preppy",Medium Skin,Petite Friendly,High,2026-01-28 14:56:19
-388,388,"BLAZERS, BEACH WEAR, OVERSIZE TEE","Pastel Pink, Olive, Yellow","Rayon, Corduroy",Brand_10,"Eco-friendly, Vintage, Office Wear",Fair Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-389,389,"SWEATSHIRTS, SHORTS, BLAZERS","Striped, Pastel Blue, Camouflage","Fleece, Cotton",Brand_4,"Casual, Y2K, Party Wear",Fair Skin,Petite Friendly,High,2026-01-28 14:56:19
-390,390,"SWEATSHIRTS, KIMONO, SHORTS","Off-white, Peach, Pastel Blue","Corduroy, Linen",Brand_16,"Formal, Luxury, Eco-friendly",Dark Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-392,392,"CARDIGANS, POLOS, UTILITY PANTS","Yellow, Checked, Tie-dye","Polyester, Tencel",Brand_14,"Office Wear, Hipster, Luxury",Medium Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-393,393,"SHORTS, HOODIES & JACKETS, JOGGERS & PANTS","Orange, Maroon, Checked","Wool, Tencel",Brand_9,"Preppy, Hipster, Luxury",Dark Skin,Tall Friendly,High,2026-01-28 14:56:19
-394,394,"CHINOS, SHORTS, TANKS","White, Beige, Coral","Silk, Modal",Brand_19,"Office Wear, Y2K, Hipster",Medium Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-395,395,"DENIM JACKETS, CHINOS, T-SHIRTS","Pastel Pink, Striped, Camouflage","Polyester, Bamboo",Brand_2,"Y2K, Office Wear, Athleisure",Dark Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-396,396,"DENIM JACKETS, CARDIGANS, BLAZERS","Tie-dye, Blue, Peach","Cotton, Denim",Brand_16,"Streetwear, Office Wear, Formal",Fair Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-397,397,"SHORTS, TRACK PANTS, POLOS","Chocolate, Maroon, Orange","Bamboo, Tencel",Brand_6,"Athleisure, Cottagecore, Casual",Medium Skin,Curvy Friendly,Medium,2026-03-08 21:50:44
-398,398,"SHORTS, KIMONO, OVERSIZE TEE","Plaid, Yellow, Pastel Pink","Jacquard, Rayon",Brand_9,"Vintage, Hipster, Minimalist",Medium Skin,Petite Friendly,Low,2026-03-08 21:50:44
-399,399,"CARDIGANS, TANKS, KIMONO","Multi-color, Blush, Orange","Leather, Denim",Brand_17,"Streetwear, Luxury, Office Wear",Neutral Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-400,400,"POLOS, KIMONO, CARDIGANS","Blush, Orange, Peach","Silk, Denim",Brand_15,"Party Wear, Streetwear, Hipster",Fair Skin,Petite Friendly,High,2026-01-28 14:56:19
-401,401,"KIMONO, SHORTS, BLAZERS","Green, Pastel Pink, Black","Corduroy, Wool",Brand_13,"Vintage, Cottagecore, Athleisure",Neutral Skin,Petite Friendly,High,2026-01-28 14:56:19
-403,403,"TANKS, CHINOS, TRACK PANTS","Yellow, Multi-color, Olive","Wool, Cotton",Brand_9,"Y2K, Beach Wear, Preppy",Fair Skin,Petite Friendly,Low,2026-01-28 14:56:19
-404,404,"UTILITY PANTS, TRACK PANTS, SWEATSHIRTS","Brown, Blush, Pastel Blue","Rayon, Leather",Brand_12,"Cottagecore, Office Wear, Minimalist",Dark Skin,Tall Friendly,High,2026-01-28 14:56:19
-405,405,"SWEATSHIRTS, TRACK PANTS, UTILITY PANTS","Maroon, Grey, Beige","Leather, Wool",Brand_14,"Hipster, Preppy, Luxury",Dark Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-406,406,"JOGGERS & PANTS, T-SHIRTS, DENIM JACKETS","Off-white, Black, Blush","Velvet, Silk",Brand_4,"Beach Wear, Y2K, Formal",Dark Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-407,407,"CARDIGANS, HOODIES & JACKETS, BEACH WEAR","Yellow, Tie-dye, Orange","Fleece, Denim",Brand_7,"Hipster, Office Wear, Minimalist",Dark Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-408,408,"OVERSIZE TEE, UTILITY PANTS, HOODIES & JACKETS","Orange, Grey, Olive","Denim, Wool",Brand_12,"Hipster, Streetwear, Party Wear",Dark Skin,Tall Friendly,Low,2026-01-28 14:56:19
-409,409,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Black, Beige, Tan","Bamboo, Polyester",Brand_4,"Formal, Hipster, Eco-friendly",Neutral Skin,Petite Friendly,High,2026-01-28 14:56:19
-410,410,"OVERSIZE TEE, CHINOS, COATS","Mint, Tan, White","Leather, Denim",Brand_14,"Preppy, Vintage, Cottagecore",Dark Skin,Tall Friendly,Low,2026-01-28 14:56:19
-411,411,"TANKS, BEACH WEAR, CARDIGANS","Pastel Blue, Camouflage, Charcoal","Wool, Corduroy",Brand_9,"Eco-friendly, Luxury, Y2K",Neutral Skin,Tall Friendly,Low,2026-01-28 14:56:19
-412,412,"UTILITY PANTS, TRACK PANTS, HOODIES & JACKETS","Plaid, Black, Checked","Rayon, Cotton",Brand_16,"Athleisure, Cottagecore, Luxury",Neutral Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-413,413,"POLOS, BEACH WEAR, BLAZERS","Off-white, White, Grey","Bamboo, Wool",Brand_12,"Y2K, Formal, Cottagecore",Dark Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-414,414,"DENIM JACKETS, T-SHIRTS, POLOS","Checked, Tie-dye, Camouflage","Polyester, Modal",Brand_12,"Luxury, Casual, Preppy",Medium Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-415,415,"UTILITY PANTS, HOODIES & JACKETS, DENIM JACKETS","Charcoal, Plaid, Red","Cotton, Velvet",Brand_5,"Cottagecore, Eco-friendly, Minimalist",Fair Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-416,416,"POLOS, OVERSIZE TEE, TRACK PANTS","Checked, Plaid, Sky Blue","Bamboo, Polyester",Brand_17,"Preppy, Y2K, Minimalist",Dark Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-418,418,"CHINOS, HOODIES & JACKETS, TRACK PANTS","Striped, Multi-color, Black","Fleece, Polyester",Brand_7,"Office Wear, Athleisure, Formal",Medium Skin,Tall Friendly,Low,2026-01-28 14:56:19
-419,419,"KIMONO, CHINOS, SWEATSHIRTS","Brown, Orange, Striped","Wool, Cotton",Brand_17,"Casual, Beach Wear, Streetwear",Dark Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-421,421,"BLAZERS, SHORTS, POLOS","Nude, Blush, Polka Dot","Jacquard, Polyester",Brand_4,"Office Wear, Hipster, Party Wear",Dark Skin,Petite Friendly,High,2026-01-28 14:56:19
-422,422,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","White, Striped, Blush","Leather, Bamboo",Brand_13,"Y2K, Cottagecore, Hipster",Neutral Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-423,423,"SHORTS, POLOS, CARDIGANS","Olive, Tie-dye, Charcoal","Linen, Tencel",Brand_5,"Athleisure, Minimalist, Luxury",Medium Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-424,424,"BEACH WEAR, HOODIES & JACKETS, TRACK PANTS","Mint, Pastel Pink, Sky Blue","Polyester, Tencel",Brand_18,"Party Wear, Vintage, Office Wear",Fair Skin,Petite Friendly,High,2026-01-28 14:56:19
-425,425,"OVERSIZE TEE, SHORTS, JOGGERS & PANTS","Navy, Nude, Tan","Bamboo, Modal",Brand_18,"Minimalist, Athleisure, Luxury",Fair Skin,Tall Friendly,Low,2026-01-28 14:56:19
-426,426,"OVERSIZE TEE, BLAZERS, UTILITY PANTS","Mint, Sky Blue, Blue","Jacquard, Fleece",Brand_14,"Eco-friendly, Preppy, Casual",Medium Skin,Skinny Friendly,High,2026-01-28 14:56:19
-427,427,"T-SHIRTS, BLAZERS, CHINOS","Black, Brown, Crimson","Corduroy, Velvet",Brand_15,"Y2K, Vintage, Streetwear",Fair Skin,Petite Friendly,Low,2026-01-28 14:56:19
-428,428,"BEACH WEAR, POLOS, TRACK PANTS","Striped, Yellow, Black","Corduroy, Polyester",Brand_10,"Formal, Office Wear, Streetwear",Dark Skin,Petite Friendly,High,2026-01-28 14:56:19
-430,430,"UTILITY PANTS, JOGGERS & PANTS, TANKS","Polka Dot, Pastel Green, Tan","Wool, Denim",Brand_12,"Luxury, Casual, Preppy",Medium Skin,Tall Friendly,High,2026-01-28 14:56:19
-431,431,"HOODIES & JACKETS, SHORTS, JOGGERS & PANTS","Beige, White, Charcoal","Wool, Corduroy",Brand_16,"Y2K, Minimalist, Beach Wear",Fair Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-433,433,"TRACK PANTS, TANKS, CARDIGANS","Camouflage, Pastel Pink, Sky Blue","Corduroy, Jacquard",Brand_9,"Hipster, Y2K, Cottagecore",Neutral Skin,Skinny Friendly,High,2026-01-28 14:56:19
-434,434,"CARDIGANS, UTILITY PANTS, T-SHIRTS","Blush, Tie-dye, Charcoal","Linen, Leather",Brand_11,"Eco-friendly, Athleisure, Streetwear",Fair Skin,Tall Friendly,Low,2026-01-28 14:56:19
-435,435,"SHORTS, KIMONO, TANKS","Yellow, Green, Nude","Denim, Silk",Brand_13,"Cottagecore, Casual, Eco-friendly",Neutral Skin,Curvy Friendly,High,2026-01-28 14:56:19
-436,436,"HOODIES & JACKETS, JOGGERS & PANTS, TANKS","Teal, Peach, Orange","Cotton, Jacquard",Brand_3,"Preppy, Y2K, Casual",Medium Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-437,437,"BEACH WEAR, POLOS, HOODIES & JACKETS","Green, Tan, Maroon","Leather, Tencel",Brand_14,"Casual, Preppy, Party Wear",Fair Skin,Tall Friendly,High,2026-01-28 14:56:19
-438,438,"COATS, CHINOS, BEACH WEAR","Red, Pastel Blue, Striped","Corduroy, Velvet",Brand_12,"Eco-friendly, Formal, Beach Wear",Neutral Skin,Curvy Friendly,High,2026-01-28 14:56:19
-440,440,"POLOS, CARDIGANS, BEACH WEAR","Striped, Pastel Pink, Coral","Denim, Silk",Brand_16,"Cottagecore, Vintage, Casual",Neutral Skin,Tall Friendly,High,2026-01-28 14:56:19
-441,441,"JOGGERS & PANTS, BEACH WEAR, SHORTS","Tan, Peach, Pastel Green","Cotton, Linen",Brand_8,"Preppy, Athleisure, Formal",Medium Skin,Tall Friendly,Low,2026-01-28 14:56:19
-442,442,"SWEATSHIRTS, BEACH WEAR, OVERSIZE TEE","Checked, Off-white, Red","Modal, Velvet",Brand_18,"Party Wear, Minimalist, Casual",Dark Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-443,443,"DENIM JACKETS, POLOS, UTILITY PANTS","Checked, Beige, Tie-dye","Denim, Jacquard",Brand_6,"Beach Wear, Casual, Streetwear",Medium Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-444,444,"POLOS, HOODIES & JACKETS, T-SHIRTS","Blush, Teal, Chocolate","Jacquard, Corduroy",Brand_19,"Streetwear, Preppy, Luxury",Medium Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-445,445,"HOODIES & JACKETS, TRACK PANTS, UTILITY PANTS","Pastel Pink, Polka Dot, Crimson","Wool, Denim",Brand_14,"Beach Wear, Party Wear, Casual",Neutral Skin,Tall Friendly,High,2026-01-28 14:56:19
-446,446,"OVERSIZE TEE, BLAZERS, TANKS","Teal, Polka Dot, Tie-dye","Wool, Polyester",Brand_12,"Luxury, Party Wear, Vintage",Dark Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-447,447,"HOODIES & JACKETS, CHINOS, SWEATSHIRTS","Black, Beige, Plaid","Leather, Polyester",Brand_14,"Formal, Eco-friendly, Party Wear",Dark Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-448,448,"SHORTS, CARDIGANS, BLAZERS","Chocolate, Teal, Pastel Green","Linen, Tencel",Brand_19,"Party Wear, Athleisure, Hipster",Fair Skin,Tall Friendly,High,2026-01-28 14:56:19
-449,449,"TRACK PANTS, T-SHIRTS, CHINOS","Crimson, Multi-color, Beige","Velvet, Modal",Brand_4,"Preppy, Vintage, Casual",Neutral Skin,Tall Friendly,High,2026-01-28 14:56:19
-450,450,"KIMONO, COATS, HOODIES & JACKETS","Blue, Tie-dye, Pastel Pink","Leather, Wool",Brand_3,"Office Wear, Formal, Minimalist",Dark Skin,Skinny Friendly,High,2026-01-28 14:56:19
-451,451,"CARDIGANS, COATS, BLAZERS","Checked, Plaid, Blush","Jacquard, Polyester",Brand_3,"Hipster, Eco-friendly, Vintage",Fair Skin,Tall Friendly,Low,2026-01-28 14:56:19
-452,452,"JOGGERS & PANTS, CARDIGANS, BEACH WEAR","Pastel Green, Green, Maroon","Jacquard, Silk",Brand_7,"Casual, Y2K, Athleisure",Neutral Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-453,453,"TANKS, COATS, UTILITY PANTS","Peach, Pastel Pink, Multi-color","Modal, Rayon",Brand_7,"Cottagecore, Casual, Preppy",Fair Skin,Curvy Friendly,Medium,2026-03-08 21:50:44
-454,454,"CARDIGANS, BEACH WEAR, CHINOS","Peach, Chocolate, Red","Bamboo, Tencel",Brand_1,"Minimalist, Athleisure, Luxury",Dark Skin,Petite Friendly,High,2026-01-28 14:56:19
-455,455,"DENIM JACKETS, TRACK PANTS, COATS","Tie-dye, Mint, Pink","Bamboo, Tencel",Brand_4,"Casual, Vintage, Hipster",Neutral Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-456,456,"OVERSIZE TEE, SHORTS, SWEATSHIRTS","Peach, Coral, Pastel Pink","Tencel, Fleece",Brand_2,"Party Wear, Casual, Cottagecore",Fair Skin,Tall Friendly,High,2026-01-28 14:56:19
-457,457,"BLAZERS, OVERSIZE TEE, SWEATSHIRTS","Tie-dye, Coral, Crimson","Velvet, Corduroy",Brand_9,"Beach Wear, Y2K, Preppy",Dark Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-458,458,"OVERSIZE TEE, TANKS, JOGGERS & PANTS","Maroon, Crimson, Chocolate","Wool, Bamboo",Brand_13,"Office Wear, Streetwear, Athleisure",Medium Skin,Petite Friendly,Low,2026-01-28 14:56:19
-459,459,"POLOS, BLAZERS, COATS","Blue, Plaid, Sky Blue","Tencel, Rayon",Brand_11,"Streetwear, Eco-friendly, Luxury",Neutral Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-460,460,"SWEATSHIRTS, T-SHIRTS, BEACH WEAR","Blue, Blush, Pastel Blue","Silk, Leather",Brand_14,"Minimalist, Cottagecore, Y2K",Fair Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-462,462,"KIMONO, HOODIES & JACKETS, TANKS","Yellow, Mustard, Striped","Velvet, Polyester",Brand_9,"Minimalist, Streetwear, Hipster",Medium Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-463,463,"UTILITY PANTS, TANKS, DENIM JACKETS","Green, Beige, Red","Silk, Bamboo",Brand_14,"Office Wear, Formal, Luxury",Fair Skin,Curvy Friendly,High,2026-01-28 14:56:19
-464,464,"TRACK PANTS, BEACH WEAR, UTILITY PANTS","Black, Pastel Pink, Peach","Velvet, Silk",Brand_17,"Office Wear, Luxury, Casual",Fair Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-467,467,"BEACH WEAR, KIMONO, OVERSIZE TEE","Blue, Green, Pastel Green","Velvet, Wool",Brand_16,"Office Wear, Luxury, Formal",Dark Skin,Petite Friendly,High,2026-01-28 14:56:19
-469,469,"OVERSIZE TEE, HOODIES & JACKETS, T-SHIRTS","Tan, Brown, Nude","Linen, Leather",Brand_17,"Minimalist, Beach Wear, Party Wear",Medium Skin,Petite Friendly,Low,2026-01-28 14:56:19
-470,470,"T-SHIRTS, POLOS, SHORTS","White, Mint, Grey","Silk, Denim",Brand_9,"Casual, Preppy, Eco-friendly",Dark Skin,Petite Friendly,Low,2026-01-28 14:56:19
-471,471,"KIMONO, HOODIES & JACKETS, TRACK PANTS","Black, Charcoal, Pastel Pink","Bamboo, Fleece",Brand_6,"Casual, Streetwear, Luxury",Fair Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-472,472,"OVERSIZE TEE, COATS, CHINOS","Navy, Beige, Mustard","Fleece, Leather",Brand_9,"Party Wear, Luxury, Office Wear",Dark Skin,Skinny Friendly,High,2026-01-28 14:56:19
-473,473,"KIMONO, SWEATSHIRTS, POLOS","Pastel Blue, Charcoal, Tan","Denim, Cotton",Brand_5,"Casual, Athleisure, Preppy",Fair Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-474,474,"OVERSIZE TEE, BLAZERS, TRACK PANTS","Blush, Plaid, Tan","Jacquard, Polyester",Brand_3,"Casual, Streetwear, Cottagecore",Neutral Skin,Curvy Friendly,Low,2026-01-28 14:56:19
-475,475,"SHORTS, HOODIES & JACKETS, TANKS","Checked, Beige, Polka Dot","Denim, Fleece",Brand_5,"Y2K, Athleisure, Vintage",Fair Skin,Curvy Friendly,High,2026-01-28 14:56:19
-477,477,"T-SHIRTS, COATS, CARDIGANS","Chocolate, Pastel Pink, Navy","Cotton, Velvet",Brand_16,"Office Wear, Eco-friendly, Hipster",Dark Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-479,479,"CHINOS, SHORTS, DENIM JACKETS","Pastel Green, Grey, Coral","Silk, Tencel",Brand_14,"Preppy, Athleisure, Office Wear",Fair Skin,Tall Friendly,Medium,2026-01-28 14:56:19
-480,480,"KIMONO, SWEATSHIRTS, CHINOS","Black, Maroon, Blush","Rayon, Denim",Brand_15,"Preppy, Cottagecore, Casual",Neutral Skin,Curvy Friendly,High,2026-03-08 21:50:44
-481,481,"BEACH WEAR, T-SHIRTS, TRACK PANTS","Crimson, Plaid, Grey","Denim, Cotton",Brand_17,"Party Wear, Eco-friendly, Streetwear",Medium Skin,Curvy Friendly,High,2026-01-28 14:56:19
-482,482,"SWEATSHIRTS, CARDIGANS, KIMONO","Nude, Pink, Mustard","Fleece, Linen",Brand_19,"Beach Wear, Preppy, Cottagecore",Fair Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-483,483,"SHORTS, TANKS, SWEATSHIRTS","Mint, Orange, Pastel Pink","Jacquard, Rayon",Brand_16,"Casual, Luxury, Minimalist",Neutral Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-484,484,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Mustard, Red, Chocolate","Bamboo, Velvet",Brand_18,"Streetwear, Eco-friendly, Casual",Neutral Skin,Petite Friendly,Low,2026-01-28 14:56:19
-485,485,"CHINOS, T-SHIRTS, BEACH WEAR","Polka Dot, Camouflage, Pastel Green","Rayon, Silk",Brand_15,"Beach Wear, Minimalist, Party Wear",Medium Skin,Petite Friendly,Low,2026-01-28 14:56:19
-487,487,"T-SHIRTS, SWEATSHIRTS, CARDIGANS","Pastel Blue, Charcoal, Maroon","Silk, Leather",Brand_2,"Hipster, Formal, Office Wear",Neutral Skin,Tall Friendly,High,2026-01-28 14:56:19
-488,488,"BLAZERS, UTILITY PANTS, CHINOS","Plaid, Pastel Pink, Olive","Linen, Corduroy",Brand_2,"Minimalist, Preppy, Y2K",Medium Skin,Curvy Friendly,Medium,2026-01-28 14:56:19
-489,489,"CARDIGANS, JOGGERS & PANTS, OVERSIZE TEE","Blue, Beige, Tan","Modal, Silk",Brand_15,"Y2K, Casual, Formal",Fair Skin,Tall Friendly,High,2026-01-28 14:56:19
-490,490,"T-SHIRTS, BEACH WEAR, SWEATSHIRTS","Off-white, Beige, Maroon","Rayon, Velvet",Brand_7,"Minimalist, Athleisure, Beach Wear",Medium Skin,Petite Friendly,Low,2026-01-28 14:56:19
-491,491,"SWEATSHIRTS, T-SHIRTS, TRACK PANTS","Pastel Green, Grey, Beige","Linen, Velvet",Brand_8,"Party Wear, Preppy, Casual",Neutral Skin,Petite Friendly,High,2026-01-28 14:56:19
-492,492,"UTILITY PANTS, TANKS, HOODIES & JACKETS","Plaid, Off-white, Navy","Wool, Cotton",Brand_15,"Hipster, Eco-friendly, Vintage",Fair Skin,Tall Friendly,High,2026-01-28 14:56:19
-493,493,"BLAZERS, TRACK PANTS, TANKS","Crimson, Blush, Charcoal","Tencel, Linen",Brand_18,"Luxury, Formal, Party Wear",Neutral Skin,Curvy Friendly,High,2026-01-28 14:56:19
-494,494,"HOODIES & JACKETS, POLOS, BLAZERS","Tan, Polka Dot, Striped","Silk, Linen",Brand_10,"Casual, Cottagecore, Hipster",Dark Skin,Petite Friendly,High,2026-01-28 14:56:19
-495,495,"SHORTS, COATS, CHINOS","Brown, Polka Dot, White","Leather, Corduroy",Brand_4,"Preppy, Office Wear, Casual",Fair Skin,Tall Friendly,High,2026-01-28 14:56:19
-496,496,"JOGGERS & PANTS, CHINOS, HOODIES & JACKETS","Peach, Off-white, Coral","Corduroy, Polyester",Brand_17,"Eco-friendly, Casual, Cottagecore",Neutral Skin,Petite Friendly,Low,2026-01-28 14:56:19
-497,497,"BLAZERS, CHINOS, CARDIGANS","Pink, Black, Olive","Modal, Jacquard",Brand_10,"Casual, Party Wear, Minimalist",Dark Skin,Skinny Friendly,High,2026-01-28 14:56:19
-498,498,"TANKS, POLOS, UTILITY PANTS","Pink, Maroon, Sky Blue","Jacquard, Polyester",Brand_18,"Athleisure, Eco-friendly, Beach Wear",Dark Skin,Curvy Friendly,High,2026-01-28 14:56:19
-499,499,"OVERSIZE TEE, TRACK PANTS, COATS","Orange, White, Pastel Pink","Denim, Corduroy",Brand_15,"Beach Wear, Athleisure, Hipster",Medium Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-500,500,"JOGGERS & PANTS, BLAZERS, OVERSIZE TEE","Grey, Pastel Green, Charcoal","Tencel, Rayon",Brand_13,"Party Wear, Eco-friendly, Office Wear",Fair Skin,Petite Friendly,High,2026-01-28 14:56:19
-326,326,"UTILITY PANTS, DENIM JACKETS, POLOS","Black, Brown, Crimson","Velvet, Linen",Brand_13,"Luxury, Casual, Preppy",Medium Skin,Tall Friendly,High,2026-01-28 14:56:19
-196,196,"HOODIES & JACKETS, CHINOS, BEACH WEAR","Black, Pink, Polka Dot","Linen, Cotton",Brand_13,"Beach Wear, Preppy, Luxury",Medium Skin,Curvy Friendly,High,2026-01-28 14:56:19
-192,192,"POLOS, COATS, TRACK PANTS","Checked, Pink, Plaid","Bamboo, Tencel",Brand_16,"Cottagecore, Luxury, Preppy",Fair Skin,Skinny Friendly,Medium,2026-01-28 14:56:19
-338,338,"SWEATSHIRTS, HOODIES & JACKETS, T-SHIRTS","Olive, Black, Mint","Cotton, Corduroy",Brand_17,"Athleisure, Office Wear, Preppy",Neutral Skin,Tall Friendly,High,2026-01-28 14:56:19
-468,468,"T-SHIRTS, SHORTS, UTILITY PANTS","Sky Blue, Polka Dot, Striped","Fleece, Cotton",Brand_17,"Party Wear, Casual, Cottagecore",Neutral Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-134,134,"JOGGERS & PANTS, OVERSIZE TEE, DENIM JACKETS","Navy, Pastel Blue, Multi-color","Rayon, Velvet",Brand_19,"Cottagecore, Streetwear, Formal",Fair Skin,Petite Friendly,Medium,2026-01-28 14:56:19
-58,58,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Pastel Pink, Brown, Striped","Jacquard, Bamboo",Brand_19,"Party Wear, Preppy, Athleisure",Dark Skin,Petite Friendly,High,2026-03-08 21:50:44
-53,53,"TANKS, T-SHIRTS, SHORTS","Blush, Chocolate, Beige","Leather, Rayon",Brand_11,"Streetwear, Athleisure, Beach Wear",Dark Skin,Skinny Friendly,Low,2026-01-28 14:56:19
-339,339,"CHINOS, JOGGERS & PANTS, TANKS","Grey, Pink, Tan","Wool, Cotton",Brand_9,"Eco-friendly, Streetwear, Athleisure",Medium Skin,Tall Friendly,High,2026-01-28 14:56:19
-327,327,"TANKS, DENIM JACKETS, SHORTS","Blue, Tie-dye, Charcoal","Jacquard, Tencel",Brand_17,"Minimalist, Casual, Office Wear",Medium Skin,Skinny Friendly,High,2026-01-28 14:56:19
-220,220,"COATS, BLAZERS, T-SHIRTS","White, Red, Polka Dot","Polyester, Velvet",Brand_15,"Luxury, Casual, Preppy",Fair Skin,Curvy Friendly,High,2026-01-28 14:56:19
-146,146,"OVERSIZE TEE, BEACH WEAR, SWEATSHIRTS","Crimson, Black, Sky Blue","Rayon, Jacquard",Brand_13,"Streetwear, Preppy, Office Wear",Dark Skin,Petite Friendly,High,2026-01-28 14:56:19
+1,1,"UTILITY PANTS, CHINOS, OVERSIZE TEE","Brown, Off-white, Teal","Modal, Cotton",Brand_3,"Casual, Athleisure, Formal",Medium Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+2,2,"JOGGERS & PANTS, BLAZERS, SHORTS","Polka Dot, Teal, Tan","Linen, Denim",Brand_6,"Athleisure, Formal, Beach Wear",Medium Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+3,3,"COATS, JOGGERS & PANTS, SWEATSHIRTS","Brown, Tan, Yellow","Denim, Modal",Brand_19,"Hipster, Beach Wear, Eco-friendly",Dark Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+4,4,"BEACH WEAR, COATS, UTILITY PANTS","Red, Striped, Peach","Linen, Fleece",Brand_8,"Hipster, Luxury, Y2K",Fair Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+5,5,"SHORTS, OVERSIZE TEE, UTILITY PANTS","Tie-dye, Orange, Charcoal","Bamboo, Tencel",Brand_1,"Luxury, Casual, Preppy",Dark Skin,Curvy Friendly,High,2026-01-29 14:56:19
+6,6,"SWEATSHIRTS, BEACH WEAR, TRACK PANTS","Peach, Pastel Pink, Mustard","Linen, Bamboo",Brand_1,"Y2K, Hipster, Eco-friendly",Fair Skin,Tall Friendly,High,2026-01-29 14:56:19
+7,7,"SHORTS, DENIM JACKETS, POLOS","Multi-color, Beige, Green","Bamboo, Tencel",Brand_1,"Formal, Preppy, Luxury",Dark Skin,Curvy Friendly,High,2026-01-29 14:56:19
+8,8,"JOGGERS & PANTS, TRACK PANTS, POLOS","Nude, Blue, Off-white","Bamboo, Tencel",Brand_9,"Eco-friendly, Minimalist, Party Wear",Fair Skin,Skinny Friendly,High,2026-01-29 14:56:19
+9,9,"SHORTS, T-SHIRTS, HOODIES & JACKETS","Charcoal, Red, Blue","Polyester, Cotton",Brand_13,"Formal, Cottagecore, Casual",Dark Skin,Curvy Friendly,High,2026-01-29 14:56:19
+11,11,"CARDIGANS, TANKS, TRACK PANTS","Sky Blue, Green, Grey","Tencel, Linen",Brand_19,"Office Wear, Formal, Beach Wear",Medium Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+12,12,"JOGGERS & PANTS, CHINOS, BLAZERS","Pastel Blue, Off-white, Navy","Denim, Corduroy",Brand_19,"Office Wear, Preppy, Cottagecore",Medium Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+13,13,"CHINOS, DENIM JACKETS, KIMONO","Nude, Striped, Mustard","Fleece, Rayon",Brand_2,"Y2K, Eco-friendly, Cottagecore",Dark Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+14,14,"COATS, OVERSIZE TEE, DENIM JACKETS","Orange, Blue, Olive","Corduroy, Rayon",Brand_18,"Streetwear, Party Wear, Preppy",Neutral Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+16,16,"TRACK PANTS, BEACH WEAR, TANKS","Black, Brown, Crimson","Linen, Cotton",Brand_5,"Eco-friendly, Y2K, Cottagecore",Neutral Skin,Skinny Friendly,High,2026-01-29 14:56:19
+17,17,"POLOS, UTILITY PANTS, HOODIES & JACKETS","Tie-dye, Peach, Crimson","Silk, Polyester",Brand_12,"Office Wear, Hipster, Beach Wear",Dark Skin,Petite Friendly,High,2026-01-29 14:56:19
+18,18,"HOODIES & JACKETS, TRACK PANTS, POLOS","White, Mustard, Pastel Blue","Wool, Rayon",Brand_13,"Preppy, Cottagecore, Streetwear",Medium Skin,Curvy Friendly,High,2026-01-29 14:56:19
+19,19,"CARDIGANS, TRACK PANTS, KIMONO","Maroon, White, Navy","Fleece, Wool",Brand_15,"Hipster, Office Wear, Beach Wear",Medium Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+20,20,"T-SHIRTS, COATS, BLAZERS","Striped, Grey, Pink","Silk, Leather",Brand_2,"Athleisure, Y2K, Formal",Neutral Skin,Skinny Friendly,High,2026-01-29 14:56:19
+21,21,"TRACK PANTS, POLOS, COATS","Beige, Blue, Striped","Bamboo, Cotton",Brand_8,"Cottagecore, Casual, Beach Wear",Dark Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+22,22,"UTILITY PANTS, TRACK PANTS, TANKS","Black, Navy, Crimson","Corduroy, Cotton",Brand_1,"Luxury, Y2K, Beach Wear",Neutral Skin,Curvy Friendly,High,2026-01-29 14:56:19
+23,23,"CHINOS, DENIM JACKETS, BLAZERS","Pastel Green, Chocolate, White","Wool, Silk",Brand_6,"Casual, Vintage, Formal",Fair Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+24,24,"SHORTS, HOODIES & JACKETS, DENIM JACKETS","Mint, Chocolate, Tie-dye","Denim, Polyester",Brand_14,"Minimalist, Athleisure, Preppy",Neutral Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+25,25,"BLAZERS, TANKS, HOODIES & JACKETS","Navy, Plaid, Mustard","Linen, Bamboo",Brand_8,"Luxury, Casual, Preppy",Dark Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+26,26,"HOODIES & JACKETS, POLOS, SHORTS","Camouflage, Plaid, Tie-dye","Wool, Leather",Brand_3,"Vintage, Casual, Minimalist",Neutral Skin,Curvy Friendly,High,2026-01-29 14:56:19
+28,28,"OVERSIZE TEE, SHORTS, HOODIES & JACKETS","Mint, Red, Camouflage","Velvet, Wool",Brand_5,"Vintage, Preppy, Formal",Neutral Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+29,29,"OVERSIZE TEE, T-SHIRTS, KIMONO","Red, White, Plaid","Leather, Wool",Brand_9,"Party Wear, Beach Wear, Preppy",Medium Skin,Skinny Friendly,High,2026-01-29 14:56:19
+30,30,"POLOS, COATS, KIMONO","Blush, Striped, Tie-dye","Leather, Cotton",Brand_5,"Party Wear, Hipster, Beach Wear",Medium Skin,Petite Friendly,Low,2026-01-29 14:56:19
+31,31,"OVERSIZE TEE, HOODIES & JACKETS, JOGGERS & PANTS","Beige, Striped, Green","Fleece, Denim",Brand_2,"Streetwear, Eco-friendly, Minimalist",Neutral Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+32,32,"KIMONO, CHINOS, COATS","Chocolate, Beige, Pastel Green","Polyester, Linen",Brand_2,"Luxury, Eco-friendly, Hipster",Dark Skin,Petite Friendly,Low,2026-01-29 14:56:19
+33,33,"DENIM JACKETS, CHINOS, BEACH WEAR","Peach, Multi-color, Checked","Polyester, Velvet",Brand_7,"Preppy, Streetwear, Office Wear",Fair Skin,Petite Friendly,Low,2026-01-29 14:56:19
+34,34,"TRACK PANTS, T-SHIRTS, TANKS","Multi-color, Camouflage, Tie-dye","Fleece, Corduroy",Brand_13,"Casual, Y2K, Streetwear",Dark Skin,Petite Friendly,High,2026-01-29 14:56:19
+35,35,"POLOS, TANKS, TRACK PANTS","Crimson, Blush, White","Wool, Linen",Brand_19,"Minimalist, Beach Wear, Athleisure",Dark Skin,Petite Friendly,Low,2026-01-29 14:56:19
+36,36,"T-SHIRTS, UTILITY PANTS, POLOS","Blush, Plaid, Beige","Cotton, Bamboo",Brand_15,"Casual, Cottagecore, Vintage",Medium Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+37,37,"COATS, TRACK PANTS, KIMONO","Nude, Pastel Green, Chocolate","Corduroy, Silk",Brand_17,"Y2K, Streetwear, Preppy",Neutral Skin,Curvy Friendly,High,2026-01-29 14:56:19
+38,38,"TANKS, UTILITY PANTS, TRACK PANTS","Brown, Red, Blue","Modal, Linen",Brand_18,"Minimalist, Cottagecore, Luxury",Dark Skin,Petite Friendly,High,2026-01-29 14:56:19
+39,39,"TANKS, T-SHIRTS, CARDIGANS","Olive, Red, Beige","Polyester, Leather",Brand_9,"Athleisure, Streetwear, Beach Wear",Dark Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+40,40,"UTILITY PANTS, POLOS, TANKS","Black, Charcoal, Teal","Corduroy, Fleece",Brand_6,"Vintage, Hipster, Luxury",Medium Skin,Petite Friendly,Low,2026-01-29 14:56:19
+41,41,"SWEATSHIRTS, COATS, CHINOS","Pastel Blue, Red, Nude","Polyester, Denim",Brand_15,"Y2K, Casual, Beach Wear",Neutral Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+42,42,"BEACH WEAR, T-SHIRTS, CARDIGANS","Pastel Blue, Sky Blue, Peach","Cotton, Modal",Brand_13,"Y2K, Hipster, Cottagecore",Medium Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+43,43,"JOGGERS & PANTS, TRACK PANTS, BEACH WEAR","Yellow, Grey, Green","Linen, Velvet",Brand_13,"Luxury, Minimalist, Office Wear",Neutral Skin,Tall Friendly,High,2026-01-29 14:56:19
+44,44,"T-SHIRTS, KIMONO, SWEATSHIRTS","Polka Dot, Orange, Pastel Blue","Modal, Leather",Brand_5,"Preppy, Streetwear, Minimalist",Medium Skin,Tall Friendly,High,2026-01-29 14:56:19
+45,45,"POLOS, BLAZERS, JOGGERS & PANTS","Black, Striped, Red","Leather, Tencel",Brand_4,"Formal, Streetwear, Beach Wear",Dark Skin,Petite Friendly,Low,2026-01-29 14:56:19
+46,46,"BEACH WEAR, BLAZERS, COATS","Plaid, White, Pastel Pink","Modal, Leather",Brand_18,"Casual, Y2K, Beach Wear",Fair Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+47,47,"CHINOS, OVERSIZE TEE, SWEATSHIRTS","White, Peach, Multi-color","Corduroy, Bamboo",Brand_13,"Office Wear, Luxury, Hipster",Neutral Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+48,48,"SHORTS, DENIM JACKETS, POLOS","Black, Brown, Crimson","Tencel, Linen",Brand_9,"Luxury, Casual, Preppy",Dark Skin,Curvy Friendly,High,2026-01-29 14:56:19
+49,49,"BEACH WEAR, KIMONO, DENIM JACKETS","Blush, Pastel Blue, Tan","Denim, Velvet",Brand_14,"Casual, Streetwear, Preppy",Medium Skin,Curvy Friendly,High,2026-01-29 14:56:19
+50,50,"CARDIGANS, OVERSIZE TEE, COATS","Charcoal, Olive, Plaid","Corduroy, Tencel",Brand_2,"Hipster, Formal, Cottagecore",Fair Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+51,51,"COATS, OVERSIZE TEE, CARDIGANS","Pink, Olive, Nude","Jacquard, Velvet",Brand_10,"Minimalist, Streetwear, Luxury",Medium Skin,Tall Friendly,High,2026-01-29 14:56:19
+52,52,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Tie-dye, Sky Blue, Olive","Bamboo, Corduroy",Brand_17,"Luxury, Preppy, Athleisure",Medium Skin,Petite Friendly,High,2026-01-29 14:56:19
+53,53,"TANKS, T-SHIRTS, SHORTS","Blush, Chocolate, Beige","Leather, Rayon",Brand_11,"Luxury, Casual, Preppy",Medium Skin,Petite Friendly,Low,2026-01-29 14:56:19
+54,54,"SHORTS, UTILITY PANTS, BEACH WEAR","Maroon, Yellow, Blush","Leather, Fleece",Brand_13,"Y2K, Beach Wear, Athleisure",Neutral Skin,Petite Friendly,Low,2026-01-29 14:56:19
+55,55,"SWEATSHIRTS, COATS, SHORTS","Green, Navy, Mustard","Rayon, Wool",Brand_17,"Eco-friendly, Minimalist, Athleisure",Neutral Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+56,56,"CARDIGANS, TANKS, KIMONO","Black, Brown, Crimson","Corduroy, Fleece",Brand_4,"Streetwear, Minimalist, Cottagecore",Dark Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+57,57,"COATS, BLAZERS, SHORTS","Orange, Maroon, Crimson","Velvet, Modal",Brand_14,"Luxury, Vintage, Cottagecore",Medium Skin,Curvy Friendly,High,2026-01-29 14:56:19
+58,58,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Pastel Pink, Brown, Striped","Jacquard, Bamboo",Brand_19,"Party Wear, Preppy, Athleisure",Dark Skin,Petite Friendly,High,2026-01-29 14:56:19
+59,59,"DENIM JACKETS, T-SHIRTS, BLAZERS","Nude, Grey, Pastel Green","Cotton, Jacquard",Brand_1,"Eco-friendly, Casual, Beach Wear",Neutral Skin,Petite Friendly,High,2026-01-29 14:56:19
+60,60,"DENIM JACKETS, POLOS, TANKS","Striped, Blush, Mustard","Leather, Modal",Brand_17,"Formal, Streetwear, Vintage",Medium Skin,Petite Friendly,Medium,2026-03-09 21:50:44
+61,61,"POLOS, SHORTS, CHINOS","Pastel Green, Blue, Grey","Leather, Fleece",Brand_13,"Minimalist, Luxury, Formal",Fair Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+62,62,"DENIM JACKETS, T-SHIRTS, BEACH WEAR","White, Pastel Pink, Checked","Tencel, Silk",Brand_5,"Party Wear, Casual, Hipster",Medium Skin,Tall Friendly,Low,2026-01-29 14:56:19
+63,63,"SHORTS, JOGGERS & PANTS, CHINOS","Mustard, Blue, Striped","Wool, Polyester",Brand_15,"Vintage, Office Wear, Preppy",Dark Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+64,64,"BEACH WEAR, UTILITY PANTS, SHORTS","Pastel Pink, Navy, Camouflage","Linen, Cotton",Brand_4,"Vintage, Athleisure, Office Wear",Neutral Skin,Petite Friendly,High,2026-01-29 14:56:19
+65,65,"HOODIES & JACKETS, OVERSIZE TEE, BLAZERS","Pastel Pink, Peach, Grey","Corduroy, Rayon",Brand_10,"Minimalist, Casual, Luxury",Medium Skin,Petite Friendly,Low,2026-01-29 14:56:19
+66,66,"UTILITY PANTS, POLOS, KIMONO","Coral, Olive, Off-white","Rayon, Linen",Brand_13,"Luxury, Cottagecore, Streetwear",Neutral Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+67,67,"POLOS, JOGGERS & PANTS, DENIM JACKETS","Checked, Navy, Multi-color","Corduroy, Tencel",Brand_1,"Luxury, Vintage, Streetwear",Dark Skin,Petite Friendly,High,2026-01-29 14:56:19
+68,68,"COATS, KIMONO, BEACH WEAR","Green, Peach, Coral","Silk, Tencel",Brand_18,"Beach Wear, Luxury, Cottagecore",Fair Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+69,69,"BLAZERS, BEACH WEAR, TANKS","Mustard, Crimson, Yellow","Modal, Jacquard",Brand_12,"Athleisure, Hipster, Office Wear",Dark Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+70,70,"JOGGERS & PANTS, T-SHIRTS, SWEATSHIRTS","Checked, Yellow, Coral","Linen, Polyester",Brand_14,"Casual, Cottagecore, Eco-friendly",Medium Skin,Petite Friendly,Medium,2026-03-09 21:50:44
+74,74,"TRACK PANTS, SWEATSHIRTS, BEACH WEAR","Navy, Brown, Tan","Polyester, Bamboo",Brand_14,"Athleisure, Party Wear, Streetwear",Medium Skin,Petite Friendly,High,2026-01-29 14:56:19
+75,75,"CHINOS, SHORTS, BLAZERS","Nude, Pastel Pink, Beige","Jacquard, Bamboo",Brand_17,"Vintage, Eco-friendly, Beach Wear",Medium Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+76,76,"UTILITY PANTS, SHORTS, POLOS","Camouflage, Charcoal, White","Jacquard, Fleece",Brand_2,"Casual, Luxury, Party Wear",Medium Skin,Tall Friendly,High,2026-01-29 14:56:19
+77,77,"TRACK PANTS, T-SHIRTS, POLOS","Pastel Pink, Chocolate, Tie-dye","Tencel, Polyester",Brand_11,"Cottagecore, Athleisure, Party Wear",Dark Skin,Skinny Friendly,High,2026-01-29 14:56:19
+78,78,"HOODIES & JACKETS, BLAZERS, SHORTS","Striped, Teal, Olive","Corduroy, Jacquard",Brand_13,"Vintage, Hipster, Streetwear",Dark Skin,Curvy Friendly,High,2026-01-29 14:56:19
+79,79,"TANKS, CARDIGANS, BLAZERS","Green, Yellow, White","Silk, Corduroy",Brand_1,"Beach Wear, Casual, Eco-friendly",Dark Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+80,80,"OVERSIZE TEE, T-SHIRTS, TANKS","Pastel Green, Pastel Blue, Black","Velvet, Polyester",Brand_16,"Vintage, Hipster, Cottagecore",Fair Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+81,81,"SWEATSHIRTS, POLOS, JOGGERS & PANTS","Multi-color, Navy, Tie-dye","Wool, Polyester",Brand_3,"Athleisure, Cottagecore, Formal",Medium Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+82,82,"CARDIGANS, TRACK PANTS, TANKS","Peach, Off-white, Striped","Wool, Jacquard",Brand_7,"Athleisure, Casual, Hipster",Dark Skin,Petite Friendly,High,2026-01-29 14:56:19
+83,83,"SHORTS, TRACK PANTS, TANKS","Nude, White, Black","Velvet, Denim",Brand_18,"Preppy, Y2K, Eco-friendly",Neutral Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+84,84,"SHORTS, BLAZERS, SWEATSHIRTS","Polka Dot, Tie-dye, Teal","Polyester, Cotton",Brand_10,"Beach Wear, Preppy, Casual",Dark Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+85,85,"SHORTS, COATS, T-SHIRTS","Tan, Teal, Charcoal","Denim, Bamboo",Brand_3,"Athleisure, Streetwear, Party Wear",Medium Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+86,86,"BLAZERS, SHORTS, DENIM JACKETS","Beige, Grey, Maroon","Denim, Bamboo",Brand_10,"Beach Wear, Preppy, Hipster",Fair Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+87,87,"JOGGERS & PANTS, UTILITY PANTS, SHORTS","Brown, Checked, Green","Fleece, Silk",Brand_13,"Preppy, Party Wear, Cottagecore",Medium Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+88,88,"OVERSIZE TEE, COATS, T-SHIRTS","Crimson, Tan, Charcoal","Tencel, Rayon",Brand_9,"Hipster, Luxury, Minimalist",Neutral Skin,Skinny Friendly,High,2026-01-29 14:56:19
+89,89,"T-SHIRTS, BLAZERS, SHORTS","Orange, Navy, Charcoal","Tencel, Denim",Brand_10,"Streetwear, Hipster, Minimalist",Neutral Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+91,91,"T-SHIRTS, POLOS, TANKS","Yellow, Chocolate, Brown","Denim, Linen",Brand_11,"Cottagecore, Vintage, Preppy",Medium Skin,Tall Friendly,High,2026-01-29 14:56:19
+93,93,"CARDIGANS, HOODIES & JACKETS, TANKS","Polka Dot, Pastel Pink, Red","Corduroy, Polyester",Brand_11,"Hipster, Streetwear, Party Wear",Medium Skin,Petite Friendly,High,2026-01-29 14:56:19
+94,94,"SHORTS, KIMONO, SWEATSHIRTS","Tie-dye, Orange, Maroon","Fleece, Cotton",Brand_7,"Athleisure, Cottagecore, Formal",Medium Skin,Curvy Friendly,High,2026-01-29 14:56:19
+95,95,"SWEATSHIRTS, CHINOS, BEACH WEAR","Pink, Peach, Camouflage","Linen, Modal",Brand_13,"Casual, Hipster, Vintage",Medium Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+96,96,"JOGGERS & PANTS, TRACK PANTS, BLAZERS","Polka Dot, Camouflage, Green","Wool, Corduroy",Brand_13,"Eco-friendly, Beach Wear, Party Wear",Neutral Skin,Petite Friendly,High,2026-01-29 14:56:19
+97,97,"CARDIGANS, SHORTS, SWEATSHIRTS","Pastel Green, Mustard, Brown","Jacquard, Bamboo",Brand_19,"Formal, Hipster, Preppy",Fair Skin,Skinny Friendly,High,2026-01-29 14:56:19
+98,98,"CARDIGANS, DENIM JACKETS, BLAZERS","Maroon, Blush, Polka Dot","Corduroy, Rayon",Brand_9,"Streetwear, Casual, Luxury",Medium Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+99,99,"OVERSIZE TEE, POLOS, CARDIGANS","Beige, Pastel Blue, Camouflage","Denim, Cotton",Brand_7,"Beach Wear, Y2K, Hipster",Neutral Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+100,100,"SWEATSHIRTS, BEACH WEAR, TANKS","Black, Brown, Crimson","Bamboo, Cotton",Brand_3,"Office Wear, Eco-friendly, Luxury",Medium Skin,Petite Friendly,High,2026-01-29 14:56:19
+101,101,"KIMONO, JOGGERS & PANTS, POLOS","Pastel Pink, Red, Crimson","Wool, Corduroy",Brand_3,"Streetwear, Athleisure, Office Wear",Dark Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+102,102,"BLAZERS, BEACH WEAR, DENIM JACKETS","Off-white, Black, Navy","Linen, Cotton",Brand_6,"Cottagecore, Vintage, Preppy",Neutral Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+103,103,"BEACH WEAR, DENIM JACKETS, CARDIGANS","Plaid, Pastel Green, Grey","Fleece, Velvet",Brand_6,"Streetwear, Minimalist, Beach Wear",Fair Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+104,104,"TRACK PANTS, BLAZERS, JOGGERS & PANTS","Green, Nude, Plaid","Polyester, Fleece",Brand_11,"Cottagecore, Office Wear, Y2K",Fair Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+105,105,"TRACK PANTS, CARDIGANS, HOODIES & JACKETS","Polka Dot, Sky Blue, Brown","Linen, Leather",Brand_6,"Vintage, Cottagecore, Y2K",Medium Skin,Tall Friendly,High,2026-01-29 14:56:19
+106,106,"SWEATSHIRTS, T-SHIRTS, BLAZERS","Brown, Maroon, Teal","Rayon, Cotton",Brand_16,"Office Wear, Preppy, Vintage",Dark Skin,Tall Friendly,High,2026-01-29 14:56:19
+107,107,"BEACH WEAR, CHINOS, BLAZERS","Tie-dye, Mint, White","Bamboo, Silk",Brand_13,"Eco-friendly, Beach Wear, Office Wear",Medium Skin,Petite Friendly,High,2026-01-29 14:56:19
+108,108,"OVERSIZE TEE, CHINOS, T-SHIRTS","Pink, Polka Dot, Mustard","Fleece, Denim",Brand_13,"Office Wear, Athleisure, Y2K",Fair Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+109,109,"CARDIGANS, BEACH WEAR, POLOS","Olive, Striped, Charcoal","Cotton, Velvet",Brand_13,"Casual, Streetwear, Hipster",Neutral Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+110,110,"POLOS, BLAZERS, CARDIGANS","Tie-dye, Crimson, Blue","Corduroy, Silk",Brand_14,"Vintage, Minimalist, Preppy",Fair Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+111,111,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","White, Green, Striped","Rayon, Velvet",Brand_1,"Beach Wear, Luxury, Y2K",Neutral Skin,Skinny Friendly,High,2026-01-29 14:56:19
+112,112,"CARDIGANS, TRACK PANTS, DENIM JACKETS","Off-white, Checked, Tan","Jacquard, Bamboo",Brand_13,"Beach Wear, Hipster, Party Wear",Fair Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+113,113,"TRACK PANTS, COATS, HOODIES & JACKETS","Maroon, Camouflage, White","Bamboo, Velvet",Brand_5,"Vintage, Preppy, Athleisure",Medium Skin,Curvy Friendly,High,2026-01-29 14:56:19
+114,114,"HOODIES & JACKETS, POLOS, JOGGERS & PANTS","Plaid, Pastel Pink, Sky Blue","Jacquard, Corduroy",Brand_4,"Y2K, Eco-friendly, Hipster",Medium Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+115,115,"SHORTS, POLOS, OVERSIZE TEE","Mint, Pink, Chocolate","Cotton, Rayon",Brand_8,"Beach Wear, Party Wear, Vintage",Neutral Skin,Curvy Friendly,High,2026-01-29 14:56:19
+117,117,"OVERSIZE TEE, UTILITY PANTS, JOGGERS & PANTS","Blush, Sky Blue, Red","Leather, Fleece",Brand_16,"Party Wear, Athleisure, Beach Wear",Fair Skin,Petite Friendly,High,2026-01-29 14:56:19
+118,118,"DENIM JACKETS, JOGGERS & PANTS, SWEATSHIRTS","White, Black, Brown","Tencel, Wool",Brand_8,"Vintage, Casual, Cottagecore",Medium Skin,Petite Friendly,High,2026-01-29 14:56:19
+119,119,"KIMONO, TRACK PANTS, UTILITY PANTS","Green, Coral, Orange","Leather, Tencel",Brand_18,"Party Wear, Formal, Minimalist",Fair Skin,Tall Friendly,High,2026-01-29 14:56:19
+120,120,"SWEATSHIRTS, TANKS, KIMONO","Off-white, Navy, Peach","Denim, Bamboo",Brand_4,"Formal, Party Wear, Beach Wear",Fair Skin,Curvy Friendly,High,2026-01-29 14:56:19
+121,121,"TRACK PANTS, BEACH WEAR, KIMONO","Pastel Blue, Nude, Chocolate","Cotton, Corduroy",Brand_10,"Party Wear, Formal, Athleisure",Dark Skin,Petite Friendly,High,2026-01-29 14:56:19
+122,122,"UTILITY PANTS, HOODIES & JACKETS, T-SHIRTS","Nude, Mustard, Camouflage","Polyester, Velvet",Brand_13,"Formal, Cottagecore, Hipster",Medium Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+123,123,"SWEATSHIRTS, HOODIES & JACKETS, BLAZERS","Red, Plaid, Teal","Polyester, Modal",Brand_5,"Athleisure, Beach Wear, Office Wear",Medium Skin,Skinny Friendly,High,2026-01-29 14:56:19
+124,124,"KIMONO, HOODIES & JACKETS, DENIM JACKETS","Beige, Grey, Brown","Fleece, Rayon",Brand_17,"Office Wear, Eco-friendly, Athleisure",Fair Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+125,125,"TANKS, SWEATSHIRTS, COATS","Yellow, Checked, Sky Blue","Bamboo, Tencel",Brand_6,"Hipster, Eco-friendly, Streetwear",Fair Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+126,126,"HOODIES & JACKETS, SWEATSHIRTS, CHINOS","Crimson, Nude, Olive","Velvet, Jacquard",Brand_9,"Formal, Minimalist, Beach Wear",Dark Skin,Petite Friendly,Low,2026-01-29 14:56:19
+128,128,"UTILITY PANTS, CARDIGANS, HOODIES & JACKETS","Blush, Checked, Olive","Bamboo, Tencel",Brand_7,"Cottagecore, Beach Wear, Hipster",Medium Skin,Skinny Friendly,High,2026-01-29 14:56:19
+129,129,"SHORTS, T-SHIRTS, POLOS","Maroon, Mustard, Olive","Rayon, Leather",Brand_11,"Streetwear, Luxury, Party Wear",Fair Skin,Tall Friendly,High,2026-01-29 14:56:19
+130,130,"SHORTS, CHINOS, COATS","Green, Orange, Camouflage","Wool, Jacquard",Brand_16,"Cottagecore, Beach Wear, Office Wear",Dark Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+131,131,"CHINOS, JOGGERS & PANTS, T-SHIRTS","Pastel Green, Orange, Red","Rayon, Linen",Brand_6,"Cottagecore, Formal, Eco-friendly",Medium Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+133,133,"UTILITY PANTS, OVERSIZE TEE, CARDIGANS","Pink, Yellow, Checked","Tencel, Linen",Brand_3,"Office Wear, Luxury, Eco-friendly",Neutral Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+134,134,"JOGGERS & PANTS, OVERSIZE TEE, DENIM JACKETS","Navy, Pastel Blue, Multi-color","Rayon, Velvet",Brand_19,"Cottagecore, Streetwear, Formal",Fair Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+135,135,###typo,"Nude, Peach, Tie-dye","Cotton, Denim",Brand_2,"Eco-friendly, Hipster, Y2K",Dark Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+136,136,"HOODIES & JACKETS, BLAZERS, CHINOS","Red, Coral, Beige","Modal, Tencel",Brand_15,"Athleisure, Office Wear, Casual",Medium Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+137,137,"JOGGERS & PANTS, TRACK PANTS, DENIM JACKETS","Blush, Multi-color, Polka Dot","Fleece, Modal",Brand_4,"Eco-friendly, Athleisure, Minimalist",Fair Skin,Skinny Friendly,High,2026-01-29 14:56:19
+138,138,"JOGGERS & PANTS, DENIM JACKETS, CHINOS","Tie-dye, Pastel Pink, Multi-color","Denim, Rayon",Brand_10,"Formal, Beach Wear, Casual",Dark Skin,Tall Friendly,High,2026-01-29 14:56:19
+140,140,"KIMONO, UTILITY PANTS, SHORTS","Mint, Nude, Coral","Velvet, Corduroy",Brand_8,"Eco-friendly, Casual, Preppy",Medium Skin,Tall Friendly,High,2026-01-29 14:56:19
+141,141,"BLAZERS, HOODIES & JACKETS, CHINOS","Green, Orange, Red","Leather, Polyester",Brand_12,"Streetwear, Cottagecore, Athleisure",Dark Skin,Tall Friendly,Low,2026-01-29 14:56:19
+143,143,"JOGGERS & PANTS, POLOS, BEACH WEAR","Green, Charcoal, Grey","Tencel, Silk",Brand_7,"Vintage, Luxury, Preppy",Dark Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+144,144,"COATS, SHORTS, TANKS","Pastel Green, Pink, Teal","Denim, Rayon",Brand_5,"Streetwear, Cottagecore, Y2K",Medium Skin,Curvy Friendly,High,2026-01-29 14:56:19
+145,145,"JOGGERS & PANTS, T-SHIRTS, SWEATSHIRTS","Checked, Camouflage, Grey","Wool, Corduroy",Brand_6,"Athleisure, Office Wear, Minimalist",Neutral Skin,Tall Friendly,Low,2026-01-29 14:56:19
+146,146,"OVERSIZE TEE, BEACH WEAR, SWEATSHIRTS","Crimson, Black, Sky Blue","Rayon, Jacquard",Brand_13,"Streetwear, Preppy, Office Wear",Dark Skin,Petite Friendly,Low,2026-01-29 14:56:19
+147,147,"TANKS, CHINOS, OVERSIZE TEE","Pink, Nude, Multi-color","Fleece, Linen",Brand_12,"Beach Wear, Hipster, Vintage",Neutral Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+148,148,"KIMONO, T-SHIRTS, HOODIES & JACKETS","Tie-dye, Coral, Mustard","Fleece, Jacquard",Brand_15,"Vintage, Preppy, Beach Wear",Dark Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+149,149,"UTILITY PANTS, COATS, HOODIES & JACKETS","Tan, Red, Blush","Cotton, Rayon",Brand_16,"Office Wear, Streetwear, Luxury",Dark Skin,Skinny Friendly,High,2026-01-29 14:56:19
+150,150,"HOODIES & JACKETS, DENIM JACKETS, SHORTS","Navy, Plaid, Coral","Denim, Wool",Brand_7,"Casual, Formal, Beach Wear",Neutral Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+151,151,"HOODIES & JACKETS, UTILITY PANTS, BLAZERS","Blush, Sky Blue, Teal","Jacquard, Polyester",Brand_7,"Preppy, Vintage, Beach Wear",Dark Skin,Skinny Friendly,High,2026-01-29 14:56:19
+152,152,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Checked, Peach, Mustard","Silk, Bamboo",Brand_16,"Office Wear, Casual, Beach Wear",Medium Skin,Skinny Friendly,Medium,2026-03-09 21:50:44
+153,153,"COATS, OVERSIZE TEE, T-SHIRTS","Black, Blue, Chocolate","Leather, Velvet",Brand_4,"Casual, Preppy, Formal",Dark Skin,Petite Friendly,High,2026-01-29 14:56:19
+154,154,"TRACK PANTS, BEACH WEAR, UTILITY PANTS","Olive, Charcoal, Teal","Fleece, Wool",Brand_10,"Vintage, Cottagecore, Preppy",Neutral Skin,Tall Friendly,High,2026-01-29 14:56:19
+155,155,"POLOS, KIMONO, UTILITY PANTS","Red, Mint, Grey","Velvet, Jacquard",Brand_13,"Beach Wear, Casual, Athleisure",Medium Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+156,156,"TANKS, KIMONO, COATS","Striped, Pink, Peach","Cotton, Leather",Brand_3,"Cottagecore, Formal, Streetwear",Dark Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+157,157,"COATS, BLAZERS, POLOS","Teal, Maroon, Camouflage","Corduroy, Wool",Brand_16,"Hipster, Athleisure, Cottagecore",Neutral Skin,Petite Friendly,Low,2026-01-29 14:56:19
+158,158,"T-SHIRTS, BEACH WEAR, COATS","Tie-dye, Sky Blue, Blue","Fleece, Corduroy",Brand_16,"Vintage, Beach Wear, Formal",Medium Skin,Tall Friendly,High,2026-01-29 14:56:19
+159,159,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Charcoal, Mint, Teal","Wool, Denim",Brand_18,"Office Wear, Athleisure, Party Wear",Dark Skin,Skinny Friendly,High,2026-01-29 14:56:19
+160,160,"TANKS, COATS, UTILITY PANTS","Blue, Tan, Navy","Denim, Wool",Brand_11,"Hipster, Luxury, Eco-friendly",Medium Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+161,161,"HOODIES & JACKETS, OVERSIZE TEE, BEACH WEAR","Orange, Checked, Olive","Rayon, Denim",Brand_15,"Cottagecore, Luxury, Casual",Fair Skin,Curvy Friendly,High,2026-01-29 14:56:19
+162,162,"POLOS, T-SHIRTS, DENIM JACKETS","Pastel Blue, Brown, Yellow","Bamboo, Tencel",Brand_19,"Luxury, Minimalist, Casual",Fair Skin,Tall Friendly,High,2026-01-29 14:56:19
+163,163,"SWEATSHIRTS, JOGGERS & PANTS, CHINOS","Tie-dye, Peach, Coral","Wool, Velvet",Brand_18,"Y2K, Streetwear, Vintage",Fair Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+165,165,"DENIM JACKETS, OVERSIZE TEE, CHINOS","Red, Pastel Green, Yellow","Corduroy, Silk",Brand_3,"Streetwear, Vintage, Eco-friendly",Fair Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+166,166,"T-SHIRTS, CARDIGANS, KIMONO","Pink, Camouflage, Blue","Jacquard, Polyester",Brand_4,"Vintage, Beach Wear, Athleisure",Fair Skin,Curvy Friendly,High,2026-01-29 14:56:19
+167,167,"BEACH WEAR, OVERSIZE TEE, POLOS","Grey, Mustard, Beige","Cotton, Corduroy",Brand_4,"Office Wear, Eco-friendly, Athleisure",Neutral Skin,Petite Friendly,High,2026-01-29 14:56:19
+168,168,"POLOS, TRACK PANTS, SWEATSHIRTS","Teal, Off-white, Olive","Wool, Jacquard",Brand_13,"Casual, Cottagecore, Athleisure",Neutral Skin,Tall Friendly,Low,2026-01-29 14:56:19
+169,169,"JOGGERS & PANTS, BLAZERS, TANKS","Blue, Mustard, Crimson","Cotton, Linen",Brand_16,"Y2K, Vintage, Cottagecore",Neutral Skin,Curvy Friendly,High,2026-01-29 14:56:19
+170,170,"JOGGERS & PANTS, SWEATSHIRTS, UTILITY PANTS","Navy, Multi-color, Orange","Denim, Modal",Brand_6,"Formal, Minimalist, Office Wear",Medium Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+171,171,"SHORTS, TRACK PANTS, OVERSIZE TEE","Plaid, Off-white, Checked","Rayon, Velvet",Brand_8,"Minimalist, Office Wear, Luxury",Fair Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+172,172,"TANKS, HOODIES & JACKETS, CHINOS","Mint, Orange, Crimson","Leather, Wool",Brand_7,"Party Wear, Office Wear, Preppy",Fair Skin,Petite Friendly,High,2026-01-29 14:56:19
+173,173,"SWEATSHIRTS, BLAZERS, T-SHIRTS","Beige, Nude, Brown","Velvet, Linen",Brand_14,"Minimalist, Casual, Streetwear",Neutral Skin,Skinny Friendly,High,2026-01-29 14:56:19
+175,175,"COATS, BEACH WEAR, OVERSIZE TEE","Tan, Polka Dot, Chocolate","Cotton, Fleece",Brand_9,"Beach Wear, Casual, Office Wear",Fair Skin,Skinny Friendly,High,2026-01-29 14:56:19
+176,176,"COATS, DENIM JACKETS, BLAZERS","Pink, Checked, Red","Jacquard, Leather",Brand_6,"Formal, Y2K, Cottagecore",Dark Skin,Petite Friendly,Low,2026-01-29 14:56:19
+177,177,"CARDIGANS, DENIM JACKETS, KIMONO","Pastel Pink, Pastel Blue, Multi-color","Wool, Polyester",Brand_1,"Eco-friendly, Streetwear, Cottagecore",Fair Skin,Tall Friendly,High,2026-01-29 14:56:19
+178,178,"SWEATSHIRTS, TANKS, BLAZERS","Black, Brown, Crimson","Bamboo, Tencel",Brand_15,"Athleisure, Vintage, Hipster",Fair Skin,Petite Friendly,High,2026-01-29 14:56:19
+179,179,"OVERSIZE TEE, BEACH WEAR, TANKS","Brown, Crimson, Mustard","Fleece, Silk",Brand_19,"Streetwear, Party Wear, Vintage",Medium Skin,Tall Friendly,Low,2026-01-29 14:56:19
+180,180,"OVERSIZE TEE, JOGGERS & PANTS, HOODIES & JACKETS","Beige, Mustard, Checked","Fleece, Leather",Brand_6,"Hipster, Beach Wear, Eco-friendly",Medium Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+181,181,"OVERSIZE TEE, SWEATSHIRTS, TANKS","Charcoal, Peach, Black","Rayon, Velvet",Brand_17,"Luxury, Eco-friendly, Vintage",Fair Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+182,182,"POLOS, SWEATSHIRTS, OVERSIZE TEE","Polka Dot, Green, Chocolate","Modal, Tencel",Brand_16,"Formal, Athleisure, Beach Wear",Medium Skin,Skinny Friendly,High,2026-01-29 14:56:19
+183,183,"TANKS, OVERSIZE TEE, DENIM JACKETS","Brown, Mustard, Pastel Blue","Leather, Wool",Brand_4,"Cottagecore, Hipster, Preppy",Medium Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+184,184,"TANKS, BLAZERS, T-SHIRTS","Grey, Green, Chocolate","Fleece, Cotton",Brand_10,"Beach Wear, Streetwear, Hipster",Neutral Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+185,185,"TRACK PANTS, CARDIGANS, KIMONO","Peach, Off-white, Blush","Silk, Fleece",Brand_2,"Beach Wear, Athleisure, Eco-friendly",Dark Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+187,187,"SHORTS, TANKS, SWEATSHIRTS","Grey, Tan, Multi-color","Silk, Denim",Brand_13,"Athleisure, Party Wear, Minimalist",Fair Skin,Skinny Friendly,High,2026-01-29 14:56:19
+188,188,"TRACK PANTS, TANKS, KIMONO","Plaid, Yellow, Peach","Silk, Tencel",Brand_14,"Athleisure, Casual, Streetwear",Medium Skin,Petite Friendly,High,2026-01-29 14:56:19
+189,189,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Yellow, Chocolate, Blue","Modal, Fleece",Brand_14,"Vintage, Luxury, Casual",Fair Skin,Petite Friendly,Low,2026-01-29 14:56:19
+190,190,"CARDIGANS, T-SHIRTS, TRACK PANTS","Coral, White, Blue","Wool, Fleece",Brand_17,"Minimalist, Cottagecore, Streetwear",Neutral Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+191,191,"TANKS, BLAZERS, JOGGERS & PANTS","Teal, Peach, Olive","Bamboo, Tencel",Brand_9,"Preppy, Minimalist, Luxury",Medium Skin,Tall Friendly,Low,2026-01-29 14:56:19
+192,192,"POLOS, COATS, TRACK PANTS","Checked, Pink, Plaid","Jacquard, Corduroy",Brand_16,"Cottagecore, Luxury, Preppy",Fair Skin,Skinny Friendly,High,2026-01-29 14:56:19
+193,193,"HOODIES & JACKETS, DENIM JACKETS, TANKS","Checked, Black, Brown","Denim, Silk",Brand_17,"Minimalist, Luxury, Cottagecore",Medium Skin,Petite Friendly,High,2026-01-29 14:56:19
+194,194,"BEACH WEAR, CHINOS, DENIM JACKETS","Multi-color, Grey, Crimson","Cotton, Denim",Brand_17,"Formal, Beach Wear, Preppy",Dark Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+195,195,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Grey, Sky Blue, Pink","Silk, Rayon",Brand_12,"Beach Wear, Office Wear, Eco-friendly",Dark Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+197,197,"HOODIES & JACKETS, SHORTS, TRACK PANTS","Checked, Pastel Pink, Nude","Denim, Corduroy",Brand_18,"Formal, Y2K, Hipster",Neutral Skin,Tall Friendly,High,2026-01-29 14:56:19
+198,198,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Sky Blue, Multi-color, Maroon","Corduroy, Rayon",Brand_7,"Eco-friendly, Casual, Office Wear",Fair Skin,Skinny Friendly,High,2026-01-29 14:56:19
+199,199,"CHINOS, POLOS, HOODIES & JACKETS","Sky Blue, Blue, Chocolate","Wool, Jacquard",Brand_13,"Cottagecore, Minimalist, Y2K",Neutral Skin,Curvy Friendly,High,2026-01-29 14:56:19
+200,200,"DENIM JACKETS, BLAZERS, T-SHIRTS","Off-white, Maroon, Coral","Wool, Modal",Brand_17,"Formal, Office Wear, Party Wear",Neutral Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+201,201,"SHORTS, JOGGERS & PANTS, CHINOS","Multi-color, Grey, Red","Linen, Velvet",Brand_3,"Office Wear, Preppy, Vintage",Dark Skin,Tall Friendly,High,2026-01-29 14:56:19
+202,202,"KIMONO, JOGGERS & PANTS, BLAZERS","Multi-color, Pink, Maroon","Leather, Denim",Brand_12,"Office Wear, Casual, Streetwear",Fair Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+203,203,"SWEATSHIRTS, SHORTS, CHINOS","Mint, Red, Tie-dye","Wool, Silk",Brand_7,"Hipster, Eco-friendly, Casual",Medium Skin,Petite Friendly,High,2026-01-29 14:56:19
+204,204,"BEACH WEAR, BLAZERS, JOGGERS & PANTS","Polka Dot, Red, Grey","Bamboo, Denim",Brand_15,"Luxury, Eco-friendly, Streetwear",Neutral Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+205,205,"BEACH WEAR, DENIM JACKETS, COATS","Sky Blue, Pastel Green, Teal","Bamboo, Tencel",Brand_8,"Beach Wear, Formal, Vintage",Neutral Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+206,206,"CHINOS, POLOS, SWEATSHIRTS","Nude, Navy, White","Bamboo, Modal",Brand_2,"Vintage, Cottagecore, Hipster",Fair Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+207,207,"BEACH WEAR, JOGGERS & PANTS, OVERSIZE TEE","Plaid, White, Teal","Fleece, Linen",Brand_9,"Formal, Party Wear, Luxury",Medium Skin,Tall Friendly,High,2026-01-29 14:56:19
+208,208,"KIMONO, OVERSIZE TEE, UTILITY PANTS","Pink, Mint, Yellow","Cotton, Leather",Brand_18,"Vintage, Beach Wear, Minimalist",Medium Skin,Petite Friendly,Medium,2026-03-09 21:50:44
+209,209,"KIMONO, SHORTS, JOGGERS & PANTS","Plaid, White, Coral","Cotton, Tencel",Brand_13,"Preppy, Hipster, Casual",Neutral Skin,Tall Friendly,High,2026-01-29 14:56:19
+211,211,"UTILITY PANTS, T-SHIRTS, OVERSIZE TEE","Sky Blue, Olive, Crimson","Jacquard, Leather",Brand_4,"Eco-friendly, Streetwear, Party Wear",Dark Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+212,212,"SWEATSHIRTS, SHORTS, OVERSIZE TEE","Navy, Red, Orange","Bamboo, Tencel",Brand_7,"Luxury, Formal, Office Wear",Medium Skin,Petite Friendly,Low,2026-01-29 14:56:19
+213,213,"CHINOS, BLAZERS, UTILITY PANTS","Crimson, Peach, Chocolate","Denim, Bamboo",Brand_10,"Eco-friendly, Formal, Casual",Fair Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+214,214,"SWEATSHIRTS, BEACH WEAR, COATS","Maroon, Olive, Mustard","Cotton, Bamboo",Brand_12,"Cottagecore, Vintage, Athleisure",Medium Skin,Skinny Friendly,High,2026-01-29 14:56:19
+215,215,"COATS, BLAZERS, DENIM JACKETS","Orange, Striped, Pastel Green","Rayon, Silk",Brand_19,"Eco-friendly, Formal, Hipster",Neutral Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+216,216,"HOODIES & JACKETS, TANKS, DENIM JACKETS","Orange, Navy, Nude","Modal, Jacquard",Brand_14,"Cottagecore, Streetwear, Eco-friendly",Medium Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+217,217,"KIMONO, JOGGERS & PANTS, DENIM JACKETS","Camouflage, Teal, Off-white","Bamboo, Fleece",Brand_7,"Beach Wear, Minimalist, Party Wear",Fair Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+218,218,"POLOS, JOGGERS & PANTS, BEACH WEAR","Tie-dye, Polka Dot, Orange","Silk, Velvet",Brand_12,"Hipster, Vintage, Streetwear",Medium Skin,Skinny Friendly,High,2026-01-29 14:56:19
+220,220,"COATS, BLAZERS, T-SHIRTS","White, Red, Polka Dot","Polyester, Velvet",Brand_15,"Formal, Y2K, Beach Wear",Fair Skin,Curvy Friendly,High,2026-01-29 14:56:19
+221,221,"POLOS, HOODIES & JACKETS, SHORTS","Tan, Peach, Navy","Corduroy, Wool",Brand_15,"Y2K, Eco-friendly, Office Wear",Medium Skin,Tall Friendly,High,2026-01-29 14:56:19
+222,222,"HOODIES & JACKETS, CARDIGANS, CHINOS","Multi-color, Charcoal, Grey","Linen, Tencel",Brand_18,"Preppy, Vintage, Cottagecore",Medium Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+223,223,"JOGGERS & PANTS, BEACH WEAR, BLAZERS","White, Tie-dye, Coral","Polyester, Corduroy",Brand_15,"Hipster, Casual, Preppy",Medium Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+224,224,"TANKS, COATS, CARDIGANS","Multi-color, Charcoal, Peach","Fleece, Jacquard",Brand_16,"Beach Wear, Streetwear, Cottagecore",Medium Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+225,225,"T-SHIRTS, KIMONO, SHORTS","Plaid, Pastel Pink, Pastel Blue","Jacquard, Rayon",Brand_6,"Hipster, Casual, Luxury",Medium Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+226,226,"SHORTS, SWEATSHIRTS, KIMONO","Maroon, Orange, Tan","Tencel, Silk",Brand_18,"Formal, Vintage, Minimalist",Medium Skin,Skinny Friendly,High,2026-01-29 14:56:19
+227,227,"KIMONO, DENIM JACKETS, BLAZERS","Nude, Blue, Striped","Wool, Linen",Brand_9,"Beach Wear, Streetwear, Vintage",Neutral Skin,Tall Friendly,Low,2026-01-29 14:56:19
+228,228,"UTILITY PANTS, TANKS, OVERSIZE TEE","Mint, Pastel Blue, Coral","Fleece, Rayon",Brand_8,"Y2K, Beach Wear, Cottagecore",Medium Skin,Petite Friendly,Low,2026-01-29 14:56:19
+229,229,"KIMONO, POLOS, BLAZERS","Pastel Blue, White, Navy","Fleece, Cotton",Brand_8,"Formal, Streetwear, Casual",Dark Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+230,230,"DENIM JACKETS, UTILITY PANTS, CHINOS","Brown, Pink, Striped","Corduroy, Cotton",Brand_17,"Office Wear, Y2K, Preppy",Dark Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+231,231,"T-SHIRTS, BLAZERS, TANKS","Tie-dye, Polka Dot, Orange","Tencel, Modal",Brand_14,"Cottagecore, Athleisure, Beach Wear",Fair Skin,Tall Friendly,Low,2026-03-09 21:50:44
+232,232,"BEACH WEAR, SWEATSHIRTS, T-SHIRTS","Brown, Maroon, Olive","Leather, Rayon",Brand_3,"Casual, Office Wear, Preppy",Fair Skin,Tall Friendly,High,2026-01-29 14:56:19
+233,233,"POLOS, SHORTS, HOODIES & JACKETS","Off-white, Polka Dot, Orange","Rayon, Fleece",Brand_13,"Preppy, Beach Wear, Eco-friendly",Neutral Skin,Tall Friendly,High,2026-01-29 14:56:19
+234,234,"TANKS, CHINOS, KIMONO","Beige, Tie-dye, Chocolate","Rayon, Tencel",Brand_19,"Luxury, Vintage, Minimalist",Dark Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+235,235,"BLAZERS, TANKS, CHINOS","Teal, Chocolate, Sky Blue","Fleece, Tencel",Brand_9,"Minimalist, Hipster, Streetwear",Neutral Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+236,236,"KIMONO, POLOS, JOGGERS & PANTS","Tan, Green, Orange","Velvet, Denim",Brand_15,"Preppy, Y2K, Vintage",Fair Skin,Tall Friendly,High,2026-01-29 14:56:19
+237,237,"OVERSIZE TEE, TRACK PANTS, POLOS","Orange, Chocolate, Charcoal","Bamboo, Rayon",Brand_6,"Beach Wear, Formal, Office Wear",Dark Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+238,238,"HOODIES & JACKETS, TRACK PANTS, DENIM JACKETS","Crimson, Charcoal, Camouflage","Leather, Corduroy",Brand_16,"Party Wear, Vintage, Beach Wear",Dark Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+239,239,"BEACH WEAR, JOGGERS & PANTS, UTILITY PANTS","White, Grey, Brown","Fleece, Rayon",Brand_10,"Casual, Vintage, Formal",Medium Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+240,240,"KIMONO, OVERSIZE TEE, TANKS","Pastel Pink, Grey, Peach","Modal, Linen",Brand_16,"Preppy, Luxury, Casual",Dark Skin,Skinny Friendly,High,2026-01-29 14:56:19
+241,241,"TRACK PANTS, UTILITY PANTS, OVERSIZE TEE","Grey, Pastel Blue, Beige","Cotton, Bamboo",Brand_2,"Hipster, Athleisure, Y2K",Dark Skin,Tall Friendly,Low,2026-01-29 14:56:19
+242,242,"POLOS, CARDIGANS, UTILITY PANTS","Sky Blue, Tie-dye, Pastel Green","Bamboo, Polyester",Brand_3,"Beach Wear, Athleisure, Streetwear",Dark Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+243,243,"JOGGERS & PANTS, COATS, CHINOS","Chocolate, Camouflage, Beige","Corduroy, Tencel",Brand_10,"Vintage, Beach Wear, Casual",Neutral Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+244,244,"CHINOS, BEACH WEAR, JOGGERS & PANTS","Pastel Green, Red, Olive","Bamboo, Tencel",Brand_18,"Hipster, Beach Wear, Athleisure",Fair Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+245,245,"SWEATSHIRTS, CHINOS, OVERSIZE TEE","Polka Dot, Green, Off-white","Fleece, Polyester",Brand_4,"Streetwear, Vintage, Y2K",Medium Skin,Petite Friendly,Medium,2026-03-09 21:50:44
+246,246,"BLAZERS, OVERSIZE TEE, CHINOS","Beige, Pastel Green, Brown","Tencel, Leather",Brand_7,"Luxury, Casual, Preppy",Dark Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+247,247,"SHORTS, COATS, POLOS","Black, Grey, Multi-color","Corduroy, Silk",Brand_18,"Luxury, Casual, Party Wear",Neutral Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+248,248,"SHORTS, SWEATSHIRTS, BEACH WEAR","Blue, Tan, Multi-color","Jacquard, Fleece",Brand_19,"Streetwear, Preppy, Athleisure",Neutral Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+249,249,"HOODIES & JACKETS, TANKS, DENIM JACKETS","Off-white, Tie-dye, Red","Jacquard, Fleece",Brand_5,"Athleisure, Streetwear, Hipster",Neutral Skin,Petite Friendly,Low,2026-01-29 14:56:19
+250,250,"CARDIGANS, BEACH WEAR, BLAZERS","Orange, Pastel Green, Tie-dye","Wool, Jacquard",Brand_13,"Beach Wear, Office Wear, Eco-friendly",Fair Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+251,251,"TRACK PANTS, CARDIGANS, UTILITY PANTS","Pink, Polka Dot, Striped","Polyester, Corduroy",Brand_11,"Athleisure, Cottagecore, Preppy",Fair Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+252,252,"DENIM JACKETS, TRACK PANTS, BEACH WEAR","Plaid, Black, White","Leather, Fleece",Brand_18,"Office Wear, Party Wear, Y2K",Neutral Skin,Skinny Friendly,High,2026-01-29 14:56:19
+253,253,"HOODIES & JACKETS, BLAZERS, OVERSIZE TEE","Red, Green, Pink","Linen, Silk",Brand_5,"Luxury, Casual, Preppy",Neutral Skin,Petite Friendly,Low,2026-01-29 14:56:19
+254,254,"JOGGERS & PANTS, KIMONO, OVERSIZE TEE","White, Nude, Red","Modal, Bamboo",Brand_11,"Formal, Vintage, Beach Wear",Medium Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+255,255,"SHORTS, TRACK PANTS, POLOS","Tie-dye, Pastel Pink, Camouflage","Velvet, Modal",Brand_5,"Preppy, Vintage, Luxury",Fair Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+256,256,"SWEATSHIRTS, POLOS, DENIM JACKETS","Mustard, Off-white, Sky Blue","Denim, Fleece",Brand_12,"Beach Wear, Casual, Eco-friendly",Dark Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+257,257,"BLAZERS, DENIM JACKETS, SWEATSHIRTS","Grey, Red, Tie-dye","Polyester, Bamboo",Brand_15,"Preppy, Streetwear, Eco-friendly",Neutral Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+258,258,"POLOS, BLAZERS, DENIM JACKETS","Sky Blue, Mustard, Maroon","Wool, Rayon",Brand_1,"Casual, Eco-friendly, Athleisure",Neutral Skin,Tall Friendly,Low,2026-01-29 14:56:19
+259,259,"DENIM JACKETS, TRACK PANTS, SHORTS","Camouflage, Pastel Green, Black","Bamboo, Tencel",Brand_13,"Streetwear, Vintage, Cottagecore",Medium Skin,Petite Friendly,High,2026-01-29 14:56:19
+260,260,"POLOS, COATS, TANKS","Maroon, Striped, Sky Blue","Tencel, Rayon",Brand_3,"Luxury, Y2K, Party Wear",Medium Skin,Petite Friendly,Low,2026-01-29 14:56:19
+261,261,"T-SHIRTS, TRACK PANTS, COATS","Orange, Maroon, Crimson","Silk, Rayon",Brand_4,"Athleisure, Beach Wear, Vintage",Dark Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+262,262,"TRACK PANTS, POLOS, CHINOS","Camouflage, Blush, Nude","Silk, Cotton",Brand_8,"Athleisure, Party Wear, Beach Wear",Medium Skin,Petite Friendly,High,2026-01-29 14:56:19
+263,263,"SWEATSHIRTS, DENIM JACKETS, COATS","Off-white, Beige, Striped","Velvet, Bamboo",Brand_15,"Streetwear, Minimalist, Eco-friendly",Neutral Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+265,265,"T-SHIRTS, COATS, UTILITY PANTS","Pastel Pink, Pastel Blue, Multi-color","Silk, Velvet",Brand_16,"Party Wear, Minimalist, Cottagecore",Neutral Skin,Tall Friendly,High,2026-01-29 14:56:19
+266,266,"TRACK PANTS, OVERSIZE TEE, HOODIES & JACKETS","Peach, Pastel Pink, Polka Dot","Polyester, Modal",Brand_8,"Party Wear, Preppy, Athleisure",Dark Skin,Tall Friendly,High,2026-01-29 14:56:19
+267,267,"CHINOS, CARDIGANS, POLOS","Blue, Camouflage, Pastel Blue","Bamboo, Tencel",Brand_9,"Athleisure, Preppy, Hipster",Medium Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+268,268,"SWEATSHIRTS, COATS, BLAZERS","Mustard, Off-white, Striped","Polyester, Rayon",Brand_13,"Y2K, Athleisure, Beach Wear",Fair Skin,Petite Friendly,Low,2026-01-29 14:56:19
+269,269,"TANKS, POLOS, OVERSIZE TEE","Beige, Navy, Off-white","Linen, Corduroy",Brand_10,"Preppy, Casual, Streetwear",Fair Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+270,270,"KIMONO, CHINOS, COATS","Tan, Pastel Pink, Blush","Jacquard, Corduroy",Brand_8,"Formal, Casual, Office Wear",Fair Skin,Petite Friendly,High,2026-01-29 14:56:19
+271,271,"SHORTS, SWEATSHIRTS, BEACH WEAR","White, Teal, Yellow","Bamboo, Tencel",Brand_8,"Party Wear, Preppy, Eco-friendly",Dark Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+272,272,"BEACH WEAR, SHORTS, CARDIGANS","Mint, Pastel Blue, Teal","Corduroy, Velvet",Brand_11,"Office Wear, Athleisure, Streetwear",Neutral Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+273,273,"CARDIGANS, HOODIES & JACKETS, T-SHIRTS","Off-white, Multi-color, White","Linen, Wool",Brand_9,"Athleisure, Preppy, Eco-friendly",Medium Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+274,274,"HOODIES & JACKETS, TRACK PANTS, KIMONO","Multi-color, Green, Pastel Green","Velvet, Polyester",Brand_10,"Streetwear, Cottagecore, Office Wear",Medium Skin,Tall Friendly,High,2026-01-29 14:56:19
+275,275,"UTILITY PANTS, TANKS, KIMONO","Navy, Tan, Polka Dot","Polyester, Denim",Brand_7,"Luxury, Office Wear, Cottagecore",Neutral Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+276,276,"T-SHIRTS, OVERSIZE TEE, JOGGERS & PANTS","Black, Checked, Mint","Linen, Modal",Brand_19,"Cottagecore, Preppy, Beach Wear",Medium Skin,Curvy Friendly,High,2026-01-29 14:56:19
+277,277,"KIMONO, HOODIES & JACKETS, POLOS","Tan, Mustard, Green","Modal, Leather",Brand_10,"Cottagecore, Streetwear, Office Wear",Medium Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+278,278,"DENIM JACKETS, POLOS, CHINOS","Blue, Pastel Green, Pastel Blue","Wool, Polyester",Brand_4,"Party Wear, Preppy, Formal",Fair Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+279,279,"SWEATSHIRTS, CARDIGANS, OVERSIZE TEE","Mustard, Blush, Coral","Bamboo, Silk",Brand_7,"Luxury, Vintage, Formal",Medium Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+280,280,"SWEATSHIRTS, COATS, TANKS","Black, Nude, Chocolate","Modal, Wool",Brand_6,"Party Wear, Y2K, Minimalist",Dark Skin,Curvy Friendly,High,2026-01-29 14:56:19
+281,281,"KIMONO, T-SHIRTS, TRACK PANTS","White, Camouflage, Tan","Corduroy, Denim",Brand_8,"Casual, Streetwear, Eco-friendly",Neutral Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+282,282,"BLAZERS, CHINOS, TRACK PANTS","Striped, Chocolate, Orange","Bamboo, Modal",Brand_2,"Minimalist, Formal, Eco-friendly",Medium Skin,Curvy Friendly,High,2026-01-29 14:56:19
+283,283,"OVERSIZE TEE, SHORTS, JOGGERS & PANTS","Mint, Camouflage, Tan","Bamboo, Jacquard",Brand_4,"Preppy, Hipster, Minimalist",Medium Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+284,284,"OVERSIZE TEE, UTILITY PANTS, TRACK PANTS","Maroon, Blue, Yellow","Polyester, Leather",Brand_2,"Cottagecore, Minimalist, Eco-friendly",Dark Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+285,285,"TRACK PANTS, COATS, T-SHIRTS","Mustard, Plaid, Beige","Velvet, Denim",Brand_13,"Casual, Minimalist, Preppy",Fair Skin,Petite Friendly,Low,2026-01-29 14:56:19
+286,286,"DENIM JACKETS, CHINOS, UTILITY PANTS","Off-white, Navy, Olive","Rayon, Corduroy",Brand_16,"Office Wear, Vintage, Casual",Fair Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+287,287,"BEACH WEAR, TRACK PANTS, TANKS","Blue, Pink, Maroon","Modal, Fleece",Brand_10,"Office Wear, Formal, Luxury",Medium Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+288,288,"BLAZERS, CHINOS, JOGGERS & PANTS","Chocolate, Mint, Yellow","Denim, Polyester",Brand_1,"Y2K, Athleisure, Streetwear",Neutral Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+289,289,"COATS, CHINOS, TRACK PANTS","Grey, Blue, Charcoal","Wool, Tencel",Brand_15,"Casual, Luxury, Party Wear",Fair Skin,Petite Friendly,High,2026-01-29 14:56:19
+290,290,"DENIM JACKETS, BLAZERS, T-SHIRTS","Pink, Mint, Grey","Leather, Velvet",Brand_9,"Casual, Streetwear, Luxury",Medium Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+291,291,"POLOS, CHINOS, BLAZERS","Camouflage, Orange, Tan","Bamboo, Tencel",Brand_17,"Party Wear, Y2K, Cottagecore",Dark Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+293,293,"CHINOS, SHORTS, TANKS","Blue, Grey, Striped","Modal, Polyester",Brand_17,"Vintage, Formal, Casual",Fair Skin,Curvy Friendly,High,2026-01-29 14:56:19
+294,294,"BEACH WEAR, TANKS, KIMONO","Black, Navy, Peach","Jacquard, Cotton",Brand_12,"Formal, Hipster, Athleisure",Medium Skin,Tall Friendly,Low,2026-01-29 14:56:19
+295,295,"OVERSIZE TEE, HOODIES & JACKETS, BEACH WEAR","Green, Nude, Off-white","Leather, Linen",Brand_2,"Athleisure, Office Wear, Party Wear",Neutral Skin,Petite Friendly,High,2026-01-29 14:56:19
+296,296,"JOGGERS & PANTS, T-SHIRTS, CHINOS","Green, Maroon, Olive","Velvet, Cotton",Brand_16,"Cottagecore, Minimalist, Beach Wear",Dark Skin,Curvy Friendly,High,2026-01-29 14:56:19
+297,297,"UTILITY PANTS, POLOS, SWEATSHIRTS","Navy, Olive, Grey","Corduroy, Wool",Brand_3,"Luxury, Casual, Preppy",Medium Skin,Petite Friendly,High,2026-01-29 14:56:19
+298,298,"TRACK PANTS, T-SHIRTS, SHORTS","Blue, Chocolate, Beige","Corduroy, Silk",Brand_7,"Beach Wear, Formal, Party Wear",Neutral Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+299,299,"CARDIGANS, OVERSIZE TEE, UTILITY PANTS","Orange, Coral, Green","Silk, Rayon",Brand_11,"Vintage, Office Wear, Hipster",Dark Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+300,300,"CHINOS, SWEATSHIRTS, SHORTS","White, Multi-color, Pastel Green","Bamboo, Velvet",Brand_7,"Office Wear, Preppy, Minimalist",Medium Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+301,301,"CARDIGANS, CHINOS, BLAZERS","Tie-dye, Teal, Plaid","Cotton, Bamboo",Brand_12,"Hipster, Y2K, Preppy",Fair Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+302,302,"JOGGERS & PANTS, CHINOS, CARDIGANS","White, Chocolate, Blush","Leather, Fleece",Brand_18,"Party Wear, Cottagecore, Y2K",Dark Skin,Tall Friendly,High,2026-01-29 14:56:19
+303,303,"OVERSIZE TEE, HOODIES & JACKETS, BEACH WEAR","Charcoal, Camouflage, Mustard","Denim, Cotton",Brand_16,"Minimalist, Y2K, Streetwear",Dark Skin,Petite Friendly,Low,2026-01-29 14:56:19
+304,304,"HOODIES & JACKETS, TANKS, JOGGERS & PANTS","Multi-color, Pastel Blue, Maroon","Velvet, Wool",Brand_18,"Preppy, Y2K, Beach Wear",Dark Skin,Tall Friendly,High,2026-01-29 14:56:19
+305,305,"TANKS, SWEATSHIRTS, SHORTS","Tie-dye, Beige, Mustard","Corduroy, Leather",Brand_16,"Eco-friendly, Luxury, Office Wear",Medium Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+306,306,"SWEATSHIRTS, JOGGERS & PANTS, BLAZERS","Striped, Plaid, Red","Silk, Fleece",Brand_3,"Casual, Beach Wear, Y2K",Medium Skin,Tall Friendly,Low,2026-01-29 14:56:19
+307,307,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Orange, Multi-color, Yellow","Denim, Fleece",Brand_1,"Beach Wear, Cottagecore, Vintage",Fair Skin,Skinny Friendly,High,2026-01-29 14:56:19
+309,309,"COATS, T-SHIRTS, UTILITY PANTS","Red, Pink, Pastel Green","Fleece, Silk",Brand_19,"Luxury, Casual, Streetwear",Dark Skin,Tall Friendly,Low,2026-01-29 14:56:19
+310,310,"TANKS, HOODIES & JACKETS, BEACH WEAR","Olive, Camouflage, Yellow","Silk, Polyester",Brand_18,"Beach Wear, Eco-friendly, Party Wear",Neutral Skin,Curvy Friendly,High,2026-01-29 14:56:19
+311,311,"TRACK PANTS, HOODIES & JACKETS, BEACH WEAR","Blush, White, Black","Silk, Tencel",Brand_2,"Vintage, Hipster, Minimalist",Dark Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+312,312,"DENIM JACKETS, UTILITY PANTS, T-SHIRTS","Off-white, Grey, Nude","Rayon, Fleece",Brand_4,"Office Wear, Luxury, Casual",Dark Skin,Curvy Friendly,High,2026-01-29 14:56:19
+313,313,"BLAZERS, UTILITY PANTS, DENIM JACKETS","Teal, White, Polka Dot","Fleece, Cotton",Brand_9,"Vintage, Preppy, Beach Wear",Dark Skin,Tall Friendly,Low,2026-01-29 14:56:19
+314,314,"DENIM JACKETS, BEACH WEAR, CHINOS","White, Tan, Mustard","Jacquard, Cotton",Brand_16,"Party Wear, Athleisure, Streetwear",Medium Skin,Tall Friendly,Low,2026-01-29 14:56:19
+315,315,"SHORTS, JOGGERS & PANTS, HOODIES & JACKETS","Grey, Teal, Beige","Tencel, Leather",Brand_9,"Cottagecore, Casual, Athleisure",Neutral Skin,Curvy Friendly,High,2026-01-29 14:56:19
+316,316,"HOODIES & JACKETS, OVERSIZE TEE, TRACK PANTS","Yellow, Tan, Coral","Fleece, Rayon",Brand_9,"Luxury, Party Wear, Vintage",Fair Skin,Tall Friendly,High,2026-01-29 14:56:19
+317,317,"HOODIES & JACKETS, SWEATSHIRTS, TRACK PANTS","Checked, Striped, Teal","Modal, Jacquard",Brand_3,"Athleisure, Hipster, Casual",Medium Skin,Petite Friendly,High,2026-01-29 14:56:19
+318,318,"UTILITY PANTS, OVERSIZE TEE, TANKS","Blush, Crimson, Brown","Bamboo, Leather",Brand_3,"Y2K, Hipster, Streetwear",Medium Skin,Curvy Friendly,High,2026-01-29 14:56:19
+319,319,"OVERSIZE TEE, SHORTS, BLAZERS","Maroon, Black, Off-white","Denim, Silk",Brand_11,"Luxury, Formal, Party Wear",Dark Skin,Skinny Friendly,High,2026-01-29 14:56:19
+320,320,"COATS, KIMONO, UTILITY PANTS","Camouflage, Yellow, Polka Dot","Linen, Rayon",Brand_16,"Vintage, Eco-friendly, Party Wear",Neutral Skin,Petite Friendly,High,2026-01-29 14:56:19
+321,321,"T-SHIRTS, JOGGERS & PANTS, TANKS","Mustard, Multi-color, Striped","Wool, Modal",Brand_6,"Eco-friendly, Vintage, Minimalist",Medium Skin,Curvy Friendly,High,2026-01-29 14:56:19
+322,322,"BLAZERS, JOGGERS & PANTS, T-SHIRTS","Pastel Green, Navy, Off-white","Rayon, Polyester",Brand_13,"Casual, Beach Wear, Preppy",Fair Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+323,323,"SWEATSHIRTS, OVERSIZE TEE, KIMONO","Teal, White, Brown","Bamboo, Denim",Brand_13,"Luxury, Eco-friendly, Y2K",Fair Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+325,325,"JOGGERS & PANTS, BLAZERS, TRACK PANTS","Black, Brown, Crimson","Cotton, Fleece",Brand_13,"Office Wear, Streetwear, Eco-friendly",Neutral Skin,Tall Friendly,High,2026-01-29 14:56:19
+326,326,"UTILITY PANTS, DENIM JACKETS, POLOS","Black, Brown, Crimson","Velvet, Linen",Brand_16,"Luxury, Casual, Preppy",Medium Skin,Tall Friendly,High,2026-01-29 14:56:19
+327,327,"TANKS, DENIM JACKETS, SHORTS","Blue, Tie-dye, Charcoal","Jacquard, Tencel",Brand_17,"Minimalist, Casual, Office Wear",Medium Skin,Skinny Friendly,High,2026-03-09 21:50:44
+328,328,"TRACK PANTS, BLAZERS, COATS","Grey, Off-white, Mustard","Modal, Silk",Brand_9,"Vintage, Eco-friendly, Office Wear",Medium Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+329,329,"DENIM JACKETS, KIMONO, TRACK PANTS","Brown, Mint, Coral","Tencel, Cotton",Brand_15,"Office Wear, Eco-friendly, Hipster",Dark Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+330,330,"TANKS, JOGGERS & PANTS, CARDIGANS","Pastel Blue, Tan, Yellow","Wool, Cotton",Brand_15,"Luxury, Vintage, Casual",Medium Skin,Petite Friendly,High,2026-01-29 14:56:19
+331,331,"OVERSIZE TEE, COATS, DENIM JACKETS","Plaid, Mustard, Beige","Fleece, Rayon",Brand_17,"Cottagecore, Streetwear, Minimalist",Neutral Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+332,332,"JOGGERS & PANTS, T-SHIRTS, UTILITY PANTS","Peach, Nude, Green","Linen, Leather",Brand_7,"Luxury, Casual, Preppy",Dark Skin,Petite Friendly,High,2026-01-29 14:56:19
+333,333,"SWEATSHIRTS, DENIM JACKETS, T-SHIRTS","Sky Blue, Blue, Mint","Rayon, Wool",Brand_13,"Minimalist, Y2K, Formal",Medium Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+334,334,"UTILITY PANTS, TRACK PANTS, CHINOS","Off-white, Pastel Pink, Pastel Green","Linen, Fleece",Brand_4,"Party Wear, Hipster, Y2K",Neutral Skin,Curvy Friendly,High,2026-01-29 14:56:19
+335,335,"T-SHIRTS, BLAZERS, HOODIES & JACKETS","Green, Navy, Blue","Cotton, Leather",Brand_10,"Beach Wear, Hipster, Athleisure",Dark Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+336,336,"TANKS, BEACH WEAR, UTILITY PANTS","Orange, Checked, Maroon","Wool, Corduroy",Brand_6,"Y2K, Athleisure, Hipster",Neutral Skin,Petite Friendly,High,2026-01-29 14:56:19
+337,337,"SWEATSHIRTS, UTILITY PANTS, CARDIGANS","Camouflage, Navy, Sky Blue","Velvet, Denim",Brand_17,"Preppy, Formal, Streetwear",Medium Skin,Curvy Friendly,High,2026-03-09 21:50:44
+338,338,"SWEATSHIRTS, HOODIES & JACKETS, T-SHIRTS","Black, Brown, Crimson","Cotton, Corduroy",Brand_17,"Athleisure, Office Wear, Preppy",Neutral Skin,Tall Friendly,High,2026-01-29 14:56:19
+339,339,"CHINOS, JOGGERS & PANTS, TANKS","Grey, Pink, Tan","Wool, Cotton",Brand_9,"Eco-friendly, Streetwear, Athleisure",Medium Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+340,340,"POLOS, TRACK PANTS, COATS","Off-white, Grey, Sky Blue","Leather, Cotton",Brand_10,"Cottagecore, Party Wear, Casual",Fair Skin,Petite Friendly,Low,2026-01-29 14:56:19
+341,341,"COATS, TRACK PANTS, KIMONO","Navy, Striped, Checked","Denim, Bamboo",Brand_2,"Y2K, Casual, Cottagecore",Neutral Skin,Skinny Friendly,High,2026-01-29 14:56:19
+342,342,"CARDIGANS, JOGGERS & PANTS, HOODIES & JACKETS","Olive, Polka Dot, Tan","Velvet, Jacquard",Brand_8,"Cottagecore, Eco-friendly, Beach Wear",Fair Skin,Tall Friendly,High,2026-01-29 14:56:19
+343,343,"CHINOS, JOGGERS & PANTS, OVERSIZE TEE","Green, Crimson, Checked","Leather, Linen",Brand_2,"Luxury, Vintage, Party Wear",Neutral Skin,Tall Friendly,Low,2026-01-29 14:56:19
+344,344,"POLOS, HOODIES & JACKETS, TANKS","Teal, Tan, Camouflage","Silk, Polyester",Brand_8,"Office Wear, Preppy, Hipster",Neutral Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+345,345,"SWEATSHIRTS, JOGGERS & PANTS, TANKS","Coral, Chocolate, Multi-color","Rayon, Bamboo",Brand_17,"Luxury, Athleisure, Casual",Neutral Skin,Petite Friendly,Low,2026-01-29 14:56:19
+346,346,"CARDIGANS, POLOS, BEACH WEAR","Sky Blue, Chocolate, Beige","Silk, Tencel",Brand_11,"Beach Wear, Preppy, Office Wear",Dark Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+347,347,"OVERSIZE TEE, HOODIES & JACKETS, SHORTS","Olive, Checked, Pink","Cotton, Wool",Brand_8,"Y2K, Beach Wear, Luxury",Neutral Skin,Petite Friendly,Low,2026-01-29 14:56:19
+348,348,"KIMONO, DENIM JACKETS, SHORTS","Tan, Coral, Yellow","Bamboo, Denim",Brand_6,"Minimalist, Vintage, Eco-friendly",Dark Skin,Tall Friendly,High,2026-01-29 14:56:19
+350,350,"OVERSIZE TEE, CARDIGANS, T-SHIRTS","Pink, Grey, Pastel Blue","Denim, Wool",Brand_18,"Formal, Luxury, Vintage",Dark Skin,Petite Friendly,Low,2026-01-29 14:56:19
+351,351,"CHINOS, T-SHIRTS, TANKS","Polka Dot, Pastel Blue, Black","Tencel, Denim",Brand_5,"Vintage, Streetwear, Luxury",Fair Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+352,352,"COATS, T-SHIRTS, TANKS","Teal, Brown, Nude","Bamboo, Tencel",Brand_18,"Party Wear, Hipster, Vintage",Medium Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+353,353,"COATS, POLOS, TANKS","Navy, Coral, Pink","Polyester, Jacquard",Brand_17,"Cottagecore, Preppy, Streetwear",Dark Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+354,354,"POLOS, COATS, BEACH WEAR","Pastel Pink, Black, Navy","Polyester, Rayon",Brand_13,"Luxury, Minimalist, Y2K",Neutral Skin,Tall Friendly,Low,2026-01-29 14:56:19
+355,355,"SWEATSHIRTS, OVERSIZE TEE, TRACK PANTS","Camouflage, Coral, Red","Tencel, Rayon",Brand_18,"Beach Wear, Eco-friendly, Preppy",Fair Skin,Curvy Friendly,High,2026-01-29 14:56:19
+356,356,"TRACK PANTS, DENIM JACKETS, UTILITY PANTS","Yellow, Maroon, Multi-color","Jacquard, Fleece",Brand_17,"Office Wear, Party Wear, Beach Wear",Neutral Skin,Petite Friendly,Medium,2026-03-09 21:50:44
+357,357,"BEACH WEAR, SWEATSHIRTS, T-SHIRTS","Peach, Off-white, Polka Dot","Tencel, Leather",Brand_5,"Y2K, Minimalist, Casual",Fair Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+359,359,"HOODIES & JACKETS, SHORTS, UTILITY PANTS","Grey, Olive, White","Polyester, Denim",Brand_4,"Luxury, Athleisure, Party Wear",Fair Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+360,360,"COATS, CARDIGANS, HOODIES & JACKETS","Off-white, Navy, Teal","Cotton, Bamboo",Brand_4,"Luxury, Casual, Preppy",Fair Skin,Tall Friendly,High,2026-01-29 14:56:19
+361,361,"JOGGERS & PANTS, CHINOS, BEACH WEAR","Plaid, Chocolate, Brown","Jacquard, Corduroy",Brand_10,"Hipster, Minimalist, Office Wear",Neutral Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+362,362,"BLAZERS, UTILITY PANTS, HOODIES & JACKETS","Pastel Green, Green, Olive","Cotton, Linen",Brand_13,"Streetwear, Casual, Party Wear",Medium Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+363,363,"CARDIGANS, KIMONO, COATS","Striped, Crimson, Sky Blue","Fleece, Velvet",Brand_13,"Y2K, Luxury, Athleisure",Medium Skin,Tall Friendly,Low,2026-01-29 14:56:19
+364,364,"TRACK PANTS, TANKS, BEACH WEAR","Peach, Blue, Chocolate","Denim, Silk",Brand_2,"Minimalist, Beach Wear, Casual",Fair Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+365,365,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Pink, Beige, Green","Jacquard, Modal",Brand_13,"Eco-friendly, Minimalist, Streetwear",Medium Skin,Curvy Friendly,High,2026-01-29 14:56:19
+366,366,"DENIM JACKETS, HOODIES & JACKETS, T-SHIRTS","Navy, Nude, Brown","Jacquard, Corduroy",Brand_2,"Athleisure, Y2K, Eco-friendly",Dark Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+367,367,"HOODIES & JACKETS, SHORTS, TRACK PANTS","Pastel Blue, Tan, Chocolate","Cotton, Wool",Brand_8,"Casual, Y2K, Cottagecore",Medium Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+368,368,"COATS, TANKS, KIMONO","Tan, Pink, Red","Cotton, Jacquard",Brand_10,"Eco-friendly, Casual, Hipster",Fair Skin,Petite Friendly,Low,2026-01-29 14:56:19
+369,369,"CARDIGANS, POLOS, CHINOS","Pastel Green, Maroon, Navy","Polyester, Denim",Brand_7,"Vintage, Preppy, Party Wear",Medium Skin,Skinny Friendly,High,2026-03-09 21:50:44
+370,370,"TANKS, DENIM JACKETS, BLAZERS","Beige, Olive, Multi-color","Velvet, Linen",Brand_2,"Beach Wear, Luxury, Casual",Medium Skin,Curvy Friendly,High,2026-03-09 21:50:44
+371,371,"HOODIES & JACKETS, JOGGERS & PANTS, SWEATSHIRTS","Teal, Polka Dot, Black","Velvet, Denim",Brand_9,"Eco-friendly, Y2K, Minimalist",Dark Skin,Skinny Friendly,High,2026-03-09 21:50:44
+372,372,"SWEATSHIRTS, SHORTS, CARDIGANS","Navy, Teal, Crimson","Rayon, Fleece",Brand_2,"Office Wear, Vintage, Beach Wear",Medium Skin,Tall Friendly,Low,2026-01-29 14:56:19
+373,373,"HOODIES & JACKETS, JOGGERS & PANTS, UTILITY PANTS","Mint, Camouflage, White","Fleece, Velvet",Brand_15,"Hipster, Vintage, Preppy",Dark Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+374,374,"KIMONO, SWEATSHIRTS, CARDIGANS","Checked, Pastel Pink, Polka Dot","Fleece, Silk",Brand_9,"Athleisure, Hipster, Eco-friendly",Fair Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+375,375,"HOODIES & JACKETS, POLOS, TANKS","Beige, Chocolate, Multi-color","Velvet, Silk",Brand_19,"Hipster, Beach Wear, Preppy",Fair Skin,Tall Friendly,Low,2026-01-29 14:56:19
+376,376,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Pastel Pink, Chocolate, Pastel Blue","Jacquard, Polyester",Brand_1,"Preppy, Luxury, Y2K",Medium Skin,Curvy Friendly,High,2026-01-29 14:56:19
+377,377,"TANKS, UTILITY PANTS, JOGGERS & PANTS","Peach, Tie-dye, Pastel Pink","Cotton, Wool",Brand_10,"Cottagecore, Luxury, Streetwear",Dark Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+378,378,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Navy, Charcoal, Pink","Silk, Modal",Brand_3,"Party Wear, Vintage, Hipster",Dark Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+379,379,"JOGGERS & PANTS, COATS, TRACK PANTS","Camouflage, Green, Blue","Tencel, Modal",Brand_16,"Vintage, Casual, Cottagecore",Fair Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+380,380,"TRACK PANTS, COATS, UTILITY PANTS","Black, Grey, Olive","Velvet, Polyester",Brand_14,"Athleisure, Luxury, Vintage",Neutral Skin,Skinny Friendly,High,2026-01-29 14:56:19
+381,381,"JOGGERS & PANTS, CHINOS, TANKS","Maroon, Sky Blue, Tie-dye","Velvet, Corduroy",Brand_17,"Party Wear, Preppy, Luxury",Fair Skin,Petite Friendly,High,2026-01-29 14:56:19
+384,384,"CHINOS, POLOS, SWEATSHIRTS","Charcoal, Olive, Tan","Fleece, Bamboo",Brand_6,"Eco-friendly, Vintage, Casual",Medium Skin,Tall Friendly,High,2026-01-29 14:56:19
+385,385,"JOGGERS & PANTS, POLOS, TANKS","Tie-dye, Pastel Blue, Sky Blue","Corduroy, Wool",Brand_4,"Office Wear, Athleisure, Streetwear",Neutral Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+386,386,"BLAZERS, CARDIGANS, COATS","Crimson, Peach, Striped","Rayon, Velvet",Brand_7,"Office Wear, Athleisure, Luxury",Dark Skin,Tall Friendly,High,2026-01-29 14:56:19
+387,387,"COATS, OVERSIZE TEE, CHINOS","Olive, Maroon, Chocolate","Cotton, Tencel",Brand_2,"Luxury, Casual, Preppy",Medium Skin,Petite Friendly,High,2026-01-29 14:56:19
+388,388,"BLAZERS, BEACH WEAR, OVERSIZE TEE","Pastel Pink, Olive, Yellow","Rayon, Corduroy",Brand_10,"Eco-friendly, Vintage, Office Wear",Fair Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+389,389,"SWEATSHIRTS, SHORTS, BLAZERS","Striped, Pastel Blue, Camouflage","Fleece, Cotton",Brand_4,"Casual, Y2K, Party Wear",Fair Skin,Petite Friendly,High,2026-01-29 14:56:19
+390,390,"SWEATSHIRTS, KIMONO, SHORTS","Off-white, Peach, Pastel Blue","Corduroy, Linen",Brand_16,"Formal, Luxury, Eco-friendly",Dark Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+392,392,"CARDIGANS, POLOS, UTILITY PANTS","Yellow, Checked, Tie-dye","Polyester, Tencel",Brand_14,"Office Wear, Hipster, Luxury",Medium Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+393,393,"SHORTS, HOODIES & JACKETS, JOGGERS & PANTS","Orange, Maroon, Checked","Wool, Tencel",Brand_9,"Preppy, Hipster, Luxury",Dark Skin,Tall Friendly,High,2026-01-29 14:56:19
+394,394,"CHINOS, SHORTS, TANKS","White, Beige, Coral","Silk, Modal",Brand_19,"Office Wear, Y2K, Hipster",Medium Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+395,395,"DENIM JACKETS, CHINOS, T-SHIRTS","Pastel Pink, Striped, Camouflage","Polyester, Bamboo",Brand_2,"Y2K, Office Wear, Athleisure",Dark Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+396,396,"DENIM JACKETS, CARDIGANS, BLAZERS","Tie-dye, Blue, Peach","Cotton, Denim",Brand_16,"Streetwear, Office Wear, Formal",Fair Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+397,397,"SHORTS, TRACK PANTS, POLOS","Chocolate, Maroon, Orange","Bamboo, Tencel",Brand_6,"Athleisure, Cottagecore, Casual",Medium Skin,Curvy Friendly,Medium,2026-03-09 21:50:44
+398,398,"SHORTS, KIMONO, OVERSIZE TEE","Plaid, Yellow, Pastel Pink","Jacquard, Rayon",Brand_9,"Vintage, Hipster, Minimalist",Medium Skin,Petite Friendly,Low,2026-03-09 21:50:44
+399,399,"CARDIGANS, TANKS, KIMONO","Multi-color, Blush, Orange","Leather, Denim",Brand_17,"Streetwear, Luxury, Office Wear",Neutral Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+400,400,"POLOS, KIMONO, CARDIGANS","Blush, Orange, Peach","Silk, Denim",Brand_15,"Party Wear, Streetwear, Hipster",Fair Skin,Petite Friendly,High,2026-01-29 14:56:19
+401,401,"KIMONO, SHORTS, BLAZERS","Green, Pastel Pink, Black","Corduroy, Wool",Brand_13,"Vintage, Cottagecore, Athleisure",Neutral Skin,Petite Friendly,High,2026-01-29 14:56:19
+403,403,"TANKS, CHINOS, TRACK PANTS","Yellow, Multi-color, Olive","Wool, Cotton",Brand_9,"Y2K, Beach Wear, Preppy",Fair Skin,Petite Friendly,Low,2026-01-29 14:56:19
+404,404,"UTILITY PANTS, TRACK PANTS, SWEATSHIRTS","Brown, Blush, Pastel Blue","Rayon, Leather",Brand_12,"Cottagecore, Office Wear, Minimalist",Dark Skin,Tall Friendly,High,2026-01-29 14:56:19
+405,405,"SWEATSHIRTS, TRACK PANTS, UTILITY PANTS","Maroon, Grey, Beige","Leather, Wool",Brand_14,"Hipster, Preppy, Luxury",Dark Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+406,406,"JOGGERS & PANTS, T-SHIRTS, DENIM JACKETS","Off-white, Black, Blush","Velvet, Silk",Brand_4,"Beach Wear, Y2K, Formal",Dark Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+407,407,"CARDIGANS, HOODIES & JACKETS, BEACH WEAR","Yellow, Tie-dye, Orange","Fleece, Denim",Brand_7,"Hipster, Office Wear, Minimalist",Dark Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+408,408,"OVERSIZE TEE, UTILITY PANTS, HOODIES & JACKETS","Orange, Grey, Olive","Denim, Wool",Brand_12,"Hipster, Streetwear, Party Wear",Dark Skin,Tall Friendly,Low,2026-01-29 14:56:19
+409,409,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Black, Beige, Tan","Bamboo, Polyester",Brand_4,"Formal, Hipster, Eco-friendly",Neutral Skin,Petite Friendly,High,2026-01-29 14:56:19
+410,410,"OVERSIZE TEE, CHINOS, COATS","Mint, Tan, White","Leather, Denim",Brand_14,"Preppy, Vintage, Cottagecore",Dark Skin,Tall Friendly,Low,2026-01-29 14:56:19
+411,411,"TANKS, BEACH WEAR, CARDIGANS","Pastel Blue, Camouflage, Charcoal","Wool, Corduroy",Brand_9,"Eco-friendly, Luxury, Y2K",Neutral Skin,Tall Friendly,Low,2026-01-29 14:56:19
+412,412,"UTILITY PANTS, TRACK PANTS, HOODIES & JACKETS","Plaid, Black, Checked","Rayon, Cotton",Brand_16,"Athleisure, Cottagecore, Luxury",Neutral Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+413,413,"POLOS, BEACH WEAR, BLAZERS","Off-white, White, Grey","Bamboo, Wool",Brand_12,"Y2K, Formal, Cottagecore",Dark Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+414,414,"DENIM JACKETS, T-SHIRTS, POLOS","Checked, Tie-dye, Camouflage","Polyester, Modal",Brand_12,"Luxury, Casual, Preppy",Medium Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+415,415,"UTILITY PANTS, HOODIES & JACKETS, DENIM JACKETS","Charcoal, Plaid, Red","Cotton, Velvet",Brand_5,"Cottagecore, Eco-friendly, Minimalist",Fair Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+416,416,"POLOS, OVERSIZE TEE, TRACK PANTS","Checked, Plaid, Sky Blue","Bamboo, Polyester",Brand_17,"Preppy, Y2K, Minimalist",Dark Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+418,418,"CHINOS, HOODIES & JACKETS, TRACK PANTS","Striped, Multi-color, Black","Fleece, Polyester",Brand_7,"Office Wear, Athleisure, Formal",Medium Skin,Tall Friendly,Low,2026-01-29 14:56:19
+419,419,"KIMONO, CHINOS, SWEATSHIRTS","Brown, Orange, Striped","Wool, Cotton",Brand_17,"Casual, Beach Wear, Streetwear",Dark Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+421,421,"BLAZERS, SHORTS, POLOS","Nude, Blush, Polka Dot","Jacquard, Polyester",Brand_4,"Office Wear, Hipster, Party Wear",Dark Skin,Petite Friendly,High,2026-01-29 14:56:19
+422,422,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","White, Striped, Blush","Leather, Bamboo",Brand_13,"Y2K, Cottagecore, Hipster",Neutral Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+423,423,"SHORTS, POLOS, CARDIGANS","Olive, Tie-dye, Charcoal","Linen, Tencel",Brand_5,"Athleisure, Minimalist, Luxury",Medium Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+424,424,"BEACH WEAR, HOODIES & JACKETS, TRACK PANTS","Mint, Pastel Pink, Sky Blue","Polyester, Tencel",Brand_18,"Party Wear, Vintage, Office Wear",Fair Skin,Petite Friendly,High,2026-01-29 14:56:19
+425,425,"OVERSIZE TEE, SHORTS, JOGGERS & PANTS","Navy, Nude, Tan","Bamboo, Modal",Brand_18,"Minimalist, Athleisure, Luxury",Fair Skin,Tall Friendly,Low,2026-01-29 14:56:19
+426,426,"OVERSIZE TEE, BLAZERS, UTILITY PANTS","Mint, Sky Blue, Blue","Jacquard, Fleece",Brand_14,"Eco-friendly, Preppy, Casual",Medium Skin,Skinny Friendly,High,2026-01-29 14:56:19
+427,427,"T-SHIRTS, BLAZERS, CHINOS","Black, Brown, Crimson","Corduroy, Velvet",Brand_15,"Y2K, Vintage, Streetwear",Fair Skin,Petite Friendly,Low,2026-01-29 14:56:19
+428,428,"BEACH WEAR, POLOS, TRACK PANTS","Striped, Yellow, Black","Corduroy, Polyester",Brand_10,"Formal, Office Wear, Streetwear",Dark Skin,Petite Friendly,High,2026-01-29 14:56:19
+430,430,"UTILITY PANTS, JOGGERS & PANTS, TANKS","Polka Dot, Pastel Green, Tan","Wool, Denim",Brand_12,"Luxury, Casual, Preppy",Medium Skin,Tall Friendly,High,2026-01-29 14:56:19
+431,431,"HOODIES & JACKETS, SHORTS, JOGGERS & PANTS","Beige, White, Charcoal","Wool, Corduroy",Brand_16,"Y2K, Minimalist, Beach Wear",Fair Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+433,433,"TRACK PANTS, TANKS, CARDIGANS","Camouflage, Pastel Pink, Sky Blue","Corduroy, Jacquard",Brand_9,"Hipster, Y2K, Cottagecore",Neutral Skin,Skinny Friendly,High,2026-01-29 14:56:19
+434,434,"CARDIGANS, UTILITY PANTS, T-SHIRTS","Blush, Tie-dye, Charcoal","Linen, Leather",Brand_11,"Eco-friendly, Athleisure, Streetwear",Fair Skin,Tall Friendly,Low,2026-01-29 14:56:19
+435,435,"SHORTS, KIMONO, TANKS","Yellow, Green, Nude","Denim, Silk",Brand_13,"Cottagecore, Casual, Eco-friendly",Neutral Skin,Curvy Friendly,High,2026-01-29 14:56:19
+436,436,"HOODIES & JACKETS, JOGGERS & PANTS, TANKS","Teal, Peach, Orange","Cotton, Jacquard",Brand_3,"Preppy, Y2K, Casual",Medium Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+437,437,"BEACH WEAR, POLOS, HOODIES & JACKETS","Green, Tan, Maroon","Leather, Tencel",Brand_14,"Casual, Preppy, Party Wear",Fair Skin,Tall Friendly,High,2026-01-29 14:56:19
+438,438,"COATS, CHINOS, BEACH WEAR","Red, Pastel Blue, Striped","Corduroy, Velvet",Brand_12,"Eco-friendly, Formal, Beach Wear",Neutral Skin,Curvy Friendly,High,2026-01-29 14:56:19
+440,440,"POLOS, CARDIGANS, BEACH WEAR","Striped, Pastel Pink, Coral","Denim, Silk",Brand_16,"Cottagecore, Vintage, Casual",Neutral Skin,Tall Friendly,High,2026-01-29 14:56:19
+441,441,"JOGGERS & PANTS, BEACH WEAR, SHORTS","Tan, Peach, Pastel Green","Cotton, Linen",Brand_8,"Preppy, Athleisure, Formal",Medium Skin,Tall Friendly,Low,2026-01-29 14:56:19
+442,442,"SWEATSHIRTS, BEACH WEAR, OVERSIZE TEE","Checked, Off-white, Red","Modal, Velvet",Brand_18,"Party Wear, Minimalist, Casual",Dark Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+443,443,"DENIM JACKETS, POLOS, UTILITY PANTS","Checked, Beige, Tie-dye","Denim, Jacquard",Brand_6,"Beach Wear, Casual, Streetwear",Medium Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+444,444,"POLOS, HOODIES & JACKETS, T-SHIRTS","Blush, Teal, Chocolate","Jacquard, Corduroy",Brand_19,"Streetwear, Preppy, Luxury",Medium Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+445,445,"HOODIES & JACKETS, TRACK PANTS, UTILITY PANTS","Pastel Pink, Polka Dot, Crimson","Wool, Denim",Brand_14,"Beach Wear, Party Wear, Casual",Neutral Skin,Tall Friendly,High,2026-01-29 14:56:19
+446,446,"OVERSIZE TEE, BLAZERS, TANKS","Teal, Polka Dot, Tie-dye","Wool, Polyester",Brand_12,"Luxury, Party Wear, Vintage",Dark Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+447,447,"HOODIES & JACKETS, CHINOS, SWEATSHIRTS","Black, Beige, Plaid","Leather, Polyester",Brand_14,"Formal, Eco-friendly, Party Wear",Dark Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+448,448,"SHORTS, CARDIGANS, BLAZERS","Chocolate, Teal, Pastel Green","Linen, Tencel",Brand_19,"Party Wear, Athleisure, Hipster",Fair Skin,Tall Friendly,High,2026-01-29 14:56:19
+449,449,"TRACK PANTS, T-SHIRTS, CHINOS","Crimson, Multi-color, Beige","Velvet, Modal",Brand_4,"Preppy, Vintage, Casual",Neutral Skin,Tall Friendly,High,2026-01-29 14:56:19
+450,450,"KIMONO, COATS, HOODIES & JACKETS","Blue, Tie-dye, Pastel Pink","Leather, Wool",Brand_3,"Office Wear, Formal, Minimalist",Dark Skin,Skinny Friendly,High,2026-01-29 14:56:19
+451,451,"CARDIGANS, COATS, BLAZERS","Checked, Plaid, Blush","Jacquard, Polyester",Brand_3,"Hipster, Eco-friendly, Vintage",Fair Skin,Tall Friendly,Low,2026-01-29 14:56:19
+452,452,"JOGGERS & PANTS, CARDIGANS, BEACH WEAR","Pastel Green, Green, Maroon","Jacquard, Silk",Brand_7,"Casual, Y2K, Athleisure",Neutral Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+453,453,"TANKS, COATS, UTILITY PANTS","Peach, Pastel Pink, Multi-color","Modal, Rayon",Brand_7,"Cottagecore, Casual, Preppy",Fair Skin,Curvy Friendly,Medium,2026-03-09 21:50:44
+454,454,"CARDIGANS, BEACH WEAR, CHINOS","Peach, Chocolate, Red","Bamboo, Tencel",Brand_1,"Minimalist, Athleisure, Luxury",Dark Skin,Petite Friendly,High,2026-01-29 14:56:19
+455,455,"DENIM JACKETS, TRACK PANTS, COATS","Tie-dye, Mint, Pink","Bamboo, Tencel",Brand_4,"Casual, Vintage, Hipster",Neutral Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+456,456,"OVERSIZE TEE, SHORTS, SWEATSHIRTS","Peach, Coral, Pastel Pink","Tencel, Fleece",Brand_2,"Party Wear, Casual, Cottagecore",Fair Skin,Tall Friendly,High,2026-01-29 14:56:19
+457,457,"BLAZERS, OVERSIZE TEE, SWEATSHIRTS","Tie-dye, Coral, Crimson","Velvet, Corduroy",Brand_9,"Beach Wear, Y2K, Preppy",Dark Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+458,458,"OVERSIZE TEE, TANKS, JOGGERS & PANTS","Maroon, Crimson, Chocolate","Wool, Bamboo",Brand_13,"Office Wear, Streetwear, Athleisure",Medium Skin,Petite Friendly,Low,2026-01-29 14:56:19
+459,459,"POLOS, BLAZERS, COATS","Blue, Plaid, Sky Blue","Tencel, Rayon",Brand_11,"Streetwear, Eco-friendly, Luxury",Neutral Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+460,460,"SWEATSHIRTS, T-SHIRTS, BEACH WEAR","Blue, Blush, Pastel Blue","Silk, Leather",Brand_14,"Minimalist, Cottagecore, Y2K",Fair Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+462,462,"KIMONO, HOODIES & JACKETS, TANKS","Yellow, Mustard, Striped","Velvet, Polyester",Brand_9,"Minimalist, Streetwear, Hipster",Medium Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+463,463,"UTILITY PANTS, TANKS, DENIM JACKETS","Green, Beige, Red","Silk, Bamboo",Brand_14,"Office Wear, Formal, Luxury",Fair Skin,Curvy Friendly,High,2026-01-29 14:56:19
+464,464,"TRACK PANTS, BEACH WEAR, UTILITY PANTS","Black, Pastel Pink, Peach","Velvet, Silk",Brand_17,"Office Wear, Luxury, Casual",Fair Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+467,467,"BEACH WEAR, KIMONO, OVERSIZE TEE","Blue, Green, Pastel Green","Velvet, Wool",Brand_16,"Office Wear, Luxury, Formal",Dark Skin,Petite Friendly,High,2026-01-29 14:56:19
+469,469,"OVERSIZE TEE, HOODIES & JACKETS, T-SHIRTS","Tan, Brown, Nude","Linen, Leather",Brand_17,"Minimalist, Beach Wear, Party Wear",Medium Skin,Petite Friendly,Low,2026-01-29 14:56:19
+470,470,"T-SHIRTS, POLOS, SHORTS","White, Mint, Grey","Silk, Denim",Brand_9,"Casual, Preppy, Eco-friendly",Dark Skin,Petite Friendly,Low,2026-01-29 14:56:19
+471,471,"KIMONO, HOODIES & JACKETS, TRACK PANTS","Black, Charcoal, Pastel Pink","Bamboo, Fleece",Brand_6,"Casual, Streetwear, Luxury",Fair Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+472,472,"OVERSIZE TEE, COATS, CHINOS","Navy, Beige, Mustard","Fleece, Leather",Brand_9,"Party Wear, Luxury, Office Wear",Dark Skin,Skinny Friendly,High,2026-01-29 14:56:19
+473,473,"KIMONO, SWEATSHIRTS, POLOS","Pastel Blue, Charcoal, Tan","Denim, Cotton",Brand_5,"Casual, Athleisure, Preppy",Fair Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+474,474,"OVERSIZE TEE, BLAZERS, TRACK PANTS","Blush, Plaid, Tan","Jacquard, Polyester",Brand_3,"Casual, Streetwear, Cottagecore",Neutral Skin,Curvy Friendly,Low,2026-01-29 14:56:19
+475,475,"SHORTS, HOODIES & JACKETS, TANKS","Checked, Beige, Polka Dot","Denim, Fleece",Brand_5,"Y2K, Athleisure, Vintage",Fair Skin,Curvy Friendly,High,2026-01-29 14:56:19
+477,477,"T-SHIRTS, COATS, CARDIGANS","Chocolate, Pastel Pink, Navy","Cotton, Velvet",Brand_16,"Office Wear, Eco-friendly, Hipster",Dark Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+479,479,"CHINOS, SHORTS, DENIM JACKETS","Pastel Green, Grey, Coral","Silk, Tencel",Brand_14,"Preppy, Athleisure, Office Wear",Fair Skin,Tall Friendly,Medium,2026-01-29 14:56:19
+480,480,"KIMONO, SWEATSHIRTS, CHINOS","Black, Maroon, Blush","Rayon, Denim",Brand_15,"Preppy, Cottagecore, Casual",Neutral Skin,Curvy Friendly,High,2026-03-09 21:50:44
+481,481,"BEACH WEAR, T-SHIRTS, TRACK PANTS","Crimson, Plaid, Grey","Denim, Cotton",Brand_17,"Party Wear, Eco-friendly, Streetwear",Medium Skin,Curvy Friendly,High,2026-01-29 14:56:19
+482,482,"SWEATSHIRTS, CARDIGANS, KIMONO","Nude, Pink, Mustard","Fleece, Linen",Brand_19,"Beach Wear, Preppy, Cottagecore",Fair Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+483,483,"SHORTS, TANKS, SWEATSHIRTS","Mint, Orange, Pastel Pink","Jacquard, Rayon",Brand_16,"Casual, Luxury, Minimalist",Neutral Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+484,484,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Mustard, Red, Chocolate","Bamboo, Velvet",Brand_18,"Streetwear, Eco-friendly, Casual",Neutral Skin,Petite Friendly,Low,2026-01-29 14:56:19
+485,485,"CHINOS, T-SHIRTS, BEACH WEAR","Polka Dot, Camouflage, Pastel Green","Rayon, Silk",Brand_15,"Beach Wear, Minimalist, Party Wear",Medium Skin,Petite Friendly,Low,2026-01-29 14:56:19
+487,487,"T-SHIRTS, SWEATSHIRTS, CARDIGANS","Pastel Blue, Charcoal, Maroon","Silk, Leather",Brand_2,"Hipster, Formal, Office Wear",Neutral Skin,Tall Friendly,High,2026-01-29 14:56:19
+488,488,"BLAZERS, UTILITY PANTS, CHINOS","Plaid, Pastel Pink, Olive","Linen, Corduroy",Brand_2,"Minimalist, Preppy, Y2K",Medium Skin,Curvy Friendly,Medium,2026-01-29 14:56:19
+489,489,"CARDIGANS, JOGGERS & PANTS, OVERSIZE TEE","Blue, Beige, Tan","Modal, Silk",Brand_15,"Y2K, Casual, Formal",Fair Skin,Tall Friendly,High,2026-01-29 14:56:19
+490,490,"T-SHIRTS, BEACH WEAR, SWEATSHIRTS","Off-white, Beige, Maroon","Rayon, Velvet",Brand_7,"Minimalist, Athleisure, Beach Wear",Medium Skin,Petite Friendly,Low,2026-01-29 14:56:19
+491,491,"SWEATSHIRTS, T-SHIRTS, TRACK PANTS","Pastel Green, Grey, Beige","Linen, Velvet",Brand_8,"Party Wear, Preppy, Casual",Neutral Skin,Petite Friendly,High,2026-01-29 14:56:19
+492,492,"UTILITY PANTS, TANKS, HOODIES & JACKETS","Plaid, Off-white, Navy","Wool, Cotton",Brand_15,"Hipster, Eco-friendly, Vintage",Fair Skin,Tall Friendly,High,2026-01-29 14:56:19
+493,493,"BLAZERS, TRACK PANTS, TANKS","Crimson, Blush, Charcoal","Tencel, Linen",Brand_18,"Luxury, Formal, Party Wear",Neutral Skin,Curvy Friendly,High,2026-01-29 14:56:19
+494,494,"HOODIES & JACKETS, POLOS, BLAZERS","Tan, Polka Dot, Striped","Silk, Linen",Brand_10,"Casual, Cottagecore, Hipster",Dark Skin,Petite Friendly,High,2026-01-29 14:56:19
+495,495,"SHORTS, COATS, CHINOS","Brown, Polka Dot, White","Leather, Corduroy",Brand_4,"Preppy, Office Wear, Casual",Fair Skin,Tall Friendly,High,2026-01-29 14:56:19
+496,496,"JOGGERS & PANTS, CHINOS, HOODIES & JACKETS","Peach, Off-white, Coral","Corduroy, Polyester",Brand_17,"Eco-friendly, Casual, Cottagecore",Neutral Skin,Petite Friendly,Low,2026-01-29 14:56:19
+497,497,"BLAZERS, CHINOS, CARDIGANS","Pink, Black, Olive","Modal, Jacquard",Brand_10,"Casual, Party Wear, Minimalist",Dark Skin,Skinny Friendly,High,2026-01-29 14:56:19
+498,498,"TANKS, POLOS, UTILITY PANTS","Pink, Maroon, Sky Blue","Jacquard, Polyester",Brand_18,"Athleisure, Eco-friendly, Beach Wear",Dark Skin,Curvy Friendly,High,2026-01-29 14:56:19
+499,499,"OVERSIZE TEE, TRACK PANTS, COATS","Orange, White, Pastel Pink","Denim, Corduroy",Brand_15,"Beach Wear, Athleisure, Hipster",Medium Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+500,500,"JOGGERS & PANTS, BLAZERS, OVERSIZE TEE","Grey, Pastel Green, Charcoal","Tencel, Rayon",Brand_13,"Party Wear, Eco-friendly, Office Wear",Fair Skin,Petite Friendly,High,2026-01-29 14:56:19
+326,326,"UTILITY PANTS, DENIM JACKETS, POLOS","Black, Brown, Crimson","Velvet, Linen",Brand_13,"Luxury, Casual, Preppy",Medium Skin,Tall Friendly,High,2026-01-29 14:56:19
+196,196,"HOODIES & JACKETS, CHINOS, BEACH WEAR","Black, Pink, Polka Dot","Linen, Cotton",Brand_13,"Beach Wear, Preppy, Luxury",Medium Skin,Curvy Friendly,High,2026-01-29 14:56:19
+192,192,"POLOS, COATS, TRACK PANTS","Checked, Pink, Plaid","Bamboo, Tencel",Brand_16,"Cottagecore, Luxury, Preppy",Fair Skin,Skinny Friendly,Medium,2026-01-29 14:56:19
+338,338,"SWEATSHIRTS, HOODIES & JACKETS, T-SHIRTS","Olive, Black, Mint","Cotton, Corduroy",Brand_17,"Athleisure, Office Wear, Preppy",Neutral Skin,Tall Friendly,High,2026-01-29 14:56:19
+468,468,"T-SHIRTS, SHORTS, UTILITY PANTS","Sky Blue, Polka Dot, Striped","Fleece, Cotton",Brand_17,"Party Wear, Casual, Cottagecore",Neutral Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+134,134,"JOGGERS & PANTS, OVERSIZE TEE, DENIM JACKETS","Navy, Pastel Blue, Multi-color","Rayon, Velvet",Brand_19,"Cottagecore, Streetwear, Formal",Fair Skin,Petite Friendly,Medium,2026-01-29 14:56:19
+58,58,"TRACK PANTS, OVERSIZE TEE, UTILITY PANTS","Pastel Pink, Brown, Striped","Jacquard, Bamboo",Brand_19,"Party Wear, Preppy, Athleisure",Dark Skin,Petite Friendly,High,2026-03-09 21:50:44
+53,53,"TANKS, T-SHIRTS, SHORTS","Blush, Chocolate, Beige","Leather, Rayon",Brand_11,"Streetwear, Athleisure, Beach Wear",Dark Skin,Skinny Friendly,Low,2026-01-29 14:56:19
+339,339,"CHINOS, JOGGERS & PANTS, TANKS","Grey, Pink, Tan","Wool, Cotton",Brand_9,"Eco-friendly, Streetwear, Athleisure",Medium Skin,Tall Friendly,High,2026-01-29 14:56:19
+327,327,"TANKS, DENIM JACKETS, SHORTS","Blue, Tie-dye, Charcoal","Jacquard, Tencel",Brand_17,"Minimalist, Casual, Office Wear",Medium Skin,Skinny Friendly,High,2026-01-29 14:56:19
+220,220,"COATS, BLAZERS, T-SHIRTS","White, Red, Polka Dot","Polyester, Velvet",Brand_15,"Luxury, Casual, Preppy",Fair Skin,Curvy Friendly,High,2026-01-29 14:56:19
+146,146,"OVERSIZE TEE, BEACH WEAR, SWEATSHIRTS","Crimson, Black, Sky Blue","Rayon, Jacquard",Brand_13,"Streetwear, Preppy, Office Wear",Dark Skin,Petite Friendly,High,2026-01-29 14:56:19

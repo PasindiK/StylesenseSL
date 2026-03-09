@@ -2231,5 +2231,82 @@
     "execution_time_seconds": 0.0036,
     "status": "SUCCESS",
     "error": null
+  },
+  {
+    "timestamp": "2026-03-09T16:10:39",
+    "run_id": "20260309161039",
+    "domain": "users_domain",
+    "rows_processed": 508,
+    "start_time": "2026-03-09T16:10:39",
+    "end_time": "2026-03-09T16:10:39",
+    "execution_time_seconds": 0.0027,
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "timestamp": "2026-03-09T16:10:39",
+    "run_id": "20260309161039",
+    "domain": "product_domain",
+    "rows_processed": 2483,
+    "start_time": "2026-03-09T16:10:39",
+    "end_time": "2026-03-09T16:10:39",
+    "execution_time_seconds": 0.0083,
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "timestamp": "2026-03-09T16:10:39",
+    "run_id": "20260309161039",
+    "domain": "shop_domain",
+    "rows_processed": 24,
+    "start_time": "2026-03-09T16:10:39",
+    "end_time": "2026-03-09T16:10:39",
+    "execution_time_seconds": 0.0016,
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "timestamp": "2026-03-09T16:10:39",
+    "run_id": "20260309161039",
+    "domain": "sales_domain",
+    "rows_processed": 8008,
+    "start_time": "2026-03-09T16:10:39",
+    "end_time": "2026-03-09T16:10:39",
+    "execution_time_seconds": 0.0216,
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "timestamp": "2026-03-09T16:10:39",
+    "run_id": "20260309161039",
+    "domain": "engagement_domain",
+    "rows_processed": 222,
+    "start_time": "2026-03-09T16:10:39",
+    "end_time": "2026-03-09T16:10:39",
+    "execution_time_seconds": 0.0019,
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "timestamp": "2026-03-09T16:10:39",
+    "run_id": "20260309161039",
+    "domain": "user_preferences_domain",
+    "rows_processed": 471,
+    "start_time": "2026-03-09T16:10:39",
+    "end_time": "2026-03-09T16:10:39",
+    "execution_time_seconds": 0.0024,
+    "status": "SUCCESS",
+    "error": null
+  },
+  {
+    "timestamp": "2026-03-09T16:10:39",
+    "run_id": "20260309161039",
+    "domain": "Interaction_domain",
+    "rows_processed": 2856,
+    "start_time": "2026-03-09T16:10:39",
+    "end_time": "2026-03-09T16:10:39",
+    "execution_time_seconds": 0.0034,
+    "status": "SUCCESS",
+    "error": null
   }
 ]
