@@ -10,9 +10,16 @@ from pydantic import BaseModel
 import json
 import os
 import glob
+import csv
 import importlib
+import sys
 import logging
-from datetime import datetime, timezone
+import runpy
+import io
+import contextlib
+from collections import defaultdict
+from pathlib import Path
+from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, List, Optional
 
 # Setup logging
@@ -45,6 +52,31 @@ SILVER_CLEANED_DIR = os.path.join(BASE_DIR, "medallions", "silver", "cleaned")
 SILVER_ENRICHED_DIR = os.path.join(BASE_DIR, "medallions", "silver", "enriched")
 GOLD_CURATED_DIR = os.path.join(BASE_DIR, "medallions", "gold", "curated")
 CATEGORIZATION_CONFIG_PATH = os.path.join(BASE_DIR, "pipeline", "configs", "data_categorization.yaml")
+GOLD_ML_READY_DIR = os.path.join(BASE_DIR, "medallions", "gold", "ml_ready")
+GOLD_STAKEHOLDER_VIEWS_DIR = os.path.join(BASE_DIR, "medallions", "gold", "stakeholder_views")
+AUDIT_LOG_JSONL_PATH = os.path.join(METADATA_DIR, "audit_logs", "audit_log.jsonl")
+
+
+# Lightweight in-memory TTL cache for expensive aggregations.
+_METRICS_CACHE: Dict[str, Dict[str, Any]] = {}
+_LAKEHOUSE_METRICS_SERVICE: Optional[Any] = None
+
+
+def _get_lakehouse_metrics_service() -> Any:
+    """Lazily construct service that computes lakehouse metrics from Azure/local files."""
+    global _LAKEHOUSE_METRICS_SERVICE
+
+    if _LAKEHOUSE_METRICS_SERVICE is not None:
+        return _LAKEHOUSE_METRICS_SERVICE
+
+    services_path = os.path.join(BASE_DIR, "services")
+    if services_path not in sys.path:
+        sys.path.insert(0, services_path)
+
+    module = importlib.import_module("lakehouse_metrics_service")
+    service_cls = getattr(module, "LakehouseMetricsService")
+    _LAKEHOUSE_METRICS_SERVICE = service_cls(BASE_DIR, connection_string=get_azure_connection_string())
+    return _LAKEHOUSE_METRICS_SERVICE
 
 
 # Pydantic models for request bodies
@@ -1125,6 +1157,1397 @@ async def approve_drift(request: ApproveRejectRequest):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+def _utc_iso_now() -> str:
+    return datetime.utcnow().replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _cache_get_or_build(cache_key: str, ttl_seconds: int, builder):
+    now_ts = datetime.utcnow().timestamp()
+    cached = _METRICS_CACHE.get(cache_key)
+    if cached and (now_ts - float(cached.get("ts", 0))) < ttl_seconds:
+        return cached.get("value")
+
+    value = builder()
+    _METRICS_CACHE[cache_key] = {
+        "ts": now_ts,
+        "value": value,
+    }
+    return value
+
+
+def _invalidate_metrics_cache() -> None:
+    _METRICS_CACHE.clear()
+
+
+def _is_data_file(filename: str) -> bool:
+    return filename.lower().endswith((".csv", ".parquet", ".json", ".jsonl"))
+
+
+def _safe_iso(value: Optional[datetime]) -> Optional[str]:
+    if value is None:
+        return None
+    dt_val = value
+    if dt_val.tzinfo is None:
+        dt_val = dt_val.replace(tzinfo=timezone.utc)
+    return dt_val.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _parse_dt(value: Optional[str]) -> Optional[datetime]:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.astimezone(timezone.utc)
+    except Exception:
+        return None
+
+
+def _estimate_rows_from_size(size_bytes: int) -> int:
+    # Fallback estimate when row-level parsing is not available.
+    if size_bytes <= 0:
+        return 0
+    return max(1, int(size_bytes / 220))
+
+
+def _extract_dataset_name(path_or_name: str) -> str:
+    name = os.path.basename(path_or_name)
+    name = name.replace(".parquet", "").replace(".csv", "").replace(".jsonl", "").replace(".json", "")
+    for suffix in ["_raw", "_cleaned", "_enriched", "_curated"]:
+        if suffix in name:
+            name = name.replace(suffix, "")
+    return name
+
+
+def _layer_local_paths(layer: str) -> List[str]:
+    normalized = layer.lower()
+    if normalized == "bronze":
+        return [BRONZE_RAW_DIR]
+    if normalized == "silver":
+        return [SILVER_CLEANED_DIR, SILVER_ENRICHED_DIR]
+    if normalized == "gold":
+        return [GOLD_CURATED_DIR, GOLD_ML_READY_DIR, GOLD_STAKEHOLDER_VIEWS_DIR]
+    raise ValueError(f"Unsupported layer: {layer}")
+
+
+def _derive_local_tier(layer: str, modified_at: datetime) -> str:
+    age_days = max(0, int((datetime.now(timezone.utc) - modified_at).total_seconds() // 86400))
+    layer_name = layer.lower()
+
+    if layer_name == "bronze":
+        if age_days <= 3:
+            return "HOT"
+        if age_days <= 14:
+            return "WARM"
+        return "COLD"
+
+    if layer_name == "silver":
+        if age_days <= 7:
+            return "HOT"
+        if age_days <= 60:
+            return "WARM"
+        return "COLD"
+
+    if age_days <= 30:
+        return "HOT"
+    if age_days <= 90:
+        return "WARM"
+    return "COLD"
+
+
+def _scan_layer_files_local(layer: str) -> Dict[str, Any]:
+    files: List[Dict[str, Any]] = []
+    for root_path in _layer_local_paths(layer):
+        if not os.path.exists(root_path):
+            continue
+
+        for root, _, names in os.walk(root_path):
+            for name in names:
+                if not _is_data_file(name):
+                    continue
+                full_path = os.path.join(root, name)
+                try:
+                    size_bytes = int(os.path.getsize(full_path))
+                    modified_dt = datetime.fromtimestamp(os.path.getmtime(full_path), tz=timezone.utc)
+                    rows = _estimate_file_rows(full_path)
+                    if rows <= 0:
+                        rows = _estimate_rows_from_size(size_bytes)
+                    relative_path = os.path.relpath(full_path, BASE_DIR).replace("\\", "/")
+                    files.append(
+                        {
+                            "layer": layer,
+                            "name": name,
+                            "dataset_name": _extract_dataset_name(name),
+                            "path": relative_path,
+                            "size_bytes": size_bytes,
+                            "records": int(rows),
+                            "last_modified": _safe_iso(modified_dt),
+                            "access_tier": _derive_local_tier(layer, modified_dt),
+                            "source": "filesystem",
+                        }
+                    )
+                except Exception:
+                    continue
+
+    files.sort(key=lambda item: item.get("last_modified") or "", reverse=True)
+    return {
+        "layer": layer,
+        "source": "filesystem",
+        "files": files,
+    }
+
+
+def _scan_layer_files_azure(layer: str, connection_string: str) -> Dict[str, Any]:
+    try:
+        from azure.storage.blob import BlobServiceClient
+    except Exception as exc:
+        raise RuntimeError(f"Azure blob dependency unavailable: {exc}")
+
+    service = BlobServiceClient.from_connection_string(connection_string)
+    container_client = service.get_container_client(layer.lower())
+    files: List[Dict[str, Any]] = []
+
+    for blob in container_client.list_blobs():
+        blob_name = str(getattr(blob, "name", ""))
+        if not _is_data_file(blob_name):
+            continue
+
+        size_bytes = int(getattr(blob, "size", 0) or 0)
+        modified_dt = getattr(blob, "last_modified", None)
+        if modified_dt is None:
+            modified_dt = datetime.now(timezone.utc)
+        elif modified_dt.tzinfo is None:
+            modified_dt = modified_dt.replace(tzinfo=timezone.utc)
+
+        tier_value = getattr(blob, "blob_tier", None)
+        tier_name = str(tier_value.value if hasattr(tier_value, "value") else tier_value or "HOT").upper()
+        estimated_rows = _estimate_rows_from_size(size_bytes)
+
+        files.append(
+            {
+                "layer": layer,
+                "name": os.path.basename(blob_name),
+                "dataset_name": _extract_dataset_name(blob_name),
+                "path": f"{layer}/{blob_name}",
+                "size_bytes": size_bytes,
+                "records": estimated_rows,
+                "last_modified": _safe_iso(modified_dt),
+                "access_tier": tier_name,
+                "source": "azure_blob",
+            }
+        )
+
+    files.sort(key=lambda item: item.get("last_modified") or "", reverse=True)
+    return {
+        "layer": layer,
+        "source": "azure_blob",
+        "files": files,
+    }
+
+
+def _scan_layer_files(layer: str) -> Dict[str, Any]:
+    normalized = layer.lower()
+    if normalized not in {"bronze", "silver", "gold"}:
+        raise HTTPException(status_code=400, detail=f"Unsupported layer: {layer}")
+
+    conn_str = get_azure_connection_string()
+    if conn_str:
+        try:
+            return _scan_layer_files_azure(normalized, conn_str)
+        except Exception as exc:
+            logger.warning("Falling back to filesystem scan for %s: %s", normalized, exc)
+
+    return _scan_layer_files_local(normalized)
+
+
+def _build_layer_stats(files: List[Dict[str, Any]]) -> Dict[str, Any]:
+    total_size = sum(int(item.get("size_bytes", 0) or 0) for item in files)
+    total_records = sum(int(item.get("records", 0) or 0) for item in files)
+
+    latest = None
+    for item in files:
+        dt_val = _parse_dt(item.get("last_modified"))
+        if dt_val and (latest is None or dt_val > latest):
+            latest = dt_val
+
+    now_utc = datetime.now(timezone.utc)
+    records_today = 0
+    for item in files:
+        dt_val = _parse_dt(item.get("last_modified"))
+        if dt_val and dt_val.date() == now_utc.date():
+            records_today += int(item.get("records", 0) or 0)
+
+    return {
+        "file_count": len(files),
+        "size_bytes": total_size,
+        "size_gb": round(total_size / (1024 ** 3), 4),
+        "records": total_records,
+        "records_today": records_today,
+        "latest_ingestion": _safe_iso(latest) if latest else None,
+    }
+
+
+def _aggregate_storage_tiers(files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    tier_totals: Dict[str, int] = defaultdict(int)
+    for item in files:
+        tier_name = str(item.get("access_tier") or "UNKNOWN").upper()
+        if tier_name == "COOL":
+            tier_name = "WARM"
+        tier_totals[tier_name] += int(item.get("size_bytes", 0) or 0)
+
+    ordered = ["HOT", "WARM", "COLD", "ARCHIVE", "UNKNOWN"]
+    return [
+        {
+            "tier": tier,
+            "size_bytes": tier_totals.get(tier, 0),
+            "size_gb": round(tier_totals.get(tier, 0) / (1024 ** 3), 4),
+        }
+        for tier in ordered
+        if tier_totals.get(tier, 0) > 0 or tier in {"HOT", "WARM", "COLD"}
+    ]
+
+
+def _build_growth_series(files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    by_date: Dict[str, int] = defaultdict(int)
+    for item in files:
+        dt_val = _parse_dt(item.get("last_modified"))
+        if not dt_val:
+            continue
+        key = dt_val.date().isoformat()
+        by_date[key] += int(item.get("size_bytes", 0) or 0)
+
+    series = []
+    cumulative = 0
+    for date_key in sorted(by_date.keys()):
+        daily = by_date[date_key]
+        cumulative += daily
+        series.append(
+            {
+                "date": date_key,
+                "daily_size_bytes": daily,
+                "daily_size_gb": round(daily / (1024 ** 3), 4),
+                "cumulative_size_bytes": cumulative,
+                "cumulative_size_gb": round(cumulative / (1024 ** 3), 4),
+            }
+        )
+    return series
+
+
+def _build_largest_datasets(files: List[Dict[str, Any]], top_n: int = 10) -> List[Dict[str, Any]]:
+    ranked = sorted(files, key=lambda item: int(item.get("size_bytes", 0) or 0), reverse=True)
+    output = []
+    for item in ranked[:top_n]:
+        output.append(
+            {
+                "dataset": item.get("dataset_name"),
+                "path": item.get("path"),
+                "layer": item.get("layer"),
+                "size_bytes": int(item.get("size_bytes", 0) or 0),
+                "size_mb": round(int(item.get("size_bytes", 0) or 0) / (1024 ** 2), 3),
+                "records": int(item.get("records", 0) or 0),
+                "last_modified": item.get("last_modified"),
+            }
+        )
+    return output
+
+
+def _load_audit_events(limit: int = 1000) -> List[Dict[str, Any]]:
+    if not os.path.exists(AUDIT_LOG_JSONL_PATH):
+        return []
+
+    events: List[Dict[str, Any]] = []
+    try:
+        with open(AUDIT_LOG_JSONL_PATH, "r", encoding="utf-8") as file_handle:
+            for line in file_handle:
+                text = line.strip()
+                if not text:
+                    continue
+                try:
+                    parsed = json.loads(text)
+                    events.append(parsed)
+                except Exception:
+                    continue
+    except Exception:
+        return []
+
+    events.sort(key=lambda item: str(item.get("timestamp", "")), reverse=True)
+    return events[:limit]
+
+
+def _build_governance_analytics(audit_events: List[Dict[str, Any]], quality_score_pct: float) -> Dict[str, Any]:
+    now_utc = datetime.now(timezone.utc)
+    events_today = 0
+    access_requests = 0
+    unauthorized = 0
+    policy_violations = 0
+
+    hourly: Dict[str, int] = defaultdict(int)
+    stakeholder_counts: Dict[str, int] = defaultdict(int)
+    regional_counts: Dict[str, int] = defaultdict(int)
+
+    for event in audit_events:
+        ts = _parse_dt(event.get("timestamp"))
+        if ts and ts.date() == now_utc.date():
+            events_today += 1
+        if ts:
+            hour_key = ts.strftime("%Y-%m-%d %H:00")
+            hourly[hour_key] += 1
+
+        event_type = str(event.get("event_type", "")).lower()
+        status = str(event.get("status", "")).lower()
+        details = event.get("details", {}) if isinstance(event.get("details", {}), dict) else {}
+
+        if event_type == "data_access":
+            access_requests += 1
+
+        if "denied" in status or "unauthorized" in status:
+            unauthorized += 1
+            policy_violations += 1
+
+        if event_type in {"policy_violation", "compliance_violation"}:
+            policy_violations += 1
+
+        stakeholder = str(details.get("stakeholder_type") or details.get("stakeholder") or "unknown")
+        stakeholder_counts[stakeholder] += 1
+
+        region = str(details.get("region") or details.get("province") or "unknown")
+        regional_counts[region] += 1
+
+    governance_snapshot = build_governance_snapshot()
+    compliance_items = governance_snapshot.get("compliance", []) if isinstance(governance_snapshot, dict) else []
+
+    retention_status = "compliant"
+    access_status = "compliant"
+    for item in compliance_items:
+        standard = str(item.get("standard", "")).lower()
+        status = str(item.get("status", "review")).lower()
+        if "retention" in standard:
+            retention_status = status
+        if "access" in standard:
+            access_status = status
+
+    data_quality_status = "compliant" if quality_score_pct >= 95 else "review"
+
+    return {
+        "metric_cards": {
+            "audit_events_today": events_today,
+            "access_requests": access_requests,
+            "policy_violations": policy_violations,
+            "unauthorized_access_attempts": unauthorized,
+        },
+        "audit_activity_per_hour": [
+            {"hour": key, "count": hourly[key]} for key in sorted(hourly.keys())[-24:]
+        ],
+        "stakeholder_access": [
+            {"stakeholder": key, "count": stakeholder_counts[key]}
+            for key in sorted(stakeholder_counts.keys())
+        ],
+        "regional_access": [
+            {"province": key, "count": regional_counts[key]}
+            for key in sorted(regional_counts.keys())
+        ],
+        "compliance_indicators": [
+            {"name": "Retention compliance", "status": retention_status},
+            {"name": "Access control compliance", "status": access_status},
+            {"name": "Data quality compliance", "status": data_quality_status},
+        ],
+        "audit_events": audit_events[:200],
+    }
+
+
+def _load_feature_importance_from_reports() -> List[Dict[str, Any]]:
+    report_path = os.path.join(GOLD_DIR, "ml_decision_engine", "reports", "top_features_per_action.csv")
+    if not os.path.exists(report_path):
+        return []
+
+    output: List[Dict[str, Any]] = []
+    try:
+        with open(report_path, "r", encoding="utf-8") as file_handle:
+            reader = csv.DictReader(file_handle)
+            for row in reader:
+                features = []
+                for idx in [1, 2, 3]:
+                    feature_name = str(row.get(f"feature{idx}", "") or "").strip()
+                    feature_value = str(row.get(f"feat{idx}_val", "") or "").strip()
+                    if not feature_name:
+                        continue
+                    try:
+                        weight = float(feature_value)
+                    except Exception:
+                        weight = 0.0
+                    features.append({"name": feature_name, "weight": round(weight, 4)})
+
+                output.append(
+                    {
+                        "action": row.get("action", "unknown"),
+                        "count": int(float(row.get("count", 0) or 0)),
+                        "features": features,
+                    }
+                )
+    except Exception:
+        return []
+
+    return output
+
+
+def _load_embedding_clusters(limit: int = 180) -> List[Dict[str, Any]]:
+    candidates = [
+        os.path.join(GOLD_CURATED_DIR, "product_embeddings_gold.parquet"),
+        os.path.join(GOLD_ML_READY_DIR, "drift_baseline_features_latest.csv"),
+    ]
+
+    for candidate in candidates:
+        if not os.path.exists(candidate):
+            continue
+        try:
+            import pandas as pd
+
+            if candidate.endswith(".parquet"):
+                df = pd.read_parquet(candidate)
+            else:
+                df = pd.read_csv(candidate)
+
+            if df.empty:
+                continue
+
+            numeric_cols = [col for col in df.columns if pd.api.types.is_numeric_dtype(df[col])]
+            if len(numeric_cols) < 2:
+                continue
+
+            x_col, y_col = numeric_cols[0], numeric_cols[1]
+            sample = df[[x_col, y_col]].dropna().head(limit)
+            if sample.empty:
+                continue
+
+            x_values = sample[x_col].tolist()
+            y_values = sample[y_col].tolist()
+            median_score = sorted([x + y for x, y in zip(x_values, y_values)])[len(sample) // 2]
+
+            points = []
+            for index, (x_val, y_val) in enumerate(zip(x_values, y_values)):
+                score = float(x_val) + float(y_val)
+                cluster = "high" if score >= median_score else "baseline"
+                points.append(
+                    {
+                        "x": float(x_val),
+                        "y": float(y_val),
+                        "cluster": cluster,
+                        "label": f"point_{index + 1}",
+                    }
+                )
+            return points
+        except Exception:
+            continue
+
+    return []
+
+
+def _load_ml_dataset_metrics() -> Dict[str, Any]:
+    metrics = {
+        "training_dataset_size": 0,
+        "feature_count": 0,
+        "embedding_vectors_generated": 0,
+        "model_accuracy": 0.0,
+    }
+
+    baseline_csv = os.path.join(GOLD_ML_READY_DIR, "drift_baseline_features_latest.csv")
+    if os.path.exists(baseline_csv):
+        try:
+            import pandas as pd
+
+            df = pd.read_csv(baseline_csv)
+            metrics["training_dataset_size"] = int(len(df))
+            metrics["feature_count"] = int(len(df.columns))
+        except Exception:
+            pass
+
+    embeddings_parquet = os.path.join(GOLD_CURATED_DIR, "product_embeddings_gold.parquet")
+    if os.path.exists(embeddings_parquet):
+        try:
+            import pandas as pd
+
+            embeddings_df = pd.read_parquet(embeddings_parquet)
+            metrics["embedding_vectors_generated"] = int(len(embeddings_df))
+        except Exception:
+            pass
+
+    training_metrics_path = os.path.join(GOLD_DIR, "ml_decision_engine", "models", "training_metrics.json")
+    if os.path.exists(training_metrics_path):
+        training_metrics = load_json_file(training_metrics_path)
+        if isinstance(training_metrics, dict):
+            if isinstance(training_metrics.get("model_accuracy"), (int, float)):
+                metrics["model_accuracy"] = float(training_metrics["model_accuracy"])
+            elif isinstance(training_metrics.get("accuracy"), (int, float)):
+                metrics["model_accuracy"] = float(training_metrics["accuracy"])
+            else:
+                action_counts = training_metrics.get("action_counts", {})
+                if isinstance(action_counts, dict) and action_counts:
+                    total = sum(int(v) for v in action_counts.values())
+                    auto = sum(int(v) for k, v in action_counts.items() if "auto" in str(k).lower())
+                    if total > 0:
+                        metrics["model_accuracy"] = round((auto / total) * 100, 2)
+
+    return metrics
+
+
+def _build_recommendation_explanations(feature_rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    explanations: List[Dict[str, Any]] = []
+    for row in feature_rows[:3]:
+        action = str(row.get("action", "recommendation"))
+        features = row.get("features", []) if isinstance(row.get("features", []), list) else []
+        if not features:
+            continue
+        top_feature = features[0]
+        explanations.append(
+            {
+                "title": action,
+                "reason": f"Primary driver: {top_feature.get('name')} ({round(float(top_feature.get('weight', 0)) * 100, 1)}%).",
+                "confidence": round(float(top_feature.get("weight", 0)) * 100, 2),
+            }
+        )
+    return explanations
+
+
+def _build_ingestion_series(bronze_files: List[Dict[str, Any]], pending_approvals: int) -> Dict[str, Any]:
+    per_minute: Dict[str, int] = defaultdict(int)
+    per_hour: Dict[str, int] = defaultdict(int)
+    per_day: Dict[str, int] = defaultdict(int)
+
+    for item in bronze_files:
+        ts = _parse_dt(item.get("last_modified"))
+        if not ts:
+            continue
+        records = int(item.get("records", 0) or 0)
+        minute_key = ts.strftime("%Y-%m-%d %H:%M")
+        hour_key = ts.strftime("%Y-%m-%d %H:00")
+        day_key = ts.strftime("%Y-%m-%d")
+        per_minute[minute_key] += records
+        per_hour[hour_key] += records
+        per_day[day_key] += records
+
+    minute_points = [{"timestamp": key, "records": per_minute[key]} for key in sorted(per_minute.keys())[-120:]]
+    hour_points = [{"timestamp": key, "records": per_hour[key]} for key in sorted(per_hour.keys())[-72:]]
+    day_points = [{"date": key, "records": per_day[key]} for key in sorted(per_day.keys())[-30:]]
+
+    now_utc = datetime.now(timezone.utc)
+    lag_series = []
+    for point in minute_points[-60:]:
+        ts = _parse_dt(point.get("timestamp"))
+        lag_minutes = 0
+        if ts:
+            lag_minutes = max(0, int((now_utc - ts).total_seconds() // 60))
+        lag_series.append({"timestamp": point.get("timestamp"), "lag_minutes": lag_minutes})
+
+    failed_messages = [
+        {
+            "timestamp": point.get("timestamp"),
+            "failed": pending_approvals if idx == len(hour_points) - 1 else 0,
+        }
+        for idx, point in enumerate(hour_points)
+    ]
+
+    return {
+        "records_per_minute": minute_points,
+        "records_per_hour": hour_points,
+        "daily_ingestion_volume": day_points,
+        "failed_messages": failed_messages,
+        "consumer_lag": lag_series,
+    }
+
+
+def _build_freshness_series(files_by_layer: Dict[str, List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
+    now_utc = datetime.now(timezone.utc)
+    output: List[Dict[str, Any]] = []
+    for day_offset in range(13, -1, -1):
+        day = (now_utc - timedelta(days=day_offset)).date()
+        point: Dict[str, Any] = {"date": day.isoformat()}
+
+        for layer in ["bronze", "silver", "gold"]:
+            layer_files = files_by_layer.get(layer, [])
+            latest_for_day = None
+            for item in layer_files:
+                ts = _parse_dt(item.get("last_modified"))
+                if ts and ts.date() <= day and (latest_for_day is None or ts > latest_for_day):
+                    latest_for_day = ts
+
+            if latest_for_day is None:
+                point[f"{layer}_freshness_hours"] = None
+                point[f"{layer}_last_update"] = None
+            else:
+                point[f"{layer}_freshness_hours"] = round((now_utc - latest_for_day).total_seconds() / 3600, 2)
+                point[f"{layer}_last_update"] = _safe_iso(latest_for_day)
+
+        output.append(point)
+
+    return output
+
+
+def _build_pipeline_flow(layer_stats: Dict[str, Dict[str, Any]], pending_alerts: int) -> List[Dict[str, Any]]:
+    bronze_records = int(layer_stats.get("bronze", {}).get("records", 0) or 0)
+    silver_records = int(layer_stats.get("silver", {}).get("records", 0) or 0)
+    gold_records = int(layer_stats.get("gold", {}).get("records", 0) or 0)
+
+    def _safe_success(current: int, prev: int) -> float:
+        if prev <= 0:
+            return 100.0
+        return round(max(0.0, min(100.0, (current / prev) * 100.0)), 2)
+
+    silver_success = _safe_success(silver_records, bronze_records)
+    gold_success = _safe_success(gold_records, silver_records)
+    kafka_failures = pending_alerts
+
+    return [
+        {
+            "stage": "Kafka",
+            "records_processed": bronze_records,
+            "success_rate": round(max(0.0, 100.0 - float(kafka_failures)), 2),
+            "failed_records": kafka_failures,
+        },
+        {
+            "stage": "Bronze",
+            "records_processed": bronze_records,
+            "success_rate": 100.0,
+            "failed_records": 0,
+        },
+        {
+            "stage": "Silver",
+            "records_processed": silver_records,
+            "success_rate": silver_success,
+            "failed_records": max(0, bronze_records - silver_records),
+        },
+        {
+            "stage": "Gold",
+            "records_processed": gold_records,
+            "success_rate": gold_success,
+            "failed_records": max(0, silver_records - gold_records),
+        },
+    ]
+
+
+def _build_timeline_events(files_by_layer: Dict[str, List[Dict[str, Any]]], drift_events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    events: List[Dict[str, Any]] = []
+
+    stage_map = {
+        "bronze": "Bronze creation",
+        "silver": "Silver cleaning",
+        "gold": "Gold creation",
+    }
+
+    for layer, entries in files_by_layer.items():
+        for item in entries[:20]:
+            events.append(
+                {
+                    "timestamp": item.get("last_modified"),
+                    "operation": stage_map.get(layer, layer),
+                    "records_processed": int(item.get("records", 0) or 0),
+                    "dataset": item.get("dataset_name"),
+                }
+            )
+
+    for drift in drift_events[:20]:
+        events.append(
+            {
+                "timestamp": drift.get("timestamp"),
+                "operation": "Schema drift review",
+                "records_processed": int(sum((drift.get("counts") or {}).values())) if isinstance(drift.get("counts"), dict) else 0,
+                "dataset": drift.get("table"),
+            }
+        )
+
+    events = [item for item in events if item.get("timestamp")]
+    events.sort(key=lambda item: str(item.get("timestamp")), reverse=True)
+    return events[:120]
+
+
+def _load_drift_events_for_dashboard() -> Dict[str, Any]:
+    drift_events = load_drift_events(limit=200)
+    pending = []
+    approved = 0
+    rejected = 0
+
+    for evt in drift_events:
+        approved_flag = bool(evt.get("approved", False))
+        rejected_flag = bool(evt.get("rejected", False))
+        if approved_flag:
+            approved += 1
+        if rejected_flag:
+            rejected += 1
+
+        needs_approval = bool(evt.get("requires_approval", False)) or "QUARANTINED" in str(evt.get("decision", "")).upper()
+        if needs_approval and not approved_flag and not rejected_flag:
+            if "counts" not in evt and isinstance(evt.get("diff", {}), dict):
+                diff = evt.get("diff", {})
+                evt["counts"] = {
+                    "new": len(diff.get("new_columns", [])),
+                    "missing": len(diff.get("missing_columns", [])),
+                    "dtype": len(diff.get("dtype_changes", [])),
+                    "renames": len(diff.get("renames", [])),
+                }
+            pending.append(evt)
+
+    return {
+        "all": drift_events,
+        "pending": pending,
+        "approved_count": approved,
+        "rejected_count": rejected,
+    }
+
+
+def _build_summary_payload() -> Dict[str, Any]:
+    files_by_layer: Dict[str, List[Dict[str, Any]]] = {}
+    layer_sources: Dict[str, str] = {}
+    layer_stats: Dict[str, Dict[str, Any]] = {}
+
+    for layer in ["bronze", "silver", "gold"]:
+        scanned = _scan_layer_files(layer)
+        files = scanned.get("files", []) if isinstance(scanned, dict) else []
+        files_by_layer[layer] = files
+        layer_sources[layer] = str(scanned.get("source", "unknown"))
+        layer_stats[layer] = _build_layer_stats(files)
+
+    all_files = files_by_layer["bronze"] + files_by_layer["silver"] + files_by_layer["gold"]
+    drift_data = _load_drift_events_for_dashboard()
+    drift_events = drift_data["all"]
+    pending_approvals = drift_data["pending"]
+    quality_score = _calculate_quality_score_pct()
+    audit_events = _load_audit_events(limit=2000)
+
+    feature_importance = _load_feature_importance_from_reports()
+    if not feature_importance:
+        feature_importance = build_feature_importance_from_events(drift_events)
+
+    overview_metrics = {
+        "total_records_ingested_today": int(layer_stats["bronze"].get("records_today", 0) or 0),
+        "bronze_files_count": int(layer_stats["bronze"].get("file_count", 0) or 0),
+        "silver_datasets_count": int(layer_stats["silver"].get("file_count", 0) or 0),
+        "gold_tables_count": int(layer_stats["gold"].get("file_count", 0) or 0),
+        "active_drift_alerts": len(pending_approvals),
+        "data_quality_score": round(float(quality_score), 2),
+    }
+
+    storage_tier_usage = _aggregate_storage_tiers(all_files)
+    governance_payload = _build_governance_analytics(audit_events, quality_score)
+    ingestion_metrics = _build_ingestion_series(files_by_layer["bronze"], len(pending_approvals))
+
+    medallion_payload = {
+        "metrics": {
+            "bronze_records": int(layer_stats["bronze"].get("records", 0) or 0),
+            "silver_records": int(layer_stats["silver"].get("records", 0) or 0),
+            "gold_records": int(layer_stats["gold"].get("records", 0) or 0),
+        },
+        "layer_comparison": [
+            {"layer": "Bronze", "records": int(layer_stats["bronze"].get("records", 0) or 0)},
+            {"layer": "Silver", "records": int(layer_stats["silver"].get("records", 0) or 0)},
+            {"layer": "Gold", "records": int(layer_stats["gold"].get("records", 0) or 0)},
+        ],
+        "transformation_success_rate": _build_pipeline_flow(layer_stats, len(pending_approvals))[-1]["success_rate"],
+        "dataset_explorer": {
+            "bronze": files_by_layer["bronze"][:30],
+            "silver": files_by_layer["silver"][:30],
+            "gold": files_by_layer["gold"][:30],
+        },
+    }
+
+    storage_payload = {
+        "metric_cards": {
+            "total_storage_used": round(sum(item.get("size_bytes", 0) for item in all_files) / (1024 ** 3), 4),
+            "hot_tier_size": round(sum(item.get("size_bytes", 0) for item in all_files if str(item.get("access_tier", "")).upper() == "HOT") / (1024 ** 3), 4),
+            "warm_tier_size": round(sum(item.get("size_bytes", 0) for item in all_files if str(item.get("access_tier", "")).upper() in {"WARM", "COOL"}) / (1024 ** 3), 4),
+            "cold_tier_size": round(sum(item.get("size_bytes", 0) for item in all_files if str(item.get("access_tier", "")).upper() in {"COLD", "ARCHIVE"}) / (1024 ** 3), 4),
+        },
+        "tier_usage": storage_tier_usage,
+        "storage_growth_over_time": _build_growth_series(all_files),
+        "largest_datasets": _build_largest_datasets(all_files, top_n=10),
+        "tier_movement_activity": [
+            {
+                "date": key,
+                "movements": value,
+            }
+            for key, value in sorted(
+                (
+                    (hourly_key.split(" ")[0], count)
+                    for hourly_key, count in {
+                        row.get("hour"): row.get("count")
+                        for row in governance_payload.get("audit_activity_per_hour", [])
+                        if row.get("hour")
+                    }.items()
+                ),
+                key=lambda item: item[0],
+            )
+        ],
+    }
+
+    return {
+        "generated_at": _utc_iso_now(),
+        "source": {
+            "bronze": layer_sources.get("bronze"),
+            "silver": layer_sources.get("silver"),
+            "gold": layer_sources.get("gold"),
+        },
+        "overview": {
+            "metrics": overview_metrics,
+            "pipeline_flow": _build_pipeline_flow(layer_stats, len(pending_approvals)),
+            "freshness": _build_freshness_series(files_by_layer),
+            "ingestion_metrics": ingestion_metrics,
+            "data_volume_distribution": [
+                {"layer": "Bronze", "size_bytes": int(layer_stats["bronze"].get("size_bytes", 0) or 0)},
+                {"layer": "Silver", "size_bytes": int(layer_stats["silver"].get("size_bytes", 0) or 0)},
+                {"layer": "Gold", "size_bytes": int(layer_stats["gold"].get("size_bytes", 0) or 0)},
+            ],
+            "storage_tier_usage": storage_tier_usage,
+        },
+        "governance": governance_payload,
+        "explainability": {
+            "feature_importance": feature_importance,
+            "embedding_clusters": _load_embedding_clusters(),
+            "recommendation_explanations": _build_recommendation_explanations(feature_importance),
+            "ml_dataset_metrics": _load_ml_dataset_metrics(),
+        },
+        "actions": {
+            "pipeline_status": "Paused" if len(pending_approvals) > 0 else "Running",
+            "last_run": _utc_iso_now(),
+        },
+        "medallion": medallion_payload,
+        "approvals": {
+            "pending_count": len(pending_approvals),
+            "approved_count": drift_data.get("approved_count", 0),
+            "rejected_count": drift_data.get("rejected_count", 0),
+            "events": pending_approvals,
+        },
+        "timeline": _build_timeline_events(files_by_layer, drift_events),
+        "storage": storage_payload,
+    }
+
+
+def _script_path(script_name: str) -> str:
+    return os.path.join(BASE_DIR, "scripts", script_name)
+
+
+def _run_script(script_name: str, init_globals: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    path = _script_path(script_name)
+    if not os.path.exists(path):
+        return {
+            "status": "error",
+            "script": script_name,
+            "error": f"Script not found: {script_name}",
+            "logs": [],
+        }
+
+    buffer = io.StringIO()
+    old_cwd = os.getcwd()
+    try:
+        os.chdir(BASE_DIR)
+        with contextlib.redirect_stdout(buffer), contextlib.redirect_stderr(buffer):
+            runpy.run_path(path, run_name="__main__", init_globals=(init_globals or {}))
+        log_lines = [line for line in buffer.getvalue().splitlines() if line.strip()]
+        return {
+            "status": "success",
+            "script": script_name,
+            "logs": log_lines[-200:],
+        }
+    except Exception as exc:
+        log_lines = [line for line in buffer.getvalue().splitlines() if line.strip()]
+        return {
+            "status": "error",
+            "script": script_name,
+            "error": str(exc),
+            "logs": log_lines[-200:],
+        }
+    finally:
+        os.chdir(old_cwd)
+
+
+def _run_bronze_to_silver_jobs() -> Dict[str, Any]:
+    raw_files = sorted(glob.glob(os.path.join(BRONZE_RAW_DIR, "*_raw.csv")))
+    if not raw_files:
+        return {
+            "status": "success",
+            "processed": 0,
+            "results": [],
+            "message": "No bronze CSV files found",
+        }
+
+    results = []
+    for file_path in raw_files:
+        table_name = os.path.basename(file_path).replace("_raw.csv", "")
+        result = _run_script(
+            "s02_bronze_to_silver_cleaned.py",
+            {
+                "INPUT_FILE": file_path,
+                "TABLE_NAME": table_name,
+            },
+        )
+        results.append({
+            "table": table_name,
+            **result,
+        })
+
+    failures = [item for item in results if item.get("status") != "success"]
+    return {
+        "status": "error" if failures else "success",
+        "processed": len(results),
+        "failed": len(failures),
+        "results": results,
+    }
+
+
+def _run_silver_to_gold_jobs() -> Dict[str, Any]:
+    cleaned_files = sorted(glob.glob(os.path.join(SILVER_CLEANED_DIR, "*_cleaned.csv")))
+    enrichment_results = []
+
+    for file_path in cleaned_files:
+        table_name = os.path.basename(file_path).replace("_cleaned.csv", "")
+        enrichment_results.append(
+            {
+                "table": table_name,
+                **_run_script(
+                    "s03_silver_to_enriched.py",
+                    {
+                        "INPUT_FILE": file_path,
+                        "TABLE_NAME": table_name,
+                    },
+                ),
+            }
+        )
+
+    gold_result = _run_script("s05_silver_to_gold_curated.py")
+    failures = [item for item in enrichment_results if item.get("status") != "success"]
+    if gold_result.get("status") != "success":
+        failures.append(gold_result)
+
+    return {
+        "status": "error" if failures else "success",
+        "enriched_tables": len(enrichment_results),
+        "gold_curation": gold_result,
+        "results": enrichment_results,
+    }
+
+
+def _generate_stakeholder_views_job() -> Dict[str, Any]:
+    try:
+        import sys
+        import pandas as pd
+
+        if BASE_DIR not in sys.path:
+            sys.path.insert(0, BASE_DIR)
+
+        from pipeline.ingestion.kafka_config import DataCategorizationConfig
+        from pipeline.governance.data_categorization import DataCategorizationManager
+
+        source_files = sorted(glob.glob(os.path.join(BRONZE_RAW_DIR, "*.csv")))
+        if not source_files:
+            source_files = sorted(glob.glob(os.path.join(GOLD_CURATED_DIR, "*.csv")))
+
+        if not source_files:
+            return {
+                "status": "error",
+                "error": "No source CSV files found for stakeholder view generation",
+                "view_files": [],
+            }
+
+        frames = []
+        for file_path in source_files[:4]:
+            try:
+                frames.append(pd.read_csv(file_path))
+            except Exception:
+                continue
+
+        if not frames:
+            return {
+                "status": "error",
+                "error": "Unable to read source datasets for view generation",
+                "view_files": [],
+            }
+
+        combined = pd.concat(frames, ignore_index=True)
+        cfg = DataCategorizationConfig.from_yaml()
+        manager = DataCategorizationManager(cfg)
+        os.makedirs(GOLD_STAKEHOLDER_VIEWS_DIR, exist_ok=True)
+        generated = manager.generate_stakeholder_views(combined, GOLD_STAKEHOLDER_VIEWS_DIR)
+
+        output_files = []
+        for stakeholder, path in generated.items():
+            path_str = str(path)
+            output_files.append(
+                {
+                    "stakeholder": stakeholder,
+                    "path": os.path.relpath(path_str, BASE_DIR).replace("\\", "/"),
+                    "size_bytes": int(os.path.getsize(path_str)) if os.path.exists(path_str) else 0,
+                }
+            )
+
+        return {
+            "status": "success",
+            "view_count": len(output_files),
+            "view_files": output_files,
+        }
+    except Exception as exc:
+        return {
+            "status": "error",
+            "error": str(exc),
+            "view_files": [],
+        }
+
+
+@app.get('/api/dashboard/summary')
+async def get_dashboard_summary():
+    """
+    Enterprise dashboard summary built from live medallion + governance data.
+    """
+    try:
+        payload = _cache_get_or_build("dashboard_summary", 45, _build_summary_payload)
+        return payload
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get('/api/medallion/{layer}/files')
+async def get_medallion_layer_files(layer: str):
+    """
+    Returns file-level metadata for bronze/silver/gold layers.
+    """
+    try:
+        normalized = layer.lower()
+        if normalized not in {"bronze", "silver", "gold"}:
+            raise HTTPException(status_code=400, detail="Layer must be one of: bronze, silver, gold")
+
+        payload = _cache_get_or_build(f"medallion_files::{normalized}", 45, lambda: _scan_layer_files(normalized))
+        files = payload.get("files", []) if isinstance(payload, dict) else []
+        return {
+            "layer": normalized,
+            "source": payload.get("source", "unknown") if isinstance(payload, dict) else "unknown",
+            "count": len(files),
+            "files": files,
+            "summary": _build_layer_stats(files),
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get('/api/drift/events')
+async def get_drift_events_v2(limit: Optional[int] = Query(100, description="Maximum drift events to return")):
+    """
+    Drift events endpoint with path contract used by the refactored dashboard.
+    """
+    try:
+        resolved_limit = int(limit or 100)
+        payload = _load_drift_events_for_dashboard()
+        events = payload.get("all", [])[:resolved_limit]
+        return {
+            "count": len(events),
+            "pending_count": len(payload.get("pending", [])),
+            "approved_count": payload.get("approved_count", 0),
+            "rejected_count": payload.get("rejected_count", 0),
+            "events": events,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get('/api/governance/audit-log')
+async def get_governance_audit_log(limit: Optional[int] = Query(500, description="Maximum audit events to return")):
+    """
+    Governance audit log with aggregate compliance/access analytics.
+    """
+    try:
+        events = _load_audit_events(limit=int(limit or 500))
+        analytics = _build_governance_analytics(events, _calculate_quality_score_pct())
+        return {
+            "generated_at": _utc_iso_now(),
+            "count": len(events),
+            **analytics,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get('/api/storage/tier-statistics')
+async def get_storage_tier_statistics():
+    """
+    Storage usage analytics grouped by tiers and dataset growth.
+    """
+    try:
+        summary = _cache_get_or_build("dashboard_summary", 45, _build_summary_payload)
+        storage = summary.get("storage", {}) if isinstance(summary, dict) else {}
+        return {
+            "generated_at": _utc_iso_now(),
+            **storage,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get('/api/stakeholder/views/{view_type}')
+async def get_stakeholder_views(view_type: str):
+    """
+    Returns generated stakeholder views and file metadata.
+    """
+    try:
+        requested = view_type.strip().lower()
+        if not os.path.exists(GOLD_STAKEHOLDER_VIEWS_DIR):
+            return {
+                "stakeholder_type": requested,
+                "count": 0,
+                "views": [],
+            }
+
+        matches = []
+        for root, _, names in os.walk(GOLD_STAKEHOLDER_VIEWS_DIR):
+            for name in names:
+                if not _is_data_file(name):
+                    continue
+                full_path = os.path.join(root, name)
+                stem = Path(name).stem.lower()
+                if requested != "all" and requested not in stem:
+                    continue
+
+                size_bytes = int(os.path.getsize(full_path))
+                modified = datetime.fromtimestamp(os.path.getmtime(full_path), tz=timezone.utc)
+                rows = _estimate_file_rows(full_path)
+                if rows <= 0:
+                    rows = _estimate_rows_from_size(size_bytes)
+                matches.append(
+                    {
+                        "name": name,
+                        "path": os.path.relpath(full_path, BASE_DIR).replace("\\", "/"),
+                        "size_bytes": size_bytes,
+                        "records": int(rows),
+                        "last_modified": _safe_iso(modified),
+                    }
+                )
+
+        matches.sort(key=lambda item: item.get("last_modified") or "", reverse=True)
+        return {
+            "stakeholder_type": requested,
+            "count": len(matches),
+            "views": matches,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get('/api/lakehouse/bronze-metrics')
+async def get_lakehouse_bronze_metrics():
+    """Bronze-layer ingestion and storage telemetry from blob metadata."""
+    try:
+        service = _get_lakehouse_metrics_service()
+        payload = _cache_get_or_build("lakehouse::bronze_metrics", 45, service.get_bronze_metrics)
+        return {
+            "generated_at": _utc_iso_now(),
+            **payload,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get('/api/lakehouse/silver-metrics')
+async def get_lakehouse_silver_metrics():
+    """Silver-layer transformation analytics, timestamps, and success rate."""
+    try:
+        service = _get_lakehouse_metrics_service()
+        payload = _cache_get_or_build("lakehouse::silver_metrics", 45, service.get_silver_metrics)
+        return {
+            "generated_at": _utc_iso_now(),
+            **payload,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get('/api/lakehouse/gold-metrics')
+async def get_lakehouse_gold_metrics():
+    """Gold-layer analytics for tables, features, and stakeholder view outputs."""
+    try:
+        service = _get_lakehouse_metrics_service()
+        payload = _cache_get_or_build("lakehouse::gold_metrics", 45, service.get_gold_metrics)
+        return {
+            "generated_at": _utc_iso_now(),
+            **payload,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get('/api/lakehouse/storage-analytics')
+async def get_lakehouse_storage_analytics():
+    """Storage usage grouped by access tier with largest-dataset analysis."""
+    try:
+        service = _get_lakehouse_metrics_service()
+        payload = _cache_get_or_build("lakehouse::storage_analytics", 45, service.get_storage_analytics)
+        return {
+            "generated_at": _utc_iso_now(),
+            **payload,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get('/api/lakehouse/storage-growth')
+async def get_lakehouse_storage_growth():
+    """Time-series storage growth computed from blob last-modified dates."""
+    try:
+        service = _get_lakehouse_metrics_service()
+        payload = _cache_get_or_build("lakehouse::storage_growth", 45, service.get_storage_growth)
+        return {
+            "generated_at": _utc_iso_now(),
+            **payload,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get('/api/lakehouse/ingestion-metrics')
+async def get_lakehouse_ingestion_metrics():
+    """Per-minute, per-hour, and per-day ingestion metrics from bronze timestamps."""
+    try:
+        service = _get_lakehouse_metrics_service()
+        payload = _cache_get_or_build("lakehouse::ingestion_metrics", 45, service.get_ingestion_metrics)
+        return {
+            "generated_at": _utc_iso_now(),
+            **payload,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get('/api/lakehouse/data-freshness')
+async def get_lakehouse_data_freshness():
+    """Freshness status for bronze/silver/gold based on latest update timestamps."""
+    try:
+        service = _get_lakehouse_metrics_service()
+        payload = _cache_get_or_build("lakehouse::data_freshness", 45, service.get_data_freshness)
+        return payload
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get('/api/lakehouse/current-season')
+async def get_lakehouse_current_season(simulate_season: Optional[str] = Query(None)):
+    """Detect current retail season or return a simulated season."""
+    try:
+        service = _get_lakehouse_metrics_service()
+        payload = service.get_current_season(simulate_season=simulate_season)
+        return {
+            "generated_at": _utc_iso_now(),
+            **payload,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get('/api/lakehouse/seasonal-analytics')
+async def get_lakehouse_seasonal_analytics(simulate_season: Optional[str] = Query(None)):
+    """Season-aware storage distribution and dataset activity analytics."""
+    try:
+        service = _get_lakehouse_metrics_service()
+
+        if simulate_season:
+            payload = service.get_seasonal_storage_analytics(simulate_season=simulate_season)
+        else:
+            payload = _cache_get_or_build(
+                "lakehouse::seasonal_analytics::current",
+                45,
+                lambda: service.get_seasonal_storage_analytics(simulate_season=None),
+            )
+
+        return {
+            "generated_at": _utc_iso_now(),
+            **payload,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post('/api/actions/kafka-ingestion')
+async def run_kafka_ingestion_action():
+    """
+    Executes ingestion step into bronze layer.
+    """
+    result = _run_script("s01_upload_to_bronze.py")
+    _invalidate_metrics_cache()
+    if result.get("status") != "success":
+        raise HTTPException(status_code=500, detail=result)
+    return {
+        "operation": "kafka_ingestion",
+        "status": "success",
+        "message": "Kafka ingestion started and completed.",
+        "result": result,
+    }
+
+
+@app.post('/api/actions/bronze-to-silver')
+async def run_bronze_to_silver_action():
+    """
+    Executes Bronze -> Silver transformation for available raw datasets.
+    """
+    result = _run_bronze_to_silver_jobs()
+    _invalidate_metrics_cache()
+    if result.get("status") != "success":
+        raise HTTPException(status_code=500, detail=result)
+    return {
+        "operation": "bronze_to_silver",
+        "status": "success",
+        "message": "Bronze -> Silver transformation completed.",
+        "result": result,
+    }
+
+
+@app.post('/api/actions/silver-to-gold')
+async def run_silver_to_gold_action():
+    """
+    Executes Silver enrichment and Gold curation.
+    """
+    result = _run_silver_to_gold_jobs()
+    _invalidate_metrics_cache()
+    if result.get("status") != "success":
+        raise HTTPException(status_code=500, detail=result)
+    return {
+        "operation": "silver_to_gold",
+        "status": "success",
+        "message": "Silver -> Gold transformation completed.",
+        "result": result,
+    }
+
+
+@app.post('/api/actions/data-quality-checks')
+async def run_data_quality_action():
+    """
+    Executes data quality validation report generation.
+    """
+    result = _run_script("s04_dq_validation_report.py")
+    _invalidate_metrics_cache()
+    if result.get("status") != "success":
+        raise HTTPException(status_code=500, detail=result)
+    return {
+        "operation": "data_quality_checks",
+        "status": "success",
+        "message": "Data quality checks completed.",
+        "result": result,
+    }
+
+
+@app.post('/api/actions/generate-stakeholder-views')
+async def run_generate_stakeholder_views_action():
+    """
+    Generates stakeholder views from live medallion datasets.
+    """
+    result = _generate_stakeholder_views_job()
+    _invalidate_metrics_cache()
+    if result.get("status") != "success":
+        raise HTTPException(status_code=500, detail=result)
+    return {
+        "operation": "generate_stakeholder_views",
+        "status": "success",
+        "message": "Stakeholder views generated.",
+        "result": result,
+    }
 
 
 @app.post('/api/reject-drift')
