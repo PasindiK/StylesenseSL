@@ -1,6 +1,7 @@
 pytest
 pandas
 fastapi
+python-multipart
 uvicorn
 rapidfuzz
 google-auth

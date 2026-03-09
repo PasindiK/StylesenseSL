@@ -187,18 +187,19 @@ class GovernanceIntelligenceEngine:
             history=history,
             domain_file_path=file_path,
             current_row_count=current_row_count,
-            evaluation_ts=evaluation_ts,
         )
 
         refresh_row_series = pd.to_numeric(refresh_observations["row_count"], errors="coerce") if not refresh_observations.empty else pd.Series(dtype=float)
         volume_metric = self._metric_from_series(refresh_row_series)
 
-        freshness_metric, latest_refresh_ts = self._freshness_metric(
+        distribution_payload = self._distribution_metric(domain_df)
+        freshness_metric, latest_refresh_ts, freshness_source = self._freshness_metric(
+            history=history,
             refresh_observations=refresh_observations,
             evaluation_ts=evaluation_ts,
             domain_file_path=file_path,
+            latest_business_data_date=distribution_payload.get("latest_business_data_date"),
         )
-        distribution_payload = self._distribution_metric(domain_df)
         distribution_metric = distribution_payload["metric"]
 
         weights = self._dynamic_weights(
@@ -240,6 +241,7 @@ class GovernanceIntelligenceEngine:
             "latest_domain_refresh_time": latest_refresh_ts.isoformat(timespec="seconds") if latest_refresh_ts is not None else None,
             "latest_domain_file_update_time": datetime.fromtimestamp(file_path.stat().st_mtime).isoformat(timespec="seconds") if file_path.exists() else None,
             "latest_business_data_date": distribution_payload.get("latest_business_data_date"),
+            "freshness_reference": freshness_source,
             "trend_label": "Governance Evaluation Trend",
             "business_trend_label": "Business Data Trend",
             "trend_basis": "governance_refresh_cycles",
@@ -345,21 +347,66 @@ class GovernanceIntelligenceEngine:
 
     def _freshness_metric(
         self,
+        history: pd.DataFrame,
         refresh_observations: pd.DataFrame,
         evaluation_ts: datetime,
         domain_file_path: Path,
-    ) -> tuple[MetricResult, datetime | None]:
+        latest_business_data_date: str | None,
+    ) -> tuple[MetricResult, datetime | None, str]:
         timestamps = pd.to_datetime(refresh_observations.get("timestamp", pd.Series(dtype="datetime64[ns]")), errors="coerce").dropna()
+        real_refresh_ts = sorted([ts for ts in timestamps.tolist() if ts <= evaluation_ts]) if not timestamps.empty else []
+        latest_refresh = real_refresh_ts[-1] if real_refresh_ts else None
+
+        parsed_business_date = pd.to_datetime(latest_business_data_date, errors="coerce") if latest_business_data_date else pd.NaT
+        if pd.notna(parsed_business_date):
+            latest_business_ts = pd.Timestamp(parsed_business_date).to_pydatetime()
+            latest_lag_hours = max(0.0, (evaluation_ts - latest_business_ts).total_seconds() / 3600.0)
+
+            historical_freshness = pd.to_numeric(history.get("freshness_hours", pd.Series(dtype=float)), errors="coerce").dropna()
+            baseline = historical_freshness.iloc[-self.rolling_window_days:]
+            if len(baseline) >= 2:
+                baseline_mean = float(baseline.mean())
+                baseline_std = float(baseline.std(ddof=0))
+                z = self._safe_z(latest_lag_hours, baseline_mean, baseline_std)
+                risk = self._z_to_risk(z)
+                variability = abs(baseline_std) / (abs(baseline_mean) + 1e-9)
+                confidence = self._bounded((math.log1p(len(baseline)) / math.log1p(self.rolling_window_days)) * (1.0 / (1.0 + variability)))
+                return (
+                    MetricResult(
+                        risk=risk,
+                        z_score=z,
+                        baseline_mean=baseline_mean,
+                        baseline_std=baseline_std,
+                        latest_value=latest_lag_hours,
+                        sample_size=int(len(baseline)),
+                        confidence=confidence,
+                    ),
+                    latest_refresh,
+                    "business_data_date",
+                )
+
+            heuristic_risk = self._bounded(latest_lag_hours / (24.0 * 7.0))
+            return (
+                MetricResult(
+                    risk=heuristic_risk,
+                    z_score=0.0,
+                    baseline_mean=latest_lag_hours,
+                    baseline_std=0.0,
+                    latest_value=latest_lag_hours,
+                    sample_size=int(len(baseline)),
+                    confidence=0.3,
+                ),
+                latest_refresh,
+                "business_data_date",
+            )
+
         if timestamps.empty:
             age = self._file_age_hours(domain_file_path)
-            return MetricResult(0.45, 0.0, age, 0.0, age, 0, 0.15), None
-
-        real_refresh_ts = sorted([ts for ts in timestamps.tolist() if ts <= evaluation_ts])
-        latest_refresh = real_refresh_ts[-1] if real_refresh_ts else None
+            return MetricResult(0.45, 0.0, age, 0.0, age, 0, 0.15), None, "domain_refresh_time_fallback"
 
         if latest_refresh is None:
             age = self._file_age_hours(domain_file_path)
-            return MetricResult(0.45, 0.0, age, 0.0, age, 0, 0.15), None
+            return MetricResult(0.45, 0.0, age, 0.0, age, 0, 0.15), None, "domain_refresh_time_fallback"
 
         latest_lag_hours = max(0.0, (evaluation_ts - latest_refresh).total_seconds() / 3600.0)
 
@@ -383,9 +430,14 @@ class GovernanceIntelligenceEngine:
                         confidence=confidence,
                     ),
                     latest_refresh,
+                    "domain_refresh_time_fallback",
                 )
 
-        return MetricResult(0.4, 0.0, latest_lag_hours, 0.0, latest_lag_hours, len(real_refresh_ts), 0.2), latest_refresh
+        return (
+            MetricResult(0.4, 0.0, latest_lag_hours, 0.0, latest_lag_hours, len(real_refresh_ts), 0.2),
+            latest_refresh,
+            "domain_refresh_time_fallback",
+        )
 
     def _distribution_metric(self, df: pd.DataFrame) -> dict[str, Any]:
         date_col = self._find_date_column(df)
@@ -532,7 +584,6 @@ class GovernanceIntelligenceEngine:
         history: pd.DataFrame,
         domain_file_path: Path,
         current_row_count: int,
-        evaluation_ts: datetime,
     ) -> pd.DataFrame:
         points: list[dict[str, Any]] = []
         normalized_domain = self._normalize_domain_name(domain_name)
@@ -572,8 +623,6 @@ class GovernanceIntelligenceEngine:
         if domain_file_path.exists():
             file_ts = datetime.fromtimestamp(domain_file_path.stat().st_mtime)
             points.append({"timestamp": file_ts, "row_count": int(current_row_count)})
-
-        points.append({"timestamp": evaluation_ts, "row_count": int(current_row_count)})
 
         obs = pd.DataFrame(points)
         if obs.empty:
