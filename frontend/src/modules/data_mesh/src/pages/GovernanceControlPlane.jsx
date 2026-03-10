@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Alert, Button, Card, Col, Row, Select, Spin, Statistic, Table, Typography, Progress, Tag, Space } from "antd";
+import { Alert, Button, Card, Col, Row, Select, Spin, Statistic, Table, Typography, Progress, Tag, Upload } from "antd";
 import axios from "axios";
 import { ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts";
 import { API_BASE } from "../config";
@@ -92,44 +92,6 @@ function lowScoreReason(item) {
   return "Low due to combined risk signals";
 }
 
-function recommendationForMetrics({ score, freshnessRisk, volumeRisk, distributionRisk }) {
-  const elevatedThreshold = 0.35;
-  const elevatedFreshness = Number(freshnessRisk || 0) >= elevatedThreshold;
-  const elevatedVolume = Number(volumeRisk || 0) >= elevatedThreshold;
-  const elevatedDistribution = Number(distributionRisk || 0) >= elevatedThreshold;
-  const elevatedCount = [elevatedFreshness, elevatedVolume, elevatedDistribution].filter(Boolean).length;
-
-  if (Number(score || 0) >= 80 && elevatedCount === 0) {
-    return ["Domain is healthy; continue normal monitoring and periodic scenario validation."];
-  }
-
-  if (elevatedCount >= 2) {
-    return [
-      "Multiple governance factors are elevated; perform a full domain review across freshness, volume completeness, and value distribution before production decisions.",
-    ];
-  }
-
-  if (elevatedFreshness) {
-    return [
-      "Freshness instability is high: check business-date recency, source freshness, and rerun pipeline if source data is correct.",
-    ];
-  }
-
-  if (elevatedVolume) {
-    return [
-      "Volume instability is high: verify missing or incomplete batches, duplicates, and source completeness before rerun.",
-    ];
-  }
-
-  if (elevatedDistribution) {
-    return [
-      "Distribution instability is high: inspect abnormal values, outliers, and source pattern changes in latest business data.",
-    ];
-  }
-
-  return ["No dominant single-factor issue found; run a full data quality review for this domain."];
-}
-
 export default function GovernanceControlPlane() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -137,12 +99,10 @@ export default function GovernanceControlPlane() {
   const [selectedDomain, setSelectedDomain] = useState("");
   const [domainDetails, setDomainDetails] = useState(null);
   const [domainLoading, setDomainLoading] = useState(false);
-  const [demoOptions, setDemoOptions] = useState({ supported_domains: [], scenarios: [], selected_domain: "sales_domain" });
-  const [demoDomain, setDemoDomain] = useState("sales_domain");
-  const [selectedScenario, setSelectedScenario] = useState("");
-  const [scenarioLoading, setScenarioLoading] = useState(false);
+  const [uploadLoading, setUploadLoading] = useState(false);
   const [restoreLoading, setRestoreLoading] = useState(false);
-  const [demoResult, setDemoResult] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadResult, setUploadResult] = useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -162,54 +122,6 @@ export default function GovernanceControlPlane() {
         setLoading(false);
       });
   }, []);
-
-  useEffect(() => {
-    axios
-      .get(`${API_BASE}/admin/governance-demo/options`, { params: { selected_domain: demoDomain } })
-      .then((res) => {
-        const payload = res.data || {};
-        const scenarios = payload.scenarios || [];
-        setDemoOptions(payload);
-        setSelectedScenario((prev) => {
-          if (prev && scenarios.some((item) => item.name === prev)) return prev;
-          return scenarios.length ? scenarios[0].name : "";
-        });
-      })
-      .catch(() => {
-        axios
-          .get(`${API_BASE}/admin/governance-test-cases/options`)
-          .then((fallbackRes) => {
-            const payload = fallbackRes.data || {};
-            const rows = (payload.test_cases || []).filter((item) => item?.inferred_domain === demoDomain && item?.exists);
-            const fallbackScenarios = rows.map((item) => ({
-              name: item.name,
-              label: item.name,
-              file: item.name,
-              factors: [],
-              selected_domain: demoDomain,
-              exists: Boolean(item.exists),
-              source_path: item.source_path,
-            }));
-
-            setDemoOptions({
-              workflow: "fallback_governance_demo_framework",
-              selected_domain: demoDomain,
-              supported_domains: [demoDomain],
-              scenarios: fallbackScenarios,
-            });
-            setSelectedScenario((prev) => {
-              if (prev && fallbackScenarios.some((item) => item.name === prev)) return prev;
-              return fallbackScenarios.length ? fallbackScenarios[0].name : "";
-            });
-            if (!fallbackScenarios.length) {
-              setError("No available scenario files for selected domain.");
-            }
-          })
-          .catch(() => {
-            setError("Unable to load governance demo scenarios.");
-          });
-      });
-  }, [demoDomain]);
 
   useEffect(() => {
     if (!selectedDomain) return;
@@ -238,59 +150,60 @@ export default function GovernanceControlPlane() {
     setDomainDetails(detailRes?.data || null);
   };
 
-  const runScenario = () => {
-    if (!(demoOptions.scenarios || []).length) {
-      setError("No scenarios available. Please refresh options or restore backend service.");
+  const uploadAndRerun = () => {
+    if (!selectedFile) {
+      setError("Please choose a CSV test-case file.");
       return;
     }
-    if (!selectedScenario) {
-      setError("Please select a scenario.");
-      return;
-    }
-    setScenarioLoading(true);
+
+    setUploadLoading(true);
     setError("");
-    setDemoResult(null);
+    setUploadResult(null);
+
+    const formData = new FormData();
+    formData.append("upload_file", selectedFile);
+    formData.append("session_id", "ui-governance-upload");
+    formData.append("user_id", "admin");
+    formData.append("auth_username", "Admin");
+    formData.append("auth_password", "1234");
 
     axios
-      .post(`${API_BASE}/admin/governance-demo/run-scenario`, {
-        session_id: "ui-governance-demo-run",
-        user_id: "admin",
-        selected_domain: demoDomain,
-        selected_scenario: selectedScenario,
-        auth_username: "Admin",
-        auth_password: "1234",
+      .post(`${API_BASE}/admin/governance-test-cases/upload-and-rerun`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       })
       .then(async (res) => {
         const payload = res.data || {};
-        setDemoResult(payload);
-        await refreshGovernanceViews(payload?.selected_domain || demoDomain);
+        setUploadResult(payload);
+        const mappedDomain = payload?.mapped_domain || selectedDomain || "sales_domain";
+        await refreshGovernanceViews(mappedDomain);
       })
       .catch((err) => {
         const detail = err?.response?.data?.detail;
-        setError(detail || "Unable to run selected governance scenario.");
+        setError(detail || "Unable to upload test-case and rerun pipeline.");
       })
       .finally(() => {
-        setScenarioLoading(false);
+        setUploadLoading(false);
       });
   };
 
   const restoreBaseline = () => {
     setRestoreLoading(true);
     setError("");
-    setDemoResult(null);
+    setUploadResult(null);
+
+    const restoreDomain = selectedDomain || uploadResult?.mapped_domain || "sales_domain";
 
     axios
       .post(`${API_BASE}/admin/governance-demo/restore-baseline-rerun`, {
         session_id: "ui-governance-demo-restore",
         user_id: "admin",
-        selected_domain: demoDomain,
+        selected_domain: restoreDomain,
         auth_username: "Admin",
         auth_password: "1234",
       })
       .then(async (res) => {
         const payload = res.data || {};
-        setDemoResult(payload);
-        await refreshGovernanceViews(payload?.selected_domain || demoDomain);
+        await refreshGovernanceViews(payload?.selected_domain || restoreDomain);
       })
       .catch((err) => {
         const detail = err?.response?.data?.detail;
@@ -319,23 +232,6 @@ export default function GovernanceControlPlane() {
 
   const statusText = relativeTime(domainDetails?.latest_governance_evaluation_time || summary?.as_of);
 
-  const comparisonRow = useMemo(() => {
-    const c = demoResult?.comparison;
-    if (!c) return [];
-    return [{ key: "comparison", ...c }];
-  }, [demoResult]);
-
-  const recommendationItems = useMemo(() => {
-    const c = demoResult?.comparison;
-    if (!c) return [];
-    return recommendationForMetrics({
-      score: c.adgri_after,
-      freshnessRisk: c.freshness_instability_after,
-      volumeRisk: c.volume_instability_after,
-      distributionRisk: c.distribution_instability_after,
-    });
-  }, [demoResult]);
-
   const confidenceColor = (level) => {
     if (level === "high") return "green";
     if (level === "medium") return "orange";
@@ -363,87 +259,43 @@ export default function GovernanceControlPlane() {
 
       <Card title="Scenario/Test Case" style={{ marginBottom: 16 }}>
         <Row gutter={[16, 16]} align="bottom">
-          <Col xs={24} md={8}>
-            <div style={{ fontWeight: 600, marginBottom: 6 }}>Domain</div>
-            <Select value={demoDomain} style={{ width: "100%" }} onChange={setDemoDomain}>
-              {(demoOptions.supported_domains || ["sales_domain"]).map((domain) => (
-                <Option key={domain} value={domain}>{domain}</Option>
-              ))}
-            </Select>
+          <Col xs={24} md={14}>
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>Upload CSV Test Case</div>
+            <Upload
+              accept=".csv"
+              maxCount={1}
+              beforeUpload={(file) => {
+                setSelectedFile(file);
+                return false;
+              }}
+              onRemove={() => {
+                setSelectedFile(null);
+              }}
+              fileList={selectedFile ? [selectedFile] : []}
+            >
+              <Button>Select CSV File</Button>
+            </Upload>
           </Col>
           <Col xs={24} md={10}>
-            <div style={{ fontWeight: 600, marginBottom: 6 }}>Scenario</div>
-            <Select value={selectedScenario} style={{ width: "100%" }} onChange={setSelectedScenario}>
-              {(demoOptions.scenarios || []).map((item) => (
-                <Option key={item.name} value={item.name}>{item.label}</Option>
-              ))}
-            </Select>
-          </Col>
-          <Col xs={24} md={6}>
-            <Space wrap>
-              <Button type="primary" loading={scenarioLoading} onClick={runScenario}>Run Scenario</Button>
+            <div style={{ marginBottom: 6, color: "#64748b" }}>
+              Uploaded file replaces mapped active Silver dataset, then pipeline reruns and governance refreshes.
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <Button type="primary" loading={uploadLoading} onClick={uploadAndRerun}>Upload Test Case & Rerun</Button>
               <Button loading={restoreLoading} onClick={restoreBaseline}>Restore Baseline & Rerun Pipeline</Button>
-            </Space>
+            </div>
           </Col>
         </Row>
       </Card>
 
-      {comparisonRow.length ? (
-        <Card title="Comparison Summary" size="small" style={{ marginBottom: 16 }}>
-          <Table
-            size="small"
-            pagination={false}
-            dataSource={comparisonRow}
-            columns={[
-              { title: "Selected Scenario", dataIndex: "selected_scenario" },
-              { title: "Selected Domain", dataIndex: "selected_domain" },
-              {
-                title: "ADGRI Before → After",
-                render: (_, row) => `${Number(row.adgri_before || 0).toFixed(2)} → ${Number(row.adgri_after || 0).toFixed(2)}`,
-              },
-              {
-                title: "Freshness Before → After",
-                render: (_, row) => `${Number((row.freshness_instability_before || 0) * 100).toFixed(1)}% → ${Number((row.freshness_instability_after || 0) * 100).toFixed(1)}%`,
-              },
-              {
-                title: "Volume Before → After",
-                render: (_, row) => `${Number((row.volume_instability_before || 0) * 100).toFixed(1)}% → ${Number((row.volume_instability_after || 0) * 100).toFixed(1)}%`,
-              },
-              {
-                title: "Distribution Before → After",
-                render: (_, row) => `${Number((row.distribution_instability_before || 0) * 100).toFixed(1)}% → ${Number((row.distribution_instability_after || 0) * 100).toFixed(1)}%`,
-              },
-              {
-                title: "Top Reason Before → After",
-                render: (_, row) => `${row.top_reason_before || "-"} → ${row.top_reason_after || "-"}`,
-              },
-            ]}
-          />
-
-          <Row gutter={[16, 16]} style={{ marginTop: 12 }}>
-            <Col xs={24} md={12}>
-              <Card size="small" title="Recommendation">
-                {(recommendationItems || []).map((text, idx) => (
-                  <Paragraph key={`rec-${idx}`} style={{ marginBottom: 8 }}>{text}</Paragraph>
-                ))}
-              </Card>
-            </Col>
-            <Col xs={24} md={12}>
-              <Card size="small" title="Validation Status">
-                <Paragraph style={{ marginBottom: 8 }}>
-                  <strong>Pipeline Rerun:</strong>{" "}
-                  <Tag color={demoResult?.pipeline_validation?.rerun_succeeded ? "green" : "red"}>
-                    {demoResult?.pipeline_validation?.rerun_succeeded ? "SUCCESS" : "FAILED"}
-                  </Tag>
-                </Paragraph>
-                <Paragraph style={{ marginBottom: 8 }}>
-                  <strong>Latest Evaluation Time:</strong> {formatTime(demoResult?.pipeline_validation?.latest_evaluation_time)}
-                </Paragraph>
-                <Paragraph style={{ marginBottom: 0 }}>
-                  <strong>Latest Business Data Date:</strong> {businessDateText(demoResult?.pipeline_validation?.latest_business_data_date)}
-                </Paragraph>
-              </Card>
-            </Col>
+      {uploadResult ? (
+        <Card title="Upload Result Summary" size="small" style={{ marginBottom: 16 }}>
+          <Row gutter={[12, 12]}>
+            <Col xs={24} md={12}><strong>Uploaded File Name:</strong> {uploadResult?.uploaded_file_name || "-"}</Col>
+            <Col xs={24} md={12}><strong>Mapped Domain:</strong> {uploadResult?.mapped_domain || "-"}</Col>
+            <Col xs={24} md={12}><strong>Replaced in Silver:</strong> {uploadResult?.replaced_in_silver ? "Yes" : "No"}</Col>
+            <Col xs={24} md={12}><strong>Pipeline Rerun:</strong> {uploadResult?.pipeline_rerun?.succeeded ? "Success" : "Fail"}</Col>
+            <Col xs={24} md={24}><strong>Latest Governance Refresh Time:</strong> {formatTime(uploadResult?.governance_refresh?.latest_refresh_time)}</Col>
           </Row>
         </Card>
       ) : null}

@@ -47,6 +47,10 @@ TEST_CASES_ROOTS = [
     DATA_ROOT / "Data" / "test_cases",
     DATA_ROOT / "Data" / "governance_test_cases",
 ]
+IMMUTABLE_BASELINE_ROOTS = [
+    DATA_ROOT / "baseline_cases",
+    DATA_ROOT / "Data" / "baseline_cases",
+]
 CONTRACTS_PATH = DATA_ROOT / "Contracts"
 MONITORING_HISTORY_PATH = DATA_ROOT / "monitoring" / "domain_health_history.csv"
 CREDENTIALS_PATH = DATA_ROOT / "monitoring" / "config" / "credentials.json"
@@ -547,6 +551,160 @@ def _resolve_test_case_source(file_name: str, domain: str | None = None) -> Path
     return None
 
 
+def _resolve_immutable_baseline_source(file_name: str, domain: str | None = None) -> Path | None:
+    normalized_name = str(file_name or "").strip()
+    if not normalized_name:
+        return None
+
+    normalized_domain = _normalize_domain_name(domain or "") if domain else ""
+    for root in IMMUTABLE_BASELINE_ROOTS:
+        direct = root / normalized_name
+        if direct.exists():
+            return direct
+
+        if normalized_domain:
+            per_domain = root / normalized_domain / normalized_name
+            if per_domain.exists():
+                return per_domain
+
+    return None
+
+
+def _reset_domain_output_state(selected_domain: str) -> dict:
+    normalized_domain = _normalize_domain_name(selected_domain)
+    domain_folder = DATA_PATH / normalized_domain
+    removed_files = 0
+    removed_dirs = 0
+
+    if domain_folder.exists() and domain_folder.is_dir():
+        for child in domain_folder.iterdir():
+            if child.is_file() or child.is_symlink():
+                child.unlink(missing_ok=True)
+                removed_files += 1
+            elif child.is_dir():
+                shutil.rmtree(child, ignore_errors=True)
+                removed_dirs += 1
+
+    domain_folder.mkdir(parents=True, exist_ok=True)
+    return {
+        "selected_domain": normalized_domain,
+        "domain_output_path": str(domain_folder),
+        "removed_files": removed_files,
+        "removed_dirs": removed_dirs,
+    }
+
+
+def _reset_domain_governance_state(selected_domain: str) -> dict:
+    normalized_domain = _normalize_domain_name(selected_domain)
+    removed_rows = 0
+
+    if MONITORING_HISTORY_PATH.exists():
+        try:
+            history_df = pd.read_csv(MONITORING_HISTORY_PATH)
+            if not history_df.empty and "domain_name" in history_df.columns:
+                original_rows = int(len(history_df))
+                filtered = history_df[
+                    history_df["domain_name"].astype(str).str.strip().str.lower() != normalized_domain
+                ].copy()
+                removed_rows = max(0, original_rows - int(len(filtered)))
+                filtered.to_csv(MONITORING_HISTORY_PATH, index=False)
+        except Exception:
+            removed_rows = 0
+
+    return {
+        "selected_domain": normalized_domain,
+        "history_rows_removed": removed_rows,
+        "history_file": str(MONITORING_HISTORY_PATH),
+    }
+
+
+def _reset_domain_pipeline_log_state(selected_domain: str) -> dict:
+    normalized_domain = _normalize_domain_name(selected_domain)
+    pipeline_log_path = MONITORING_HISTORY_PATH.parent / "logs" / "pipeline_log.json"
+    removed_rows = 0
+
+    if pipeline_log_path.exists():
+        try:
+            logs = pd.read_json(pipeline_log_path)
+            if not logs.empty and "domain" in logs.columns:
+                original_rows = int(len(logs))
+                filtered = logs[
+                    logs["domain"].astype(str).str.strip().str.lower() != normalized_domain
+                ].copy()
+                removed_rows = max(0, original_rows - int(len(filtered)))
+                filtered.to_json(pipeline_log_path, orient="records", indent=2, date_format="iso")
+        except Exception:
+            removed_rows = 0
+
+    return {
+        "selected_domain": normalized_domain,
+        "pipeline_log_file": str(pipeline_log_path),
+        "pipeline_log_rows_removed": removed_rows,
+    }
+
+
+def _seed_clean_domain_history_from_output(selected_domain: str) -> dict:
+    normalized_domain = _normalize_domain_name(selected_domain)
+    domain_csv = DATA_PATH / normalized_domain / f"{normalized_domain}.csv"
+    if not domain_csv.exists():
+        return {
+            "selected_domain": normalized_domain,
+            "seeded": False,
+            "message": f"Domain output not found for history seeding: {domain_csv}",
+        }
+
+    df = pd.read_csv(domain_csv)
+    row_count = int(len(df))
+    config = GOVERNANCE_TEST_CASES.get(normalized_domain) or {}
+    business_date_field = str(config.get("business_date_field") or "").strip()
+    freshness_hours = 0.0
+
+    if business_date_field and business_date_field in df.columns:
+        parsed = pd.to_datetime(df[business_date_field], errors="coerce").dropna()
+        if not parsed.empty:
+            latest_business_ts = pd.Timestamp(parsed.max()).to_pydatetime()
+            freshness_hours = max(0.0, (datetime.now() - latest_business_ts).total_seconds() / 3600.0)
+
+    seed_points = []
+    base_time = datetime.now()
+    for i in range(14, 0, -1):
+        seed_points.append(
+            {
+                "domain_name": normalized_domain,
+                "row_count": row_count,
+                "timestamp": (base_time - timedelta(days=i)).isoformat(timespec="seconds"),
+                "freshness_hours": round(float(freshness_hours), 6),
+            }
+        )
+
+    if MONITORING_HISTORY_PATH.exists():
+        try:
+            history_df = pd.read_csv(MONITORING_HISTORY_PATH)
+        except Exception:
+            history_df = pd.DataFrame(columns=["domain_name", "row_count", "timestamp", "freshness_hours"])
+    else:
+        history_df = pd.DataFrame(columns=["domain_name", "row_count", "timestamp", "freshness_hours"])
+
+    if "domain_name" not in history_df.columns:
+        history_df["domain_name"] = ""
+    history_df = history_df[
+        history_df["domain_name"].astype(str).str.strip().str.lower() != normalized_domain
+    ].copy()
+
+    seeded_df = pd.DataFrame(seed_points)
+    combined = pd.concat([history_df, seeded_df], ignore_index=True)
+    combined.to_csv(MONITORING_HISTORY_PATH, index=False)
+
+    return {
+        "selected_domain": normalized_domain,
+        "seeded": True,
+        "seed_rows": len(seed_points),
+        "row_count_seeded": row_count,
+        "freshness_hours_seeded": round(float(freshness_hours), 6),
+        "history_file": str(MONITORING_HISTORY_PATH),
+    }
+
+
 def _governance_test_case_options() -> list[dict]:
     rows: list[dict] = []
     for domain, cfg in GOVERNANCE_TEST_CASES.items():
@@ -675,14 +833,14 @@ def _restore_domain_baseline_to_silver(selected_domain: str) -> dict:
             "selected_domain": normalized_domain,
         }
 
-    source_file = _resolve_test_case_source(file_name=baseline_file, domain=normalized_domain)
+    source_file = _resolve_immutable_baseline_source(file_name=baseline_file, domain=normalized_domain)
     target_file = DATA_ROOT / "Data" / "Silver-data" / str(config.get("silver_target") or "")
 
     if source_file is None:
         return {
             "supported": True,
             "restored": False,
-            "message": f"Baseline file not found: {baseline_file}",
+            "message": f"Immutable baseline file not found: {baseline_file}",
             "selected_domain": normalized_domain,
             "source_file": None,
             "target_file": str(target_file),
@@ -698,15 +856,20 @@ def _restore_domain_baseline_to_silver(selected_domain: str) -> dict:
             "target_file": str(target_file),
         }
 
+    before_size = target_file.stat().st_size if target_file.exists() else 0
     shutil.copy2(source_file, target_file)
+    after_size = target_file.stat().st_size if target_file.exists() else 0
+    silver_replaced = bool(target_file.exists() and after_size > 0 and (after_size != before_size or before_size == 0))
+
     return {
         "supported": True,
         "restored": True,
-        "message": "Baseline dataset restored into active Silver file.",
+        "message": "Immutable baseline dataset restored into active Silver file.",
         "selected_domain": normalized_domain,
         "baseline_file": baseline_file,
         "source_file": str(source_file),
         "target_file": str(target_file),
+        "silver_replaced": silver_replaced,
     }
 
 
@@ -1428,7 +1591,7 @@ def get_governance_demo_options(selected_domain: str = "sales_domain"):
     configured_domains = sorted([_normalize_domain_name(name) for name in GOVERNANCE_TEST_CASES.keys()])
     scenarios = _governance_demo_scenarios(normalized_domain)
     baseline_file = str((GOVERNANCE_TEST_CASES.get(normalized_domain) or {}).get("baseline_file") or "")
-    baseline_source = _resolve_test_case_source(file_name=baseline_file, domain=normalized_domain) if baseline_file else None
+    baseline_source = _resolve_immutable_baseline_source(file_name=baseline_file, domain=normalized_domain) if baseline_file else None
 
     return {
         "workflow": "professional_governance_demo_framework",
@@ -1519,6 +1682,12 @@ def admin_restore_governance_demo_baseline(payload: dict = Body(default={})):
     if not restore_result.get("restored"):
         raise HTTPException(status_code=400, detail=restore_result.get("message") or "Unable to restore baseline dataset.")
 
+    output_reset = _reset_domain_output_state(selected_domain)
+    governance_state_reset = _reset_domain_governance_state(selected_domain)
+
+    domain_output_csv = DATA_PATH / selected_domain / f"{selected_domain}.csv"
+    output_exists_before = domain_output_csv.exists()
+
     rerun_start = _trigger_pipeline_rerun()
     if rerun_start.get("status") == "already_running":
         raise HTTPException(status_code=409, detail="Pipeline rerun is already running. Try again once it completes.")
@@ -1531,7 +1700,17 @@ def admin_restore_governance_demo_baseline(payload: dict = Body(default={})):
         and str(rerun_summary.get("status") or "").upper() == "SUCCESS"
     )
 
+    pipeline_log_reset = _reset_domain_pipeline_log_state(selected_domain)
+    clean_history_seed = _seed_clean_domain_history_from_output(selected_domain)
+
     domain_after = _domain_governance_snapshot(selected_domain)
+    output_exists_after = domain_output_csv.exists()
+    domain_overwritten = bool(pipeline_rerun_succeeded and output_exists_after)
+    governance_recomputed = bool(
+        pipeline_rerun_succeeded
+        and domain_after.get("governance_evaluation_time") is not None
+    )
+
     comparison = _build_domain_before_after_comparison(
         selected_domain=selected_domain,
         selected_scenario="sales_baseline",
@@ -1546,6 +1725,22 @@ def admin_restore_governance_demo_baseline(payload: dict = Body(default={})):
         "selected_domain": selected_domain,
         "selected_scenario": "sales_baseline",
         "baseline_restore": restore_result,
+        "restore_summary": {
+            "baseline_source_file_used": restore_result.get("source_file"),
+            "silver_replaced": bool(restore_result.get("silver_replaced")),
+            "domain_overwritten": domain_overwritten,
+            "governance_recomputed": governance_recomputed,
+            "adgri_before_restore": domain_before.get("adgri"),
+            "adgri_after_restore": domain_after.get("adgri"),
+            "domain_output_exists_before_rerun": output_exists_before,
+            "domain_output_exists_after_rerun": output_exists_after,
+        },
+        "state_reset": {
+            "domain_output_reset": output_reset,
+            "governance_state_reset": governance_state_reset,
+            "pipeline_log_reset": pipeline_log_reset,
+            "clean_history_seed": clean_history_seed,
+        },
         "comparison": comparison,
         "pipeline_validation": {
             "rerun_succeeded": pipeline_rerun_succeeded,
