@@ -15,12 +15,12 @@ from src.utils.deduplication_service import get_deduplication_service
 from src.services.agentic_ai.kg.client import Neo4jKGClient
 from src.services.agentic_ai.kg.events import KGEventWriter
 
-# Import Gemini query parser for enhanced query understanding
+# Import LLM-based query parser for enhanced query understanding
 try:
     from src.clients.gemini_client import parse_query_with_gemini
-    GEMINI_AVAILABLE = True
+    LLM_QUERY_PARSER_AVAILABLE = True
 except ImportError:
-    GEMINI_AVAILABLE = False
+    LLM_QUERY_PARSER_AVAILABLE = False
 
 # Import Vector Search Agent
 try:
@@ -440,33 +440,33 @@ class CatalogAgent:
             known_shops = []
             known_categories = []
 
-        # Parse intent with Gemini first (enhanced understanding), fallback to basic parser
-        gemini_parsed = None
-        if GEMINI_AVAILABLE:
+        # Parse intent with LLM parser first (enhanced understanding), fallback to basic parser
+        llm_parsed = None
+        if LLM_QUERY_PARSER_AVAILABLE:
             try:
-                print(f"[DEBUG] Using Gemini to parse query: '{text}'")
-                gemini_parsed = parse_query_with_gemini(text)
-                print(f"[DEBUG] Gemini parsed: category={gemini_parsed.get('category')}, color={gemini_parsed.get('color')}, budget={gemini_parsed.get('budget')}")
+                print(f"[DEBUG] Using LLM parser to parse query: '{text}'")
+                llm_parsed = parse_query_with_gemini(text)
+                print(f"[DEBUG] LLM parsed: category={llm_parsed.get('category')}, color={llm_parsed.get('color')}, budget={llm_parsed.get('budget')}")
             except Exception as e:
-                print(f"[DEBUG] Gemini parsing failed: {e}, falling back to basic parser")
-                gemini_parsed = None
+                print(f"[DEBUG] LLM parsing failed: {e}, falling back to basic parser")
+                llm_parsed = None
         
-        # Use basic parser and merge with Gemini results
+        # Use basic parser and merge with LLM parser results
         try:
             intent = parse_intent(text, known_shops=known_shops, known_categories=known_categories)
             
-            # Enhance with Gemini parsed data (Gemini takes priority for ambiguous fields)
-            if gemini_parsed:
-                if gemini_parsed.get('category') and not intent.get('category'):
-                    intent['category'] = gemini_parsed.get('category')
-                if gemini_parsed.get('color') and not intent.get('color'):
-                    intent['color'] = gemini_parsed.get('color')
-                if gemini_parsed.get('budget') and not intent.get('max_price'):
-                    intent['max_price'] = gemini_parsed.get('budget')
-                if gemini_parsed.get('size'):
-                    intent['size'] = gemini_parsed.get('size')
-                if gemini_parsed.get('style_preferences'):
-                    intent['style_preferences'] = gemini_parsed.get('style_preferences')
+            # Enhance with LLM-parsed data (LLM takes priority for ambiguous fields)
+            if llm_parsed:
+                if llm_parsed.get('category') and not intent.get('category'):
+                    intent['category'] = llm_parsed.get('category')
+                if llm_parsed.get('color') and not intent.get('color'):
+                    intent['color'] = llm_parsed.get('color')
+                if llm_parsed.get('budget') and not intent.get('max_price'):
+                    intent['max_price'] = llm_parsed.get('budget')
+                if llm_parsed.get('size'):
+                    intent['size'] = llm_parsed.get('size')
+                if llm_parsed.get('style_preferences'):
+                    intent['style_preferences'] = llm_parsed.get('style_preferences')
                     
             print(f"[DEBUG] Final merged intent: {intent}")
         except Exception as e:

@@ -17,8 +17,7 @@ from src.users.user_agent import UserAgent
 from src.utils.nl_parser import parse_intent
 from src.utils.intent_validator import get_intent_validator
 from src.clients.gemini_client import (
-    dynamic_small_talk,
-    generate_styling_advice_with_gemini
+    generate_styling_advice_with_gemini,
 )
 
 logger = logging.getLogger(__name__)
@@ -193,7 +192,7 @@ class Orchestrator:
         
         # Call zero-shot classifier
         classification = self.intent_classifier.classify_intent(text, user_context)
-        source = classification.get("source", "openai" if not classification.get("fallback") else "rules")
+        source = classification.get("source", "distilbert" if not classification.get("fallback") else "rules")
         
         # Log classification result
         logger.info(f"[ORCHESTRATOR] Zero-shot classification: {classification['intent']} "
@@ -207,6 +206,9 @@ class Orchestrator:
             "reasoning": classification["reasoning"],
             "method": source,
             "action": classification.get("action", "accept"),
+            "second_intent": classification.get("second_intent"),
+            "second_confidence": classification.get("second_confidence"),
+            "score_margin": classification.get("score_margin"),
             "clarification": {
                 "candidates": classification.get("candidates", []),
                 "score_margin": classification.get("score_margin"),
@@ -249,39 +251,26 @@ class Orchestrator:
         }
     
     def handle_small_talk(self, user_id: Optional[str], user_name: Optional[str]) -> Dict[str, Any]:
-        """Handle small talk - uses Gemini for dynamic responses with smart fallback."""
-        try:
-            user_prefs = self.user.get_preferences(user_id) if user_id else None
-            last_product = user_prefs.get("last_product_viewed") if user_prefs else None
-            recent_interaction = user_prefs.get("last_interaction_type") if user_prefs else None
-            
-            message = dynamic_small_talk(
-                user_name=user_name,
-                last_product=last_product,
-                recent_interaction=recent_interaction
-            )
-        except Exception as e:
-            logger.warning(f"[ORCHESTRATOR] Small talk generation failed: {e}, using fallback")
-            # Smart fallback responses
-            fallback_responses = [
-                f"I'm doing great, thanks for asking! 😊 How can I help you find the perfect fashion items today, {user_name or 'friend'}?",
-                f"Doing awesome! 🙌 What brings you here today? I'd love to help you discover something amazing!",
-                f"I'm here and ready to help! 💪 Whether you're looking for casual wear, formal outfits, or something special, I've got you covered.",
-                f"Having a great day, {user_name or 'friend'}! ✨ What kind of fashion are you in the mood for?",
-            ]
-            # Use first response by default, or random if user_id available
-            import random
-            message = random.choice(fallback_responses) if user_id else fallback_responses[0]
+        """Handle small talk without calling external LLM services."""
+        fallback_responses = [
+            f"I'm doing great, thanks for asking! How can I help you find the perfect fashion items today, {user_name or 'friend'}?",
+            f"Doing awesome! What brings you here today? I'd love to help you discover something amazing!",
+            f"I'm here and ready to help. Whether you're looking for casual wear, formal outfits, or something special, I've got you covered.",
+            f"Having a great day, {user_name or 'friend'}! What kind of fashion are you in the mood for?",
+        ]
+        import random
+        message = random.choice(fallback_responses) if user_id else fallback_responses[0]
         
         return {
             "intent": "small_talk",
             "reply": message,
             "message": message,
+            "llm_used": None,
             "filters": {},
             "suggestions": [],
             "best_matches": [],
             "new_suggestions": [],
-            "explanations": {"intent_type": "small_talk", "agent": "orchestrator+gemini"},
+            "explanations": {"intent_type": "small_talk", "agent": "orchestrator"},
             "user_profile_used": {},
             "results": [],
         }
@@ -484,11 +473,35 @@ class Orchestrator:
                     ranked.get("new_suggestions", []),
                     user_name
                 )
+                message = (
+                    f"{message}\n\n"
+                    "If you want styling tips for these picks, reply: yes styling tips"
+                )
+                selected_products = (ranked.get("best_matches", []) + ranked.get("new_suggestions", []))[:3]
+                product_names = [
+                    str(p.get("name") or p.get("product_name") or p.get("title") or "")
+                    for p in selected_products
+                    if isinstance(p, dict)
+                ]
+                explanation_text = "These were selected because they align with your requested style and your recent preference patterns."
+
+                if user_id:
+                    self.memory.set_styling_tips_offer(
+                        user_id,
+                        True,
+                        recommendation_context={
+                            "query": text,
+                            "product_names": product_names,
+                            "intent": intent,
+                        },
+                    )
                 
                 return {
                     "intent": "product_search",
                     "reply": message,
                     "message": message,
+                    "products": product_names,
+                    "explanation": explanation_text,
                     "best_matches": ranked.get("best_matches", []),
                     "new_suggestions": ranked.get("new_suggestions", []),
                     "explanations": {
@@ -505,15 +518,42 @@ class Orchestrator:
                     },
                     "suggestions": response.get("suggestions", []),
                     "explainability": response.get("explainability", ""),
-                    "structured_query": structured_query,
+                    "outfit_explanation": "",
+                    "llm_used": None,
                     "agent": "catalog_agent+personalization_agent"
                 }
             else:
                 # No personalization (no user_id or no results)
+                top_products = response.get("results", [])[:3]
+                base_message = response.get("message", response.get("reply", ""))
+                if top_products:
+                    base_message = (
+                        f"{base_message}\n\n"
+                        "If you want styling tips for these picks, reply: yes styling tips"
+                    )
+                product_names = [
+                    str(p.get("name") or p.get("product_name") or p.get("title") or "")
+                    for p in top_products
+                    if isinstance(p, dict)
+                ]
+                explanation_text = "These were selected because they align with your requested style and your recent preference patterns."
+
+                if user_id and top_products:
+                    self.memory.set_styling_tips_offer(
+                        user_id,
+                        True,
+                        recommendation_context={
+                            "query": text,
+                            "product_names": product_names,
+                            "intent": intent,
+                        },
+                    )
                 return {
                     "intent": "product_search",
-                    "reply": response.get("message", response.get("reply", "")),
-                    "message": response.get("message", response.get("reply", "")),
+                    "reply": base_message,
+                    "message": base_message,
+                    "products": product_names,
+                    "explanation": explanation_text,
                     "best_matches": [],
                     "new_suggestions": [],
                     "explanations": {"structured_query": structured_query},
@@ -527,7 +567,8 @@ class Orchestrator:
                     },
                     "suggestions": response.get("suggestions", []),
                     "explainability": response.get("explainability", ""),
-                    "structured_query": structured_query,
+                    "outfit_explanation": "",
+                    "llm_used": None,
                     "agent": "catalog_agent"
                 }
                 
@@ -549,8 +590,13 @@ class Orchestrator:
                 "agent": "orchestrator"
             }
     
-    def handle_styling_advice(self, text: str, user_name: Optional[str]) -> Dict[str, Any]:
-        """Handle styling advice - uses Gemini for advice."""
+    def handle_styling_advice(
+        self,
+        text: str,
+        user_name: Optional[str],
+        user_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Handle styling advice - uses LLM for advice."""
         try:
             # Extract fashion topic
             text_lower = text.lower()
@@ -573,20 +619,36 @@ class Orchestrator:
                 if keyword in text_lower:
                     fashion_topic = topic
                     break
+
+            user_profile = self.user.get_preferences(user_id) if user_id else {}
+            recent_ctx = self.memory.get_last_recommendation_context(user_id) if user_id else {}
+            personalization_context = {
+                "preferred_style": user_profile.get("preferred_style") or user_profile.get("style"),
+                "favorite_colors": user_profile.get("favorite_colors") or user_profile.get("colors"),
+                "size": user_profile.get("size"),
+                "budget": user_profile.get("budget") or user_profile.get("preferred_budget"),
+                "recent_recommended_items": recent_ctx.get("product_names") or [],
+            }
             
-            # Generate advice using Gemini
-            advice = generate_styling_advice_with_gemini(user_name, text, fashion_topic)
+            # Generate advice using the configured LLM client
+            advice = generate_styling_advice_with_gemini(
+                user_name or "there",
+                text,
+                fashion_topic,
+                personalization_context=personalization_context,
+            )
             
             return {
                 "intent": "styling_advice",
                 "reply": advice,
                 "message": advice,
+                "llm_used": "groq_styling_advice",
                 "filters": {},
                 "suggestions": [],
                 "best_matches": [],
                 "new_suggestions": [],
-                "explanations": {"intent_type": "styling_advice", "topic": fashion_topic, "agent": "gemini"},
-                "user_profile_used": {},
+                "explanations": {"intent_type": "styling_advice", "topic": fashion_topic, "agent": "groq"},
+                "user_profile_used": user_profile,
                 "results": [],
             }
         except Exception as e:
@@ -617,6 +679,20 @@ class Orchestrator:
         Returns:
             Structured response with intent, message, products, etc.
         """
+        # Handle explicit opt-in styling tips after recommendations.
+        if user_id and self.memory.should_generate_styling_tips(user_id, text):
+            ctx = self.memory.get_last_recommendation_context(user_id)
+            names = ctx.get("product_names") or []
+            if names:
+                styling_prompt = (
+                    "Give short styling tips for these fashion items: "
+                    + ", ".join([str(n) for n in names[:3]])
+                )
+            else:
+                styling_prompt = "Give short styling tips for the user's latest recommended items."
+            self.memory.set_styling_tips_offer(user_id, False)
+            return self.handle_styling_advice(styling_prompt, user_name, user_id)
+
         # STEP 1: Validate query quality (filter garbage)
         validator = get_intent_validator()
         is_valid, validation_reason = validator.is_valid_query(text)
@@ -624,8 +700,9 @@ class Orchestrator:
         if not is_valid:
             logger.warning(f"[ORCHESTRATOR] Invalid query rejected: '{text}' - {validation_reason}")
             error_message = validator.get_validation_message(validation_reason)
+            invalid_intent = "non_fashion_query" if validation_reason == "Query not related to fashion" else "invalid_query"
             return {
-                "intent": "invalid_query",
+                "intent": invalid_intent,
                 "reply": error_message,
                 "message": error_message,
                 "filters": {},
@@ -696,7 +773,7 @@ class Orchestrator:
             }
         
         elif intent_type == "styling_advice":
-            return self.handle_styling_advice(text, user_name)
+            return self.handle_styling_advice(text, user_name, user_id)
         
         elif intent_type == "product_search":
             return self.handle_product_search(text, user_id, user_name)
