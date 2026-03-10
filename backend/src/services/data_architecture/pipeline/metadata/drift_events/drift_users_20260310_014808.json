@@ -1,0 +1,51 @@
+{
+  "timestamp": "2026-03-10T01:48:08.456842Z",
+  "table": "users",
+  "source_file": "tmp_users_upload.csv",
+  "baseline_dataset": "data/users_dataset.csv",
+  "decision": "REQUIRES_APPROVAL",
+  "requires_approval": true,
+  "risk_level": "high",
+  "counts": {
+    "new": 0,
+    "missing": 4,
+    "dtype": 4,
+    "renames": 0
+  },
+  "diff": {
+    "new_columns": [],
+    "missing_columns": [
+      "_ingestion_ts",
+      "_source_file",
+      "_ingestion_date",
+      "loyalty_tier"
+    ],
+    "dtype_changes": [
+      {
+        "column": "user_id",
+        "expected": "string",
+        "actual": "integer"
+      },
+      {
+        "column": "phone",
+        "expected": "string",
+        "actual": "integer"
+      },
+      {
+        "column": "signup_ts",
+        "expected": "string",
+        "actual": "datetime"
+      },
+      {
+        "column": "is_active",
+        "expected": "string",
+        "actual": "boolean"
+      }
+    ],
+    "renames": []
+  },
+  "ingestion": {
+    "saved": false,
+    "local_path": null
+  }
+}

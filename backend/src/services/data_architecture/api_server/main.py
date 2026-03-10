@@ -1324,10 +1324,18 @@ def _estimate_rows_from_size(size_bytes: int) -> int:
 def _extract_dataset_name(path_or_name: str) -> str:
     name = os.path.basename(path_or_name)
     name = name.replace(".parquet", "").replace(".csv", "").replace(".jsonl", "").replace(".json", "")
+    
+    # Strip timestamp patterns to prevent accumulation: _live_YYYYMMDD_HHMMSS, _YYYYMMDD_HHMMSS, _YYYYMMDD
+    name = re.sub(r"(_live)?_\d{8}(_\d{6})?", "", name)
+    
     for suffix in ["_raw", "_cleaned", "_enriched", "_curated"]:
         if suffix in name:
             name = name.replace(suffix, "")
-    return name
+    
+    # Clean up any trailing underscores or multiple underscores after timestamp removal
+    name = re.sub(r"_+", "_", name).strip("_")
+    
+    return name or "dataset"
 
 
 def _layer_local_paths(layer: str) -> List[str]:
@@ -2511,6 +2519,62 @@ def _infer_schema_map_from_csv(csv_path: str, row_limit: int = 5000) -> Dict[str
     return _infer_schema_map_from_dataframe(df)
 
 
+def _normalize_relative_schema_path(path_value: str) -> str:
+    """Normalize relative path tokens so schema lookups are stable across separators/casing."""
+    normalized = str(path_value or "").strip().replace("\\", "/")
+    normalized = normalized.lstrip("./")
+    return normalized.lower()
+
+
+def _schema_columns_to_map(schema_columns: Any) -> Dict[str, str]:
+    """Convert schema column list payload to an ordered column->dtype map."""
+    schema_map: Dict[str, str] = {}
+    if not isinstance(schema_columns, list):
+        return schema_map
+
+    for item in schema_columns:
+        if not isinstance(item, dict):
+            continue
+        column_name = str(item.get("column") or "").strip()
+        dtype_name = str(item.get("dtype") or "string").strip().lower() or "string"
+        if column_name:
+            schema_map[column_name] = dtype_name
+
+    return schema_map
+
+
+async def _load_current_schema_lookup() -> Dict[str, Dict[str, Any]]:
+    """Load active baseline schemas keyed by baseline dataset path from /schema/versions."""
+    try:
+        payload = await get_schema_versions(table=None, limit=500)
+    except Exception:
+        return {}
+
+    tables = payload.get("tables", []) if isinstance(payload, dict) else []
+    if not isinstance(tables, list):
+        return {}
+
+    lookup: Dict[str, Dict[str, Any]] = {}
+    for table_entry in tables:
+        if not isinstance(table_entry, dict):
+            continue
+
+        baseline_dataset = str(table_entry.get("baseline_dataset") or "").strip()
+        if not baseline_dataset:
+            continue
+
+        schema_map = _schema_columns_to_map(table_entry.get("current_schema"))
+        if not schema_map:
+            continue
+
+        lookup[_normalize_relative_schema_path(baseline_dataset)] = {
+            "table": str(table_entry.get("table") or "").strip().lower(),
+            "schema_map": schema_map,
+        }
+
+    return lookup
+
+
 def _detect_schema_renames(
     missing_columns: List[str],
     new_columns: List[str],
@@ -2641,7 +2705,8 @@ def _persist_live_upload_to_bronze(file_bytes: bytes, dataset_token: str, origin
     os.makedirs(BRONZE_RAW_DIR, exist_ok=True)
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
     safe_name = _sanitize_name_token(dataset_token or _extract_dataset_name(original_filename))
-    output_name = f"{safe_name}_live_{timestamp}.csv"
+    # Use _raw suffix so file is picked up by bronze→silver medallion pipeline
+    output_name = f"{safe_name}_live_{timestamp}_raw.csv"
     output_path = os.path.join(BRONZE_RAW_DIR, output_name)
 
     with open(output_path, "wb") as file_handle:
@@ -2708,12 +2773,20 @@ async def get_live_input_datasets(
     """
     try:
         datasets = []
+        schema_lookup = await _load_current_schema_lookup()
         candidates = _collect_live_input_csv_paths()[:limit]
 
         for csv_path in candidates:
             relative_path = os.path.relpath(csv_path, BASE_DIR).replace("\\", "/")
             modified_dt = datetime.fromtimestamp(os.path.getmtime(csv_path), tz=timezone.utc)
-            schema_map = _infer_schema_map_from_csv(csv_path)
+
+            lookup_key = _normalize_relative_schema_path(relative_path)
+            schema_override = schema_lookup.get(lookup_key)
+            if schema_override and isinstance(schema_override.get("schema_map"), dict):
+                schema_map = dict(schema_override["schema_map"])
+            else:
+                schema_map = _infer_schema_map_from_csv(csv_path)
+
             datasets.append(
                 {
                     "id": relative_path,
@@ -2762,6 +2835,7 @@ async def live_validate_uploaded_dataset(
             raise HTTPException(status_code=400, detail="Only CSV uploads are supported.")
 
         baseline_path = _resolve_live_input_dataset_path(baseline_dataset_id)
+        baseline_relative_path = os.path.relpath(baseline_path, BASE_DIR).replace("\\", "/")
 
         file_bytes = await upload_file.read()
         if not file_bytes:
@@ -2769,13 +2843,23 @@ async def live_validate_uploaded_dataset(
 
         import pandas as pd
 
-        baseline_df = pd.read_csv(baseline_path, nrows=5000, low_memory=False)
         uploaded_df = pd.read_csv(io.BytesIO(file_bytes), low_memory=False)
 
         if uploaded_df.empty and len(uploaded_df.columns) == 0:
             raise HTTPException(status_code=400, detail="Uploaded CSV does not contain tabular data.")
 
-        baseline_schema = _infer_schema_map_from_dataframe(baseline_df)
+        schema_lookup = await _load_current_schema_lookup()
+        baseline_lookup = (
+            schema_lookup.get(_normalize_relative_schema_path(baseline_dataset_id))
+            or schema_lookup.get(_normalize_relative_schema_path(baseline_relative_path))
+        )
+
+        if baseline_lookup and isinstance(baseline_lookup.get("schema_map"), dict):
+            baseline_schema = dict(baseline_lookup["schema_map"])
+        else:
+            baseline_df = pd.read_csv(baseline_path, nrows=5000, low_memory=False)
+            baseline_schema = _infer_schema_map_from_dataframe(baseline_df)
+
         uploaded_schema = _infer_schema_map_from_dataframe(uploaded_df)
         diff_payload = _compare_schema_maps(baseline_schema, uploaded_schema)
         drift_counts = _build_drift_counts(diff_payload)
@@ -2798,8 +2882,14 @@ async def live_validate_uploaded_dataset(
 
         event_id = None
         risk_level = "none"
+        pipeline_execution: Dict[str, Any] = {
+            "triggered": False,
+            "reason": "Pipeline execution skipped"
+        }
+        
         if drift_detected:
-            table_name = _sanitize_name_token(dataset_name or _extract_dataset_name(baseline_path))
+            resolved_table = str((baseline_lookup or {}).get("table") or "").strip()
+            table_name = _sanitize_name_token(dataset_name or resolved_table or _extract_dataset_name(baseline_path))
             event_id = _write_live_drift_event(
                 table_name=table_name,
                 source_file=upload_file.filename,
@@ -2808,6 +2898,27 @@ async def live_validate_uploaded_dataset(
                 ingestion_payload=ingestion_result,
             )
             risk_level = _derive_drift_risk(diff_payload)
+            pipeline_execution["reason"] = "Drift detected - requires approval before pipeline execution"
+        else:
+            # No drift detected and file was ingested - automatically trigger medallion pipeline
+            if ingestion_result.get("saved"):
+                try:
+                    bronze_to_silver_result = _run_bronze_to_silver_jobs()
+                    silver_to_gold_result = _run_silver_to_gold_jobs()
+                    layers_sync = _sync_medallion_layers_to_azure(["silver", "gold"])
+                    
+                    pipeline_execution = {
+                        "triggered": True,
+                        "bronze_to_silver": bronze_to_silver_result,
+                        "silver_to_gold": silver_to_gold_result,
+                        "layers_synced": layers_sync,
+                    }
+                except Exception as pipeline_error:
+                    pipeline_execution = {
+                        "triggered": True,
+                        "status": "error",
+                        "error": str(pipeline_error),
+                    }
 
         _invalidate_metrics_cache()
         after_summary = _build_summary_payload()
@@ -2840,6 +2951,7 @@ async def live_validate_uploaded_dataset(
             ],
             "uploaded_preview": uploaded_preview,
             "ingestion": ingestion_result,
+            "pipeline_execution": pipeline_execution,
             "before_metrics": before_metrics,
             "after_metrics": after_metrics,
         }

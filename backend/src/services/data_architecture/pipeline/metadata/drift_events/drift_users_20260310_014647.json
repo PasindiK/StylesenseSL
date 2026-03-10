@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-03-10T01:46:47.890810Z",
+  "table": "users",
+  "source_file": "tmp_live_validate_users.csv",
+  "baseline_dataset": "data/users_dataset.csv",
+  "decision": "REQUIRES_APPROVAL",
+  "requires_approval": true,
+  "risk_level": "medium",
+  "counts": {
+    "new": 0,
+    "missing": 0,
+    "dtype": 2,
+    "renames": 0
+  },
+  "diff": {
+    "new_columns": [],
+    "missing_columns": [],
+    "dtype_changes": [
+      {
+        "column": "user_id",
+        "expected": "float",
+        "actual": "integer"
+      },
+      {
+        "column": "phone",
+        "expected": "string",
+        "actual": "integer"
+      }
+    ],
+    "renames": []
+  },
+  "ingestion": {
+    "saved": false,
+    "local_path": null
+  }
+}
