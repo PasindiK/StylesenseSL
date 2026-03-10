@@ -33,6 +33,10 @@ try:
     from .date_rebase_utility import BusinessDateRebaseUtility
 except ImportError:
     from date_rebase_utility import BusinessDateRebaseUtility
+try:
+    from .correct_silver_inputs_for_adgri import correct_product, correct_sales, correct_users
+except ImportError:
+    from correct_silver_inputs_for_adgri import correct_product, correct_sales, correct_users
 
 # Paths for Data Mesh assets (safe after folder relocation)
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -64,11 +68,54 @@ GOVERNANCE_TEST_CASES = {
     "sales_domain": {
         "silver_target": "transactions_clean.csv",
         "business_date_field": "transaction_date",
+        "baseline_file": "sales_baseline.csv",
         "prepared_files": [
+            "sales_baseline.csv",
             "sales_current.csv",
             "sales_stale_30days.csv",
             "sales_stale_60days.csv",
-            "sales_stale_distribution_shift.csv",
+            "sales_volume_drop.csv",
+            "sales_distribution_shift.csv",
+            "sales_stale_and_distribution_shift.csv",
+            "sales_volume_spike.csv",
+        ],
+        "demo_scenarios": [
+            {
+                "name": "sales_baseline",
+                "label": "Sales Baseline (Healthy)",
+                "file": "sales_baseline.csv",
+                "factors": ["healthy_baseline"],
+            },
+            {
+                "name": "sales_stale_30days",
+                "label": "Sales Freshness Instability (30-day stale)",
+                "file": "sales_stale_30days.csv",
+                "factors": ["freshness_instability"],
+            },
+            {
+                "name": "sales_volume_drop",
+                "label": "Sales Volume Instability (drop)",
+                "file": "sales_volume_drop.csv",
+                "factors": ["volume_instability"],
+            },
+            {
+                "name": "sales_distribution_shift",
+                "label": "Sales Distribution Instability (shift)",
+                "file": "sales_distribution_shift.csv",
+                "factors": ["distribution_instability"],
+            },
+            {
+                "name": "sales_stale_and_distribution_shift",
+                "label": "Sales Combined Degradation (freshness + distribution)",
+                "file": "sales_stale_and_distribution_shift.csv",
+                "factors": ["freshness_instability", "distribution_instability", "combined"],
+            },
+            {
+                "name": "sales_volume_spike",
+                "label": "Sales Volume Instability (spike)",
+                "file": "sales_volume_spike.csv",
+                "factors": ["volume_instability"],
+            },
         ],
     },
     "users_domain": {
@@ -420,16 +467,27 @@ def _run_domain_silver_rebase(selected_domain: str, simulation_days_offset: int)
 def _domain_governance_snapshot(domain_name: str) -> dict:
     detail = governance_engine.governance_domain(domain_name)
     freshness = detail.get("freshness_stability") if isinstance(detail, dict) else {}
+    distribution = detail.get("distribution_stability") if isinstance(detail, dict) else {}
+    volume = detail.get("volume_stability") if isinstance(detail, dict) else {}
     freshness_risk = None
+    distribution_risk = None
+    volume_risk = None
     if isinstance(freshness, dict) and freshness.get("risk") is not None:
         freshness_risk = round(float(freshness.get("risk")), 6)
+    if isinstance(distribution, dict) and distribution.get("risk") is not None:
+        distribution_risk = round(float(distribution.get("risk")), 6)
+    if isinstance(volume, dict) and volume.get("risk") is not None:
+        volume_risk = round(float(volume.get("risk")), 6)
 
     return {
         "domain": _normalize_domain_name(domain_name),
         "adgri": detail.get("adgri_score"),
         "top_reason": detail.get("top_reason"),
         "explanation": detail.get("explanation"),
+        "low_score_reason_label": detail.get("low_score_reason_label"),
         "freshness_instability": freshness_risk,
+        "distribution_instability": distribution_risk,
+        "volume_instability": volume_risk,
         "latest_business_data_date": detail.get("latest_business_data_date"),
         "latest_domain_refresh_time": detail.get("latest_domain_refresh_time"),
         "governance_evaluation_time": detail.get("latest_governance_evaluation_time"),
@@ -449,6 +507,16 @@ def _infer_domain_from_test_case_name(test_case_name: str) -> str | None:
 
 def _test_case_scenario_label(test_case_name: str) -> str:
     name = str(test_case_name or "").strip().lower()
+    if "baseline" in name or "current" in name:
+        return "baseline"
+    if "volume_drop" in name:
+        return "volume drop"
+    if "volume_spike" in name:
+        return "volume spike"
+    if "distribution_shift" in name and "stale" not in name:
+        return "distribution shift"
+    if "stale_and_distribution_shift" in name or "stale_distribution_shift" in name or "and_shifted" in name:
+        return "stale + distribution shift"
     if "current" in name:
         return "Current"
     if "stale_30" in name:
@@ -496,6 +564,169 @@ def _governance_test_case_options() -> list[dict]:
                 }
             )
     return rows
+
+
+def _governance_demo_scenarios(selected_domain: str) -> list[dict]:
+    normalized_domain = _normalize_domain_name(selected_domain)
+    config = GOVERNANCE_TEST_CASES.get(normalized_domain) or {}
+    scenarios = config.get("demo_scenarios") or []
+    rows: list[dict] = []
+
+    for scenario in scenarios:
+        scenario_name = str(scenario.get("name") or "").strip()
+        file_name = str(scenario.get("file") or "").strip()
+        if not scenario_name or not file_name:
+            continue
+        source_path = _resolve_test_case_source(file_name=file_name, domain=normalized_domain)
+        rows.append(
+            {
+                "name": scenario_name,
+                "label": str(scenario.get("label") or scenario_name),
+                "file": file_name,
+                "factors": scenario.get("factors") or [],
+                "selected_domain": normalized_domain,
+                "exists": source_path is not None,
+                "source_path": str(source_path) if source_path is not None else None,
+            }
+        )
+
+    return rows
+
+
+def _copy_named_demo_scenario_to_silver(selected_domain: str, scenario_name: str) -> dict:
+    normalized_domain = _normalize_domain_name(selected_domain)
+    config = GOVERNANCE_TEST_CASES.get(normalized_domain)
+    if not config:
+        return {
+            "supported": False,
+            "loaded": False,
+            "message": f"Domain '{normalized_domain}' is not configured for governance demo scenarios.",
+            "selected_domain": normalized_domain,
+            "selected_scenario": scenario_name,
+        }
+
+    target_file = DATA_ROOT / "Data" / "Silver-data" / str(config.get("silver_target") or "")
+    scenarios = {str(item.get("name") or "").strip(): item for item in (config.get("demo_scenarios") or [])}
+    chosen = scenarios.get(str(scenario_name or "").strip())
+    if not chosen:
+        return {
+            "supported": True,
+            "loaded": False,
+            "message": f"Scenario '{scenario_name}' is not available for {normalized_domain}.",
+            "selected_domain": normalized_domain,
+            "selected_scenario": scenario_name,
+        }
+
+    scenario_file = str(chosen.get("file") or "").strip()
+    source_file = _resolve_test_case_source(file_name=scenario_file, domain=normalized_domain)
+
+    if source_file is None:
+        return {
+            "supported": True,
+            "loaded": False,
+            "message": f"Scenario source file not found: {scenario_file}",
+            "selected_domain": normalized_domain,
+            "selected_scenario": scenario_name,
+            "target_file": str(target_file),
+            "source_file": None,
+        }
+
+    if not target_file.exists():
+        return {
+            "supported": True,
+            "loaded": False,
+            "message": f"Active Silver target file not found: {target_file}",
+            "selected_domain": normalized_domain,
+            "selected_scenario": scenario_name,
+            "target_file": str(target_file),
+            "source_file": str(source_file),
+        }
+
+    shutil.copy2(source_file, target_file)
+    return {
+        "supported": True,
+        "loaded": True,
+        "message": "Scenario dataset loaded into active Silver file.",
+        "selected_domain": normalized_domain,
+        "selected_scenario": scenario_name,
+        "scenario_label": str(chosen.get("label") or scenario_name),
+        "source_file": str(source_file),
+        "target_file": str(target_file),
+    }
+
+
+def _restore_domain_baseline_to_silver(selected_domain: str) -> dict:
+    normalized_domain = _normalize_domain_name(selected_domain)
+    config = GOVERNANCE_TEST_CASES.get(normalized_domain)
+    if not config:
+        return {
+            "supported": False,
+            "restored": False,
+            "message": f"Domain '{normalized_domain}' is not configured for baseline restore.",
+            "selected_domain": normalized_domain,
+        }
+
+    baseline_file = str(config.get("baseline_file") or "").strip()
+    if not baseline_file:
+        return {
+            "supported": True,
+            "restored": False,
+            "message": f"No baseline_file is configured for domain '{normalized_domain}'.",
+            "selected_domain": normalized_domain,
+        }
+
+    source_file = _resolve_test_case_source(file_name=baseline_file, domain=normalized_domain)
+    target_file = DATA_ROOT / "Data" / "Silver-data" / str(config.get("silver_target") or "")
+
+    if source_file is None:
+        return {
+            "supported": True,
+            "restored": False,
+            "message": f"Baseline file not found: {baseline_file}",
+            "selected_domain": normalized_domain,
+            "source_file": None,
+            "target_file": str(target_file),
+        }
+
+    if not target_file.exists():
+        return {
+            "supported": True,
+            "restored": False,
+            "message": f"Active Silver target file not found: {target_file}",
+            "selected_domain": normalized_domain,
+            "source_file": str(source_file),
+            "target_file": str(target_file),
+        }
+
+    shutil.copy2(source_file, target_file)
+    return {
+        "supported": True,
+        "restored": True,
+        "message": "Baseline dataset restored into active Silver file.",
+        "selected_domain": normalized_domain,
+        "baseline_file": baseline_file,
+        "source_file": str(source_file),
+        "target_file": str(target_file),
+    }
+
+
+def _build_domain_before_after_comparison(selected_domain: str, selected_scenario: str, before: dict, after: dict) -> dict:
+    return {
+        "selected_scenario": selected_scenario,
+        "selected_domain": selected_domain,
+        "adgri_before": before.get("adgri"),
+        "adgri_after": after.get("adgri"),
+        "freshness_instability_before": before.get("freshness_instability"),
+        "freshness_instability_after": after.get("freshness_instability"),
+        "volume_instability_before": before.get("volume_instability"),
+        "volume_instability_after": after.get("volume_instability"),
+        "distribution_instability_before": before.get("distribution_instability"),
+        "distribution_instability_after": after.get("distribution_instability"),
+        "top_reason_before": before.get("top_reason"),
+        "top_reason_after": after.get("top_reason"),
+        "latest_evaluation_time_after": after.get("governance_evaluation_time"),
+        "latest_business_data_date_after": after.get("latest_business_data_date"),
+    }
 
 
 def _copy_governance_test_case_to_silver(test_case_name: str) -> dict:
@@ -1191,6 +1422,142 @@ def get_governance_test_case_options():
     }
 
 
+@app.get("/admin/governance-demo/options")
+def get_governance_demo_options(selected_domain: str = "sales_domain"):
+    normalized_domain = _normalize_domain_name(selected_domain or "sales_domain")
+    configured_domains = sorted([_normalize_domain_name(name) for name in GOVERNANCE_TEST_CASES.keys()])
+    scenarios = _governance_demo_scenarios(normalized_domain)
+    baseline_file = str((GOVERNANCE_TEST_CASES.get(normalized_domain) or {}).get("baseline_file") or "")
+    baseline_source = _resolve_test_case_source(file_name=baseline_file, domain=normalized_domain) if baseline_file else None
+
+    return {
+        "workflow": "professional_governance_demo_framework",
+        "selected_domain": normalized_domain,
+        "supported_domains": configured_domains,
+        "scenarios": scenarios,
+        "baseline": {
+            "file": baseline_file,
+            "exists": baseline_source is not None,
+            "source_path": str(baseline_source) if baseline_source is not None else None,
+        },
+        "message": "Run controlled governance scenarios and restore baseline to demonstrate ADGRI behavior across governance factors.",
+    }
+
+
+@app.post("/admin/governance-demo/run-scenario")
+def admin_run_governance_demo_scenario(payload: dict = Body(default={})):
+    session_id = str(payload.get("session_id") or "admin-governance-demo-run").strip() or "admin-governance-demo-run"
+    user_id = str(payload.get("user_id") or "admin").strip() or "admin"
+    auth_token = str(payload.get("auth_token") or "").strip()
+    auth_username = str(payload.get("auth_username") or "").strip()
+    auth_password = str(payload.get("auth_password") or "").strip()
+    selected_domain = _normalize_domain_name(payload.get("selected_domain") or "sales_domain")
+    selected_scenario = str(payload.get("selected_scenario") or "").strip()
+
+    if not _is_rerun_authorized(session_id, user_id, auth_token, auth_username, auth_password):
+        raise HTTPException(status_code=403, detail="Admin authorization failed for governance demo scenario run.")
+    if not selected_scenario:
+        raise HTTPException(status_code=400, detail="selected_scenario is required.")
+
+    domain_before = _domain_governance_snapshot(selected_domain)
+    load_result = _copy_named_demo_scenario_to_silver(selected_domain, selected_scenario)
+    if not load_result.get("supported"):
+        raise HTTPException(status_code=400, detail=load_result.get("message") or "Unsupported domain.")
+    if not load_result.get("loaded"):
+        raise HTTPException(status_code=400, detail=load_result.get("message") or "Unable to load selected scenario dataset.")
+
+    rerun_start = _trigger_pipeline_rerun()
+    if rerun_start.get("status") == "already_running":
+        raise HTTPException(status_code=409, detail="Pipeline rerun is already running. Try again once it completes.")
+
+    rerun_state = _wait_for_rerun_completion(str(rerun_start.get("job_id") or ""), timeout_seconds=600)
+    rerun_summary = rerun_state.get("summary") if isinstance(rerun_state, dict) else None
+    pipeline_rerun_succeeded = bool(
+        str(rerun_state.get("status") or "").lower() == "completed"
+        and isinstance(rerun_summary, dict)
+        and str(rerun_summary.get("status") or "").upper() == "SUCCESS"
+    )
+
+    domain_after = _domain_governance_snapshot(selected_domain)
+    comparison = _build_domain_before_after_comparison(selected_domain, selected_scenario, domain_before, domain_after)
+
+    return {
+        "workflow": "professional_governance_demo_framework",
+        "action": "run_scenario",
+        "executed_at": datetime.now().isoformat(timespec="seconds"),
+        "selected_domain": selected_domain,
+        "selected_scenario": selected_scenario,
+        "scenario_load": load_result,
+        "comparison": comparison,
+        "pipeline_validation": {
+            "rerun_succeeded": pipeline_rerun_succeeded,
+            "final_status": rerun_state.get("status"),
+            "summary": rerun_summary,
+            "error": rerun_state.get("error"),
+            "latest_evaluation_time": domain_after.get("governance_evaluation_time"),
+            "latest_business_data_date": domain_after.get("latest_business_data_date"),
+        },
+    }
+
+
+@app.post("/admin/governance-demo/restore-baseline-rerun")
+def admin_restore_governance_demo_baseline(payload: dict = Body(default={})):
+    session_id = str(payload.get("session_id") or "admin-governance-demo-restore").strip() or "admin-governance-demo-restore"
+    user_id = str(payload.get("user_id") or "admin").strip() or "admin"
+    auth_token = str(payload.get("auth_token") or "").strip()
+    auth_username = str(payload.get("auth_username") or "").strip()
+    auth_password = str(payload.get("auth_password") or "").strip()
+    selected_domain = _normalize_domain_name(payload.get("selected_domain") or "sales_domain")
+
+    if not _is_rerun_authorized(session_id, user_id, auth_token, auth_username, auth_password):
+        raise HTTPException(status_code=403, detail="Admin authorization failed for baseline restore workflow.")
+
+    domain_before = _domain_governance_snapshot(selected_domain)
+    restore_result = _restore_domain_baseline_to_silver(selected_domain)
+    if not restore_result.get("supported"):
+        raise HTTPException(status_code=400, detail=restore_result.get("message") or "Unsupported domain.")
+    if not restore_result.get("restored"):
+        raise HTTPException(status_code=400, detail=restore_result.get("message") or "Unable to restore baseline dataset.")
+
+    rerun_start = _trigger_pipeline_rerun()
+    if rerun_start.get("status") == "already_running":
+        raise HTTPException(status_code=409, detail="Pipeline rerun is already running. Try again once it completes.")
+
+    rerun_state = _wait_for_rerun_completion(str(rerun_start.get("job_id") or ""), timeout_seconds=600)
+    rerun_summary = rerun_state.get("summary") if isinstance(rerun_state, dict) else None
+    pipeline_rerun_succeeded = bool(
+        str(rerun_state.get("status") or "").lower() == "completed"
+        and isinstance(rerun_summary, dict)
+        and str(rerun_summary.get("status") or "").upper() == "SUCCESS"
+    )
+
+    domain_after = _domain_governance_snapshot(selected_domain)
+    comparison = _build_domain_before_after_comparison(
+        selected_domain=selected_domain,
+        selected_scenario="sales_baseline",
+        before=domain_before,
+        after=domain_after,
+    )
+
+    return {
+        "workflow": "professional_governance_demo_framework",
+        "action": "restore_baseline",
+        "executed_at": datetime.now().isoformat(timespec="seconds"),
+        "selected_domain": selected_domain,
+        "selected_scenario": "sales_baseline",
+        "baseline_restore": restore_result,
+        "comparison": comparison,
+        "pipeline_validation": {
+            "rerun_succeeded": pipeline_rerun_succeeded,
+            "final_status": rerun_state.get("status"),
+            "summary": rerun_summary,
+            "error": rerun_state.get("error"),
+            "latest_evaluation_time": domain_after.get("governance_evaluation_time"),
+            "latest_business_data_date": domain_after.get("latest_business_data_date"),
+        },
+    }
+
+
 @app.post("/admin/governance-test-cases/load-and-rerun")
 def admin_load_governance_test_case_and_rerun(payload: dict = Body(default={})):
     session_id = str(payload.get("session_id") or "admin-governance-evaluation").strip() or "admin-governance-evaluation"
@@ -1479,4 +1846,76 @@ def admin_rebase_silver_rerun_governance(payload: dict = Body(default={})):
             "top_reason_before": domain_governance_before.get("top_reason"),
             "top_reason_after": domain_governance_after.get("top_reason"),
         },
+    }
+
+
+@app.post("/admin/governance/apply-valid-corrections-rerun")
+def admin_apply_valid_corrections_and_rerun(payload: dict = Body(default={})):
+    session_id = str(payload.get("session_id") or "admin-governance-correction").strip() or "admin-governance-correction"
+    user_id = str(payload.get("user_id") or "admin").strip() or "admin"
+    auth_token = str(payload.get("auth_token") or "").strip()
+    auth_username = str(payload.get("auth_username") or "").strip()
+    auth_password = str(payload.get("auth_password") or "").strip()
+
+    if not _is_rerun_authorized(session_id, user_id, auth_token, auth_username, auth_password):
+        raise HTTPException(status_code=403, detail="Admin authorization failed for governance correction workflow.")
+
+    target_domains = ["sales_domain", "product_domain", "users_domain"]
+    before_by_domain = {domain: _domain_governance_snapshot(domain) for domain in target_domains}
+
+    correction_actions = [correct_sales(), correct_product(), correct_users()]
+
+    rerun_start = _trigger_pipeline_rerun()
+    if rerun_start.get("status") == "already_running":
+        raise HTTPException(status_code=409, detail="Pipeline rerun is already running. Try again once it completes.")
+
+    rerun_state = _wait_for_rerun_completion(str(rerun_start.get("job_id") or ""), timeout_seconds=600)
+    rerun_summary = rerun_state.get("summary") if isinstance(rerun_state, dict) else None
+    pipeline_rerun_succeeded = bool(
+        str(rerun_state.get("status") or "").lower() == "completed"
+        and isinstance(rerun_summary, dict)
+        and str(rerun_summary.get("status") or "").upper() == "SUCCESS"
+    )
+
+    after_by_domain = {domain: _domain_governance_snapshot(domain) for domain in target_domains}
+
+    domain_comparison = []
+    for domain in target_domains:
+        before = before_by_domain.get(domain) or {}
+        after = after_by_domain.get(domain) or {}
+        domain_comparison.append(
+            {
+                "domain": domain,
+                "adgri_before": before.get("adgri"),
+                "adgri_after": after.get("adgri"),
+                "freshness_instability_before": before.get("freshness_instability"),
+                "freshness_instability_after": after.get("freshness_instability"),
+                "distribution_instability_before": before.get("distribution_instability"),
+                "distribution_instability_after": after.get("distribution_instability"),
+                "volume_instability_before": before.get("volume_instability"),
+                "volume_instability_after": after.get("volume_instability"),
+                "top_reason_before": before.get("top_reason"),
+                "top_reason_after": after.get("top_reason"),
+                "low_score_reason_before": before.get("low_score_reason_label"),
+                "low_score_reason_after": after.get("low_score_reason_label"),
+                "note": next(
+                    (item.get("note") for item in correction_actions if _normalize_domain_name(item.get("domain", "")) == domain),
+                    None,
+                ),
+            }
+        )
+
+    return {
+        "workflow": "apply_valid_silver_corrections_then_rerun",
+        "executed_at": datetime.now().isoformat(timespec="seconds"),
+        "message": "Applied valid Silver data corrections (freshness/distribution), reran pipeline, and refreshed governance outputs.",
+        "corrections": correction_actions,
+        "pipeline_rerun": {
+            "trigger": rerun_start,
+            "final_status": rerun_state.get("status"),
+            "succeeded": pipeline_rerun_succeeded,
+            "summary": rerun_summary,
+            "error": rerun_state.get("error"),
+        },
+        "domains": domain_comparison,
     }

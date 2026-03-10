@@ -227,6 +227,14 @@ class GovernanceIntelligenceEngine:
             + (weights["distribution"] * distribution_metric.confidence)
         )
 
+        low_score_reason_label = self._low_score_reason_label(
+            adgri_score=adgri_score,
+            freshness_risk=freshness_metric.risk,
+            distribution_risk=distribution_metric.risk,
+            volume_risk=volume_metric.risk,
+            latest_business_data_date=distribution_payload.get("latest_business_data_date"),
+        )
+
         return {
             "index_name": "Adaptive Domain Governance Reliability Index (ADGRI)",
             "formula": {
@@ -263,6 +271,7 @@ class GovernanceIntelligenceEngine:
                     "score_impact": round(float(contributions["distribution"] * 100.0), 4),
                 },
             },
+            "low_score_reason_label": low_score_reason_label,
             "top_reason": self._top_reason_text(top_factor),
             "explanation": self._explanation_text(contributions),
             "confidence": {
@@ -735,6 +744,42 @@ class GovernanceIntelligenceEngine:
             "distribution": "Distribution instability contributed most to ADGRI degradation.",
         }
         return mapping.get(top_factor, "Multiple factors contributed to ADGRI degradation.")
+
+    def _low_score_reason_label(
+        self,
+        adgri_score: float,
+        freshness_risk: float,
+        distribution_risk: float,
+        volume_risk: float,
+        latest_business_data_date: str | None,
+    ) -> str:
+        if float(adgri_score) >= 80.0:
+            return "Healthy score"
+
+        stale_date_likely = False
+        if latest_business_data_date:
+            parsed = pd.to_datetime(latest_business_data_date, errors="coerce")
+            if pd.notna(parsed):
+                lag_days = max(0.0, (datetime.now() - pd.Timestamp(parsed).to_pydatetime()).total_seconds() / 86400.0)
+                stale_date_likely = lag_days > 30.0
+
+        high_freshness = float(freshness_risk) >= 0.7
+        high_distribution = float(distribution_risk) >= 0.7
+        elevated_freshness = float(freshness_risk) >= 0.35
+        elevated_distribution = float(distribution_risk) >= 0.35
+        elevated_volume = float(volume_risk) >= 0.35
+
+        if stale_date_likely and (elevated_freshness or high_freshness) and (elevated_distribution or high_distribution):
+            return "Low due to combined freshness + distribution instability"
+        if stale_date_likely and (elevated_freshness or high_freshness):
+            return "Low due to stale business dates"
+        if high_distribution or elevated_distribution:
+            return "Low due to abnormal value distribution"
+        if elevated_freshness:
+            return "Low due to freshness instability"
+        if elevated_volume:
+            return "Low due to volume instability"
+        return "Low due to combined risk signals"
 
     def _explanation_text(self, contributions: dict[str, float]) -> str:
         ordered = sorted(contributions.items(), key=lambda item: item[1], reverse=True)

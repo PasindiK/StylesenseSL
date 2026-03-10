@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-03-10T02:26:43",
+  "results": [
+    {
+      "domain": "sales_domain",
+      "updated": true,
+      "file": "/Users/nandunmadawa/Desktop/DATAMESHSTYLESENSESL/backend/src/services/data_mesh/data/Data/Silver-data/transactions_clean.csv",
+      "latest_day_rows_normalized": 6,
+      "date_shift_days": 0,
+      "note": "Shifted transaction dates to current period and normalized latest-day monetary fields to baseline medians."
+    },
+    {
+      "domain": "product_domain",
+      "updated": true,
+      "file": "/Users/nandunmadawa/Desktop/DATAMESHSTYLESENSESL/backend/src/services/data_mesh/data/Data/Silver-data/products_clean.csv",
+      "created_ts_distinct_days_after": 120,
+      "note": "Rebuilt created_ts to recent multi-day history and aligned latest-day product numeric profile to baseline medians."
+    },
+    {
+      "domain": "users_domain",
+      "updated": true,
+      "file": "/Users/nandunmadawa/Desktop/DATAMESHSTYLESENSESL/backend/src/services/data_mesh/data/Data/Silver-data/users_clean.csv",
+      "signup_ts_distinct_days_after": 60,
+      "latest_day_rows": 9,
+      "latest_day_active_rate": 0.7777777777777778,
+      "note": "Shifted signup dates to recent history and aligned latest-day active-user ratio with baseline behavior."
+    }
+  ]
+}
