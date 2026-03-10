@@ -34,6 +34,8 @@ class ConversationMemory:
                 'result_cache': {},
                 'last_search_results': [],
                 'last_query': None,
+                'awaiting_styling_tips': False,
+                'last_recommendation_context': {},
             }
         
         session = self.sessions[user_id]
@@ -48,6 +50,8 @@ class ConversationMemory:
                 'result_cache': {},
                 'last_search_results': [],
                 'last_query': None,
+                'awaiting_styling_tips': False,
+                'last_recommendation_context': {},
             }
             session = self.sessions[user_id]
         else:
@@ -166,6 +170,49 @@ class ConversationMemory:
         if user_id in self.sessions:
             del self.sessions[user_id]
             logger.info(f"[MEMORY] Cleared session for {user_id}")
+
+    def set_styling_tips_offer(
+        self,
+        user_id: str,
+        awaiting: bool,
+        recommendation_context: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Store whether user was offered styling tips and related context."""
+        session = self.get_or_create_session(user_id)
+        session['awaiting_styling_tips'] = bool(awaiting)
+        if recommendation_context is not None:
+            session['last_recommendation_context'] = recommendation_context
+
+    def get_last_recommendation_context(self, user_id: str) -> Dict[str, Any]:
+        """Get context associated with the latest recommendation response."""
+        session = self.get_or_create_session(user_id)
+        return session.get('last_recommendation_context', {}) or {}
+
+    def should_generate_styling_tips(self, user_id: str, text: str) -> bool:
+        """Return True when user confirms styling tips after an offer."""
+        session = self.get_or_create_session(user_id)
+        if not session.get('awaiting_styling_tips'):
+            return False
+
+        normalized = (text or '').strip().lower()
+        if not normalized:
+            return False
+
+        affirmative_phrases = {
+            'yes',
+            'yes styling tips',
+            'styling tips',
+            'give styling tips',
+            'sure',
+            'ok',
+            'okay',
+            'please',
+        }
+        return (
+            normalized in affirmative_phrases
+            or ('yes' in normalized and 'style' in normalized)
+            or ('tips' in normalized and 'style' in normalized)
+        )
 
 
 # Global instance

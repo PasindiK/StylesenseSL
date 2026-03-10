@@ -88,6 +88,10 @@ export default function App() {
   const [cartItemCount, setCartItemCount] = useState(0)
   const [agenticInitialSection, setAgenticInitialSection] = useState<'chat' | 'order_assistant'>('chat')
   const [orderAssistantCheckoutRequest, setOrderAssistantCheckoutRequest] = useState<OrderAssistantCheckoutRequest | null>(null)
+  const [queryFeedbackByMessage, setQueryFeedbackByMessage] = useState<Record<string, 'yes' | 'no' | 'skip'>>({})
+  const [mandatoryFeedbackByMessage, setMandatoryFeedbackByMessage] = useState<Record<string, boolean>>({})
+  const [pendingMandatoryFeedbackMessageId, setPendingMandatoryFeedbackMessageId] = useState<string | null>(null)
+  const recommendationFeedbackPromptCountRef = useRef(0)
 
   // Message list ref
   const listRef = useRef<HTMLDivElement | null>(null)
@@ -196,6 +200,8 @@ export default function App() {
       color: item?.selected_color ? String(item.selected_color) : undefined,
       name: item?.name ? String(item.name) : undefined,
     })
+    // Always route into the Agentic AI surface before opening Order Assistant.
+    setShowLanding(false)
     setShowCart(false)
     setSelectedComponent('agentic_ai')
     setAgenticInitialSection('order_assistant')
@@ -373,23 +379,30 @@ export default function App() {
     setMessages((s) => [...s, m])
     // scroll to bottom after render
     setTimeout(() => listRef.current?.scrollTo({ top: 99999, behavior: 'smooth' }), 50)
+    return m.id
   }
 
   // Add product from recommendation card to cart
-  async function handleAddProductToCart(url: string, selectedSize?: string) {
+  async function handleAddProductToCart(url: string, selectedSize?: string, queryId?: string) {
     try {
       console.log('[CART] Adding product from recommendation:', url, 'Size:', selectedSize)
       const res = await fetch(`${API_BASE}/cart/add`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, quantity: 1, size: selectedSize })
+        body: JSON.stringify({
+          url,
+          quantity: 1,
+          size: selectedSize,
+          user_id: userId,
+          query_id: queryId,
+        })
       })
       
       if (res.ok) {
         const data = await res.json()
         console.log('[CART] Product added successfully:', data)
-        // Refresh cart
-        fetchCart()
+        // Refresh cart first so the newly added item is visible immediately.
+        await fetchCart()
         // Auto-open cart panel
         setShowCart(true)
         // Show success message
@@ -447,7 +460,24 @@ export default function App() {
         console.error('[ERROR] No message in payload:', payload)
         appendMessage('ai', "I'm having trouble generating a response. Please try rephrasing your query.")
       } else {
-        appendMessage('ai', responseMessage, { response: payload })
+        const aiMessageId = appendMessage('ai', responseMessage, { response: payload })
+        const hasRecommendationPayload = Boolean(
+          String(payload?.query_id || '').trim() && (
+            (Array.isArray(payload?.best_matches) && payload.best_matches.length > 0) ||
+            (Array.isArray(payload?.new_suggestions) && payload.new_suggestions.length > 0) ||
+            (Array.isArray(payload?.results) && payload.results.length > 0) ||
+            payload?.intent === 'product_search' ||
+            payload?.intent === 'multi_task'
+          )
+        )
+        if (hasRecommendationPayload) {
+          recommendationFeedbackPromptCountRef.current += 1
+          const isMandatory = recommendationFeedbackPromptCountRef.current >= 3
+          setMandatoryFeedbackByMessage((prev) => ({ ...prev, [aiMessageId]: isMandatory }))
+          if (isMandatory) {
+            setPendingMandatoryFeedbackMessageId(aiMessageId)
+          }
+        }
       }
 
       setMeta({ mode: 'answer', request: q, response: payload })
@@ -469,6 +499,61 @@ export default function App() {
     }
   }
 
+  async function submitQueryFeedback(message: Message, responsePayload: any, feedbackType: 'yes' | 'no' | 'skip') {
+    const queryId = String(responsePayload?.query_id || '').trim()
+    if (!queryId) {
+      appendMessage('system', 'Unable to save feedback: query id is missing for this response.')
+      return
+    }
+
+    try {
+      const isMandatory = !!mandatoryFeedbackByMessage[message.id]
+      if (isMandatory && feedbackType === 'skip') {
+        appendMessage('system', 'From the 3rd recommendation onward, please choose Yes or No.')
+        return
+      }
+
+      const recommendationCount = [
+        ...(Array.isArray(responsePayload?.best_matches) ? responsePayload.best_matches : []),
+        ...(Array.isArray(responsePayload?.new_suggestions) ? responsePayload.new_suggestions : []),
+        ...(Array.isArray(responsePayload?.results) ? responsePayload.results : []),
+      ].length
+
+      const structured = responsePayload?.structured_query || {}
+      const body = {
+        query_id: queryId,
+        user_id: userId || 'anonymous',
+        query_text: String(responsePayload?.query_text || responsePayload?.request_text || ''),
+        detected_intent: String(responsePayload?.detected_intent || responsePayload?.intent || 'unknown'),
+        feedback_type: feedbackType,
+        recommendation_count: recommendationCount,
+        model_route: String(responsePayload?.model_route || responsePayload?.intent_method || ''),
+        structured_style: String(structured?.style || ''),
+        structured_event: String(structured?.event || ''),
+        structured_budget: String(structured?.budget || ''),
+      }
+
+      const res = await fetch(`${API_BASE}/query-feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+        body: JSON.stringify(body),
+      })
+
+      if (!res.ok) {
+        const errText = await res.text()
+        appendMessage('system', `Failed to save feedback: ${errText}`)
+        return
+      }
+
+      setQueryFeedbackByMessage((prev) => ({ ...prev, [message.id]: feedbackType }))
+      if (isMandatory && (feedbackType === 'yes' || feedbackType === 'no')) {
+        setPendingMandatoryFeedbackMessageId((prev) => (prev === message.id ? null : prev))
+      }
+    } catch (error) {
+      appendMessage('system', `Failed to save feedback: ${String(error)}`)
+    }
+  }
+
   function handleClarificationChoice(intent: string, originalQuery?: string) {
     const clarifyText = originalQuery
       ? `I meant ${intent}. Original request: ${originalQuery}`
@@ -480,6 +565,10 @@ export default function App() {
   // Uses the Vite dev proxy: calls are made to `/api/...` which the dev server proxies to the FastAPI backend.
   async function handleSubmit(e?: React.FormEvent) {
     e?.preventDefault()
+    if (pendingMandatoryFeedbackMessageId && !queryFeedbackByMessage[pendingMandatoryFeedbackMessageId]) {
+      appendMessage('system', 'Please rate the latest recommendations with Yes or No before sending a new message.')
+      return
+    }
     submitQuery(text)
   }
 
@@ -606,6 +695,9 @@ export default function App() {
                      messageMeta.response.intent === 'multi_task' ||
                      messageMeta.response.best_matches?.length > 0 ||
                      messageMeta.response.new_suggestions?.length > 0)
+                  const hasQueryFeedbackPrompt = showProducts && !!String(messageMeta?.response?.query_id || '').trim()
+                  const selectedFeedback = queryFeedbackByMessage[m.id]
+                  const isMandatoryFeedback = !!mandatoryFeedbackByMessage[m.id]
                   
                   return (
                     <React.Fragment key={m.id}>
@@ -644,7 +736,7 @@ export default function App() {
                                     product={{ 
                                       ...p, 
                                       id: p.product_id || p.id || `best-${pIdx}`,
-                                      onAddToCart: handleAddProductToCart
+                                      onAddToCart: (url: string, size?: string) => handleAddProductToCart(url, size, messageMeta.response.query_id)
                                     }} 
                                     showScore={false} 
                                   />
@@ -654,7 +746,7 @@ export default function App() {
                           )}
                           {messageMeta.response.new_suggestions && messageMeta.response.new_suggestions.length > 0 && (
                             <>
-                              <h3 className="products-title">New Suggestions</h3>
+                              <h3 className="products-title">New Recommendations</h3>
                               <div className="product-grid">
                                 {messageMeta.response.new_suggestions.map((p: any, pIdx: number) => (
                                   <ProductCard 
@@ -662,7 +754,7 @@ export default function App() {
                                     product={{ 
                                       ...p, 
                                       id: p.product_id || p.id || `new-${pIdx}`,
-                                      onAddToCart: handleAddProductToCart
+                                      onAddToCart: (url: string, size?: string) => handleAddProductToCart(url, size, messageMeta.response.query_id)
                                     }} 
                                     showScore={false} 
                                   />
@@ -678,10 +770,51 @@ export default function App() {
                                   product={{ 
                                     ...p,
                                     id: p.product_id || p.id || `result-${pIdx}`,
-                                    onAddToCart: handleAddProductToCart
+                                    onAddToCart: (url: string, size?: string) => handleAddProductToCart(url, size, messageMeta.response.query_id)
                                   }} 
                                 />
                               ))}
+                            </div>
+                          )}
+
+                          {hasQueryFeedbackPrompt && !selectedFeedback && (
+                            <div style={{ marginTop: 10, padding: '10px 12px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc' }}>
+                              <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>
+                                Did these recommendations match your request?
+                              </div>
+                              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                {[
+                                  { key: 'yes' as const, label: '👍 Yes' },
+                                  { key: 'no' as const, label: '👎 No' },
+                                  ...(!isMandatoryFeedback ? [{ key: 'skip' as const, label: 'Skip' }] : []),
+                                ].map((item) => {
+                                  const active = selectedFeedback === item.key
+                                  return (
+                                    <button
+                                      key={`${m.id}-feedback-${item.key}`}
+                                      type="button"
+                                      onClick={() => submitQueryFeedback(m, messageMeta.response, item.key)}
+                                      style={{
+                                        borderRadius: 8,
+                                        border: active ? '1px solid #2563eb' : '1px solid #cbd5e1',
+                                        background: active ? '#dbeafe' : '#ffffff',
+                                        color: active ? '#1e3a8a' : '#0f172a',
+                                        fontSize: 12,
+                                        fontWeight: 700,
+                                        padding: '6px 10px',
+                                        cursor: 'pointer',
+                                      }}
+                                    >
+                                      {item.label}
+                                    </button>
+                                  )
+                                })}
+                              </div>
+                              {isMandatoryFeedback && (
+                                <div style={{ marginTop: 8, fontSize: 11, color: '#b45309' }}>
+                                  Rating is required for this recommendation response.
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>

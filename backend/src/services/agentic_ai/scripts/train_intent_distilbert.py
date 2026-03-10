@@ -41,7 +41,7 @@ def stratified_split(df: pd.DataFrame, test_size: float = 0.2, seed: int = 42) -
     train_idx = []
     val_idx = []
     for label, grp in df.groupby("label"):
-        idx = grp.index.to_numpy()
+        idx = np.array(grp.index.to_numpy(), copy=True)
         rng.shuffle(idx)
         cut = max(1, int(len(idx) * (1 - test_size)))
         train_idx.extend(idx[:cut])

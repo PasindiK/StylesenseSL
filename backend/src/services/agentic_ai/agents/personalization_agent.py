@@ -35,6 +35,12 @@ class PersonalizationAgent:
             return []
         return [str(v).strip().lower() for v in values if v is not None and str(v).strip()]
 
+    @staticmethod
+    def _normalized_str_set(values: Any) -> set:
+        if not values or not isinstance(values, list):
+            return set()
+        return {str(v).strip().lower() for v in values if v is not None and str(v).strip()}
+
     def rerank(
         self,
         user_id: Optional[str],
@@ -78,21 +84,24 @@ class PersonalizationAgent:
                 if prefs.get("top_categories"):
                     pref_categories = self._normalized_lower_list(prefs.get("top_categories"))
                     if self._to_lower_str(c.get("category")) in pref_categories:
-                        personalization += 0.4
+                        personalization += 0.45
                         why.append(f"Matches your favorite {c.get('category')} style")
                 if prefs.get("top_colors"):
                     pref_colors = self._normalized_lower_list(prefs.get("top_colors"))
                     if self._to_lower_str(c.get("color")) in pref_colors:
-                        personalization += 0.3
+                        personalization += 0.30
                         why.append(f"One of your preferred colors")
-                if prefs.get("preferred_shops") and str(c.get("shop_id")) in prefs["preferred_shops"]:
-                    personalization += 0.2
-                    why.append("From a shop you love")
+                preferred_shops = self._normalized_str_set(prefs.get("preferred_shops"))
+                candidate_shop_id = self._to_lower_str(c.get("shop_id"))
+                candidate_shop_name = self._to_lower_str(c.get("_shop_name") or c.get("shop_name") or c.get("shop"))
+                if preferred_shops and (candidate_shop_id in preferred_shops or candidate_shop_name in preferred_shops):
+                    personalization += 0.20
+                    why.append("From one of your preferred shops")
                 if prefs.get("style_tag_frequency"):
                     tags = set(str(t).lower() for t in (c.get("normalized_style_tags") or c.get("style_tags") or []))
                     pref_tags = set(str(t).lower() for t in prefs["style_tag_frequency"].keys())
                     if tags & pref_tags:
-                        personalization += 0.1
+                        personalization += 0.15
                         why.append("Matches your style preferences")
             personalization = min(personalization, 1.0)
 
@@ -103,8 +112,6 @@ class PersonalizationAgent:
                 if budget > 0:
                     # Normalize inverse distance: within budget gets 1.0, else decays
                     price_score = 1.0 if price <= budget else max(0.0, 1.0 - (price - budget) / max(budget, 1.0))
-                    if price <= budget:
-                        why.append(f"Great price - within your LKR {budget:,.0f} budget")
             except Exception:
                 price_score = 0.0
 
@@ -122,7 +129,8 @@ class PersonalizationAgent:
                 graph_score = float(graph_scores[product_id].get("graph_score", 0.0))
                 why.extend(graph_scores[product_id].get("graph_reasons", []))
 
-            final = 0.32 * intent_score + 0.25 * personalization + 0.18 * price_score + 0.10 * poprec + 0.15 * graph_score
+            # Prioritize user profile and KG connectivity so top picks follow user preference history.
+            final = 0.26 * intent_score + 0.34 * personalization + 0.12 * price_score + 0.08 * poprec + 0.20 * graph_score
             # Ensure at least one reason
             if not why:
                 why = ["Recommended for you"]
@@ -257,62 +265,49 @@ class PersonalizationAgent:
         new_suggestions: List[Dict[str, Any]],
         user_name: Optional[str] = None,
     ) -> str:
-        """Generate a natural, conversational response message."""
-        # Use proper greeting with name
-        greeting = f"Hey, {user_name}!" if user_name else "Hey!"
-        
-        # Check if we have any products at all
-        has_products = (best_matches and len(best_matches) > 0) or (new_suggestions and len(new_suggestions) > 0)
-        
-        if not has_products:
+        """Generate a user-friendly response while keeping telemetry out of chat text."""
+        greeting = f"Hey {user_name}!" if user_name else "Hey!"
+
+        all_products = (best_matches or []) + (new_suggestions or [])
+        if not all_products:
             if intent and intent.get("category"):
-                return f"{greeting} I couldn't find exact matches for {intent.get('category', 'that')} right now. Could you tell me your preferred color, size, or budget?"
-            return f"{greeting} I couldn't find exact matches yet. Could you tell me your preferred style, color, size, or budget?"
+                return (
+                    f"{greeting}\n"
+                    f"I couldn't find exact matches for {intent.get('category', 'that')} right now. "
+                    "Could you share your preferred color, size, or budget?"
+                )
+            return (
+                f"{greeting}\n"
+                "I couldn't find exact matches yet. Could you share your preferred style, color, size, or budget?"
+            )
 
-        prefs = self.user_agent.get_preferences(user_id) if user_id else None
-        
-        # Build natural intro based on intent and context
-        parts = [greeting]
-        
-        if intent:
-            cat = intent.get("category", "")
-            color = intent.get("color", "")
-            budget = intent.get("max_price")
-            shop = intent.get("shop_name", "")
-            
-            # Dynamic response based on what filters are present
-            if cat and color and budget:
-                parts.append(f"I found some amazing {color.lower()} {cat.lower()} under LKR {budget:,.0f} that match your style perfectly.")
-            elif cat and budget:
-                parts.append(f"Great! Here are the best {cat.lower()} items within LKR {budget:,.0f}.")
-            elif cat and color:
-                parts.append(f"Perfect! These {color.lower()} {cat.lower()} items are just what you need.")
-            elif cat and shop:
-                parts.append(f"Here are the top {cat.lower()} items from {shop}.")
-            elif cat:
-                parts.append(f"I've picked the top {cat.lower()} items for you.")
-            elif color:
-                parts.append(f"Check out these stylish {color.lower()} pieces!")
-            else:
-                parts.append("I found some amazing pieces just for you.")
-        else:
-            parts.append("I found some amazing pieces just for you.")
+        style = self._to_lower_str((intent or {}).get("style"))
+        occasion = self._to_lower_str((intent or {}).get("occasion"))
+        category = self._to_lower_str((intent or {}).get("category"))
+        color = self._to_lower_str((intent or {}).get("color"))
 
-        # Add personalization insight if available
-        if prefs and prefs.get("top_categories") and len(best_matches) > 0:
-            top_cat = prefs['top_categories'][0]
-            top_cat_text = self._to_lower_str(top_cat)
-            if top_cat_text:
-                parts.append(f"These are curated based on your love for {top_cat_text}.")
-            else:
-                parts.append("These are curated based on your recent preferences.")
-        elif len(best_matches) > 0:
-            parts.append("These are curated based on what matches your profile best.")
+        intro_bits = []
+        if color:
+            intro_bits.append(color)
+        if category:
+            intro_bits.append(category)
+        subject = " ".join(intro_bits) if intro_bits else "pieces"
 
-        parts.append("\n\n**Here are your top picks:**")
-        
-        # Add suggestion section if present
-        if new_suggestions and len(new_suggestions) > 0:
-            parts.append("\n\n**Fresh alternatives that might surprise you:**")
+        context_bits = []
+        if occasion:
+            article = "an" if occasion[:1] in {"a", "e", "i", "o", "u"} else "a"
+            context_bits.append(f"for {article} {occasion} setting")
+        if style:
+            context_bits.append(f"with a {style} vibe")
+        context_text = " ".join(context_bits).strip()
 
-        return " ".join(parts)
+        lines = [
+            greeting,
+            (
+                f"I found some stylish {subject} that fit well {context_text}."
+                if context_text else f"I found some stylish {subject} you may like."
+            ),
+            "Your top picks are shown in the product cards.",
+            "These were selected because they align with your requested style and your recent preference patterns.",
+        ]
+        return "\n".join(lines).strip()

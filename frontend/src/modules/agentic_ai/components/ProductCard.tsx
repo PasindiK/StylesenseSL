@@ -6,6 +6,8 @@ export type Product = {
   price_LKR?: number
   personalization_score?: number
   why?: string[]
+  available_sizes?: string[]
+  size_stock?: Record<string, number>
   product_url?: string
   _shop_name?: string
   size_range?: string
@@ -23,14 +25,13 @@ export default function ProductCard({ product, showScore = false }: { product: P
   const [selectedSize, setSelectedSize] = useState<string>('')
   
   const price = product.price_LKR !== undefined ? `LKR ${product.price_LKR.toLocaleString()}` : '—'
-  const score = product.personalization_score !== undefined ? `${Math.round(product.personalization_score * 100)}%` : '—'
-  const scoreNum = product.personalization_score ?? 0
-  const scoreClass = scoreNum >= 0.75 ? 'badge green' : scoreNum >= 0.5 ? 'badge orange' : 'badge'
   
-  // Parse size_range into array (e.g., "XS, S, M, L, XL" -> ["XS", "S", "M", "L", "XL"])
-  const sizes = product.size_range 
-    ? product.size_range.split(',').map(s => s.trim()).filter(s => s)
-    : []
+  // Prefer stock-aware available_sizes from backend, fallback to size_range.
+  const sizes = Array.isArray(product.available_sizes) && product.available_sizes.length > 0
+    ? product.available_sizes
+    : (product.size_range
+      ? product.size_range.split(',').map(s => s.trim()).filter(s => s)
+      : [])
   
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -52,7 +53,7 @@ export default function ProductCard({ product, showScore = false }: { product: P
       <div className="pc-price">{price}</div>
       {product._shop_name && <div className="pc-shop">From: {product._shop_name}</div>}
       {product.color && <div className="pc-color">Color: <span style={{ fontWeight: 500 }}>{product.color}</span></div>}
-      {product.size_range && <div className="pc-sizes">Sizes: {product.size_range}</div>}
+      {sizes.length > 0 && <div className="pc-sizes">Sizes: {sizes.join(', ')}</div>}
 
       {product.why && product.why.length > 0 && (
         <ul className="pc-why">
@@ -62,19 +63,7 @@ export default function ProductCard({ product, showScore = false }: { product: P
         </ul>
       )}
       
-      {/* Show match score only if explicitly enabled AND above 40% threshold */}
-      {product._show_match_score && product._match_score_percent !== null && product._match_score_percent !== undefined && (
-        <div className="pc-score-section">
-          <div>Match Score: <strong className={product._match_score_percent >= 75 ? 'badge green' : product._match_score_percent >= 50 ? 'badge orange' : 'badge'}>{product._match_score_percent}%</strong></div>
-        </div>
-      )}
-      
-      {/* Fallback to personalization score if requested via showScore */}
-      {!product._show_match_score && showScore && product.personalization_score !== undefined && (
-        <div className="pc-score-section">
-          <div>Match Score: <strong className={scoreClass}>{score}</strong></div>
-        </div>
-      )}
+      {/* Match scores are intentionally hidden from card UI. */}
       
       {/* Add to Cart overlay on hover */}
       {isHovering && product.product_url && product.onAddToCart && (
