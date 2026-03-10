@@ -1999,15 +1999,8 @@ def _build_pipeline_flow(layer_stats: Dict[str, Dict[str, Any]], pending_alerts:
 
     silver_success = _safe_success(silver_records, bronze_records)
     gold_success = _safe_success(gold_records, silver_records)
-    kafka_failures = pending_alerts
 
     return [
-        {
-            "stage": "Kafka",
-            "records_processed": bronze_records,
-            "success_rate": round(max(0.0, 100.0 - float(kafka_failures)), 2),
-            "failed_records": kafka_failures,
-        },
         {
             "stage": "Bronze",
             "records_processed": bronze_records,

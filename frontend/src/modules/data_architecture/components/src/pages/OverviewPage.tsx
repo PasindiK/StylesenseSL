@@ -34,7 +34,6 @@ export function OverviewPage({ summary }: OverviewPageProps) {
 
   const latestPipeline = summary.overview.pipeline_flow;
 
-  const kafkaStage = latestPipeline.find((item) => item.stage.toLowerCase() === 'kafka');
   const overallSuccess = latestPipeline.length
     ? latestPipeline.reduce((sum, item) => sum + item.success_rate, 0) / latestPipeline.length
     : 0;
@@ -61,7 +60,7 @@ export function OverviewPage({ summary }: OverviewPageProps) {
       </div>
 
       <div className="span-12">
-        <Panel title="Data Pipeline Flow" subtitle="Kafka -> Bronze -> Silver -> Gold">
+        <Panel title="Data Pipeline Flow" subtitle="Bronze -> Silver -> Gold Medallion Architecture">
           <PipelineFlowDiagram stages={latestPipeline} />
         </Panel>
       </div>
@@ -93,12 +92,12 @@ export function OverviewPage({ summary }: OverviewPageProps) {
               <strong>{pct(overallSuccess)}</strong>
             </div>
             <div className="stat-item">
-              <span>Kafka Records Processed</span>
-              <strong>{(kafkaStage?.records_processed || 0).toLocaleString()}</strong>
+              <span>Bronze Files</span>
+              <strong>{metrics.bronze_files_count.toLocaleString()}</strong>
             </div>
             <div className="stat-item">
-              <span>Kafka Failed Records</span>
-              <strong>{(kafkaStage?.failed_records || 0).toLocaleString()}</strong>
+              <span>Silver Datasets</span>
+              <strong>{metrics.silver_datasets_count.toLocaleString()}</strong>
             </div>
             <div className="stat-item">
               <span>Pipeline Status</span>
@@ -108,35 +107,7 @@ export function OverviewPage({ summary }: OverviewPageProps) {
         </Panel>
       </div>
 
-      <div className="span-8">
-        <Panel title="Kafka Ingestion Metrics" subtitle="Records per minute, failed messages, and consumer lag">
-          <div className="chart-box large">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={ingestion.records_per_minute.slice(-60)}>
-                <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" />
-                <XAxis dataKey="timestamp" tick={{ fontSize: 11 }} />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="records" stroke="#0284c7" name="Records/min" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="chart-box medium">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={ingestion.failed_messages.slice(-24)}>
-                <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" />
-                <XAxis dataKey="timestamp" tick={{ fontSize: 11 }} />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="failed" fill="#b91c1c" name="Failed Messages" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </Panel>
-      </div>
-
-      <div className="span-4">
+      <div className="span-6">
         <Panel title="Storage Tier Usage" subtitle="Hot, Warm, Cold split">
           <div className="chart-box medium">
             <ResponsiveContainer width="100%" height="100%">
