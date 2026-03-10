@@ -83,6 +83,18 @@ export function StoragePage({ summary }: StoragePageProps) {
 
   const storageGrowthSeries = growthData.length > 0 ? growthData : fallbackGrowthData;
 
+  const datasetActivityData = useMemo(() => {
+    if (!seasonalMode || !seasonalData) {
+      return [];
+    }
+
+    return seasonalData.dataset_activity.map((item) => ({
+      dataset: item.dataset.length > 20 ? `${item.dataset.slice(0, 20)}...` : item.dataset,
+      sizeGb: item.size_gb,
+      tier: item.tier,
+    }));
+  }, [seasonalMode, seasonalData]);
+
   const tierMovementData = useMemo(
     () =>
       storage.tier_usage.map((tier) => ({
@@ -91,6 +103,13 @@ export function StoragePage({ summary }: StoragePageProps) {
       })),
     [storage.tier_usage],
   );
+
+  const highlightedDatasets = useMemo(() => {
+    if (!seasonalData) {
+      return new Set<string>();
+    }
+    return new Set(seasonalData.highlighted_datasets.map((item) => item.toLowerCase()));
+  }, [seasonalData]);
 
   return (
     <div className="grid-12 animate-fade page-grid">
@@ -123,25 +142,6 @@ export function StoragePage({ summary }: StoragePageProps) {
           label="COLD Tier"
           value={formatBytes(activeStorageBytes.cold)}
           hint="Archived datasets"
-          tone="neutral"
-        />
-      </div>
-
-      <div className="span-6">
-        <Panel
-          title="Tier Usage Distribution"
-          subtitle="Storage by tier"
-        >
-          <div className="chart-box large">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={tierUsageData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
                   label={(entry) => `${entry.name}: ${entry.value.toFixed(2)} GB`}
                 >
                   {tierUsageData.map((entry, index) => (
@@ -173,18 +173,28 @@ export function StoragePage({ summary }: StoragePageProps) {
 
       <div className="span-6">
         <Panel
-          title="Tier File Distribution"
-          subtitle="File count by tier"
+          title={seasonalMode ? 'Dataset Activity (Seasonal)' : 'Tier Movement Activity'}
+          subtitle={seasonalMode ? 'Most active seasonal datasets' : 'File count by tier'}
         >
           <div className="chart-box large">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={tierMovementData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="tier" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="files" fill="#3b82f6" />
-              </BarChart>
+              {seasonalMode ? (
+                <BarChart data={datasetActivityData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="dataset" tick={{ fontSize: 11 }} />
+                  <YAxis />
+                  <Tooltip formatter={(value: number | undefined) => (value !== undefined ? `${value.toFixed(2)} GB` : 'N/A')} />
+                  <Bar dataKey="sizeGb" fill="#0f766e" />
+                </BarChart>
+              ) : (
+                <BarChart data={tierMovementData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="tier" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="files" fill="#3b82f6" />
+                </BarChart>
+              )}
             </ResponsiveContainer>
           </div>
         </Panel>
@@ -197,8 +207,8 @@ export function StoragePage({ summary }: StoragePageProps) {
               <thead>
                 <tr>
                   <th>Dataset</th>
-                  <th>Size</th>
-                  <th>Tier</th>
+                "Tier Usage Distribution"
+          subtitle="Storage by tier"
                   <th>Last Modified</th>
                 </tr>
               </thead>
@@ -237,6 +247,3 @@ export function StoragePage({ summary }: StoragePageProps) {
           </div>
         </Panel>
       </div>
-    </div>
-  );
-}

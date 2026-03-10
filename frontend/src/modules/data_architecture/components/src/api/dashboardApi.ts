@@ -16,6 +16,11 @@ import type {
   LiveInputDatasetsResponse,
   LiveValidationResult,
   SeasonalStorageAnalyticsResponse,
+  ServiceAccessCheckResponse,
+  ServiceRbacAuditLogResponse,
+  ServiceRbacConfigResponse,
+  SchemaRollbackResponse,
+  SchemaVersionsResponse,
   StakeholderViewsResponse,
   StoragePayload,
   GovernanceAnalytics,
@@ -69,6 +74,41 @@ export async function getDriftEvents() {
 
 export async function getGovernanceAudit() {
   return request<GovernanceAnalytics>('/governance/audit-log');
+}
+
+export async function getServiceRbacConfig() {
+  return request<ServiceRbacConfigResponse>('/governance/service-rbac');
+}
+
+export async function checkServiceAccess(params: {
+  serviceName: string;
+  operation: string;
+  layer: string;
+  dataCategory?: string;
+}) {
+  const query = new URLSearchParams({
+    service_name: params.serviceName,
+    operation: params.operation,
+    layer: params.layer,
+    data_category: params.dataCategory || '',
+  });
+
+  return request<ServiceAccessCheckResponse>(`/governance/service-access-check?${query.toString()}`, {
+    method: 'POST',
+  });
+}
+
+export async function getServiceRbacAuditLog(options?: { serviceName?: string; limit?: number }) {
+  const query = new URLSearchParams();
+  if (options?.serviceName) {
+    query.set('service_name', options.serviceName);
+  }
+  if (typeof options?.limit === 'number') {
+    query.set('limit', String(options.limit));
+  }
+  const suffix = query.toString() ? `?${query.toString()}` : '';
+
+  return request<ServiceRbacAuditLogResponse>(`/governance/service-rbac/audit-log${suffix}`);
 }
 
 export async function getStorageTierStatistics() {
@@ -177,5 +217,22 @@ export async function validateUploadedDataset(payload: {
   return request<LiveValidationResult>('/drift/live-validate-upload', {
     method: 'POST',
     body,
+  });
+}
+
+export async function getSchemaVersions(table?: string, limit = 50) {
+  const query = new URLSearchParams();
+  if (table) {
+    query.set('table', table);
+  }
+  query.set('limit', String(limit));
+  const suffix = query.toString() ? `?${query.toString()}` : '';
+  return request<SchemaVersionsResponse>(`/schema/versions${suffix}`);
+}
+
+export async function rollbackSchemaVersion(table: string, targetVersion: number) {
+  return request<SchemaRollbackResponse>('/schema/rollback', {
+    method: 'POST',
+    body: JSON.stringify({ table, target_version: targetVersion }),
   });
 }

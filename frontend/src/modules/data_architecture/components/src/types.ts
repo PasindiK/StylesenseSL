@@ -1,7 +1,6 @@
 export type DashboardPageId =
   | 'overview'
   | 'live_validation'
-  | 'governance'
   | 'explainability'
   | 'actions'
   | 'medallion'
@@ -135,6 +134,50 @@ export interface GovernanceAnalytics {
   regional_access: Array<{ province: string; count: number }>;
   compliance_indicators: Array<{ name: string; status: string }>;
   audit_events: Array<Record<string, unknown>>;
+}
+
+export interface ServiceRbacPrincipal {
+  service_name: string;
+  principal_id: string;
+  container: string;
+  allowed_operations: string[];
+  allowed_layers: string[];
+  data_categories: string[];
+  created_at: string;
+}
+
+export interface ServiceRbacConfigResponse {
+  generated_at: string;
+  exported_at: string;
+  total_services: number;
+  service_principals: ServiceRbacPrincipal[];
+}
+
+export interface ServiceAccessCheckResponse {
+  generated_at: string;
+  service_name: string;
+  operation: string;
+  layer: string;
+  data_category: string;
+  access_granted: boolean;
+  reason: string;
+}
+
+export interface ServiceRbacAuditEntry {
+  timestamp: string;
+  service_name: string;
+  operation: string;
+  layer: string;
+  data_category: string;
+  access_granted: boolean;
+  reason: string;
+}
+
+export interface ServiceRbacAuditLogResponse {
+  generated_at: string;
+  service_filter: string | null;
+  total_entries: number;
+  entries: ServiceRbacAuditEntry[];
 }
 
 export interface ExplainabilityPayload {
@@ -448,4 +491,63 @@ export interface LiveValidationResult {
   };
   before_metrics: LiveValidationMetricsSnapshot;
   after_metrics: LiveValidationMetricsSnapshot;
+}
+
+export interface SchemaVersion {
+  version: number;
+  timestamp: string;
+  approved_at: string;
+  approved_by: string;
+  source_file: string;
+  event_id: string;
+  changes: {
+    new_columns: string[];
+    missing_columns: string[];
+    dtype_changes: Array<{ column: string; expected: string; actual: string }>;
+    renames: Array<{ old_name: string; new_name: string; similarity: number; type_match: boolean }>;
+  };
+  change_summary: DriftCounts;
+  risk_level: string;
+  is_baseline?: boolean;
+  is_current_baseline?: boolean;
+  notes?: string;
+  ingestion?: {
+    saved: boolean;
+    local_path: string;
+    azure_blob_path: string;
+    size_bytes: number;
+  };
+}
+
+export interface SchemaVersionTableGroup {
+  table: string;
+  baseline_dataset?: string | null;
+  current_schema?: LiveInputSchemaColumn[];
+  version_count: number;
+  active_baseline_version?: number | null;
+  latest_available_version?: number | null;
+  latest_version: SchemaVersion | null;
+  versions: SchemaVersion[];
+}
+
+export interface SchemaVersionsResponse {
+  generated_at: string;
+  table?: string;
+  baseline_dataset?: string | null;
+  current_schema?: LiveInputSchemaColumn[];
+  version_count?: number;
+  active_baseline_version?: number | null;
+  latest_available_version?: number | null;
+  latest_version?: SchemaVersion | null;
+  versions?: SchemaVersion[];
+  table_count?: number;
+  tables?: SchemaVersionTableGroup[];
+}
+
+export interface SchemaRollbackResponse {
+  status: string;
+  table: string;
+  active_baseline_version: number;
+  available_versions: number[];
+  schema: SchemaVersionsResponse;
 }

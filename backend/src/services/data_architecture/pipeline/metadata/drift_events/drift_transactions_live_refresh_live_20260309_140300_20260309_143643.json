@@ -48,9 +48,10 @@
   "ingestion": {
     "saved": true,
     "local_path": "medallions/bronze/raw/transactions_live_refresh_live_20260309_140300_live_20260309_143643.csv",
-    "size_bytes": 219
+    "size_bytes": 219,
+    "azure_blob_path": "bronze/raw/transactions_live_refresh_live_20260309_140300_live_20260309_143643.csv"
   },
   "approved": true,
-  "approved_at": "2026-03-09T14:38:11.321208Z",
+  "approved_at": "2026-03-09T22:32:39.995337Z",
   "approved_by": "user"
 }

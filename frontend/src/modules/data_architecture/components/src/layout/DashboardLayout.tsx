@@ -8,7 +8,6 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'live_validation', label: 'Live Validation' },
-  { id: 'governance', label: 'Governance' },
   { id: 'explainability', label: 'Explainability' },
   { id: 'actions', label: 'Actions' },
   { id: 'medallion', label: 'Medallion' },

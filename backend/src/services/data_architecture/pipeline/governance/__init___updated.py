@@ -8,11 +8,10 @@ from .data_categorization import (
 from .governance_manager import (
     GovernanceManager
 )
-
 from .service_rbac import (
-    ServiceRole,
-    ServicePrincipal,
     ServiceRBACManager,
+    ServicePrincipal,
+    ServiceRole,
     get_rbac_manager,
 )
 from .rbac_middleware import (
@@ -20,13 +19,14 @@ from .rbac_middleware import (
     require_rbac,
     validate_service_access,
 )
+
 __all__ = [
     'DataCategorizationManager',
     'StakeholderType',
     'GovernanceManager',
-    'ServiceRole',
-    'ServicePrincipal',
     'ServiceRBACManager',
+    'ServicePrincipal',
+    'ServiceRole',
     'get_rbac_manager',
     'RBACMiddleware',
     'require_rbac',

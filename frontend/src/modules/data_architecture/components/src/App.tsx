@@ -4,7 +4,6 @@ import { DashboardLayout } from './layout/DashboardLayout';
 import { LoadingPanel } from './panels/Panel';
 import { useDashboardSummary } from './hooks/useDashboardSummary';
 import { OverviewPage } from './pages/OverviewPage';
-import { GovernancePage } from './pages/GovernancePage';
 import { ExplainabilityPage } from './pages/ExplainabilityPage';
 import { ActionsPage } from './pages/ActionsPage';
 import { MedallionPage } from './pages/MedallionPage';
@@ -88,8 +87,6 @@ export default function App() {
         return <OverviewPage summary={summary} />;
       case 'live_validation':
         return <LiveValidationPage summary={summary} onOperationFinished={refresh} />;
-      case 'governance':
-        return <GovernancePage summary={summary} />;
       case 'explainability':
         return <ExplainabilityPage summary={summary} />;
       case 'actions':

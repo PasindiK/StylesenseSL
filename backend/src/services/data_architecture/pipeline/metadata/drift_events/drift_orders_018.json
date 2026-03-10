@@ -1,0 +1,26 @@
+{
+  "timestamp": "2026-01-04T12:00:00",
+  "table": "orders",
+  "source_file": "raw/orders_data.csv",
+  "diff": {
+    "new_columns": [
+      "new_feature_1",
+      "new_feature_2"
+    ],
+    "missing_columns": [],
+    "dtype_changes": [],
+    "renames": []
+  },
+  "extra": {
+    "dq_metrics": {
+      "null_ratio_delta": -0.02,
+      "duplicate_ratio": 0.001
+    },
+    "pipeline_meta": {
+      "downstream_failure_count": 0,
+      "avg_latency_ms": 404,
+      "storage_move": "warm",
+      "row_count_delta": 3355
+    }
+  }
+}

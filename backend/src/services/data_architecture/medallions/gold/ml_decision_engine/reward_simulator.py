@@ -3,10 +3,11 @@ import math
 # Simple configurable reward simulator for offline experiments
 
 DEFAULT_WEIGHTS = {
-    "pipeline_success": 1.0,
-    "dq_improvement": 0.8,
-    "storage_cost": -0.3,
-    "manual_intervention_penalty": -1.0,
+    "pipeline_success": 1.5,  # Increased from 1.0
+    "dq_improvement": 1.2,  # Increased from 0.8
+    "storage_cost": -0.2,  # Reduced penalty from -0.3
+    "manual_intervention_penalty": -2.0,  # Increased penalty from -1.0
+    "auto_merge_bonus": 0.5,  # New: reward safe auto actions
 }
 
 
@@ -47,10 +48,18 @@ def simulate_reward(action: str, features: dict, weights: dict = None) -> float:
 
     if action == "require_human_approval":
         reward += w["manual_intervention_penalty"]
+    
+    # Add bonus for safe auto-actions (auto_merge_schema is safer when DQ is good)
+    if action == "auto_merge_schema":
+        reward += w.get("auto_merge_bonus", 0.5)
 
-    # small penalty for creating new schema versions or rollbacks (storage/time cost)
+    # penalty for creating new schema versions or rollbacks (storage/time cost)
     if action in ["create_new_schema_version", "rollback_previous_schema"]:
-        reward -= 0.05
+        reward -= 0.15  # Increased penalty from 0.05
+    
+    # penalty for quarantine (data unavailability cost)
+    if action == "quarantine_data":
+        reward -= 0.10
 
     return float(reward)
 

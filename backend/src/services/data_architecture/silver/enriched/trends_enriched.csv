@@ -1,0 +1,228 @@
+trend_id,trend_name,trend_category,trend_score,week,year,emerging_designers,trend_tags,_ingestion_ts,_source_file,_ingestion_date,_cleaned_at,_dq_score
+1.0,pastel,category trend,3.762968761,1.0,2024.0,designer_4,"leather, bold colors, cotton",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+2.0,oversized,,4.190456688,1.0,2024.0,"designer_38, designer_18, designer_27","minimalist, velvet, y2k",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+3.0,y2k,category trend,0.50408945,1.0,2024.0,designer_22,"velvet, modal, earth tones",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+4.0,monochrome,fabric trend,3.461025109,2.0,2024.0,"designer_42, designer_48, designer_2","stripes, pastel, bold colors",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+5.0,modal,fabric trend,0.788348719,2.0,2024.0,"designer_24, designer_3, designer_38","velvet, bamboo, y2k",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+6.0,stripes,style trend,2.743518427,2.0,2024.0,designer_31,"bold colors, bamboo, leather",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+7.0,cotton,color trend,1.282403822,2.0,2024.0,designer_6,"monochrome, minimalist, earth tones",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+8.0,pastel,seasonal trend,2.216640303,3.0,2024.0,designer_1,"velvet, modal, pastel",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+9.0,monochrome,fabric trend,1.631904676,3.0,2024.0,"designer_11, designer_29, designer_34","oversized, earth tones, leather",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+10.0,vintage,seasonal trend,2.511525014,3.0,2024.0,"designer_31, designer_27","leather, modal, monochrome",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+11.0,leather,style trend,0.953193111,3.0,2024.0,"designer_5, designer_26, designer_4","earth tones, y2k, minimalist",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+12.0,monochrome,style trend,1.497851992,4.0,2024.0,designer_37,"earth tones, eco-friendly, vintage",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+13.0,y2k,seasonal trend,4.670129373,4.0,2024.0,designer_11,"stripes, vintage, modal",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+14.0,bold colors,style trend,1.676184822,4.0,2024.0,"designer_42, designer_24","velvet, leather, earth tones",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+15.0,bold colors,category trend,,4.0,2024.0,"designer_35, designer_31","bold colors, cotton, eco-friendly",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+16.0,stripes,color trend,3.731593452,4.0,2024.0,"designer_7, designer_17","pastel, vintage, monochrome",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+17.0,minimalist,seasonal trend,2.892223092,4.0,2024.0,designer_39,"pastel, leather, stripes",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+18.0,bamboo,style trend,0.554726543,4.0,2024.0,designer_10,"bamboo, monochrome, vintage",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+19.0,stripes,style trend,4.555040353,5.0,2024.0,,"stripes, bold colors, modal",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+20.0,bold colors,,0.655474016,5.0,,designer_11,"monochrome, minimalist, y2k",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+21.0,minimalist,seasonal trend,3.863043538,5.0,2024.0,"designer_6, designer_5","y2k, monochrome, minimalist",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+22.0,velvet,color trend,2.515127961,6.0,2024.0,designer_49,"earth tones, y2k, pastel",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+23.0,modal,style trend,4.417771285,6.0,,designer_23,"y2k, velvet, cotton",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+24.0,modal,style trend,1.281251732,6.0,2024.0,"designer_24, designer_27","pastel, modal, earth tones",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+25.0,minimalist,style trend,4.836301747,6.0,2024.0,"designer_34, designer_47","velvet, earth tones, minimalist",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+,velvet,style trend,0.812790128,6.0,2024.0,designer_37,"bold colors, velvet, vintage",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+27.0,bold colors,seasonal trend,4.993435265,6.0,2024.0,designer_27,"vintage, oversized, modal",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+28.0,bamboo,style trend,3.351159697,6.0,2024.0,"designer_17, designer_3, designer_7","bamboo, pastel, oversized",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+29.0,y2k,seasonal trend,3.527876893,7.0,2024.0,"designer_1, designer_34, designer_23","monochrome, y2k, eco-friendly",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+30.0,bold colors,category trend,4.961005854,7.0,2024.0,designer_39,"vintage, y2k, monochrome",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+31.0,y2k,style trend,2.830110703,7.0,2024.0,"designer_25, designer_33","bamboo, y2k, earth tones",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+32.0,modal,color trend,3.626771815,7.0,2024.0,designer_41,"vintage, leather, velvet",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+33.0,stripes,fabric trend,1.865206655,7.0,2024.0,"designer_45, designer_26, designer_19","eco-friendly, oversized, bamboo",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+34.0,pastel,fabric trend,2.722062549,7.0,2024.0,"designer_49, designer_5","earth tones, eco-friendly, cotton",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+35.0,velvet,color trend,2.445595657,7.0,2024.0,designer_11,"leather, bamboo, monochrome",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+36.0,earth tones,color trend,2.191623331,8.0,2024.0,"designer_39, designer_18","bold colors, monochrome, y2k",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+37.0,vintage,seasonal trend,3.538703578,8.0,2024.0,"designer_17, designer_16, designer_17","bold colors, monochrome, eco-friendly",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+38.0,vintage,category trend,4.37284383,8.0,2024.0,"designer_46, designer_14, designer_24","stripes, modal, earth tones",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+39.0,earth tones,style trend,4.765704377,8.0,2024.0,designer_30,"stripes, velvet, monochrome",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+,velvet,color trend,0.680341986,9.0,2024.0,"designer_14, designer_37","oversized, vintage, pastel",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+41.0,monochrome,color trend,4.561612227,9.0,2024.0,designer_33,,2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+42.0,eco-friendly,seasonal trend,1.925884737,9.0,2024.0,"designer_3, designer_20","earth tones, minimalist, bamboo",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+43.0,oversized,color trend,4.842453399,10.0,2024.0,designer_48,"minimalist, bamboo, earth tones",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+44.0,monochrome,color trend,1.12277586,10.0,2024.0,designer_4,"minimalist, vintage, eco-friendly",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+45.0,earth tones,seasonal trend,3.214831949,10.0,2024.0,"designer_25, designer_42, designer_42","leather, velvet, cotton",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+46.0,cotton,category trend,4.826095013,10.0,2024.0,,"minimalist, pastel, velvet",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+47.0,bamboo,category trend,1.395377234,10.0,2024.0,designer_37,"velvet, monochrome, earth tones",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+48.0,velvet,fabric trend,1.232045559,11.0,2024.0,"designer_11, designer_8, designer_13","velvet, y2k, minimalist",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+49.0,oversized,color trend,1.8576169,11.0,2024.0,"designer_22, designer_20","bold colors, pastel, modal",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+50.0,bamboo,style trend,1.266971073,11.0,2024.0,"designer_6, designer_11","stripes, bold colors, earth tones",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+51.0,modal,fabric trend,1.160506945,11.0,2024.0,"designer_13, designer_19, designer_29","bold colors, stripes, eco-friendly",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+52.0,monochrome,category trend,0.692994592,12.0,2024.0,designer_26,"leather, bamboo, cotton",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+53.0,oversized,style trend,2.499480276,12.0,2024.0,"designer_18, designer_38","bamboo, modal, eco-friendly",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+54.0,leather,seasonal trend,4.946862018,12.0,2024.0,designer_26,"velvet, bold colors, eco-friendly",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+55.0,oversized,style trend,1.991118433,12.0,2024.0,designer_6,"oversized, minimalist, stripes",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+56.0,pastel,style trend,4.795178669,12.0,2024.0,"designer_41, designer_47","bold colors, monochrome, oversized",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+57.0,stripes,seasonal trend,4.424541822,13.0,2024.0,"designer_6, designer_3","modal, eco-friendly, oversized",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+58.0,cotton,category trend,0.620735679,13.0,2024.0,designer_37,"bamboo, cotton, minimalist",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+59.0,y2k,style trend,2.925853252,13.0,2024.0,designer_13,"bamboo, y2k, leather",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+60.0,cotton,color trend,1.176188625,,2024.0,"designer_49, designer_32","leather, vintage, modal",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+61.0,velvet,fabric trend,4.830071076,13.0,2024.0,designer_36,"earth tones, velvet, pastel",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+62.0,leather,style trend,4.161739025,13.0,2024.0,designer_4,"stripes, leather, bold colors",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+63.0,vintage,category trend,3.089877343,14.0,2024.0,"designer_34, designer_21","y2k, pastel, monochrome",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+64.0,bold colors,color trend,2.829920915,14.0,2024.0,"designer_49, designer_30","vintage, oversized, stripes",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+65.0,earth tones,category trend,3.858545795,14.0,2024.0,"designer_27, designer_24","monochrome, y2k, vintage",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+66.0,vintage,style trend,4.07502667,14.0,2024.0,"designer_4, designer_33, designer_16","leather, bold colors, modal",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+67.0,cotton,,1.676221265,14.0,2024.0,designer_42,"modal, leather, minimalist",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+68.0,vintage,style trend,2.760430834,,2024.0,"designer_32, designer_47, designer_36","bold colors, oversized, stripes",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+69.0,modal,seasonal trend,4.535049421,15.0,2024.0,designer_37,"bold colors, leather, bamboo",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+70.0,,color trend,0.75580071,15.0,2024.0,"designer_4, designer_24, designer_44","stripes, bold colors, vintage",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+71.0,bamboo,category trend,2.778089922,16.0,2024.0,designer_19,"velvet, pastel, leather",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+72.0,cotton,fabric trend,0.580924533,16.0,2024.0,"designer_24, designer_3, designer_6","monochrome, velvet, pastel",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+73.0,earth tones,style trend,2.069027407,,2024.0,,"monochrome, oversized, vintage",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+74.0,,seasonal trend,0.562938628,16.0,2024.0,designer_22,"cotton, bold colors, y2k",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+75.0,oversized,fabric trend,3.145005463,16.0,2024.0,"designer_47, designer_27","monochrome, oversized, vintage",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+76.0,oversized,seasonal trend,2.901229106,17.0,2024.0,"designer_14, designer_2","bold colors, minimalist, eco-friendly",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+77.0,bamboo,seasonal trend,1.685645522,17.0,2024.0,"designer_40, designer_29, designer_12","monochrome, velvet, modal",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+78.0,eco-friendly,category trend,,17.0,2024.0,designer_20,"velvet, eco-friendly, vintage",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+79.0,monochrome,seasonal trend,,18.0,2024.0,designer_16,"y2k, bold colors, stripes",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+80.0,earth tones,fabric trend,2.747269926,18.0,2024.0,"designer_11, designer_26, designer_1","oversized, monochrome, vintage",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+81.0,bold colors,fabric trend,0.644439382,18.0,2024.0,"designer_17, designer_22, designer_22","eco-friendly, minimalist, pastel",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+82.0,bold colors,seasonal trend,0.76035972,18.0,2024.0,designer_40,"minimalist, oversized, vintage",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+83.0,eco-friendly,style trend,1.793492959,19.0,2024.0,designer_31,,2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+84.0,earth tones,seasonal trend,3.57830016,19.0,,"designer_34, designer_30, designer_12","eco-friendly, pastel, cotton",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+85.0,cotton,category trend,1.918677362,19.0,2024.0,designer_19,"eco-friendly, pastel, monochrome",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+86.0,velvet,seasonal trend,4.77155328,19.0,2024.0,"designer_25, designer_37","modal, bold colors, earth tones",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+87.0,velvet,fabric trend,2.057085497,,2024.0,"designer_37, designer_25","bamboo, monochrome, leather",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+88.0,eco-friendly,seasonal trend,,20.0,2024.0,"designer_38, designer_6","minimalist, eco-friendly, earth tones",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+89.0,eco-friendly,color trend,1.926069664,20.0,2024.0,designer_2,"y2k, monochrome, modal",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+90.0,bamboo,category trend,2.757276685,20.0,2024.0,"designer_10, designer_37","bold colors, vintage, pastel",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+91.0,modal,seasonal trend,2.797771273,20.0,2024.0,"designer_48, designer_38","velvet, oversized, minimalist",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+92.0,pastel,fabric trend,3.900157614,20.0,2024.0,"designer_17, designer_46","bold colors, earth tones, leather",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+93.0,bamboo,color trend,2.863384159,20.0,2024.0,designer_35,,2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+94.0,monochrome,style trend,1.136769589,20.0,2024.0,"designer_33, designer_19, designer_3","earth tones, pastel, stripes",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+,oversized,category trend,3.348042051,21.0,2024.0,"designer_9, designer_11","earth tones, eco-friendly, cotton",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+96.0,minimalist,category trend,3.443275544,21.0,2024.0,"designer_12, designer_22","leather, bamboo, monochrome",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+97.0,y2k,fabric trend,4.378133957,21.0,2024.0,"designer_18, designer_1","bamboo, stripes, eco-friendly",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+98.0,y2k,seasonal trend,4.53450746,21.0,2024.0,designer_31,"eco-friendly, stripes, earth tones",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+99.0,minimalist,fabric trend,3.580298209,21.0,2024.0,"designer_22, designer_14","oversized, minimalist, pastel",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+100.0,minimalist,category trend,2.392649365,21.0,2024.0,designer_20,"earth tones, modal, eco-friendly",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+101.0,monochrome,fabric trend,2.283177248,21.0,2024.0,"designer_14, designer_48, designer_27","eco-friendly, monochrome, vintage",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+102.0,stripes,category trend,3.905279662,22.0,2024.0,"designer_47, designer_18","minimalist, pastel, modal",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+103.0,eco-friendly,category trend,3.470246335,22.0,2024.0,"designer_15, designer_45","bamboo, leather, y2k",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+104.0,bamboo,color trend,4.680944873,22.0,2024.0,"designer_3, designer_28","leather, earth tones, oversized",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+105.0,bamboo,fabric trend,4.995871636,22.0,2024.0,"designer_5, designer_49","velvet, minimalist, leather",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+106.0,stripes,style trend,2.212907278,22.0,2024.0,"designer_40, designer_48, designer_18","stripes, bamboo, cotton",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+107.0,velvet,style trend,4.092178343,23.0,2024.0,designer_44,"earth tones, y2k, minimalist",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+108.0,,category trend,4.843275458,23.0,2024.0,"designer_26, designer_20","leather, stripes, velvet",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+109.0,bold colors,fabric trend,1.123946564,23.0,2024.0,designer_27,"pastel, leather, bold colors",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+110.0,leather,seasonal trend,3.876419904,23.0,2024.0,"designer_17, designer_3","oversized, bold colors, stripes",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+111.0,cotton,seasonal trend,1.308232473,23.0,2024.0,"designer_42, designer_13","stripes, monochrome, minimalist",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+112.0,earth tones,color trend,4.990919392,23.0,2024.0,"designer_30, designer_6, designer_38","oversized, stripes, leather",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+113.0,velvet,seasonal trend,1.456753733,23.0,2024.0,"designer_45, designer_31, designer_1","y2k, earth tones, monochrome",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+114.0,leather,seasonal trend,4.483635015,24.0,2024.0,"designer_30, designer_43","stripes, velvet, earth tones",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+115.0,oversized,seasonal trend,0.652807679,24.0,2024.0,designer_25,"bamboo, monochrome, minimalist",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+116.0,pastel,seasonal trend,1.839635207,24.0,2024.0,"designer_27, designer_1","eco-friendly, monochrome, velvet",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+117.0,modal,,3.28608358,24.0,2024.0,designer_7,"modal, vintage, earth tones",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+118.0,bamboo,category trend,3.002916325,24.0,2024.0,designer_28,"leather, earth tones, velvet",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+119.0,###typo,color trend,4.396931454,24.0,2024.0,"designer_17, designer_16","stripes, modal, bold colors",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+120.0,minimalist,seasonal trend,2.969756241,24.0,2024.0,designer_16,"pastel, earth tones, leather",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+121.0,earth tones,style trend,2.056973413,25.0,2024.0,"designer_24, designer_26, designer_25","monochrome, pastel, eco-friendly",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+122.0,earth tones,style trend,1.124666405,25.0,2024.0,designer_44,"stripes, monochrome, bold colors",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+123.0,monochrome,seasonal trend,1.97860135,25.0,2024.0,"designer_40, designer_21, designer_22","minimalist, leather, stripes",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+124.0,bold colors,color trend,4.019824221,25.0,2024.0,"designer_4, designer_35","minimalist, velvet, pastel",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+125.0,modal,color trend,4.615619753,25.0,2024.0,"designer_22, designer_5, designer_41","leather, stripes, bold colors",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+126.0,leather,style trend,3.698358682,25.0,2024.0,"designer_24, designer_16","y2k, pastel, velvet",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+127.0,velvet,seasonal trend,2.909855798,26.0,2024.0,designer_32,"minimalist, modal, oversized",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+128.0,cotton,category trend,2.453085517,26.0,2024.0,"designer_45, designer_24","monochrome, pastel, oversized",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+129.0,modal,fabric trend,0.711093118,26.0,2024.0,"designer_34, designer_46, designer_43","bamboo, bold colors, velvet",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+130.0,eco-friendly,fabric trend,4.408461152,26.0,2024.0,designer_22,"eco-friendly, cotton, velvet",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+131.0,oversized,color trend,,26.0,2024.0,designer_25,"bamboo, y2k, oversized",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+132.0,stripes,fabric trend,4.459802189,26.0,2024.0,"designer_15, designer_39","eco-friendly, modal, oversized",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+133.0,modal,color trend,2.342283942,27.0,2024.0,"designer_20, designer_48","modal, pastel, velvet",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+134.0,eco-friendly,category trend,1.237699593,27.0,2024.0,"designer_42, designer_35","minimalist, earth tones, modal",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+135.0,stripes,category trend,3.775562536,27.0,2024.0,designer_27,"leather, minimalist, vintage",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+136.0,oversized,category trend,4.32358176,27.0,2024.0,"designer_35, designer_26","oversized, bold colors, monochrome",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+137.0,bamboo,color trend,0.696978626,27.0,2024.0,designer_21,"vintage, cotton, y2k",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+138.0,modal,seasonal trend,1.817059424,27.0,2024.0,designer_7,"leather, y2k, eco-friendly",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+139.0,pastel,fabric trend,1.136856354,27.0,2024.0,designer_36,"velvet, vintage, monochrome",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+140.0,eco-friendly,seasonal trend,0.571575543,28.0,2024.0,"designer_32, designer_38","earth tones, modal, bamboo",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+141.0,oversized,style trend,3.940621681,28.0,2024.0,"designer_48, designer_34","y2k, cotton, oversized",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+,monochrome,fabric trend,1.366206661,28.0,2024.0,"designer_49, designer_43, designer_24","minimalist, cotton, vintage",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+143.0,modal,color trend,4.534501941,28.0,2024.0,"designer_38, designer_35","bamboo, modal, pastel",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+144.0,bamboo,fabric trend,3.533726153,28.0,2024.0,designer_10,"oversized, earth tones, eco-friendly",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+145.0,eco-friendly,seasonal trend,0.522900646,28.0,2024.0,designer_17,"vintage, bamboo, earth tones",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+146.0,cotton,style trend,1.743548033,29.0,2024.0,"designer_12, designer_30","vintage, eco-friendly, bold colors",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+147.0,y2k,color trend,2.355125556,29.0,2024.0,"designer_3, designer_1","stripes, modal, earth tones",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+148.0,velvet,category trend,2.516746224,29.0,2024.0,"designer_43, designer_8, designer_34","oversized, minimalist, bamboo",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+149.0,bamboo,category trend,2.772732334,29.0,2024.0,"designer_27, designer_7, designer_24","stripes, bold colors, monochrome",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+150.0,velvet,color trend,1.966075969,29.0,2024.0,designer_21,"earth tones, vintage, stripes",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+151.0,earth tones,style trend,3.502214251,29.0,2024.0,"designer_10, designer_36, designer_31","bamboo, minimalist, velvet",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+152.0,monochrome,style trend,4.690919656,29.0,2024.0,"designer_43, designer_5","cotton, velvet, bold colors",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+153.0,modal,style trend,3.855748079,30.0,2024.0,designer_12,"y2k, bamboo, bold colors",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+154.0,oversized,style trend,3.017219783,30.0,2024.0,designer_1,"y2k, bamboo, stripes",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+155.0,oversized,seasonal trend,3.087612936,30.0,2024.0,"designer_13, designer_22","vintage, y2k, oversized",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+156.0,y2k,seasonal trend,4.658751308,30.0,2024.0,designer_20,"velvet, minimalist, stripes",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+157.0,cotton,fabric trend,1.556333378,31.0,2024.0,designer_24,"pastel, oversized, y2k",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+158.0,minimalist,color trend,3.0269717,31.0,2024.0,"designer_13, designer_37, designer_38","cotton, eco-friendly, vintage",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+159.0,oversized,category trend,2.847258595,31.0,2024.0,"designer_11, designer_46, designer_8","velvet, pastel, oversized",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+160.0,bamboo,seasonal trend,4.939250913,32.0,2024.0,designer_30,"cotton, bamboo, stripes",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+161.0,minimalist,seasonal trend,1.83381273,32.0,2024.0,"designer_26, designer_18, designer_32","eco-friendly, earth tones, cotton",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+162.0,oversized,style trend,3.003978083,32.0,2024.0,designer_38,"pastel, velvet, eco-friendly",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+163.0,velvet,style trend,4.817725826,32.0,2024.0,designer_30,"leather, bold colors, modal",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+164.0,monochrome,color trend,3.088678154,33.0,2024.0,designer_22,"minimalist, velvet, cotton",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+165.0,minimalist,color trend,0.750165715,33.0,2024.0,"designer_47, designer_21, designer_26","eco-friendly, pastel, leather",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+166.0,bamboo,color trend,3.403595566,33.0,2024.0,"designer_28, designer_27, designer_38",,2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+167.0,earth tones,fabric trend,2.444931522,33.0,2024.0,"designer_24, designer_35, designer_23","y2k, pastel, minimalist",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+168.0,monochrome,fabric trend,4.158420921,33.0,2024.0,designer_1,"minimalist, velvet, y2k",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+169.0,bold colors,style trend,,33.0,2024.0,"designer_49, designer_46","cotton, leather, vintage",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+170.0,earth tones,color trend,3.073164492,33.0,2024.0,"designer_37, designer_3, designer_24","leather, y2k, bold colors",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+171.0,cotton,fabric trend,2.559390075,34.0,2024.0,designer_44,"leather, eco-friendly, modal",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+172.0,leather,fabric trend,2.178288751,34.0,2024.0,designer_17,"modal, leather, vintage",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+173.0,stripes,seasonal trend,3.417390515,34.0,2024.0,"designer_7, designer_47, designer_2","leather, vintage, velvet",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+174.0,bold colors,category trend,1.913876391,34.0,2024.0,designer_14,"earth tones, minimalist, velvet",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+175.0,eco-friendly,category trend,2.617472859,34.0,2024.0,designer_11,"velvet, vintage, monochrome",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+176.0,pastel,fabric trend,1.149286707,34.0,2024.0,"designer_40, designer_29","cotton, velvet, minimalist",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+177.0,bamboo,style trend,4.810425507,35.0,2024.0,"designer_31, designer_44, designer_26","pastel, stripes, velvet",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+178.0,vintage,color trend,3.259775168,35.0,2024.0,"designer_20, designer_36, designer_5","bamboo, modal, minimalist",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+179.0,leather,fabric trend,1.643060588,35.0,2024.0,designer_31,"leather, bold colors, eco-friendly",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+180.0,velvet,style trend,1.34580973,35.0,2024.0,"designer_38, designer_44, designer_25","monochrome, eco-friendly, leather",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+181.0,minimalist,seasonal trend,2.955803388,35.0,2024.0,designer_44,"stripes, minimalist, cotton",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+182.0,earth tones,color trend,0.778422222,,2024.0,"designer_2, designer_18, designer_39","pastel, bamboo, stripes",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+183.0,leather,category trend,2.18390334,36.0,2024.0,designer_38,"cotton, monochrome, pastel",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+184.0,monochrome,fabric trend,2.675998694,36.0,2024.0,"designer_42, designer_45","modal, eco-friendly, monochrome",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+185.0,bamboo,fabric trend,,36.0,2024.0,"designer_9, designer_16","oversized, earth tones, bold colors",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+186.0,cotton,style trend,3.847379201,36.0,2024.0,designer_41,"eco-friendly, bold colors, pastel",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+187.0,velvet,category trend,4.43061323,36.0,2024.0,designer_17,"eco-friendly, vintage, oversized",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+188.0,cotton,color trend,,37.0,2024.0,,"pastel, velvet, y2k",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+189.0,vintage,color trend,3.385423334,37.0,2024.0,,"velvet, vintage, minimalist",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+190.0,vintage,fabric trend,4.721342861,37.0,2024.0,designer_26,"earth tones, bamboo, minimalist",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+191.0,y2k,category trend,4.266259203,37.0,2024.0,designer_44,"eco-friendly, vintage, leather",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+192.0,velvet,style trend,2.587503142,37.0,2024.0,designer_28,"vintage, velvet, bamboo",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+193.0,pastel,category trend,3.089891823,38.0,2024.0,"designer_22, designer_13","minimalist, velvet, leather",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+194.0,monochrome,seasonal trend,4.858627296,38.0,2024.0,"designer_9, designer_22","earth tones, minimalist, bold colors",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+195.0,oversized,style trend,2.515546366,38.0,2024.0,"designer_9, designer_30","eco-friendly, bamboo, y2k",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+196.0,bold colors,category trend,3.629626407,38.0,2024.0,"designer_44, designer_3, designer_44","stripes, cotton, eco-friendly",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+197.0,leather,fabric trend,3.853305046,38.0,2024.0,"designer_18, designer_40, designer_36","minimalist, eco-friendly, y2k",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+198.0,earth tones,category trend,0.667247508,38.0,2024.0,"designer_12, designer_10, designer_14","oversized, monochrome, bamboo",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+199.0,minimalist,category trend,2.907880744,39.0,2024.0,"designer_30, designer_33, designer_10","stripes, minimalist, leather",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+200.0,monochrome,color trend,4.230577103,39.0,2024.0,designer_2,"vintage, eco-friendly, bamboo",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+201.0,monochrome,category trend,1.184982649,39.0,2024.0,designer_3,"cotton, leather, bold colors",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+202.0,leather,style trend,4.590075428,40.0,2024.0,"designer_7, designer_18, designer_8","cotton, pastel, stripes",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+203.0,bold colors,fabric trend,0.925305552,40.0,2024.0,"designer_22, designer_20, designer_15","stripes, velvet, oversized",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+204.0,modal,category trend,3.7821991,40.0,2024.0,designer_19,"eco-friendly, leather, velvet",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+205.0,oversized,,4.652054976,40.0,2024.0,designer_19,"bamboo, minimalist, y2k",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+206.0,y2k,,4.951266803,40.0,2024.0,designer_28,"bamboo, eco-friendly, bold colors",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+207.0,eco-friendly,color trend,2.091667811,40.0,2024.0,designer_17,"stripes, bold colors, leather",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+208.0,oversized,color trend,2.181423155,41.0,2024.0,"designer_25, designer_47","y2k, oversized, velvet",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+209.0,pastel,category trend,,41.0,2024.0,designer_24,"minimalist, earth tones, oversized",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+210.0,earth tones,fabric trend,1.540251317,41.0,2024.0,"designer_17, designer_26, designer_14","velvet, minimalist, stripes",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+211.0,bamboo,color trend,2.01778796,41.0,2024.0,designer_6,"stripes, leather, bold colors",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+212.0,eco-friendly,color trend,0.724872778,42.0,2024.0,designer_1,"modal, pastel, earth tones",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+213.0,bamboo,seasonal trend,4.030109817,42.0,2024.0,designer_43,"monochrome, leather, eco-friendly",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+214.0,minimalist,color trend,3.996368631,42.0,2024.0,"designer_48, designer_38, designer_15","monochrome, vintage, y2k",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+215.0,cotton,seasonal trend,4.89018765,43.0,2024.0,designer_3,"oversized, bamboo, modal",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+216.0,oversized,,3.277099577,43.0,2024.0,"designer_35, designer_32","velvet, monochrome, vintage",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+217.0,cotton,fabric trend,0.827041772,43.0,2024.0,"designer_37, designer_13","cotton, vintage, leather",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+218.0,vintage,color trend,1.210175926,43.0,2024.0,"designer_10, designer_40, designer_16","pastel, monochrome, modal",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+219.0,monochrome,style trend,2.550538072,43.0,,"designer_33, designer_43","earth tones, vintage, stripes",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+220.0,leather,fabric trend,2.342239625,44.0,2024.0,designer_34,"velvet, pastel, monochrome",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+221.0,oversized,style trend,0.868495771,44.0,2024.0,designer_38,"y2k, pastel, leather",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+222.0,monochrome,seasonal trend,0.65835088,44.0,2024.0,"designer_13, designer_13","minimalist, bamboo, modal",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+223.0,bold colors,category trend,1.782930304,44.0,2024.0,"designer_18, designer_15","modal, minimalist, eco-friendly",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+,oversized,style trend,2.499480276,12.0,2024.0,"designer_18, designer_38","bamboo, modal, eco-friendly",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+119.0,minimalist,color trend,4.396931454,24.0,2024.0,"designer_17, designer_16","stripes, modal, bold colors",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+142.0,monochrome,fabric trend,1.366206661,28.0,2024.0,"designer_49, designer_43, designer_24","minimalist, cotton, vintage",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
+110.0,leather,seasonal trend,3.876419904,,2024.0,"designer_17, designer_3","oversized, bold colors, stripes",2026-01-06 04:57:11.955058,trends_dataset.csv,2026-01-06,2026-01-05T23:27:12.361055,98
