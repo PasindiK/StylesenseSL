@@ -32,24 +32,6 @@ function businessDateText(value) {
   return parsed.toLocaleString();
 }
 
-function trendPresentation(direction, adgriScore) {
-  const trend = String(direction || "stable").toLowerCase();
-  const score = Number(adgriScore || 0);
-
-  if (trend === "deteriorating") {
-    if (score >= 85) return { label: "Healthy but declining", color: "gold" };
-    if (score >= 80) return { label: "Slight downward trend", color: "orange" };
-    return { label: "Mild deterioration", color: "volcano" };
-  }
-
-  if (trend === "improving") {
-    if (score >= 85) return { label: "Healthy and improving", color: "green" };
-    return { label: "Improving trend", color: "green" };
-  }
-
-  return { label: "Stable trend", color: "blue" };
-}
-
 function staleBusinessDateDays(value) {
   if (!value) return null;
   const parsed = new Date(value);
@@ -103,6 +85,8 @@ export default function GovernanceControlPlane() {
   const [restoreLoading, setRestoreLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadResult, setUploadResult] = useState(null);
+  const [scenarioComparison, setScenarioComparison] = useState(null);
+  const [liveTrendOverride, setLiveTrendOverride] = useState([]);
 
   useEffect(() => {
     setLoading(true);
@@ -126,10 +110,13 @@ export default function GovernanceControlPlane() {
   useEffect(() => {
     if (!selectedDomain) return;
     setDomainLoading(true);
-    axios
-      .get(`${API_BASE}/governance/domain/${encodeURIComponent(selectedDomain)}`)
-      .then((res) => {
-        setDomainDetails(res.data || null);
+    Promise.all([
+      axios.get(`${API_BASE}/governance/domain/${encodeURIComponent(selectedDomain)}`),
+      axios.get(`${API_BASE}/governance/test-case-comparison/${encodeURIComponent(selectedDomain)}`),
+    ])
+      .then(([detailRes, comparisonRes]) => {
+        setDomainDetails(detailRes?.data || null);
+        setScenarioComparison(comparisonRes?.data?.latest || null);
       })
       .catch(() => {
         setDomainDetails(null);
@@ -140,14 +127,16 @@ export default function GovernanceControlPlane() {
   }, [selectedDomain]);
 
   const refreshGovernanceViews = async (domainName) => {
-    const [summaryRes, detailRes] = await Promise.all([
+    const [summaryRes, detailRes, comparisonRes] = await Promise.all([
       axios.get(`${API_BASE}/governance/summary`),
       axios.get(`${API_BASE}/governance/domain/${encodeURIComponent(domainName)}`),
+      axios.get(`${API_BASE}/governance/test-case-comparison/${encodeURIComponent(domainName)}`),
     ]);
     const summaryPayload = summaryRes?.data || { domains: [] };
     setSummary(summaryPayload);
     setSelectedDomain(domainName);
     setDomainDetails(detailRes?.data || null);
+    setScenarioComparison(comparisonRes?.data?.latest || null);
   };
 
   const uploadAndRerun = () => {
@@ -174,6 +163,8 @@ export default function GovernanceControlPlane() {
       .then(async (res) => {
         const payload = res.data || {};
         setUploadResult(payload);
+        setScenarioComparison(payload?.scenario_test_case_comparison || null);
+        setLiveTrendOverride(payload?.live_governance_trend?.risk_trend || []);
         const mappedDomain = payload?.mapped_domain || selectedDomain || "sales_domain";
         await refreshGovernanceViews(mappedDomain);
       })
@@ -189,7 +180,6 @@ export default function GovernanceControlPlane() {
   const restoreBaseline = () => {
     setRestoreLoading(true);
     setError("");
-    setUploadResult(null);
 
     const restoreDomain = selectedDomain || uploadResult?.mapped_domain || "sales_domain";
 
@@ -203,6 +193,8 @@ export default function GovernanceControlPlane() {
       })
       .then(async (res) => {
         const payload = res.data || {};
+        setScenarioComparison(payload?.scenario_test_case_comparison || null);
+        setLiveTrendOverride([]);
         await refreshGovernanceViews(payload?.selected_domain || restoreDomain);
       })
       .catch((err) => {
@@ -237,6 +229,14 @@ export default function GovernanceControlPlane() {
     if (level === "medium") return "orange";
     return "red";
   };
+
+  const comparisonValue = (value) => (value === null || value === undefined ? "-" : Number(value).toFixed(2));
+  const trendPoints = (liveTrendOverride && liveTrendOverride.length)
+    ? liveTrendOverride
+    : (domainDetails?.risk_trend || []);
+  const trendTitle = (liveTrendOverride && liveTrendOverride.length)
+    ? "Live Governance Trend"
+    : (domainDetails?.trend_label || "Live Governance Trend");
 
   return (
     <div style={{ padding: 16, maxWidth: 1400, margin: "0 auto", width: "100%" }}>
@@ -296,6 +296,21 @@ export default function GovernanceControlPlane() {
             <Col xs={24} md={12}><strong>Replaced in Silver:</strong> {uploadResult?.replaced_in_silver ? "Yes" : "No"}</Col>
             <Col xs={24} md={12}><strong>Pipeline Rerun:</strong> {uploadResult?.pipeline_rerun?.succeeded ? "Success" : "Fail"}</Col>
             <Col xs={24} md={24}><strong>Latest Governance Refresh Time:</strong> {formatTime(uploadResult?.governance_refresh?.latest_refresh_time)}</Col>
+          </Row>
+        </Card>
+      ) : null}
+
+      {scenarioComparison ? (
+        <Card title="Scenario/Test-Case Comparison" size="small" style={{ marginBottom: 16 }}>
+          <Row gutter={[12, 12]}>
+            <Col xs={24} md={6}><strong>Domain:</strong> {scenarioComparison?.selected_domain || "-"}</Col>
+            <Col xs={24} md={6}><strong>Baseline Score:</strong> {comparisonValue(scenarioComparison?.baseline_score)}</Col>
+            <Col xs={24} md={6}><strong>Scenario Score:</strong> {comparisonValue(scenarioComparison?.scenario_score)}</Col>
+            <Col xs={24} md={6}><strong>Restored Score:</strong> {comparisonValue(scenarioComparison?.restored_score)}</Col>
+            <Col xs={24} md={8}><strong>Scenario Delta:</strong> {comparisonValue(scenarioComparison?.scenario_delta)}</Col>
+            <Col xs={24} md={8}><strong>Restore Delta:</strong> {comparisonValue(scenarioComparison?.restore_delta)}</Col>
+            <Col xs={24} md={8}><strong>Recovery from Scenario:</strong> {comparisonValue(scenarioComparison?.recovery_from_scenario)}</Col>
+            <Col xs={24} md={24}><strong>Status:</strong> {scenarioComparison?.status || "-"}</Col>
           </Row>
         </Card>
       ) : null}
@@ -436,12 +451,6 @@ export default function GovernanceControlPlane() {
                       </Tag>
                     </Col>
                     <Col xs={24} md={8}>
-                      <div style={{ fontWeight: 600, marginBottom: 4 }}>Trend Direction</div>
-                      <Tag color={trendPresentation(domainDetails?.trend_direction, domainDetails?.adgri_score || domainDetails?.governance_score).color}>
-                        {trendPresentation(domainDetails?.trend_direction, domainDetails?.adgri_score || domainDetails?.governance_score).label}
-                      </Tag>
-                    </Col>
-                    <Col xs={24} md={8}>
                       <div style={{ fontWeight: 600, marginBottom: 4 }}>Trend Slope</div>
                       <div>{Number(domainDetails?.trend_slope || 0).toFixed(4)}</div>
                     </Col>
@@ -495,10 +504,15 @@ export default function GovernanceControlPlane() {
                   />
                 </Card>
 
-                <Card title={`${domainDetails?.trend_label || "Governance Evaluation Trend"} (Latest 7 points)`}>
-                  {domainDetails.risk_trend?.length ? (
+                <Card title={`${trendTitle} (Latest 7 points)`}>
+                  {(liveTrendOverride && liveTrendOverride.length) ? (
+                    <div style={{ color: "#64748b", marginBottom: 10 }}>
+                      Scenario/test-case results are isolated in the comparison section; this trend remains focused on live governance history.
+                    </div>
+                  ) : null}
+                  {trendPoints.length ? (
                     <ResponsiveContainer width="100%" height={280}>
-                      <LineChart data={domainDetails.risk_trend}>
+                      <LineChart data={trendPoints}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="date" tickFormatter={(value) => formatTime(value)} />
                         <YAxis domain={[0, 100]} />

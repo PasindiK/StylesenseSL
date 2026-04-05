@@ -53,6 +53,7 @@ IMMUTABLE_BASELINE_ROOTS = [
 ]
 CONTRACTS_PATH = DATA_ROOT / "Contracts"
 MONITORING_HISTORY_PATH = DATA_ROOT / "monitoring" / "domain_health_history.csv"
+SCENARIO_COMPARISON_HISTORY_PATH = DATA_ROOT / "monitoring" / "scenario_test_case_history.json"
 CREDENTIALS_PATH = DATA_ROOT / "monitoring" / "config" / "credentials.json"
 
 # List of domains
@@ -496,7 +497,94 @@ def _domain_governance_snapshot(domain_name: str) -> dict:
         "latest_domain_refresh_time": detail.get("latest_domain_refresh_time"),
         "governance_evaluation_time": detail.get("latest_governance_evaluation_time"),
         "freshness_reference": detail.get("freshness_reference"),
+        "risk_trend": detail.get("risk_trend") if isinstance(detail.get("risk_trend"), list) else [],
+        "trend_label": detail.get("trend_label") or "Governance Evaluation Trend",
     }
+
+
+def _load_scenario_comparison_history() -> list[dict]:
+    if not SCENARIO_COMPARISON_HISTORY_PATH.exists():
+        return []
+    try:
+        payload = json.loads(SCENARIO_COMPARISON_HISTORY_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    if isinstance(payload, list):
+        return [item for item in payload if isinstance(item, dict)]
+    return []
+
+
+def _save_scenario_comparison_history(rows: list[dict]) -> None:
+    SCENARIO_COMPARISON_HISTORY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    SCENARIO_COMPARISON_HISTORY_PATH.write_text(
+        json.dumps(rows, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
+def _scenario_score_delta(current: float | None, baseline: float | None) -> float | None:
+    if current is None or baseline is None:
+        return None
+    return round(float(current) - float(baseline), 4)
+
+
+def _record_scenario_test_case_run(selected_domain: str, baseline_score: float | None, scenario_score: float | None) -> dict:
+    normalized_domain = _normalize_domain_name(selected_domain)
+    now_iso = datetime.now().isoformat(timespec="seconds")
+    record = {
+        "cycle_id": str(uuid.uuid4())[:10],
+        "selected_domain": normalized_domain,
+        "status": "scenario_applied",
+        "baseline_score": baseline_score,
+        "scenario_score": scenario_score,
+        "restored_score": None,
+        "scenario_delta": _scenario_score_delta(scenario_score, baseline_score),
+        "restore_delta": None,
+        "recovery_from_scenario": None,
+        "created_at": now_iso,
+        "updated_at": now_iso,
+    }
+
+    rows = _load_scenario_comparison_history()
+    rows.append(record)
+    _save_scenario_comparison_history(rows)
+    return record
+
+
+def _record_scenario_restore(selected_domain: str, restored_score: float | None) -> dict | None:
+    normalized_domain = _normalize_domain_name(selected_domain)
+    rows = _load_scenario_comparison_history()
+
+    latest_idx = None
+    for idx in range(len(rows) - 1, -1, -1):
+        item = rows[idx]
+        if _normalize_domain_name(item.get("selected_domain") or "") != normalized_domain:
+            continue
+        if item.get("status") == "scenario_applied":
+            latest_idx = idx
+            break
+
+    if latest_idx is None:
+        return None
+
+    target = dict(rows[latest_idx])
+    target["status"] = "restored"
+    target["restored_score"] = restored_score
+    target["restore_delta"] = _scenario_score_delta(restored_score, target.get("baseline_score"))
+    target["recovery_from_scenario"] = _scenario_score_delta(restored_score, target.get("scenario_score"))
+    target["updated_at"] = datetime.now().isoformat(timespec="seconds")
+    rows[latest_idx] = target
+    _save_scenario_comparison_history(rows)
+    return target
+
+
+def _latest_scenario_comparison(selected_domain: str) -> dict | None:
+    normalized_domain = _normalize_domain_name(selected_domain)
+    rows = _load_scenario_comparison_history()
+    for item in reversed(rows):
+        if _normalize_domain_name(item.get("selected_domain") or "") == normalized_domain:
+            return item
+    return None
 
 
 def _infer_domain_from_test_case_name(test_case_name: str) -> str | None:
@@ -1511,6 +1599,17 @@ def governance_domain(domain_name: str):
         return JSONResponse(content={"error": str(exc)}, status_code=500)
 
 
+@app.get("/governance/test-case-comparison/{domain_name}")
+def governance_test_case_comparison(domain_name: str):
+    normalized_domain = _normalize_domain_name(domain_name)
+    latest = _latest_scenario_comparison(normalized_domain)
+    return {
+        "selected_domain": normalized_domain,
+        "latest": latest,
+        "history_file": str(SCENARIO_COMPARISON_HISTORY_PATH),
+    }
+
+
 @app.get("/governance/priorities")
 def governance_priorities():
     """Return impact-aware governance prioritization across all domains."""
@@ -1717,6 +1816,10 @@ def admin_restore_governance_demo_baseline(payload: dict = Body(default={})):
         before=domain_before,
         after=domain_after,
     )
+    scenario_comparison = _record_scenario_restore(
+        selected_domain=selected_domain,
+        restored_score=domain_after.get("adgri"),
+    )
 
     return {
         "workflow": "professional_governance_demo_framework",
@@ -1741,6 +1844,7 @@ def admin_restore_governance_demo_baseline(payload: dict = Body(default={})):
             "pipeline_log_reset": pipeline_log_reset,
             "clean_history_seed": clean_history_seed,
         },
+        "scenario_test_case_comparison": scenario_comparison,
         "comparison": comparison,
         "pipeline_validation": {
             "rerun_succeeded": pipeline_rerun_succeeded,
@@ -1897,6 +2001,11 @@ def admin_upload_governance_test_case_and_rerun(
 
     domain_after = _domain_governance_snapshot(mapped_domain)
     governance_after = _governance_score_snapshot()
+    scenario_comparison = _record_scenario_test_case_run(
+        selected_domain=mapped_domain,
+        baseline_score=domain_before.get("adgri"),
+        scenario_score=domain_after.get("adgri"),
+    )
 
     return {
         "workflow": "governance_upload_replace_rerun",
@@ -1918,6 +2027,12 @@ def admin_upload_governance_test_case_and_rerun(
             "score_before": governance_before.get("average_governance_score"),
             "score_after": governance_after.get("average_governance_score"),
         },
+        "live_governance_trend": {
+            "selected_domain": mapped_domain,
+            "trend_label": "Live Governance Trend",
+            "risk_trend": domain_before.get("risk_trend") or [],
+        },
+        "scenario_test_case_comparison": scenario_comparison,
         "domain_evaluation": {
             "before": domain_before,
             "after": domain_after,
