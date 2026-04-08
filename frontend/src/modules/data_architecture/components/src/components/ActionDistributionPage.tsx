@@ -1,5 +1,5 @@
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { DashboardData } from '../types';
+import type { DashboardData } from '../types';
 
 interface ActionDistributionPageProps {
   actionDistribution: NonNullable<DashboardData['action_distribution']>;

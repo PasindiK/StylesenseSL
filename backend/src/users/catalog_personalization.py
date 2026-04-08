@@ -62,7 +62,6 @@ class CatalogPersonalizer:
                     price_max = prefs["price_range"].get("max", float("inf"))
                     if price_min <= price <= price_max:
                         score += 2.0
-                        explanations.append("Within your preferred price range")
                 except (ValueError, TypeError):
                     pass
 

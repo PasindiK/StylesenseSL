@@ -8,6 +8,9 @@ import {
   type OrderAssistantSummary,
 } from '../services/orderAssistant'
 
+// Guard cart-checkout handoff against duplicate processing (e.g. StrictMode remount in dev).
+const consumedCheckoutRequestIdsGlobal = new Set<string>()
+
 function nowText() {
   return new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
 }
@@ -234,7 +237,6 @@ export default function OrderAssistantPage({
   const [selectedSatisfactionStars, setSelectedSatisfactionStars] = useState(0)
   const [satisfactionSubmitting, setSatisfactionSubmitting] = useState(false)
   const [satisfactionMessage, setSatisfactionMessage] = useState<string | null>(null)
-  const consumedCheckoutRequestIds = useRef<Set<string>>(new Set())
   const messageListRef = useRef<HTMLDivElement | null>(null)
 
   const effectiveAutomation = useMemo(
@@ -497,9 +499,9 @@ export default function OrderAssistantPage({
   useEffect(() => {
     const bootstrapCheckoutFromCart = async () => {
       if (!checkoutRequest || !sessionId || loading) return
-      if (!checkoutRequest.url || consumedCheckoutRequestIds.current.has(checkoutRequest.id)) return
+      if (!checkoutRequest.url || consumedCheckoutRequestIdsGlobal.has(checkoutRequest.id)) return
 
-      consumedCheckoutRequestIds.current.add(checkoutRequest.id)
+      consumedCheckoutRequestIdsGlobal.add(checkoutRequest.id)
       onCheckoutRequestConsumed?.()
 
       addUserActionMessage('Checkout')
@@ -655,17 +657,20 @@ export default function OrderAssistantPage({
       setDetectedSizes(Array.from(new Set(parsedSizes)))
       setDetectedColors(Array.from(new Set(parsedColors)))
       setSelectionPromptShown(false)
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          sender: 'assistant',
-          text: '',
-          at: nowText(),
-          product: response.product,
-          profile: response.profile,
-        },
-      ])
+      // Cart-triggered checkout already has item context; avoid rendering a duplicate product card.
+      if (!isCartCheckoutFlow) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            sender: 'assistant',
+            text: '',
+            at: nowText(),
+            product: response.product,
+            profile: response.profile,
+          },
+        ])
+      }
 
       if (isOutOfStockAvailability(response.product?.availability)) {
         setMessages((prev) => [

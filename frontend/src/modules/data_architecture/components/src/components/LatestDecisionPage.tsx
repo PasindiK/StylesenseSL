@@ -1,5 +1,5 @@
 import { Badge } from './Badge';
-import { DashboardData, LiveMetrics } from '../types';
+import type { DashboardData, LiveMetrics } from '../types';
 
 interface LatestDecisionPageProps {
   latestDecision: NonNullable<DashboardData['latest_decision']> | null;

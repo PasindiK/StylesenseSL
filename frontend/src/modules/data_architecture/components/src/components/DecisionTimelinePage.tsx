@@ -1,5 +1,5 @@
 import { Badge } from './Badge';
-import { DashboardData } from '../types';
+import type { DashboardData } from '../types';
 
 interface DecisionTimelinePageProps {
   decisionsTimeline: NonNullable<DashboardData['decisions_timeline']>;

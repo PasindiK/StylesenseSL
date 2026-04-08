@@ -1,5 +1,5 @@
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { DashboardData } from '../types';
+import type { DashboardData } from '../types';
 
 interface ExplainabilityPageProps {
   featureImportance: NonNullable<DashboardData['feature_importance']>;

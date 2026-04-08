@@ -1,5 +1,5 @@
 import { Badge } from './Badge';
-import { DashboardData, QuarantineItem } from '../types';
+import type { DashboardData, QuarantineItem } from '../types';
 
 interface MetricDetailModalProps {
   metricType: string | null;

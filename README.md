@@ -80,6 +80,25 @@ The Vite dev server runs on `http://localhost:5173` and proxies `/api` to `http:
 ## Environment Configuration
 
 Create `backend/.env` and set values like:
+## Workspace Customization (Current Project)
+
+- Runtime baseline validated on macOS in this workspace:
+  - Agentic AI backend on `127.0.0.1:8000`
+  - Main frontend on `127.0.0.1:5173`
+  - Data Mesh backend on `127.0.0.1:8001`
+- End-to-end synthetic time alignment workflow is available at:
+  - `backend/src/services/data_mesh/src/time_alignment_governance_workflow.py`
+
+Run it with:
+
+```bash
+/Users/nandunmadawa/Desktop/DATAMESHSTYLESENSESL/backend/.venv/bin/python \
+  /Users/nandunmadawa/Desktop/DATAMESHSTYLESENSESL/backend/src/services/data_mesh/src/time_alignment_governance_workflow.py
+```
+
+This executes Silver-only business-date rebasing, reruns the Silver→Mesh pipeline, refreshes governance outputs, and prints a concise summary.
+
+## Run Commands
 
 ```dotenv
 GEMINI_API_KEY=your_key_here

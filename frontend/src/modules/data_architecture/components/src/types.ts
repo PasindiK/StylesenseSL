@@ -1,25 +1,41 @@
-export interface Notification {
-  timestamp?: string;
-  table?: string;
-  reason?: string;
-  type?: string;
-  risk_level?: string;
+export type DashboardPageId =
+  | 'overview'
+  | 'governance'
+  | 'explainability'
+  | 'actions'
+  | 'medallion'
+  | 'approvals'
+  | 'timeline'
+  | 'storage';
+
+export type LayerId = 'bronze' | 'silver' | 'gold';
+
+export interface LayerFile {
+  layer: LayerId | string;
+  name: string;
+  dataset_name: string;
+  path: string;
+  size_bytes: number;
+  records: number;
+  last_modified: string;
+  access_tier: string;
+  source: string;
 }
 
-export interface LiveMetrics {
-  total_drifts: number;
-  auto_resolved: number;
-  pending_approvals: number;
-  quarantined: number;
-  pipeline_status: string;
-  automation_rate_pct?: number;
-  success_rate_pct?: number;
-  avg_resolution_hours?: number;
-  governance_rules_count?: number;
-  throughput_records_per_sec?: number;
-  active_pipelines?: number;
-  data_volume_tb?: number;
-  quality_score_pct?: number;
+export interface LayerSummary {
+  file_count: number;
+  size_bytes: number;
+  size_gb: number;
+  records: number;
+  records_today: number;
+  latest_ingestion: string | null;
+}
+
+export interface DriftCounts {
+  new?: number;
+  missing?: number;
+  dtype?: number;
+  renames?: number;
 }
 
 export interface DriftEvent {
@@ -27,224 +43,346 @@ export interface DriftEvent {
   table: string;
   timestamp: string;
   decision?: string;
-  source_file?: string;
+  requires_approval?: boolean;
+  approved?: boolean;
+  rejected?: boolean;
+  risk_level?: string;
+  counts?: DriftCounts;
   diff?: {
     new_columns?: string[];
     missing_columns?: string[];
-    dtype_changes?: { column: string; expected: string; actual: string }[];
-    renames?: { old_name: string; new_name: string; similarity: number; type_match: boolean }[];
+    dtype_changes?: Array<{ column: string; expected: string; actual: string }>;
+    renames?: Array<{ old_name: string; new_name: string; similarity: number; type_match: boolean }>;
   };
-  counts?: { new: number; missing: number; dtype: number; renames?: number };
-  requires_approval?: boolean;
-  risk_level?: string;
 }
 
-export interface QuarantineItem {
-  dataset: string;
-  filename: string;
-  quarantine_date: string;
-  reason: string[];
-  rows_preview: number;
-  columns: string[];
-  preview: any[];
-  status: string;
+export interface TierUsageItem {
+  tier: string;
+  size_bytes: number;
+  size_gb?: number;
+  file_count?: number;
 }
 
-export interface DetailedMetrics {
-  total_drifts_list: {
-    timestamp?: string;
-    table?: string;
-    drift_type?: string;
-    action?: string;
-    approval_status?: string;
-    policy_confidence?: number;
-    counts?: { new?: number; missing?: number; dtype?: number; renames?: number };
-    risk_level?: string;
-  }[];
-  auto_resolved_list: {
-    timestamp?: string;
-    table?: string;
-    drift_type?: string;
-    action?: string;
-    approval_status?: string;
-    policy_confidence?: number;
-    counts?: { new?: number; missing?: number; dtype?: number; renames?: number };
-    risk_level?: string;
-  }[];
-  pending_approvals_list: {
-    timestamp?: string;
-    table?: string;
-    drift_type?: string;
-    action?: string;
-    approval_status?: string;
-    policy_confidence?: number;
-    counts?: { new?: number; missing?: number; dtype?: number; renames?: number };
-    risk_level?: string;
-  }[];
-  quarantined_list: QuarantineItem[];
+export interface PipelineStageMetric {
+  stage: string;
+  records_processed: number;
+  success_rate: number;
+  failed_records: number;
 }
 
-export interface DatasetTierDetail {
-  dataset_name: string;
-  medallion_layer: 'bronze' | 'silver' | 'gold' | string;
-  blob_path: string;
-  current_blob_tier: string;
-  target_policy_tier: string;
-  data_age_days?: number | null;
-  retention_days: number;
-  tier_reason: string;
-  tier_reason_type?: string;
-  access_frequency_days?: number | null;
-  last_modified?: string | null;
-  last_accessed?: string | null;
-  tier_change_applied?: boolean;
-  tier_apply_error?: string | null;
+export interface IngestionPoint {
+  timestamp: string;
+  records: number;
 }
 
-export interface StoragePolicyRules {
-  layer_rules: {
-    bronze: { hot: string; cool: string; archive: string };
-    silver: { hot: string; cool: string; archive: string };
-    gold: { hot: string; cool: string; archive: string };
-  };
-  access_overrides?: {
-    promote_to_hot?: string;
-    promote_archive_to_cool?: string;
-  };
-  seasonal_override?: string;
-  seasonal_examples?: Record<string, string[]>;
-}
-
-export interface StorageTierAssignments {
-  hot: string[];
-  warm: string[];
-  cold: string[];
-  archive: string[];
-  dataset_details: DatasetTierDetail[];
-  policy_rules?: StoragePolicyRules;
-  last_updated: string;
-  season: string;
-  auto_tiering_enabled: boolean;
-  source?: string;
-}
-
-export interface SeasonalRecommendations {
-  season: string;
-  recommendations: {
-    hot: string[];
-    warm: string[];
-    cold: string[];
-    archive: string[];
-  };
-  source?: string;
-}
-
-export interface CurrentSeason {
-  season: string;
-  month: number;
-  description: string;
-  source?: string;
-}
-
-export interface GovernancePolicy {
-  id: string;
-  name: string;
-  status: 'active' | 'review' | 'warning' | string;
-  description: string;
-  affected_datasets: number;
-}
-
-export interface GovernanceQualityRule {
-  id: string;
-  name: string;
-  description: string;
-  datasets: number;
-  passed: number;
+export interface FailedMessagePoint {
+  timestamp: string;
   failed: number;
-  coverage: string;
 }
 
-export interface GovernanceCompliance {
-  standard: string;
-  status: 'compliant' | 'review' | 'warning' | string;
-  score: string;
-  audits: number;
+export interface ConsumerLagPoint {
+  timestamp: string;
+  lag_minutes: number;
 }
 
-export interface GovernanceSnapshot {
+export interface DailyIngestionPoint {
+  date: string;
+  records: number;
+}
+
+export interface FreshnessPoint {
+  date: string;
+  bronze_freshness_hours: number | null;
+  silver_freshness_hours: number | null;
+  gold_freshness_hours: number | null;
+  bronze_last_update?: string | null;
+  silver_last_update?: string | null;
+  gold_last_update?: string | null;
+}
+
+export interface OverviewPayload {
+  metrics: {
+    total_records_ingested_today: number;
+    bronze_files_count: number;
+    silver_datasets_count: number;
+    gold_tables_count: number;
+    active_drift_alerts: number;
+    data_quality_score: number;
+  };
+  pipeline_flow: PipelineStageMetric[];
+  freshness: FreshnessPoint[];
+  ingestion_metrics: {
+    records_per_minute: IngestionPoint[];
+    records_per_hour: IngestionPoint[];
+    daily_ingestion_volume: DailyIngestionPoint[];
+    failed_messages: FailedMessagePoint[];
+    consumer_lag: ConsumerLagPoint[];
+  };
+  data_volume_distribution: Array<{ layer: string; size_bytes: number }>;
+  storage_tier_usage: TierUsageItem[];
+}
+
+export interface GovernanceAnalytics {
+  metric_cards: {
+    audit_events_today: number;
+    access_requests: number;
+    policy_violations: number;
+    unauthorized_access_attempts: number;
+  };
+  audit_activity_per_hour: Array<{ hour: string; count: number }>;
+  stakeholder_access: Array<{ stakeholder: string; count: number }>;
+  regional_access: Array<{ province: string; count: number }>;
+  compliance_indicators: Array<{ name: string; status: string }>;
+  audit_events: Array<Record<string, unknown>>;
+}
+
+export interface ExplainabilityPayload {
+  feature_importance: Array<{
+    action: string;
+    count?: number;
+    features: Array<{ name: string; weight: number }>;
+  }>;
+  embedding_clusters: Array<{ x: number; y: number; cluster: string; label: string }>;
+  recommendation_explanations: Array<{ title: string; reason: string; confidence: number }>;
+  ml_dataset_metrics: {
+    training_dataset_size: number;
+    feature_count: number;
+    embedding_vectors_generated: number;
+    model_accuracy: number;
+  };
+}
+
+export interface MedallionPayload {
+  metrics: {
+    bronze_records: number;
+    silver_records: number;
+    gold_records: number;
+  };
+  layer_comparison: Array<{ layer: string; records: number }>;
+  transformation_success_rate: number;
+  dataset_explorer: {
+    bronze: LayerFile[];
+    silver: LayerFile[];
+    gold: LayerFile[];
+  };
+}
+
+export interface ApprovalPayload {
+  pending_count: number;
+  approved_count: number;
+  rejected_count: number;
+  events: DriftEvent[];
+}
+
+export interface TimelineEvent {
+  timestamp: string;
+  operation: string;
+  records_processed: number;
+  dataset?: string;
+}
+
+export interface StoragePayload {
+  total_size_bytes: number;
+  hot_tier_bytes: number;
+  warm_tier_bytes: number;
+  cold_tier_bytes: number;
+  metric_cards: {
+    total_storage_used: number;
+    hot_tier_size: number;
+    warm_tier_size: number;
+    cold_tier_size: number;
+  };
+  tier_usage: TierUsageItem[];
+  growth_timeline: Array<{
+    date: string;
+    total_gb: number;
+  }>;
+  storage_growth_over_time: Array<{
+    date: string;
+    daily_size_bytes: number;
+    daily_size_gb: number;
+    cumulative_size_bytes: number;
+    cumulative_size_gb: number;
+  }>;
+  largest_datasets: Array<{
+    name?: string;
+    dataset: string;
+    path: string;
+    layer: string;
+    tier?: string;
+    size_bytes: number;
+    size_mb: number;
+    records: number;
+    last_modified: string;
+  }>;
+  tier_movement_activity: Array<{ date: string; movements: number }>;
+}
+
+export interface DashboardSummaryResponse {
+  generated_at: string;
+  source: Record<string, string>;
+  overview: OverviewPayload;
+  governance: GovernanceAnalytics;
+  explainability: ExplainabilityPayload;
+  actions: {
+    pipeline_status: string;
+    last_run: string;
+  };
+  medallion: MedallionPayload;
+  approvals: ApprovalPayload;
+  timeline: TimelineEvent[];
+  storage: StoragePayload;
+}
+
+export interface MedallionFilesResponse {
+  layer: LayerId;
+  source: string;
+  count: number;
+  files: LayerFile[];
+  summary: LayerSummary;
+}
+
+export interface DriftEventsResponse {
+  count: number;
+  pending_count: number;
+  approved_count: number;
+  rejected_count: number;
+  events: DriftEvent[];
+}
+
+export interface StakeholderViewsResponse {
+  stakeholder_type: string;
+  count: number;
+  views: Array<{
+    name: string;
+    path: string;
+    size_bytes: number;
+    records: number;
+    last_modified: string;
+  }>;
+}
+
+export interface ActionApiResponse {
+  operation: string;
+  status: string;
+  message: string;
+  result: Record<string, unknown>;
+}
+
+export interface DriftDecisionResponse {
+  status: string;
+  table: string;
+  event_id: string;
+  timestamp: string;
+}
+
+export interface LakehouseBronzeMetricsResponse {
   generated_at: string;
   source: string;
-  policies: GovernancePolicy[];
-  quality_rules: GovernanceQualityRule[];
-  compliance: GovernanceCompliance[];
+  azure_error?: string | null;
+  bronze_file_count: number;
+  bronze_storage_bytes: number;
+  bronze_storage_gb: number;
+  files_ingested_today: number;
+  latest_ingestion_timestamp: string | null;
+  daily_ingestion_file_counts: Array<{ date: string; files: number; size_bytes: number }>;
 }
 
-export interface DashboardData {
+export interface LakehouseSilverMetricsResponse {
   generated_at: string;
-  live_metrics?: LiveMetrics;
-  detailed_metrics?: DetailedMetrics;
-  governance?: GovernanceSnapshot;
-  notifications?: Notification[];
-  drift_events: DriftEvent[];
-  latest_decision?: {
-    timestamp?: string;
-    table?: string;
-    drift_type?: string;
-    action?: string;
-    approval_status?: string;
-    policy_confidence?: number;
-    counts?: { new?: number; missing?: number; dtype?: number; renames?: number };
-    risk_level?: string;
-  } | null;
-  decisions_timeline?: {
-    timestamp?: string;
-    table?: string;
-    drift_type?: string;
-    action?: string;
-    approval_status?: string;
-    policy_confidence?: number;
-    counts?: { new?: number; missing?: number; dtype?: number; renames?: number };
-    risk_level?: string;
-  }[];
-  pending_approvals?: DriftEvent[];
-  architecture?: {
-    stages?: { name: string; status?: string; datasets?: string[] }[];
-    drift_gate_note?: string;
-    storage_tiers?: {
-      hot?: string[];
-      warm?: string[];
-      cold?: string[];
-      archive?: string[];
-    };
-  };
-  action_distribution?: {
-    action: string;
-    count: number;
-    automated: number;
-    human_reviewed: number;
-  }[];
-  feature_importance?: {
-    action: string;
-    features: { name: string; weight: number }[];
-  }[];
-  dq_results?: {
-    file: string;
-    is_acceptable: boolean;
-    hard_failures: number;
-    soft_warnings: number;
-    hard_failures_list?: string[];
-    soft_warnings_list?: string[];
-  }[];
-  quarantine_details?: QuarantineItem[];
-  dataset_overview?: Record<string, any>;
-  csv_previews?: Record<
-    string,
-    {
-      layer: string;
-      file: string;
-      rows_total: number;
-      columns: string[];
-      preview: Record<string, any>[];
-    }
-  >;
+  source: string;
+  azure_error?: string | null;
+  silver_dataset_count: number;
+  transformation_timestamps: string[];
+  transformation_success_rate: number;
+  bronze_record_estimate: number;
+  silver_record_estimate: number;
+}
+
+export interface LakehouseGoldMetricsResponse {
+  generated_at: string;
+  source: string;
+  azure_error?: string | null;
+  gold_file_count: number;
+  analytical_tables_count: number;
+  feature_datasets_count: number;
+  stakeholder_views_generated: number;
+}
+
+export interface LakehouseStorageAnalyticsResponse {
+  generated_at: string;
+  source_by_layer: Record<string, string>;
+  azure_errors?: Record<string, string | null>;
+  total_size_bytes: number;
+  total_size_gb: number;
+  tier_usage: Array<{ tier: string; size_bytes: number; size_gb: number; file_count: number }>;
+  largest_datasets: Array<{
+    dataset: string;
+    file_name: string;
+    path: string;
+    layer: string;
+    size_bytes: number;
+    size_gb: number;
+    access_tier: string;
+    last_modified: string;
+  }>;
+}
+
+export interface LakehouseStorageGrowthResponse {
+  generated_at: string;
+  source_by_layer: Record<string, string>;
+  azure_errors?: Record<string, string | null>;
+  points: Array<{ date: string; size_bytes: number; size_gb: number; file_count: number }>;
+}
+
+export interface LakehouseIngestionMetricsResponse {
+  generated_at: string;
+  source: string;
+  azure_error?: string | null;
+  records_ingested_per_minute: Array<{ timestamp: string; records: number }>;
+  records_ingested_per_hour: Array<{ timestamp: string; records: number }>;
+  records_ingested_per_day: Array<{ date: string; records: number }>;
+}
+
+export interface LakehouseDataFreshnessResponse {
+  generated_at: string;
+  layers: Array<{
+    layer: string;
+    latest_update: string | null;
+    freshness_hours: number | null;
+    file_count: number;
+    source: string;
+    azure_error?: string | null;
+  }>;
+}
+
+export interface CurrentSeasonResponse {
+  generated_at: string;
+  current_season: string;
+}
+
+export interface SeasonalStorageAnalyticsResponse {
+  generated_at: string;
+  current_season: string;
+  seasonal_mode: boolean;
+  source_by_layer: Record<string, string>;
+  azure_errors?: Record<string, string | null>;
+  dataset_count: number;
+  hot_storage_bytes: number;
+  warm_storage_bytes: number;
+  cold_storage_bytes: number;
+  hot_storage_gb: number;
+  warm_storage_gb: number;
+  cold_storage_gb: number;
+  storage_distribution: Array<{ tier: string; size_bytes: number; size_gb: number }>;
+  dataset_activity: Array<{
+    dataset: string;
+    size_bytes: number;
+    size_gb: number;
+    tier: string;
+    layer: string;
+    latest_modified: string;
+  }>;
+  highlighted_datasets: string[];
+  optimization_insight: string;
 }

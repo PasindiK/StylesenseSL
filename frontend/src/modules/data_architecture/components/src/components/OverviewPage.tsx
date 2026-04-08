@@ -1,5 +1,5 @@
 import { TrendingUp, CheckCircle2, Clock, AlertTriangle, Activity, Database, Zap, Shield } from 'lucide-react';
-import { LiveMetrics } from '../types';
+import type { LiveMetrics } from '../types';
 import { Badge } from './Badge';
 
 interface OverviewPageProps {
