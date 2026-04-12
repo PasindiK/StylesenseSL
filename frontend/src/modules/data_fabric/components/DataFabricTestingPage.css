@@ -748,6 +748,52 @@
   gap: 0.6rem;
 }
 
+.runtime-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.6rem;
+}
+
+.runtime-card {
+  border: 1px solid rgba(112, 146, 181, 0.22);
+  border-radius: 12px;
+  padding: 0.65rem;
+  background: rgba(11, 24, 40, 0.62);
+}
+
+.runtime-card h4 {
+  margin: 0 0 0.45rem;
+  font-size: 0.82rem;
+  color: #dcecff;
+}
+
+.runtime-stream-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.runtime-stream-list li {
+  border-left: 2px solid rgba(116, 197, 255, 0.55);
+  padding-left: 0.5rem;
+  font-size: 0.76rem;
+  color: #bcd6f0;
+}
+
+.runtime-vector {
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  border-radius: 10px;
+  border: 1px solid rgba(113, 141, 176, 0.24);
+  background: rgba(8, 17, 29, 0.75);
+  padding: 0.55rem;
+  color: #bcd6f0;
+  overflow-x: auto;
+}
+
 .intake-progress-box h4 {
   margin: 0;
   font-size: 0.88rem;
@@ -917,6 +963,11 @@
   stroke-width: 2.9;
 }
 
+.lineage-edge.recent {
+  stroke: rgba(255, 223, 126, 0.95);
+  stroke-width: 3.2;
+}
+
 .merge-candidate-line {
   stroke: rgba(255, 205, 96, 0.5);
   stroke-width: 1.8;
@@ -952,6 +1003,28 @@
 .lineage-node.active {
   stroke: rgba(228, 253, 255, 1);
   stroke-width: 2.4;
+}
+
+.lineage-node.latest-joined {
+  stroke: rgba(255, 233, 159, 0.98);
+  stroke-width: 2.8;
+}
+
+.lineage-node-new-ring {
+  fill: none;
+  stroke: rgba(255, 229, 133, 0.9);
+  stroke-width: 2;
+  stroke-dasharray: 3 3;
+}
+
+.lineage-new-badge {
+  fill: #ffe39a;
+  font-size: 0.64rem;
+  letter-spacing: 0.06em;
+  font-weight: 800;
+  paint-order: stroke;
+  stroke: rgba(20, 17, 7, 0.9);
+  stroke-width: 2px;
 }
 
 .lineage-node-inner {
@@ -1069,6 +1142,145 @@
   flex-wrap: wrap;
   align-items: center;
   margin-bottom: 0.7rem;
+}
+
+.behavioral-layout-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(300px, 1fr));
+  gap: 0.72rem;
+  margin-top: 0.72rem;
+}
+
+.behavioral-panel {
+  border: 1px solid rgba(115, 149, 184, 0.24);
+  border-radius: 12px;
+  background: rgba(12, 27, 44, 0.58);
+  padding: 0.62rem 0.7rem;
+}
+
+.behavioral-panel h4 {
+  margin: 0 0 0.45rem;
+  color: #dfefff;
+  font-size: 0.86rem;
+}
+
+.behavioral-search {
+  min-width: 220px;
+  border-radius: 10px;
+  border: 1px solid rgba(118, 153, 186, 0.28);
+  background: rgba(8, 17, 29, 0.75);
+  color: #d6e6f8;
+  padding: 0.48rem 0.58rem;
+}
+
+.behavioral-bars-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.behavioral-bars-list.compact {
+  gap: 0.35rem;
+}
+
+.bar-caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.74rem;
+  color: #c3daf5;
+  margin-bottom: 0.2rem;
+}
+
+.dual-bar-wrap,
+.single-bar-wrap {
+  position: relative;
+  width: 100%;
+  border-radius: 999px;
+  height: 11px;
+  background: rgba(20, 40, 62, 0.7);
+  border: 1px solid rgba(103, 141, 179, 0.22);
+  overflow: hidden;
+}
+
+.dual-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+}
+
+.dual-bar.before {
+  background: rgba(119, 163, 215, 0.48);
+}
+
+.dual-bar.after {
+  background: rgba(81, 214, 173, 0.68);
+  opacity: 0.85;
+}
+
+.single-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #4db5f5, #55ddb1);
+}
+
+.mini-heat-wrap {
+  position: relative;
+  width: 100%;
+  min-width: 130px;
+  border: 1px solid rgba(105, 144, 182, 0.28);
+  border-radius: 8px;
+  height: 20px;
+  background: rgba(16, 31, 50, 0.68);
+  overflow: hidden;
+}
+
+.mini-heat-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, rgba(80, 154, 230, 0.55), rgba(95, 219, 182, 0.7));
+}
+
+.mini-heat-wrap span {
+  position: absolute;
+  right: 0.38rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.69rem;
+  color: #d8edff;
+}
+
+.delta-positive {
+  color: #86ecc1;
+  font-weight: 700;
+}
+
+.delta-negative {
+  color: #ffb7b7;
+  font-weight: 700;
+}
+
+.risk-high {
+  color: #ffd08e;
+}
+
+.risk-low {
+  color: #8edfc0;
+}
+
+.contribution-note {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.behavioral-all-rows {
+  margin-top: 0.8rem;
 }
 
 .behavior-flag {

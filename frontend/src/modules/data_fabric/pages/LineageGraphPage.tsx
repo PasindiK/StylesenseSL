@@ -87,6 +87,17 @@ function buildNodeLabelLines(label: string): string[] {
   return normalized
 }
 
+function joinedNodeSortKey(nodeId: string): number {
+  const text = String(nodeId || '').trim()
+  if (!text) return -1
+  const ts = text.match(/(\d{14})$/)
+  if (ts) {
+    return Number(ts[1])
+  }
+  // Fallback: keep joined nodes ordered deterministically even without timestamp suffix.
+  return hashText(text)
+}
+
 function computeForceLayout(
   nodes: LineageNode[],
   edges: LineageEdge[],
@@ -224,6 +235,17 @@ export default function LineageGraphPage({ loading, lineage }: Props) {
   }, [rawEdges])
   const mergeConfidenceCandidates = lineage?.merge_candidates || []
 
+  const latestJoinedNodeId = useMemo(() => {
+    const candidates = nodes.filter((node) => {
+      const id = String(node.id || '').toLowerCase()
+      return id.startsWith('virtual_') || id.includes('_joined')
+    })
+    if (!candidates.length) return null
+    return candidates
+      .slice()
+      .sort((a, b) => joinedNodeSortKey(b.id) - joinedNodeSortKey(a.id))[0].id
+  }, [nodes])
+
   useEffect(() => {
     setPositions(computeForceLayout(nodes, edges, mergeConfidenceCandidates))
     setZoom(1)
@@ -356,6 +378,17 @@ export default function LineageGraphPage({ loading, lineage }: Props) {
     }
   }
 
+  const connectedToLatestJoined = new Set<string>()
+  if (latestJoinedNodeId) {
+    connectedToLatestJoined.add(latestJoinedNodeId)
+    positionedEdges.forEach((edge) => {
+      if (edge.source.id === latestJoinedNodeId || edge.target.id === latestJoinedNodeId) {
+        connectedToLatestJoined.add(edge.source.id)
+        connectedToLatestJoined.add(edge.target.id)
+      }
+    })
+  }
+
   if (!lineage) {
     return (
       <section className="df-tab-content">
@@ -462,6 +495,10 @@ export default function LineageGraphPage({ loading, lineage }: Props) {
                 const emphasized = hoveredNodeId
                   ? edge.source.id === hoveredNodeId || edge.target.id === hoveredNodeId
                   : false
+                const highlightedJoinEdge = Boolean(
+                  latestJoinedNodeId &&
+                    (edge.source.id === latestJoinedNodeId || edge.target.id === latestJoinedNodeId)
+                )
                 const depth = (nodeDepth(edge.source) + nodeDepth(edge.target)) / 2
                 return (
                   <line
@@ -470,8 +507,8 @@ export default function LineageGraphPage({ loading, lineage }: Props) {
                     y1={edge.source.y}
                     x2={edge.target.x}
                     y2={edge.target.y}
-                    className={`lineage-edge ${emphasized ? 'active' : ''}`}
-                    style={{ opacity: emphasized ? 0.96 : 0.35 + depth * 0.38 }}
+                    className={`lineage-edge ${emphasized ? 'active' : ''} ${highlightedJoinEdge ? 'recent' : ''}`}
+                    style={{ opacity: emphasized || highlightedJoinEdge ? 0.96 : 0.35 + depth * 0.38 }}
                     markerEnd="url(#df-arrow)"
                   />
                 )
@@ -482,6 +519,7 @@ export default function LineageGraphPage({ loading, lineage }: Props) {
                 .map((node) => {
                   const depth = nodeDepth(node)
                   const isHovered = node.id === hoveredNodeId
+                  const isLatestJoined = Boolean(latestJoinedNodeId && node.id === latestJoinedNodeId)
                   const fadeHoverLayer = hoveredNodeId && !connectedToHovered.has(node.id)
                   const fadeCandidateLayer = hoveredCandidateKey && !candidateNodesHighlighted.has(node.id)
                   const fadeOther = Boolean(fadeHoverLayer || fadeCandidateLayer)
@@ -516,12 +554,18 @@ export default function LineageGraphPage({ loading, lineage }: Props) {
                       />
                       <circle
                         r={r}
-                        className={`lineage-node ${isHovered ? 'active' : ''}`}
+                        className={`lineage-node ${isHovered ? 'active' : ''} ${isLatestJoined ? 'latest-joined' : ''}`}
                         fill={fillColor}
                         filter="url(#nodeGlow)"
                       />
+                      {isLatestJoined ? (
+                        <circle r={r + 5} className="lineage-node-new-ring" />
+                      ) : null}
                       <circle r={Math.round(r * 0.66)} className="lineage-node-inner" />
                       <title>{node.label}</title>
+                      {isLatestJoined ? (
+                        <text textAnchor="middle" y={-r - 10} className="lineage-new-badge">NEW JOIN</text>
+                      ) : null}
                       {shouldShowLabel ? (
                         <>
                           <rect
@@ -555,6 +599,7 @@ export default function LineageGraphPage({ loading, lineage }: Props) {
           <span className="muted-text">Nodes: {nodes.length}</span>
           <span className="muted-text">Edges: {edges.length}{rawEdges.length > edges.length ? ` (${rawEdges.length - edges.length} duplicates hidden)` : ''}</span>
           <span className="muted-text">Active zoom: {zoom.toFixed(2)}x</span>
+          {latestJoinedNodeId ? <span className="muted-text">Highlighted latest join: {latestJoinedNodeId}</span> : null}
         </div>
 
         <div className="closest-merge-panel">

@@ -124,11 +124,19 @@ export default function ControlTowerPage({
     [activeLayerId]
   )
 
-  const lrWeight = Number(overview?.model?.lr_weight ?? 0.3)
-  const secondaryWeight = Number(overview?.model?.secondary_weight ?? 0.7)
-  const secondaryLabel = overview?.model?.secondary_model_label || 'RF'
-  const testAccuracy = overview?.model?.test_metrics?.accuracy || {}
   const relationshipRows = overview?.relationships || []
+
+  function displayDomain(row: any): string {
+    const raw = String(row?.domain || '').trim().toLowerCase()
+    if (raw && raw !== 'unknown') return raw
+
+    const name = String(row?.dataset_name || '').toLowerCase()
+    if (name.startsWith('virtual_') || name.includes('_joined')) return 'integrated'
+    if (name.includes('user') || name.includes('customer') || name.includes('order') || name.includes('payment') || name.includes('interaction') || name.includes('preference')) return 'users'
+    if (name.includes('product') || name.includes('fashion') || name.includes('outerwear') || name.includes('trend')) return 'products'
+    if (name.includes('shop') || name.includes('store')) return 'retail'
+    return 'intake'
+  }
 
   function inferConfidenceSource(row: any): 'ensemble' | 'static' {
     const featureVector = row?.feature_vector || {}
@@ -238,31 +246,6 @@ export default function ControlTowerPage({
           </strong>
         </article>
         <article className="glass-card kpi-card">
-          <span>Unstable Relationships</span>
-          <strong>{formatNumber(overview.kpis.unstable_count)}</strong>
-        </article>
-        <article className="glass-card kpi-card">
-          <span>Model Version</span>
-          <strong>{overview.model.model_version}</strong>
-          <p className="muted-text">
-            {overview.model.ensemble_ready
-              ? `Ensemble ready: LR + ${secondaryLabel}`
-              : 'Static fallback active'}
-          </p>
-          <p className="muted-text">
-            Weights: LR {(lrWeight * 100).toFixed(0)}% / {secondaryLabel} {(secondaryWeight * 100).toFixed(0)}%
-          </p>
-          <p className="muted-text">
-            Test Accuracy: LR {typeof testAccuracy.lr === 'number' ? testAccuracy.lr.toFixed(4) : 'N/A'} | {secondaryLabel}{' '}
-            {typeof testAccuracy.rf === 'number' ? testAccuracy.rf.toFixed(4) : 'N/A'} | Ensemble{' '}
-            {typeof testAccuracy.ensemble === 'number' ? testAccuracy.ensemble.toFixed(4) : 'N/A'}
-          </p>
-          <p className="muted-text">
-            Metrics Source: {overview?.model?.test_metrics?.source || 'Not available'}
-          </p>
-          <p className="muted-text">{overview.model.ensemble_reason || 'No model readiness details available.'}</p>
-        </article>
-        <article className="glass-card kpi-card">
           <span>Last Refreshed</span>
           <strong>{safeDate(overview.last_refreshed)}</strong>
         </article>
@@ -279,7 +262,6 @@ export default function ControlTowerPage({
                   <th>Rows</th>
                   <th>Columns</th>
                   <th>Domain</th>
-                  <th>Quality</th>
                   <th>Updated</th>
                 </tr>
               </thead>
@@ -289,8 +271,7 @@ export default function ControlTowerPage({
                     <td>{row.dataset_name}</td>
                     <td>{formatNumber(row.row_count)}</td>
                     <td>{formatNumber(row.column_count)}</td>
-                    <td>{row.domain}</td>
-                    <td>{row.quality_score.toFixed(2)}</td>
+                    <td>{displayDomain(row)}</td>
                     <td>{safeDate(row.updated_at)}</td>
                   </tr>
                 ))}
@@ -301,9 +282,6 @@ export default function ControlTowerPage({
 
         <article className="glass-card">
           <h3>Relationship Discovery</h3>
-          <p className="muted-text">
-            Confidence source follows backend policy: LR+{secondaryLabel} ensemble when both model scores are present, else static 0.3/0.2/0.5 fallback.
-          </p>
           <div className="df-table-wrap">
             <table className="df-table">
               <thead>

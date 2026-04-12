@@ -1,9 +1,9 @@
 {
-  "source": "debug",
-  "saved_at": "2026-03-08T14:33:18.488027+00:00",
+  "source": "intake",
+  "saved_at": "2026-04-12T13:41:27.371852+00:00",
   "report": {
-    "started_at": "2026-03-08T20:03:18.290435",
-    "finished_at": "2026-03-08T20:03:18.488027",
+    "started_at": "2026-04-12T19:11:27.342317",
+    "finished_at": "2026-04-12T19:11:27.371687",
     "new_datasets": [
       "interactions_dataset",
       "orders",
@@ -26,7 +26,7 @@
     "updated_datasets": [],
     "relationships_discovered": 0,
     "usage_updates": 0,
-    "behavioral_updates": 190,
+    "behavioral_updates": 226,
     "drift_flags": 0,
     "retrained": false,
     "retrained_model_version": null,

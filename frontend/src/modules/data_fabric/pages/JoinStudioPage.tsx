@@ -1,5 +1,21 @@
 import type { DragEvent, RefObject } from 'react'
 
+type IntakeProcessingStats = {
+  datasetsProcessed: number
+  columnPairsEvaluated: number
+  featureVectorsBuilt: number
+  relationshipsDetected: number
+  mlProcessed: number
+  mlTotal: number
+  averageConfidence: number
+  strongCount: number
+  probableCount: number
+  weakCount: number
+  joinUsageSignals: number
+  coQuerySignals: number
+  lineageSignals: number
+}
+
 type Props = {
   loading: boolean
   overview: any
@@ -30,6 +46,8 @@ type Props = {
   handlePickedFiles: (files: File[] | null) => void
   handleDrop: (e: DragEvent<HTMLDivElement>) => void
   runIntake: () => Promise<void>
+  processingStats: IntakeProcessingStats
+  processingFeed: string[]
   formatNumber: (value: number) => string
   decisionClass: (decision: string) => string
 }
@@ -47,10 +65,6 @@ export default function JoinStudioPage({
   selectedRelationshipKey,
   setSelectedRelationshipKey,
   runJoin,
-  intakeFilePath,
-  setIntakeFilePath,
-  intakeDatasetName,
-  setIntakeDatasetName,
   intakeFiles,
   intakeBusy,
   intakeResult,
@@ -64,6 +78,8 @@ export default function JoinStudioPage({
   handlePickedFiles,
   handleDrop,
   runIntake,
+  processingStats,
+  processingFeed,
   formatNumber,
   decisionClass,
 }: Props) {
@@ -79,9 +95,31 @@ export default function JoinStudioPage({
     return typeof value === 'number' && Number.isFinite(value) ? value : fallback
   }
 
-  function computeUiConfidence(row: any): { value: number; source: 'ensemble' | 'static' } {
+  function computeUiConfidence(row: any): { value: number; source: 'ensemble' | 'ml_single' | 'static' } {
+    const backendConfidence = Number(row?.confidence)
     const featureVector = row?.feature_vector || {}
     const modelsUsed = featureVector?.models_used || {}
+    const backendSourceRaw = String(
+      row?.confidence_source || featureVector?.confidence_source || ''
+    ).trim()
+    const backendSource =
+      backendSourceRaw === 'ensemble' || backendSourceRaw === 'ml_single' || backendSourceRaw === 'static'
+        ? backendSourceRaw
+        : ''
+
+    if (Number.isFinite(backendConfidence) && backendConfidence >= 0 && backendConfidence <= 1) {
+      if (backendSource) {
+        return { value: backendConfidence, source: backendSource }
+      }
+      const hasLr = typeof modelsUsed?.LR === 'number' && Number.isFinite(modelsUsed.LR)
+      const hasSecondary = Object.entries(modelsUsed).some(
+        ([key, value]) => key !== 'LR' && typeof value === 'number' && Number.isFinite(Number(value))
+      )
+      if (hasLr && hasSecondary) return { value: backendConfidence, source: 'ensemble' }
+      if (hasLr || hasSecondary) return { value: backendConfidence, source: 'ml_single' }
+      return { value: backendConfidence, source: 'static' }
+    }
+
     const lrModel = modelsUsed?.LR
     const secondaryEntry = Object.entries(modelsUsed).find(
       ([key, value]) => key !== 'LR' && typeof value === 'number' && Number.isFinite(Number(value))
@@ -128,7 +166,22 @@ export default function JoinStudioPage({
 
   const intakeSuggestions = (intakeResult?.suggestions as Array<any> | undefined) || []
   const joinSuggestions = (joinOptions?.suggestions as Array<any> | undefined) || []
-  const discoveryRows = !hasIntakeRun ? [] : intakeSuggestions.length > 0 ? intakeSuggestions : joinSuggestions
+  const discoveryRows = !hasIntakeRun ? [] : intakeSuggestions
+  const dedupedDiscoveryRows = Array.from(
+    new Map(
+      discoveryRows.map((row: any) => {
+        const fallbackKey = [
+          String(row.left_dataset || ''),
+          String(row.right_dataset || ''),
+          String(row.left_column || ''),
+          String(row.right_column || ''),
+          String(row.confidence || ''),
+          String(row.decision || ''),
+        ].join('|')
+        return [String(row.relationship_key || fallbackKey), row]
+      })
+    ).values()
+  )
   const lrWeight = Number(overview?.model?.lr_weight ?? 0.3)
   const secondaryWeight = Number(overview?.model?.secondary_weight ?? 0.7)
   const accuracy = overview?.model?.test_metrics?.accuracy || {}
@@ -206,28 +259,6 @@ export default function JoinStudioPage({
             ) : null}
           </div>
 
-          <div className="join-form-row">
-            <label>
-              File Path (optional)
-              <input
-                type="text"
-                value={intakeFilePath}
-                onChange={(e) => setIntakeFilePath(e.target.value)}
-                placeholder="C:\\path\\to\\new_dataset.csv"
-              />
-            </label>
-
-            <label>
-              Dataset Name
-              <input
-                type="text"
-                value={intakeDatasetName}
-                onChange={(e) => setIntakeDatasetName(e.target.value)}
-                placeholder="new_dataset_name"
-              />
-            </label>
-          </div>
-
           <button type="button" className="df-btn" onClick={() => void runIntake()} disabled={intakeBusy}>
             {intakeBusy ? 'Processing Intake...' : 'Process New File'}
           </button>
@@ -255,6 +286,115 @@ export default function JoinStudioPage({
             >
               Download Intake Report
             </button>
+
+            <div className="runtime-grid">
+              <div className="runtime-card">
+                <h4>Feature Extraction Counters</h4>
+                <ul className="meta-list compact">
+                  <li>
+                    <span>Datasets Processed</span>
+                    <strong>{formatNumber(processingStats.datasetsProcessed)}</strong>
+                  </li>
+                  <li>
+                    <span>Column Pairs Evaluated</span>
+                    <strong>{formatNumber(processingStats.columnPairsEvaluated)}</strong>
+                  </li>
+                  <li>
+                    <span>Feature Vectors Built</span>
+                    <strong>{formatNumber(processingStats.featureVectorsBuilt)}</strong>
+                  </li>
+                  <li>
+                    <span>Relationships Detected</span>
+                    <strong>{formatNumber(processingStats.relationshipsDetected)}</strong>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="runtime-card">
+                <h4>ML Scoring Engine</h4>
+                <ul className="meta-list compact">
+                  <li>
+                    <span>Feature Vectors Processed</span>
+                    <strong>
+                      {formatNumber(processingStats.mlProcessed)} / {formatNumber(processingStats.mlTotal)}
+                    </strong>
+                  </li>
+                  <li>
+                    <span>Average Confidence</span>
+                    <strong>{processingStats.averageConfidence.toFixed(3)}</strong>
+                  </li>
+                  <li>
+                    <span>Strong Relationships</span>
+                    <strong>{formatNumber(processingStats.strongCount)}</strong>
+                  </li>
+                  <li>
+                    <span>Probable Relationships</span>
+                    <strong>{formatNumber(processingStats.probableCount)}</strong>
+                  </li>
+                  <li>
+                    <span>Weak Relationships</span>
+                    <strong>{formatNumber(processingStats.weakCount)}</strong>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="runtime-card">
+                <h4>Behavioral Signals Captured</h4>
+                <ul className="meta-list compact">
+                  <li>
+                    <span>Join Usage Signals</span>
+                    <strong>{formatNumber(processingStats.joinUsageSignals)}</strong>
+                  </li>
+                  <li>
+                    <span>Co-Query Signals</span>
+                    <strong>{formatNumber(processingStats.coQuerySignals)}</strong>
+                  </li>
+                  <li>
+                    <span>Lineage Signals</span>
+                    <strong>{formatNumber(processingStats.lineageSignals)}</strong>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="runtime-card">
+              <h4>Relationship Discovery Stream</h4>
+              {processingFeed.length ? (
+                <ul className="runtime-stream-list">
+                  {processingFeed.map((entry, idx) => (
+                    <li key={`${entry}-${idx}`}>{entry}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="muted-text">Detected relationships will stream here during processing.</p>
+              )}
+            </div>
+
+            {!intakeBusy && hasIntakeRun ? (
+              <div className="runtime-card">
+                <h4>Integration Summary</h4>
+                <ul className="meta-list compact">
+                  <li>
+                    <span>Datasets analyzed</span>
+                    <strong>{formatNumber(processingStats.datasetsProcessed)}</strong>
+                  </li>
+                  <li>
+                    <span>Column pairs evaluated</span>
+                    <strong>{formatNumber(processingStats.columnPairsEvaluated)}</strong>
+                  </li>
+                  <li>
+                    <span>Relationships discovered</span>
+                    <strong>{formatNumber(processingStats.relationshipsDetected)}</strong>
+                  </li>
+                  <li>
+                    <span>Strong / Probable / Weak</span>
+                    <strong>
+                      {formatNumber(processingStats.strongCount)} / {formatNumber(processingStats.probableCount)} / {formatNumber(processingStats.weakCount)}
+                    </strong>
+                  </li>
+                </ul>
+              </div>
+            ) : null}
           </div>
         </article>
 
@@ -271,7 +411,7 @@ export default function JoinStudioPage({
             UI confidence policy: use LR+{overview?.model?.secondary_model_label || 'RF'} when both model scores exist; otherwise use static 0.3/0.2/0.5 fallback.
           </p>
 
-          {discoveryRows.length ? (
+          {dedupedDiscoveryRows.length ? (
             <div className="df-table-wrap">
               <table className="df-table">
                 <thead>
@@ -286,7 +426,7 @@ export default function JoinStudioPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {discoveryRows.map((row: any, index: number) => {
+                  {dedupedDiscoveryRows.map((row: any, index: number) => {
                     const computed = computeUiConfidence(row)
                     const band = confidenceBand(computed.value)
                     const scores = modelScores(row)

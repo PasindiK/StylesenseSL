@@ -57,14 +57,20 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   return (await response.json()) as T
 }
 
-function inferConfidenceSource(row: any): 'ensemble' | 'static' {
+function inferConfidenceSource(row: any): 'ensemble' | 'ml_single' | 'static' {
+  const backendSource = String(row?.confidence_source || row?.feature_vector?.confidence_source || '').trim()
+  if (backendSource === 'ensemble' || backendSource === 'ml_single' || backendSource === 'static') {
+    return backendSource
+  }
   const featureVector = row?.feature_vector || {}
   const modelsUsed = featureVector?.models_used || {}
   const hasLr = typeof modelsUsed?.LR === 'number'
   const hasSecondary = Object.entries(modelsUsed).some(
     ([key, value]) => key !== 'LR' && typeof value === 'number'
   )
-  return hasLr && hasSecondary ? 'ensemble' : 'static'
+  if (hasLr && hasSecondary) return 'ensemble'
+  if (hasLr || hasSecondary) return 'ml_single'
+  return 'static'
 }
 
 function downloadBlob(fileName: string, content: string, type: string) {
@@ -142,6 +148,29 @@ export default function AgentMonitorPage({
 
     const ensembleRows = relationshipRows.filter((row: any) => inferConfidenceSource(row) === 'ensemble').length
     const staticRows = relationshipRows.length - ensembleRows
+    const ensembleConf = relationshipRows
+      .filter((row: any) => inferConfidenceSource(row) === 'ensemble')
+      .map((row: any) => Number(row?.confidence || 0))
+      .filter((value: number) => Number.isFinite(value))
+    const staticConf = relationshipRows
+      .filter((row: any) => inferConfidenceSource(row) === 'static')
+      .map((row: any) => Number(row?.confidence || 0))
+      .filter((value: number) => Number.isFinite(value))
+
+    const avgEnsembleConfidence =
+      ensembleConf.length > 0 ? ensembleConf.reduce((sum: number, v: number) => sum + v, 0) / ensembleConf.length : null
+    const avgStaticConfidence =
+      staticConf.length > 0 ? staticConf.reduce((sum: number, v: number) => sum + v, 0) / staticConf.length : null
+
+    let higherAvgSource: 'ensemble' | 'static' | 'equal' | 'n/a' = 'n/a'
+    if (avgEnsembleConfidence !== null && avgStaticConfidence !== null) {
+      if (Math.abs(avgEnsembleConfidence - avgStaticConfidence) < 1e-9) higherAvgSource = 'equal'
+      else higherAvgSource = avgEnsembleConfidence > avgStaticConfidence ? 'ensemble' : 'static'
+    } else if (avgEnsembleConfidence !== null) {
+      higherAvgSource = 'ensemble'
+    } else if (avgStaticConfidence !== null) {
+      higherAvgSource = 'static'
+    }
 
     const topDrift = [...relationshipRows]
       .filter((row: any) => Number(row?.drift_score || 0) > 0)
@@ -155,6 +184,9 @@ export default function AgentMonitorPage({
       lastBehavioralUpdate,
       ensembleRows,
       staticRows,
+      avgEnsembleConfidence,
+      avgStaticConfidence,
+      higherAvgSource,
       topDrift,
       mergeCandidates,
     }
@@ -174,18 +206,6 @@ export default function AgentMonitorPage({
       generatedAt: agentStatus?.generated_at,
     }
   }, [agentStatus])
-
-  const reportHighlights = useMemo(() => {
-    const report = statusSummary.report || {}
-    const entries = [
-      { label: 'Relationships Discovered', value: report.relationships_discovered },
-      { label: 'Behavioral Updates', value: report.behavioral_updates },
-      { label: 'Drift Flags', value: report.drift_flags },
-      { label: 'Updated Datasets', value: report.updated_datasets },
-      { label: 'Retrained', value: report.retrained },
-    ]
-    return entries.filter((item) => item.value !== undefined && item.value !== null)
-  }, [statusSummary.report])
 
   function downloadAuditJson() {
     const payload = {
@@ -274,8 +294,8 @@ export default function AgentMonitorPage({
           <div className="agent-metric-chip">
             <span>Scoring Source Coverage</span>
             <strong>
-              Ensemble {Number(statusSummary.coverage?.ensemble || agentSummary.ensembleRows)} | Static{' '}
-              {Number(statusSummary.coverage?.static || agentSummary.staticRows)}
+              Ensemble {Number(statusSummary.coverage?.static || agentSummary.staticRows)} | Static{' '}
+              {Number(statusSummary.coverage?.ensemble || agentSummary.ensembleRows)}
             </strong>
           </div>
           <div className="agent-metric-chip">
@@ -358,23 +378,6 @@ export default function AgentMonitorPage({
           </div>
         </div>
 
-        {statusSummary.report ? (
-          <div className="agent-report-block">
-            <p className="muted-text agent-run-report-preview">
-              Last run report includes {Object.keys(statusSummary.report).length} top-level fields for audit traceability.
-            </p>
-            {reportHighlights.length ? (
-              <div className="agent-report-grid">
-                {reportHighlights.map((item) => (
-                  <div key={item.label} className="agent-metric-chip">
-                    <span>{item.label}</span>
-                    <strong>{String(item.value)}</strong>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
       </article>
     </section>
   )
