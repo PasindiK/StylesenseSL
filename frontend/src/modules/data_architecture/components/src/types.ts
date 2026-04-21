@@ -1,6 +1,6 @@
 export type DashboardPageId =
   | 'overview'
-  | 'governance'
+  | 'live_validation'
   | 'explainability'
   | 'actions'
   | 'medallion'
@@ -134,6 +134,50 @@ export interface GovernanceAnalytics {
   regional_access: Array<{ province: string; count: number }>;
   compliance_indicators: Array<{ name: string; status: string }>;
   audit_events: Array<Record<string, unknown>>;
+}
+
+export interface ServiceRbacPrincipal {
+  service_name: string;
+  principal_id: string;
+  container: string;
+  allowed_operations: string[];
+  allowed_layers: string[];
+  data_categories: string[];
+  created_at: string;
+}
+
+export interface ServiceRbacConfigResponse {
+  generated_at: string;
+  exported_at: string;
+  total_services: number;
+  service_principals: ServiceRbacPrincipal[];
+}
+
+export interface ServiceAccessCheckResponse {
+  generated_at: string;
+  service_name: string;
+  operation: string;
+  layer: string;
+  data_category: string;
+  access_granted: boolean;
+  reason: string;
+}
+
+export interface ServiceRbacAuditEntry {
+  timestamp: string;
+  service_name: string;
+  operation: string;
+  layer: string;
+  data_category: string;
+  access_granted: boolean;
+  reason: string;
+}
+
+export interface ServiceRbacAuditLogResponse {
+  generated_at: string;
+  service_filter: string | null;
+  total_entries: number;
+  entries: ServiceRbacAuditEntry[];
 }
 
 export interface ExplainabilityPayload {
@@ -385,4 +429,125 @@ export interface SeasonalStorageAnalyticsResponse {
   }>;
   highlighted_datasets: string[];
   optimization_insight: string;
+}
+
+export interface LiveInputSchemaColumn {
+  column: string;
+  dtype: string;
+}
+
+export interface LiveInputDataset {
+  id: string;
+  dataset_name: string;
+  file_name: string;
+  path: string;
+  source_layer: string;
+  size_bytes: number;
+  row_count_estimate: number;
+  last_modified: string;
+  columns: string[];
+  schema: LiveInputSchemaColumn[];
+  sample_rows: Array<Record<string, unknown>>;
+}
+
+export interface LiveInputDatasetsResponse {
+  generated_at: string;
+  count: number;
+  datasets: LiveInputDataset[];
+}
+
+export interface LiveValidationMetricsSnapshot {
+  total_records_ingested_today: number;
+  bronze_files_count: number;
+  active_drift_alerts: number;
+  data_quality_score: number;
+  total_storage_used_gb: number;
+  pipeline_status: string;
+}
+
+export interface LiveValidationResult {
+  generated_at: string;
+  status_message: string;
+  drift_detected: boolean;
+  risk_level: string;
+  drift_counts: DriftCounts;
+  diff: {
+    new_columns?: string[];
+    missing_columns?: string[];
+    dtype_changes?: Array<{ column: string; expected: string; actual: string }>;
+    renames?: Array<{ old_name: string; new_name: string; similarity: number; type_match: boolean }>;
+  };
+  event_id: string | null;
+  baseline_dataset_id: string;
+  baseline_schema: LiveInputSchemaColumn[];
+  uploaded_schema: LiveInputSchemaColumn[];
+  uploaded_preview: Array<Record<string, unknown>>;
+  ingestion: {
+    saved: boolean;
+    local_path: string | null;
+    size_bytes?: number;
+    azure_blob_path?: string;
+    azure_upload_error?: string;
+  };
+  before_metrics: LiveValidationMetricsSnapshot;
+  after_metrics: LiveValidationMetricsSnapshot;
+}
+
+export interface SchemaVersion {
+  version: number;
+  timestamp: string;
+  approved_at: string;
+  approved_by: string;
+  source_file: string;
+  event_id: string;
+  changes: {
+    new_columns: string[];
+    missing_columns: string[];
+    dtype_changes: Array<{ column: string; expected: string; actual: string }>;
+    renames: Array<{ old_name: string; new_name: string; similarity: number; type_match: boolean }>;
+  };
+  change_summary: DriftCounts;
+  risk_level: string;
+  is_baseline?: boolean;
+  is_current_baseline?: boolean;
+  notes?: string;
+  ingestion?: {
+    saved: boolean;
+    local_path: string;
+    azure_blob_path: string;
+    size_bytes: number;
+  };
+}
+
+export interface SchemaVersionTableGroup {
+  table: string;
+  baseline_dataset?: string | null;
+  current_schema?: LiveInputSchemaColumn[];
+  version_count: number;
+  active_baseline_version?: number | null;
+  latest_available_version?: number | null;
+  latest_version: SchemaVersion | null;
+  versions: SchemaVersion[];
+}
+
+export interface SchemaVersionsResponse {
+  generated_at: string;
+  table?: string;
+  baseline_dataset?: string | null;
+  current_schema?: LiveInputSchemaColumn[];
+  version_count?: number;
+  active_baseline_version?: number | null;
+  latest_available_version?: number | null;
+  latest_version?: SchemaVersion | null;
+  versions?: SchemaVersion[];
+  table_count?: number;
+  tables?: SchemaVersionTableGroup[];
+}
+
+export interface SchemaRollbackResponse {
+  status: string;
+  table: string;
+  active_baseline_version: number;
+  available_versions: number[];
+  schema: SchemaVersionsResponse;
 }

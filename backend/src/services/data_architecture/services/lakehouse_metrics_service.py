@@ -579,29 +579,33 @@ class LakehouseMetricsService:
         return None
 
     def _resolve_season(self, simulated: Optional[str] = None) -> str:
+        """Resolve current season for Sri Lankan fashion retail context."""
         if simulated:
             normalized = simulated.strip().lower()
+            # Sri Lankan retail seasons
             mapping = {
-                "spring": "Spring",
-                "summer": "Summer",
-                "autumn": "Autumn",
-                "fall": "Autumn",
-                "winter": "Winter",
                 "festive": "Festive",
-                "clearance": "Clearance",
+                "monsoon": "Monsoon",
+                "dry": "Dry",
+                "historical": "Historical",
+                # Legacy support
+                "avurudu": "Festive",
+                "newyear": "Festive",
             }
             if normalized in mapping:
                 return mapping[normalized]
             return simulated.strip().title()
 
+        # Determine Sri Lankan season based on month
         month = datetime.now(timezone.utc).month
-        if 3 <= month <= 5:
-            return "Spring"
-        if 6 <= month <= 8:
-            return "Summer"
-        if 9 <= month <= 11:
-            return "Autumn"
-        return "Winter"
+        # Festive Season: January, April, December (Avurudu/New Year)
+        if month in (1, 4, 12):
+            return "Festive"
+        # Monsoon Season: May-September
+        if 5 <= month <= 9:
+            return "Monsoon"
+        # Dry Season: February-March, October-November
+        return "Dry"
 
     def _matches_requested_season(self, season_tag: Optional[str], requested_season: str) -> bool:
         if not season_tag:
@@ -610,13 +614,12 @@ class LakehouseMetricsService:
         tag = season_tag.strip().lower()
         requested = requested_season.strip().lower()
 
+        # Sri Lankan season aliases
         aliases = {
-            "spring": {"spring"},
-            "summer": {"summer"},
-            "autumn": {"autumn", "fall"},
-            "winter": {"winter"},
-            "festive": {"festive"},
-            "clearance": {"clearance"},
+            "festive": {"festive", "avurudu", "newyear", "celebration", "festival"},
+            "monsoon": {"monsoon", "rainy", "wet"},
+            "dry": {"dry", "summer", "hot"},
+            "historical": {"historical", "archive", "past", "legacy"},
         }
 
         valid_tags = aliases.get(requested, {requested})
@@ -628,6 +631,7 @@ class LakehouseMetricsService:
         path_hint: str,
         metadata: Optional[Dict[str, Any]],
     ) -> Optional[str]:
+        """Infer season tag from file metadata for Sri Lankan retail context."""
         metadata = metadata or {}
         for key in ("season", "season_tag", "seasonality"):
             value = metadata.get(key)
@@ -635,7 +639,8 @@ class LakehouseMetricsService:
                 return str(value).strip().lower()
 
         combined = f"{file_name} {path_hint}".lower()
-        for token in ("spring", "summer", "autumn", "fall", "winter", "festive", "clearance"):
+        # Check for Sri Lankan season keywords
+        for token in ("festive", "avurudu", "newyear", "monsoon", "rainy", "dry", "historical"):
             if token in combined:
                 return token
 

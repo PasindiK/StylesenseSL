@@ -22,7 +22,6 @@ export function SaasDashboard({
 }: SaasDashboardProps) {
   const tabs = [
     { id: 'overview', label: 'Overview' },
-    { id: 'governance', label: 'Governance' },
     { id: 'approvals', label: 'Approvals' },
     { id: 'timeline', label: 'Timeline' },
     { id: 'storage', label: 'Storage' },

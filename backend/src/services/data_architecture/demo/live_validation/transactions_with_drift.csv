@@ -1,0 +1,4 @@
+transaction_id,user_id,product_id,shop_id,quantity,unit_cost,total_amount,discount_percent,tax_percent,tax_amount,final_amount,payment_method,transaction_status,transaction_date,transaction_ts,delivery_date,delivery_address,notes,sales_channel
+900101,3001,1101,501,two,4500,9000,5,8,684,9234,card,completed,2026-03-09,2026-03-09T12:15:00Z,2026-03-12,"12 Flower Road, Colombo","gift wrap",mobile_app
+900102,3002,1104,503,1,3200,3200,0,8,256,3456,cash,completed,2026-03-09,2026-03-09T12:22:00Z,2026-03-11,"77 Temple Lane, Kandy","",web
+900103,3005,1110,504,3,2100,6300,10,8,454.4,6124.4,card,shipped,2026-03-09,2026-03-09T12:37:00Z,2026-03-13,"8 Lake View, Galle","deliver after 5pm",store

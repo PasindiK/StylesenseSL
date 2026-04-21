@@ -46,7 +46,7 @@ export function PipelineFlowDiagram({ stages }: PipelineFlowDiagramProps) {
       {/* Pipeline Title */}
       <div className="pipeline-header">
         <h2 className="pipeline-title">Data Pipeline Flow</h2>
-        <p className="pipeline-subtitle">Kafka → Bronze → Silver → Gold Medallion Architecture</p>
+        <p className="pipeline-subtitle">Bronze → Silver → Gold Medallion Architecture</p>
       </div>
 
       {/* Professional Node-Based Pipeline Graph */}

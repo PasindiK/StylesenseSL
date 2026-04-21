@@ -1,0 +1,76 @@
+{
+  "timestamp": "2026-03-09T14:01:40.624602Z",
+  "table": "transactions_live_demo",
+  "source_file": "transactions_no_drift.csv",
+  "baseline_dataset": "data/transactions_dataset.csv",
+  "decision": "REQUIRES_APPROVAL",
+  "requires_approval": true,
+  "risk_level": "high",
+  "counts": {
+    "new": 0,
+    "missing": 0,
+    "dtype": 10,
+    "renames": 0
+  },
+  "diff": {
+    "new_columns": [],
+    "missing_columns": [],
+    "dtype_changes": [
+      {
+        "column": "transaction_id",
+        "expected": "float",
+        "actual": "integer"
+      },
+      {
+        "column": "user_id",
+        "expected": "float",
+        "actual": "integer"
+      },
+      {
+        "column": "product_id",
+        "expected": "float",
+        "actual": "integer"
+      },
+      {
+        "column": "shop_id",
+        "expected": "float",
+        "actual": "integer"
+      },
+      {
+        "column": "quantity",
+        "expected": "float",
+        "actual": "integer"
+      },
+      {
+        "column": "unit_price",
+        "expected": "float",
+        "actual": "integer"
+      },
+      {
+        "column": "total_amount",
+        "expected": "float",
+        "actual": "integer"
+      },
+      {
+        "column": "discount_percent",
+        "expected": "float",
+        "actual": "integer"
+      },
+      {
+        "column": "discount_amount",
+        "expected": "float",
+        "actual": "integer"
+      },
+      {
+        "column": "tax_percent",
+        "expected": "float",
+        "actual": "integer"
+      }
+    ],
+    "renames": []
+  },
+  "ingestion": {
+    "saved": false,
+    "local_path": null
+  }
+}
