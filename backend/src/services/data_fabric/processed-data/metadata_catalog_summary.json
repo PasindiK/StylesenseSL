@@ -1,5 +1,5 @@
 {
-  "exported_at": "2026-02-25T16:23:26.500213",
+  "exported_at": "2026-03-03T22:46:42.220162",
   "total_assets": 3,
   "datasets": [
     {
@@ -16,8 +16,8 @@
       "row_count": 500,
       "column_count": 2,
       "created_at": "2026-02-25T15:48:13.612845",
-      "updated_at": "2026-02-25T16:23:26.427094",
-      "last_updated": "2026-02-25T16:23:26.427094",
+      "updated_at": "2026-03-03T22:46:42.175052",
+      "last_updated": "2026-03-03T22:46:42.175052",
       "producer_pipeline": "pipeline.customer_ltv",
       "validation_status": "Warning",
       "quality_score": 78.0,
@@ -49,8 +49,8 @@
       "row_count": 9458,
       "column_count": 3,
       "created_at": "2026-02-25T15:48:13.575370",
-      "updated_at": "2026-02-25T16:23:26.403506",
-      "last_updated": "2026-02-25T16:23:26.403506",
+      "updated_at": "2026-03-03T22:46:42.165104",
+      "last_updated": "2026-03-03T22:46:42.165104",
       "producer_pipeline": "ingestion.auto_data_loader",
       "validation_status": "Failed",
       "quality_score": 61.0,
@@ -59,8 +59,8 @@
         "finance"
       ],
       "properties": {},
-      "usage_count": 2,
-      "last_accessed": "2026-02-25T16:23:26.403506",
+      "usage_count": 3,
+      "last_accessed": "2026-03-03T22:46:42.165104",
       "consumers": [
         "fraud_detection_model"
       ],
@@ -84,8 +84,8 @@
       "row_count": 525,
       "column_count": 3,
       "created_at": "2026-02-25T15:48:13.568340",
-      "updated_at": "2026-02-25T16:23:26.403506",
-      "last_updated": "2026-02-25T16:23:26.403506",
+      "updated_at": "2026-03-03T22:46:42.155150",
+      "last_updated": "2026-03-03T22:46:42.155150",
       "producer_pipeline": "ingestion.auto_data_loader",
       "validation_status": "Passed",
       "quality_score": 92.5,
@@ -94,8 +94,8 @@
         "pii"
       ],
       "properties": {},
-      "usage_count": 4,
-      "last_accessed": "2026-02-25T16:23:26.403506",
+      "usage_count": 6,
+      "last_accessed": "2026-03-03T22:46:42.155150",
       "consumers": [
         "PowerBI_SalesDashboard",
         "recommendation_model_v1"
@@ -107,7 +107,7 @@
     }
   ],
   "health": {
-    "generated_at": "2026-02-25T16:23:26.506518",
+    "generated_at": "2026-03-03T22:46:42.222163",
     "total_datasets": 3,
     "health_counts": {
       "Healthy": 1,
@@ -122,21 +122,21 @@
         "health": "Failed",
         "validation_status": "Failed",
         "quality_score": 61.0,
-        "last_updated": "2026-02-25T16:23:26.403506"
+        "last_updated": "2026-03-03T22:46:42.165104"
       },
       {
         "dataset_name": "users_dataset",
         "health": "Healthy",
         "validation_status": "Passed",
         "quality_score": 92.5,
-        "last_updated": "2026-02-25T16:23:26.403506"
+        "last_updated": "2026-03-03T22:46:42.155150"
       },
       {
         "dataset_name": "customer_ltv_dataset",
         "health": "Warning",
         "validation_status": "Warning",
         "quality_score": 78.0,
-        "last_updated": "2026-02-25T16:23:26.427094"
+        "last_updated": "2026-03-03T22:46:42.175052"
       }
     ]
   }

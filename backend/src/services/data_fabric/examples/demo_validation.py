@@ -15,10 +15,20 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.ingestion import AutoDataLoader, DataValidator, ValidationSeverity
+from src.ingestion import AutoDataLoader, DataCleaner, DataValidator, ValidationSeverity
 
 # Path to your raw data folder
-DATA_FOLDER = project_root.parent / "raw-data copy"
+DATA_FOLDER_CANDIDATES = [
+    project_root / "raw-data copy",
+    project_root.parent / "raw-data copy",
+]
+DATA_FOLDER = next(
+    (path for path in DATA_FOLDER_CANDIDATES if path.exists()),
+    DATA_FOLDER_CANDIDATES[0],
+)
+
+# For synthetic datasets: regenerate primary keys to keep all rows
+AUTO_FIX_PRIMARY_KEYS = True
 
 print("\n" + "=" * 80)
 print("DATA VALIDATION DEMO")
@@ -27,11 +37,56 @@ print("=" * 80)
 # Step 1: Load the data with preprocessing
 print("\n1. Loading datasets...")
 print("-" * 80)
+if not DATA_FOLDER.exists():
+    raise ValueError(
+        "Raw data folder not found. Checked: "
+        + ", ".join(str(path) for path in DATA_FOLDER_CANDIDATES)
+    )
 loader = AutoDataLoader(str(DATA_FOLDER))
 registry = loader.load_all_datasets(enable_preprocessing=True)
 
 print(f"✓ Loaded {len(registry.list_datasets())} datasets")
 loader.print_inventory()
+
+if AUTO_FIX_PRIMARY_KEYS:
+    print("\n1.5 Auto-fixing primary keys (regenerate IDs, keep all rows)...")
+    print("-" * 80)
+
+    validator_for_keys = DataValidator()
+    cleaner = DataCleaner()
+
+    datasets = {
+        name: registry.get_dataset(name)
+        for name in registry.list_datasets()
+        if registry.get_dataset(name) is not None
+    }
+
+    cleaned_datasets, _ = cleaner.clean_datasets(
+        datasets=datasets,
+        primary_keys=validator_for_keys.primary_keys,
+        foreign_keys=validator_for_keys.foreign_key_relationships,
+        pk_strategy="regenerate",
+        drop_orphans=False,
+        fill_missing=False,
+    )
+
+    for dataset_name, cleaned_df in cleaned_datasets.items():
+        metadata = registry.get_metadata(dataset_name)
+        if metadata is None:
+            continue
+
+        metadata.row_count = len(cleaned_df)
+        metadata.column_count = len(cleaned_df.columns)
+        metadata.column_names = cleaned_df.columns.tolist()
+        metadata.data_types = {col: str(dtype) for col, dtype in cleaned_df.dtypes.items()}
+        metadata.missing_values = {
+            col: int(count)
+            for col, count in cleaned_df.isnull().sum().to_dict().items()
+        }
+
+        registry.register_dataset(dataset_name, cleaned_df, metadata)
+
+    print(cleaner.print_cleaning_summary())
 
 # Step 2: Initialize validator and run validation
 print("\n2. Running comprehensive validation...")
