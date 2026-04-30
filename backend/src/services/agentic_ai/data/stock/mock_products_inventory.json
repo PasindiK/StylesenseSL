@@ -1680,7 +1680,7 @@
     "sizes": [
       {
         "size": "S",
-        "stock": 4
+        "stock": 1
       },
       {
         "size": "XS",
@@ -5354,7 +5354,7 @@
     "sizes": [
       {
         "size": "M",
-        "stock": 7
+        "stock": 4
       }
     ]
   },

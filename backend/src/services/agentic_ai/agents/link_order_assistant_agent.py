@@ -675,14 +675,24 @@ class LinkOrderAssistantAgent:
             )
             session.setdefault("payment", {})["checkout_action"] = "add_to_cart"
             session["state"] = "completed"
-            ext_cart = product.get("add_to_cart_url") or review_link
+            ext_cart = product.get("add_to_cart_url")
+            if ext_cart and "checkout" in str(ext_cart).lower():
+                ext_cart = None
             status = "added" if cart_result.get("success") else "could not add automatically"
+            if ext_cart:
+                link_text = f"Add-to-cart page link: {ext_cart}\n\n"
+            else:
+                manual_url = product.get("url") or review_link
+                link_text = (
+                    "External add-to-cart deep link was not detected for this product.\n"
+                    f"Open product page and click Add to Cart manually: {manual_url}\n\n"
+                )
             return {
                 "session_id": session_id,
                 "state": "completed",
                 "reply": (
                     f"I {status} to your app cart with selected details.\n"
-                    f"Review/Add-to-cart page link: {ext_cart}\n\n"
+                    f"{link_text}"
                     "If the external shop requires login, please complete it manually on that page."
                 ),
                 "completed": True,
@@ -1089,6 +1099,9 @@ class LinkOrderAssistantAgent:
         if callable(looks_like_color):
             normalized_colors = [c for c in normalized_colors if looks_like_color(c)]
 
+        raw_variants = product.get("variants") if isinstance(product.get("variants"), dict) else {}
+        shopify_variant_map = raw_variants.get("shopify_variant_map") if isinstance(raw_variants, dict) else None
+
         return {
             "url": url,
             "name": name if name else "Unknown Product",
@@ -1103,6 +1116,7 @@ class LinkOrderAssistantAgent:
             "variants": {
                 "sizes": normalized_options,
                 "colors": normalized_colors,
+                **({"shopify_variant_map": shopify_variant_map} if isinstance(shopify_variant_map, dict) else {}),
             },
             "availability": str(product.get("availability") or "Unknown"),
             "shipping_availability": shipping_availability,
