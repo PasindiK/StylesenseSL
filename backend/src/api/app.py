@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 from collections import Counter
 import sqlite3
 import threading
-import jsone
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 import json
