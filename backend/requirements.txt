@@ -17,3 +17,5 @@ tenacity
 structlog
 pydantic
 lxml
+PyYAML
+xgboost

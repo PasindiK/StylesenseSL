@@ -16,3 +16,4 @@ backend/src/services/agentic_ai/agents/models/**/*.safetensors
 backend/src/services/agentic_ai/agents/models/**/*.pt
 backend/src/services/agentic_ai/agents/models/**/*.pth
 backend/src/services/agentic_ai/agents/models/**/*.bin
+backend/data/processed/agentic_featureops/

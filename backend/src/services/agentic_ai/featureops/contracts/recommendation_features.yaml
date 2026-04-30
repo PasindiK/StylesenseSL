@@ -1,0 +1,64 @@
+features:
+  semantic_similarity:
+    dtype: float
+    minimum: 0.0
+    maximum: 1.0
+    nullable: false
+    severity: hard
+    description: Semantic retrieval similarity between user query and item.
+  intent_match:
+    dtype: float
+    minimum: 0.0
+    maximum: 1.0
+    nullable: false
+    severity: hard
+    description: Structured constraint match between parsed query intent and candidate item.
+  profile_affinity:
+    dtype: float
+    minimum: 0.0
+    maximum: 1.0
+    nullable: false
+    severity: soft
+    description: Preference affinity based on persistent user profile behavior.
+  behavior_affinity:
+    dtype: float
+    minimum: 0.0
+    maximum: 1.0
+    nullable: false
+    severity: soft
+    description: Direct behavioral affinity from interaction graph evidence.
+  collaborative_affinity:
+    dtype: float
+    minimum: 0.0
+    maximum: 1.0
+    nullable: false
+    severity: soft
+    description: Collaborative affinity from graph-derived co-preference signals.
+  price_fit:
+    dtype: float
+    minimum: 0.0
+    maximum: 1.0
+    nullable: false
+    severity: soft
+    description: Candidate fit against stated or inferred user budget.
+  popularity_signal:
+    dtype: float
+    minimum: 0.0
+    maximum: 1.0
+    nullable: false
+    severity: soft
+    description: Popularity normalization from product activity metrics.
+  context_signal:
+    dtype: float
+    minimum: 0.6
+    maximum: 1.2
+    nullable: false
+    severity: soft
+    description: Context-aware multiplicative signal from time, device, and occasion.
+  trust_signal:
+    dtype: float
+    minimum: 0.0
+    maximum: 1.0
+    nullable: false
+    severity: hard
+    description: Governance trust signal derived from feature release outcomes.
