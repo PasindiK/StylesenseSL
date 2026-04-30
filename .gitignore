@@ -3,7 +3,12 @@ backend/.env
 backend/.venv/
 **/.venv/
 __pycache__/
+**/__pycache__/
+**/.pytest_cache/
 node_modules/
+.DS_Store
+ipconfig
+tatus
 
 # Generated ML model artifacts and training checkpoints
 backend/src/services/agentic_ai/agents/models/**/training_runs/
