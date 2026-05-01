@@ -37,6 +37,10 @@ try:
     from .correct_silver_inputs_for_adgri import correct_product, correct_sales, correct_users
 except ImportError:
     from correct_silver_inputs_for_adgri import correct_product, correct_sales, correct_users
+try:
+    from .silver_to_domain_loader import SilverToDomainLoaderService
+except ImportError:
+    from silver_to_domain_loader import SilverToDomainLoaderService
 
 # Paths for Data Mesh assets (safe after folder relocation)
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -1224,6 +1228,9 @@ governance_engine = GovernanceIntelligenceEngine(
 governance_prioritization_engine = GovernancePrioritizationEngine(
     governance_engine=governance_engine,
 )
+silver_domain_loader_service = SilverToDomainLoaderService(
+    data_root=DATA_ROOT,
+)
 
 # Enable CORS for local frontend access
 app.add_middleware(
@@ -1577,6 +1584,51 @@ def get_data_products():
                 "sample": df.head(3).to_dict(orient="records")
             })
     return {"data": products, "count": len(products)}
+
+
+@app.get("/api/datamesh/silver-datasets")
+def get_silver_datasets():
+    """List Silver datasets with basic metadata."""
+    return silver_domain_loader_service.list_silver_datasets()
+
+
+@app.post("/api/datamesh/silver-datasets/upload")
+async def upload_silver_dataset(upload_file: UploadFile = File(...)):
+    """Upload a Silver CSV dataset into the Silver-data folder."""
+    try:
+        raw_bytes = await upload_file.read()
+        return silver_domain_loader_service.upload_silver_dataset(
+            filename=upload_file.filename or "",
+            raw_bytes=raw_bytes,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to upload dataset: {exc}")
+
+
+@app.post("/api/datamesh/domain-detect/run")
+def run_domain_detect():
+    """Run Silver-to-domain detection and write audit log rows."""
+    return silver_domain_loader_service.run_domain_detection()
+
+
+@app.post("/api/datamesh/silver-datasets/remove-uploaded-tests")
+def remove_uploaded_test_datasets():
+    """Remove uploaded *_test.csv files from Silver-data."""
+    return silver_domain_loader_service.remove_uploaded_test_files()
+
+
+@app.post("/api/datamesh/domain-detect/reset")
+def reset_domain_detect_demo_state():
+    """Reset Silver loader demo state: cleanup uploaded test files + clear detection history."""
+    return silver_domain_loader_service.reset_demo_state()
+
+
+@app.get("/api/datamesh/domain-detect/results")
+def get_domain_detect_results(limit: int = 50):
+    """Get recent Silver-to-domain detection results from audit log."""
+    return silver_domain_loader_service.get_detection_results(limit=limit)
 
 
 @app.get("/governance/summary")
