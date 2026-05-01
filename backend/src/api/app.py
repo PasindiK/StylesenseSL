@@ -16,6 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
 import json
 import shutil
+from pydantic import BaseModel
 
 
 # Load environment variables from .env file
@@ -41,9 +42,10 @@ from src.users.catalog_personalization import CatalogPersonalizer
 from src.services.agentic_ai.agents.personalization_agent import PersonalizationAgent
 from src.services.agentic_ai.data.stock.stock_manager import StockManager, build_seed_products_from_loader
 from src.utils.nl_parser import parse_intent
-from src.clients.gemini_client import generate_styling_advice_with_gemini
+from src.clients.gemini_client import generate_styling_advice_with_gemini, predict as groq_predict, extract_text as extract_llm_text
 from src.services.agentic_ai.agents.order_agent import OrderAgent
 from src.services.agentic_ai.agents.link_order_assistant_agent import LinkOrderAssistantAgent
+from src.services.agentic_ai.featureops.registry import FeatureOpsDatasetRegistry
 
 app = FastAPI(title="CatalogAgent API")
 
@@ -125,6 +127,71 @@ def _build_url_mapping():
     return url_to_product
 
 url_to_product_map = _build_url_mapping()
+featureops_registry = FeatureOpsDatasetRegistry(
+    ROOT / "src" / "services" / "agentic_ai" / "featureops" / "registry"
+)
+
+
+class FeatureOpsSchemaAssistRequest(BaseModel):
+    columns: List[str]
+    sample_rows: List[Dict[str, Any]]
+    expected_fields: Optional[List[str]] = None
+
+
+class FeatureOpsDatasetVersionRequest(BaseModel):
+    dataset_name: str
+    file_name: Optional[str] = None
+    family_name: Optional[str] = None
+    family_id: Optional[str] = None
+    description: Optional[str] = None
+    version_note: Optional[str] = None
+    created_at: str
+    row_count: int
+    column_count: int
+    column_names: List[str]
+    dataset_fingerprint: Dict[str, Any]
+    column_profiles: List[Dict[str, Any]]
+    semantic_profiles: List[Dict[str, Any]]
+    internal_drift_results: List[Dict[str, Any]]
+    external_drift_results: Optional[List[Dict[str, Any]]] = None
+    release_results: List[Dict[str, Any]]
+
+
+class FeatureOpsDriftRunRequest(BaseModel):
+    dataset_name: str
+    family_id: Optional[str] = None
+    version_id: Optional[str] = None
+    created_at: str
+    dataset_fingerprint: Dict[str, Any]
+    internal_drift_results: List[Dict[str, Any]]
+    external_drift_results: Optional[List[Dict[str, Any]]] = None
+    release_results: List[Dict[str, Any]]
+
+
+def _extract_json_object_from_text(raw_text: str) -> Optional[Dict[str, Any]]:
+    if not raw_text:
+        return None
+    text = raw_text.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?", "", text).strip()
+        text = re.sub(r"```$", "", text).strip()
+    try:
+        parsed = json.loads(text)
+        if isinstance(parsed, dict):
+            return parsed
+    except Exception:
+        pass
+
+    start = text.find("{")
+    end = text.rfind("}")
+    if start >= 0 and end > start:
+        try:
+            parsed = json.loads(text[start:end + 1])
+            if isinstance(parsed, dict):
+                return parsed
+        except Exception:
+            return None
+    return None
 
 
 def _new_dashboard_telemetry_state() -> dict:
@@ -2000,6 +2067,150 @@ def submit_query_feedback(payload: dict):
         "ok": True,
         "feedback": feedback_entry,
         "summary": _query_feedback_summary(),
+    }
+
+
+@app.post("/api/featureops/schema-assist")
+async def featureops_schema_assist(payload: FeatureOpsSchemaAssistRequest):
+    expected_fields = payload.expected_fields or [
+        "Identifier",
+        "Timestamp",
+        "Numeric Measure",
+        "Categorical Attribute",
+        "Text Attribute",
+        "Score / Rating",
+        "Count / Activity",
+        "Rate / Percentage",
+        "Binary Label",
+        "Target Column",
+        "Unknown / Unmapped",
+    ]
+
+    prompt = f"""
+You are helping map dataset columns into generic tabular data roles.
+
+Allowed roles:
+{json.dumps(expected_fields)}
+
+Dataset columns:
+{json.dumps(payload.columns)}
+
+Sample rows:
+{json.dumps(payload.sample_rows[:3], ensure_ascii=False)}
+
+Return ONLY valid JSON with this structure:
+{{
+  "column_to_role": {{
+    "deviceId": {{"role": "Identifier", "confidence": 0.98, "reason": "why"}},
+    "timestamp": {{"role": "Timestamp", "confidence": 0.97, "reason": "why"}}
+  }},
+  "ambiguous_columns": ["column_name"],
+  "notes": ["short note"]
+}}
+
+Rules:
+- Use only the provided columns and the allowed roles.
+- Confidence must be between 0 and 1.
+- If no safe role exists, use "Unknown / Unmapped".
+- Do not return markdown.
+""".strip()
+
+    try:
+        response = groq_predict(prompt, max_output_tokens=450, temperature=0.0)
+        raw_text = extract_llm_text(response)
+        parsed = _extract_json_object_from_text(raw_text)
+        if not parsed:
+            return {
+                "status": "error",
+                "message": "LLM response could not be parsed as JSON.",
+                "raw_text": raw_text,
+            }
+        return {
+            "status": "ok",
+            "result": parsed,
+            "raw_text": raw_text,
+        }
+    except Exception as exc:
+        return {
+            "status": "error",
+            "message": str(exc),
+            "raw_text": "",
+        }
+
+
+@app.get("/api/featureops/families")
+def featureops_list_families():
+    return {
+        "status": "ok",
+        "families": featureops_registry.list_families(),
+    }
+
+
+@app.get("/api/featureops/families/{family_id}/versions")
+def featureops_list_versions(family_id: str):
+    return {
+        "status": "ok",
+        "family": featureops_registry.get_family(family_id),
+        "versions": featureops_registry.list_versions(family_id),
+    }
+
+
+@app.get("/api/featureops/families/{family_id}/versions/{version_number}")
+def featureops_get_version(family_id: str, version_number: int):
+    payload = featureops_registry.get_version_payload(family_id, version_number)
+    if not payload:
+        raise HTTPException(status_code=404, detail="Dataset version not found")
+    return {
+        "status": "ok",
+        "version": payload,
+    }
+
+
+@app.post("/api/featureops/families/baseline")
+def featureops_save_baseline(payload: FeatureOpsDatasetVersionRequest):
+    family = featureops_registry.save_new_family_baseline(payload.model_dump())
+    return {
+        "status": "ok",
+        "message": "New dataset family baseline created successfully.",
+        "family": family,
+    }
+
+
+@app.post("/api/featureops/families/{family_id}/versions")
+def featureops_add_version(family_id: str, payload: FeatureOpsDatasetVersionRequest):
+    version = featureops_registry.add_version(family_id, payload.model_dump())
+    return {
+        "status": "ok",
+        "message": f"Dataset added as version v{version['version_number']} under {version['family_name']}.",
+        "version": version,
+    }
+
+
+@app.post("/api/featureops/families/{family_id}/versions/{version_number}/approve")
+def featureops_approve_version(family_id: str, version_number: int):
+    family = featureops_registry.set_approved_baseline(family_id, version_number)
+    return {
+        "status": "ok",
+        "message": f"Version v{version_number} is now the approved baseline for {family['family_name']}.",
+        "family": family,
+    }
+
+
+@app.post("/api/featureops/drift-runs")
+def featureops_record_drift_run(payload: FeatureOpsDriftRunRequest):
+    run = featureops_registry.record_drift_run(payload.model_dump())
+    return {
+        "status": "ok",
+        "message": "FeatureOps registry updated.",
+        "run": run,
+    }
+
+
+@app.get("/api/featureops/drift-runs")
+def featureops_list_drift_runs():
+    return {
+        "status": "ok",
+        "runs": featureops_registry.list_drift_runs(),
     }
 
 

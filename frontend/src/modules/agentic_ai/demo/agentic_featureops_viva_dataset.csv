@@ -1,0 +1,37 @@
+query,product_name,category,style,color,price,clicks,purchases,rating,relevant,user_segment,occasion,inventory_status,brand
+white office shirts,Classic White Oxford Shirt,shirts,formal,white,5800,128,31,4.7,1,young_professional,office,in_stock,UrbanWeave
+white office shirts,Tailored Poplin Work Shirt,shirts,formal,white,6100,143,34,4.8,1,young_professional,office,in_stock,UrbanWeave
+white office shirts,Slim Fit Essential White Shirt,shirts,formal,white,5900,131,29,4.6,1,young_professional,office,low_stock,FormLab
+white office shirts,Minimal Stretch Business Shirt,shirts,formal,white,6800,109,22,4.4,1,young_professional,office,in_stock,FormLab
+white office shirts,Oversized Linen Resort Shirt,shirts,casual,beige,6400,76,8,4.1,0,young_professional,weekend,in_stock,CoastThread
+white office shirts,Relaxed Summer Camp Shirt,shirts,streetwear,blue,5200,44,5,3.8,0,young_professional,casual,in_stock,StreetRoot
+wedding guest dresses,Blush Satin Midi Dress,dresses,elegant,pink,12500,164,42,4.8,1,fashion_forward,wedding,in_stock,MaisonLuna
+wedding guest dresses,Emerald Pleated Evening Dress,dresses,elegant,green,13200,151,39,4.7,1,fashion_forward,wedding,in_stock,MaisonLuna
+wedding guest dresses,Floral Chiffon Occasion Dress,dresses,romantic,multicolor,11800,139,28,4.5,1,fashion_forward,wedding,low_stock,BelleAura
+wedding guest dresses,Navy Structured Cocktail Dress,dresses,formal,navy,12900,122,26,4.6,1,fashion_forward,wedding,in_stock,NoirAtelier
+wedding guest dresses,Casual Cotton Day Dress,dresses,casual,yellow,6900,57,7,3.9,0,fashion_forward,brunch,in_stock,DayMuse
+wedding guest dresses,Black Bodycon Club Dress,dresses,party,black,8400,63,9,4.0,0,fashion_forward,party,in_stock,NightEcho
+black sneakers for men,Black Leather Court Sneakers,sneakers,minimal,black,9800,177,46,4.8,1,urban_male,casual,in_stock,MonoRun
+black sneakers for men,Matte Black Street Sneakers,sneakers,streetwear,black,8900,168,40,4.7,1,urban_male,casual,in_stock,MonoRun
+black sneakers for men,Cushioned Commuter Trainers,sneakers,sport,black,9400,149,35,4.6,1,urban_male,commute,in_stock,StrideLab
+black sneakers for men,All Black Knit Slip-On,sneakers,minimal,black,8600,133,28,4.4,1,urban_male,casual,low_stock,StrideLab
+black sneakers for men,White Retro Tennis Sneakers,sneakers,retro,white,9100,81,11,4.1,0,urban_male,casual,in_stock,OldCourt
+black sneakers for men,Blue Trail Running Shoes,sneakers,sport,blue,10200,69,9,4.0,0,urban_male,outdoor,in_stock,PeakTrail
+modest abayas for eid,Midnight Embroidered Abaya,abayas,modest,black,14200,156,38,4.9,1,modest_fashion,eid,in_stock,NurLine
+modest abayas for eid,Soft Beige Open Front Abaya,abayas,modest,beige,13600,144,35,4.8,1,modest_fashion,eid,in_stock,NurLine
+modest abayas for eid,Pearl Sleeve Occasion Abaya,abayas,elegant,cream,14900,137,31,4.7,1,modest_fashion,eid,low_stock,SafaStudio
+modest abayas for eid,Classic Black Flow Abaya,abayas,modest,black,12800,149,33,4.8,1,modest_fashion,eid,in_stock,SafaStudio
+modest abayas for eid,Cropped Utility Jacket,outerwear,streetwear,olive,9200,41,4,3.7,0,modest_fashion,casual,in_stock,EdgeForm
+modest abayas for eid,Denim Maxi Skirt,skirts,casual,blue,6100,53,6,3.9,0,modest_fashion,casual,in_stock,EveryThread
+red party heels,Crimson Satin Stiletto Heels,heels,party,red,11200,148,37,4.7,1,event_glam,party,in_stock,Veloura
+red party heels,Ruby Strappy Evening Heels,heels,party,red,11800,141,34,4.8,1,event_glam,party,in_stock,Veloura
+red party heels,Block Heel Celebration Sandals,heels,elegant,red,10500,126,27,4.5,1,event_glam,party,low_stock,ScarletMuse
+red party heels,Gloss Red Pointed Pumps,heels,formal,red,12100,133,29,4.6,1,event_glam,party,in_stock,ScarletMuse
+red party heels,White Bridal Kitten Heels,heels,bridal,white,11500,62,8,4.1,0,event_glam,wedding,in_stock,IvoryStep
+red party heels,Black Office Loafers,flats,formal,black,7900,48,5,3.8,0,event_glam,office,in_stock,CoreWalk
+oversized hoodies for teens,Graphite Oversized Street Hoodie,hoodies,streetwear,gray,7200,173,43,4.8,1,teen_casual,casual,in_stock,YouthCode
+oversized hoodies for teens,Sky Blue Relaxed Hoodie,hoodies,casual,blue,6900,159,39,4.7,1,teen_casual,casual,in_stock,YouthCode
+oversized hoodies for teens,Neutral Drop Shoulder Hoodie,hoodies,minimal,beige,7400,147,34,4.6,1,teen_casual,casual,low_stock,LayerLab
+oversized hoodies for teens,Graphic Campus Pullover,hoodies,streetwear,black,7600,154,36,4.7,1,teen_casual,casual,in_stock,LayerLab
+oversized hoodies for teens,Slim Fit Zipped Jacket,jackets,sport,navy,8100,58,7,4.0,0,teen_casual,training,in_stock,MoveAxis
+oversized hoodies for teens,Formal Merino Sweater,knitwear,formal,maroon,8500,37,3,3.9,0,teen_casual,office,in_stock,HeritageKnit
