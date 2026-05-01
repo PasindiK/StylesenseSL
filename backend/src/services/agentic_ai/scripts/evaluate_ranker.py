@@ -1,28 +1,67 @@
 from __future__ import annotations
-from typing import Iterable, List
+
+import argparse
+from pathlib import Path
+import sys
+
+import joblib
+import pandas as pd
+
+BACKEND_ROOT = Path(__file__).resolve().parents[4]
+if str(BACKEND_ROOT) not in sys.path:
+    sys.path.insert(0, str(BACKEND_ROOT))
+
+from src.services.agentic_ai.agents.ltr_support import (  # noqa: E402
+    FEATURE_ORDER,
+    RankingDataset,
+    build_bootstrap_ranking_dataset,
+    evaluate_grouped_predictions,
+    split_by_query,
+)
 
 
-def dcg_at_k(relevances: Iterable[float], k: int) -> float:
-    values = list(relevances)[:k]
-    total = 0.0
-    for idx, rel in enumerate(values, start=1):
-        total += (2 ** rel - 1) / __import__("math").log2(idx + 1)
-    return total
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Evaluate the Agentic AI LambdaMART ranker.")
+    parser.add_argument(
+        "--model",
+        default=str(BACKEND_ROOT / "src" / "services" / "agentic_ai" / "agents" / "models" / "ltr" / "lambdamart_ranker.joblib"),
+        help="Path to the saved LambdaMART artifact.",
+    )
+    parser.add_argument(
+        "--dataset",
+        default="",
+        help="Optional prebuilt grouped ranking dataset CSV. If omitted, a bootstrap dataset is generated from the catalog.",
+    )
+    parser.add_argument(
+        "--catalog",
+        default=str(BACKEND_ROOT / "data" / "raw" / "final_products.csv"),
+        help="Catalog CSV used when auto-generating the evaluation dataset.",
+    )
+    return parser.parse_args()
 
 
-def ndcg_at_k(relevances: List[float], k: int) -> float:
-    ideal = sorted(relevances, reverse=True)
-    denom = dcg_at_k(ideal, k)
-    if denom == 0:
-        return 0.0
-    return dcg_at_k(relevances, k) / denom
+def load_dataset(args: argparse.Namespace) -> pd.DataFrame:
+    if args.dataset:
+        return pd.read_csv(args.dataset)
+    dataset = build_bootstrap_ranking_dataset(args.catalog)
+    return dataset.frame
 
 
 def main() -> None:
-    weighted_baseline = [3, 2, 2, 1, 0, 0]
-    governed_ranker = [4, 3, 2, 1, 1, 0]
-    print(f"Weighted baseline NDCG@6: {ndcg_at_k(weighted_baseline, 6):.4f}")
-    print(f"Governed ranker NDCG@6: {ndcg_at_k(governed_ranker, 6):.4f}")
+    args = parse_args()
+    artifact = joblib.load(args.model)
+    model = artifact["model"] if isinstance(artifact, dict) and "model" in artifact else artifact
+
+    frame = load_dataset(args)
+    _, test_frame = split_by_query(frame, train_ratio=0.8)
+    test = RankingDataset(test_frame, FEATURE_ORDER)
+    X_test, _, _ = test.to_xy_groups()
+    predictions = model.predict(X_test)
+    metrics = evaluate_grouped_predictions(test_frame, predictions, k=6)
+
+    print("Evaluation metrics:")
+    for key, value in metrics.items():
+        print(f"  {key}: {value:.4f}")
 
 
 if __name__ == "__main__":

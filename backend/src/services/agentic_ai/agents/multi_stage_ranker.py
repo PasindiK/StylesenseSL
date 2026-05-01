@@ -14,34 +14,19 @@ try:
 except Exception:  # pragma: no cover
     np = None
 
-try:
-    from xgboost import XGBRanker
-except Exception:  # pragma: no cover
-    XGBRanker = None
-
+from src.services.agentic_ai.agents.ltr_support import FEATURE_ORDER
 from src.services.agentic_ai.featureops.orchestrator import AgenticSemanticFeatureOps
 from src.services.agentic_ai.kg.scoring import KGScoringService
 
 
 class MultiStageRanker:
     """Governed two-stage ranker replacing the legacy weighted equation."""
-
-    FEATURE_ORDER = [
-        "semantic_similarity",
-        "intent_match",
-        "profile_affinity",
-        "behavior_affinity",
-        "collaborative_affinity",
-        "price_fit",
-        "popularity_signal",
-        "context_signal",
-        "trust_signal",
-    ]
+    FEATURE_ORDER = FEATURE_ORDER
 
     def __init__(self, kg_scorer: KGScoringService):
         self.kg_scorer = kg_scorer
         self.featureops = AgenticSemanticFeatureOps()
-        self.model = self._load_ranker()
+        self.model, self.model_metadata = self._load_ranker()
 
     @staticmethod
     def _normalize(value: Any) -> float:
@@ -53,11 +38,14 @@ class MultiStageRanker:
     def _load_ranker(self):
         model_path = Path(__file__).resolve().parent / "models" / "ltr" / "lambdamart_ranker.joblib"
         if not model_path.exists() or joblib is None:
-            return None
+            return None, {}
         try:
-            return joblib.load(model_path)
+            artifact = joblib.load(model_path)
+            if isinstance(artifact, dict) and "model" in artifact:
+                return artifact.get("model"), artifact
+            return artifact, {}
         except Exception:
-            return None
+            return None, {}
 
     @staticmethod
     def _lower(value: Any) -> str:
@@ -158,15 +146,6 @@ class MultiStageRanker:
         return self.featureops.govern_feature_bundle(columns, lineage=lineage)
 
     def _predict_rank_score(self, vector: Dict[str, float]) -> float:
-        if self.model is not None and np is not None:
-            try:
-                row = np.asarray([[vector.get(name, 0.0) for name in self.FEATURE_ORDER]], dtype=float)
-                if hasattr(self.model, "predict"):
-                    raw = self.model.predict(row)
-                    return float(max(0.0, min(1.0, raw[0] if hasattr(raw, "__len__") else raw)))
-            except Exception:
-                pass
-
         # Non-linear fallback: geometric fusion instead of an arbitrary linear weighted sum.
         relevance = max(vector.get("semantic_similarity", 0.05), 0.05)
         affinity = max((vector.get("profile_affinity", 0.0) + vector.get("behavior_affinity", 0.0) + vector.get("collaborative_affinity", 0.0)) / 3.0, 0.05)
@@ -175,6 +154,23 @@ class MultiStageRanker:
         context_signal = max(vector.get("context_signal", 0.8), 0.2)
         score = math.sqrt(relevance * affinity) * math.sqrt(commercial * trust) * context_signal
         return max(0.0, min(1.0, score))
+
+    def _predict_model_scores(self, vectors: List[Dict[str, float]]) -> Optional[List[float]]:
+        if self.model is None or np is None or not vectors:
+            return None
+        try:
+            matrix = np.asarray([[vector.get(name, 0.0) for name in self.FEATURE_ORDER] for vector in vectors], dtype=float)
+            raw = self.model.predict(matrix)
+            raw_scores = [float(value) for value in raw]
+            if not raw_scores:
+                return None
+            min_score = min(raw_scores)
+            max_score = max(raw_scores)
+            if max_score - min_score < 1e-9:
+                return [0.75 for _ in raw_scores]
+            return [max(0.0, min(1.0, (score - min_score) / (max_score - min_score))) for score in raw_scores]
+        except Exception:
+            return None
 
     def _mmr_diversify(self, ranked_rows: List[Dict[str, Any]], top_k: int = 6) -> List[Dict[str, Any]]:
         selected: List[Dict[str, Any]] = []
@@ -265,12 +261,18 @@ class MultiStageRanker:
             },
         )
         trust_signal = self._trust_signal(feature_statuses)
-
-        ranked_rows: List[Dict[str, Any]] = []
+        scoring_vectors: List[Dict[str, float]] = []
         for payload in row_payloads:
             vector = dict(payload["vector"])
             vector["trust_signal"] = trust_signal
-            score = self._predict_rank_score(vector)
+            scoring_vectors.append(vector)
+
+        model_scores = self._predict_model_scores(scoring_vectors)
+
+        ranked_rows: List[Dict[str, Any]] = []
+        for idx, payload in enumerate(row_payloads):
+            vector = scoring_vectors[idx]
+            score = model_scores[idx] if model_scores is not None else self._predict_rank_score(vector)
             if trust_signal <= 0.2 and vector["semantic_similarity"] < 0.6:
                 # Non-compensatory suppression for suspicious weak candidates.
                 score *= 0.2
@@ -318,6 +320,14 @@ class MultiStageRanker:
                 "ranking_architecture": "semantic_retrieval + governed_featureops + learning_to_rank",
                 "feature_statuses": feature_statuses,
                 "trust_signal": round(trust_signal, 4),
-                "model_used": "lambdamart" if self.model is not None else "geometric_fallback",
+                "model_used": "lambdamart" if model_scores is not None else "geometric_fallback",
+                "model_metadata": {
+                    "model_family": self.model_metadata.get("model_family"),
+                    "trained_at": self.model_metadata.get("trained_at"),
+                    "dataset_rows": self.model_metadata.get("dataset_rows"),
+                    "dataset_queries": self.model_metadata.get("dataset_queries"),
+                    "source_catalog": self.model_metadata.get("source_catalog"),
+                    "metrics": self.model_metadata.get("metrics"),
+                } if self.model_metadata else {},
             },
         }
