@@ -1796,7 +1796,23 @@ export default function FeatureOpsWorkflowPanel() {
           </button>
           <button type="button" className="df-btn secondary" onClick={() => setShowHistoryModal(true)}>Open History</button>
           <button type="button" className="df-btn secondary" onClick={clearCurrentUpload} disabled={!hasUpload && !datasetName}>Clear Upload</button>
+          <button type="button" className="df-btn secondary" onClick={downloadFeatureOpsReport} disabled={!reportText.trim()}>Download Report</button>
         </div>
+      </div>
+
+      <div className="featureops-release-grid">
+        {[
+          ['Dataset families', String(totalFamilies)],
+          ['Saved versions', String(totalSavedDatasets)],
+          ['Total READY features', String(overallReleaseStats.READY)],
+          ['Total CONDITIONAL features', String(overallReleaseStats.CONDITIONAL)],
+          ['Total QUARANTINED features', String(overallReleaseStats.QUARANTINED)],
+                  ].map(([label, value]) => (
+          <div key={label} className="featureops-status-card">
+            <span>{label}</span>
+            <strong>{value}</strong>
+          </div>
+        ))}
       </div>
 
       {datasetError && (
@@ -1805,15 +1821,107 @@ export default function FeatureOpsWorkflowPanel() {
         </div>
       )}
 
+      {sanityCheckResult && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.5)', display: 'grid', placeItems: 'center', zIndex: 65, padding: 16 }}>
+          <div style={{ width: 'min(640px, 100%)', borderRadius: 16, background: '#ffffff', border: '1px solid #fecaca', color: '#0f172a', padding: 18, display: 'grid', gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: '#991b1b' }}>Basic sanity check failed</div>
+              <div style={{ fontSize: 12, color: '#334155', marginTop: 10, lineHeight: 1.6 }}>
+                This dataset does not match the selected baseline family.
+              </div>
+            </div>
+            <div style={{ display: 'grid', gap: 8, fontSize: 11.5, color: '#1e293b' }}>
+              <div><strong>Reason:</strong></div>
+              <div style={{ color: '#475569', lineHeight: 1.6 }}>
+                The uploaded file has different columns from the selected baseline.
+              </div>
+            </div>
+            <div style={{ display: 'grid', gap: 8, fontSize: 11.5, color: '#1e293b' }}>
+              <div><strong>What you can do:</strong></div>
+              <div style={{ color: '#475569', lineHeight: 1.6 }}>- Choose the correct baseline family</div>
+              <div style={{ color: '#475569', lineHeight: 1.6 }}>- Upload the correct version of this dataset</div>
+              <div style={{ color: '#475569', lineHeight: 1.6 }}>- Create a new baseline family for this dataset</div>
+            </div>
+            <details style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', padding: '10px 12px' }}>
+              <summary style={{ cursor: 'pointer', fontSize: 11.5, fontWeight: 700, color: '#334155' }}>
+                Show technical details
+              </summary>
+              <div style={{ display: 'grid', gap: 6, fontSize: 11.5, color: '#1e293b', marginTop: 10 }}>
+                <div><strong>Required columns:</strong> {sanityCheckResult.requiredColumns.join(', ') || 'None'}</div>
+                <div><strong>Important columns:</strong> {sanityCheckResult.importantColumns.join(', ') || 'None'}</div>
+                <div><strong>Missing columns:</strong> {sanityCheckResult.missingColumns.join(', ') || 'None'}</div>
+                <div><strong>New extra columns:</strong> {sanityCheckResult.extraColumns.join(', ') || 'None'}</div>
+                <div><strong>Column count delta:</strong> {sanityCheckResult.columnCountDelta}</div>
+              </div>
+            </details>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="df-btn secondary"
+                onClick={() => {
+                  setSanityCheckResult(null)
+                  setSelectedFamilyId('')
+                  setSelectedVersionNumber(null)
+                  setShowUploadModal(true)
+                  setUploadChoiceMode('version')
+                }}
+              >
+                Choose Another Baseline
+              </button>
+              <button type="button" className="df-btn" onClick={() => { setSanityCheckResult(null); void saveAsNewBaseline() }}>
+                Create New Baseline Family
+              </button>
+              <button type="button" className="df-btn secondary" onClick={() => setSanityCheckResult(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {duplicateDatasetResult && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.5)', display: 'grid', placeItems: 'center', zIndex: 66, padding: 16 }}>
+          <div style={{ width: 'min(620px, 100%)', borderRadius: 16, background: '#ffffff', border: '1px solid #fed7aa', color: '#0f172a', padding: 18, display: 'grid', gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: '#9a3412' }}>Duplicate dataset detected</div>
+              <div style={{ fontSize: 12, color: '#334155', marginTop: 10, lineHeight: 1.6 }}>
+                This exact dataset was already uploaded and cannot be uploaded again.
+              </div>
+            </div>
+            <div style={{ display: 'grid', gap: 8, fontSize: 11.5, color: '#1e293b' }}>
+              <div><strong>Existing version:</strong> {duplicateDatasetResult.familyName} v{duplicateDatasetResult.versionNumber}</div>
+              <div style={{ color: '#475569', lineHeight: 1.6 }}>
+                We checked the dataset content, not just the file name. Because the uploaded data matches an existing saved dataset exactly, the upload has been blocked.
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="df-btn"
+                onClick={() => {
+                  void loadVersion(duplicateDatasetResult.familyId, duplicateDatasetResult.versionNumber)
+                  setDuplicateDatasetResult(null)
+                }}
+              >
+                Load Existing Version
+              </button>
+              <button type="button" className="df-btn secondary" onClick={() => setDuplicateDatasetResult(null)}>
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showUploadModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.45)', display: 'grid', placeItems: 'center', zIndex: 60, padding: 16 }}>
-          <div style={{ width: 'min(760px, 100%)', borderRadius: 16, background: '#ffffff', border: '1px solid #dbeafe', padding: 16, display: 'grid', gap: 12 }}>
+          <div className="featureops-history-modal featureops-light-modal" style={{ width: 'min(760px, 100%)', borderRadius: 16, background: '#f8fbff', border: '1px solid #dbeafe', color: '#0f172a', padding: 16, display: 'grid', gap: 12, boxShadow: '0 28px 60px rgba(15, 23, 42, 0.25)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>Add Dataset</div>
-                <div style={{ fontSize: 11.5, color: '#64748b' }}>Choose whether to create a new baseline family or add a version to an existing family.</div>
+                <div className="featureops-history-muted" style={{ fontSize: 11.5, fontWeight: 600 }}>Choose whether to create a new baseline family or add a version to an existing family.</div>
               </div>
-              <button type="button" onClick={() => { setShowUploadModal(false); setUploadChoiceMode('select') }} style={{ border: 'none', background: 'transparent', color: '#64748b', fontSize: 18, cursor: 'pointer' }}>×</button>
+              <button type="button" onClick={() => { setShowUploadModal(false); setUploadChoiceMode('select') }} style={{ border: 'none', background: 'transparent', color: '#64748b', fontSize: 18, cursor: 'pointer' }}>x</button>
             </div>
 
             {uploadChoiceMode === 'select' && (
@@ -1831,7 +1939,7 @@ export default function FeatureOpsWorkflowPanel() {
 
             {uploadChoiceMode === 'baseline' && (
               <div style={{ display: 'grid', gap: 10 }}>
-                <div style={{ fontSize: 11.5, color: '#475569' }}>
+                <div className="featureops-history-muted" style={{ fontSize: 11.5, fontWeight: 600 }}>
                   Create a new baseline family and upload the file to save as version v1.
                   Family name and baseline metadata are detected automatically.
                 </div>
@@ -1844,9 +1952,9 @@ export default function FeatureOpsWorkflowPanel() {
 
             {uploadChoiceMode === 'version' && (
               <div style={{ display: 'grid', gap: 10 }}>
-                <div style={{ fontSize: 11.5, color: '#475569' }}>Select a dataset family, then click Upload New Dataset for that family.</div>
+                <div className="featureops-history-muted" style={{ fontSize: 11.5, fontWeight: 600 }}>Select a dataset family, then click Upload New Dataset for that family.</div>
                 <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#334155' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#0f172a' }}>
                     <thead>
                       <tr style={{ background: '#f8fafc' }}>
                         {['Dataset Family', 'Versions', 'Latest Version', 'Last Updated', 'Actions'].map((header) => (
@@ -1862,7 +1970,10 @@ export default function FeatureOpsWorkflowPanel() {
                           <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>v{family.latest_version}</td>
                           <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{new Date(family.updated_at).toLocaleDateString('en-GB', { month: 'short', day: '2-digit' })}</td>
                           <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
-                            <button type="button" onClick={() => openFilePickerForVersion(family.family_id)} style={{ borderRadius: 999, border: '1px solid #2563eb', background: '#eff6ff', color: '#1d4ed8', padding: '6px 10px', fontSize: 10.5, fontWeight: 700, cursor: 'pointer' }}>＋ Upload New Dataset</button>
+                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                              <button type="button" onClick={() => openFilePickerForVersion(family.family_id)} style={{ borderRadius: 999, border: '1px solid #2563eb', background: '#eff6ff', color: '#1d4ed8', padding: '6px 10px', fontSize: 10.5, fontWeight: 700, cursor: 'pointer' }}>+ Upload New Dataset</button>
+                              <button type="button" onClick={() => void deleteFamily(family.family_id)} style={{ borderRadius: 999, border: '1px solid #fecaca', background: '#fff1f2', color: '#b91c1c', padding: '6px 10px', fontSize: 10.5, fontWeight: 700, cursor: 'pointer' }}>Delete Family</button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -1882,16 +1993,16 @@ export default function FeatureOpsWorkflowPanel() {
 
       {showHistoryModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.45)', display: 'grid', placeItems: 'center', zIndex: 60, padding: 16 }}>
-          <div style={{ width: 'min(980px, 100%)', borderRadius: 16, background: '#ffffff', border: '1px solid #dbeafe', padding: 16, display: 'grid', gap: 12 }}>
+          <div className="featureops-history-modal" style={{ width: 'min(1120px, 100%)', borderRadius: 16, background: '#f8fbff', border: '1px solid #dbeafe', color: '#0f172a', padding: 16, display: 'grid', gap: 12, boxShadow: '0 28px 60px rgba(15, 23, 42, 0.25)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>Dataset History</div>
-                <div style={{ fontSize: 11.5, color: '#64748b' }}>Browse saved families, versions, and upload events.</div>
+                <div className="featureops-history-muted" style={{ fontSize: 11.5, fontWeight: 600 }}>Browse saved families, staged uploads, and registry versions (high-contrast table below).</div>
               </div>
-              <button type="button" onClick={() => setShowHistoryModal(false)} style={{ border: 'none', background: 'transparent', color: '#64748b', fontSize: 18, cursor: 'pointer' }}>×</button>
+              <button type="button" onClick={() => setShowHistoryModal(false)} style={{ border: 'none', background: 'transparent', color: '#64748b', fontSize: 18, cursor: 'pointer' }}>x</button>
             </div>
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#334155' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#0f172a' }}>
                 <thead>
                   <tr style={{ background: '#f8fafc' }}>
                     {['Dataset Family', 'Versions', 'Latest Version', 'Last Updated', 'Actions'].map((header) => (
@@ -1903,14 +2014,15 @@ export default function FeatureOpsWorkflowPanel() {
                   {families.map((family) => (
                     <tr key={family.family_id}>
                       <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{family.family_name}</td>
-                      <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', textAlign: 'right' }}>{family.version_count ?? family.versions.length}</td>
+                      <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0', textAlign: 'right', color: '#0f172a' }}>{family.version_count ?? family.versions.length}</td>
                       <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>v{family.latest_version}</td>
                       <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{new Date(family.updated_at).toLocaleDateString('en-GB', { month: 'short', day: '2-digit' })}</td>
                       <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                          <button type="button" onClick={() => setViewFamilyId(family.family_id)} style={{ borderRadius: 999, border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer' }}>View Versions</button>
+                          <button type="button" onClick={() => { setViewFamilyId(family.family_id); setSelectedCompareVersions([]); setHistoryModalViewMode('comparison') }} style={{ borderRadius: 999, border: '1px solid #94a3b8', background: '#ffffff', color: '#0f172a', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer', fontWeight: 700 }}>View Versions</button>
                           <button type="button" onClick={() => openFilePickerForVersion(family.family_id)} style={{ borderRadius: 999, border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer' }}>+ Add Dataset</button>
                           <button type="button" onClick={() => { void loadVersion(family.family_id, family.approved_baseline_version || family.latest_version); setShowHistoryModal(false) }} style={{ borderRadius: 999, border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer' }}>Load</button>
+                          <button type="button" onClick={() => void deleteFamily(family.family_id)} style={{ borderRadius: 999, border: '1px solid #fecaca', background: '#fff1f2', color: '#b91c1c', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer', fontWeight: 700 }}>Delete Family</button>
                         </div>
                       </td>
                     </tr>
@@ -1918,34 +2030,44 @@ export default function FeatureOpsWorkflowPanel() {
                 </tbody>
               </table>
             </div>
-            <div style={{ display: 'grid', gap: 8 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Uploaded Dataset History</div>
+            <div style={{ display: 'grid', gap: 10 }}>
+              <div className="featureops-history-section-title" style={{ fontSize: 13 }}>Uploaded Dataset History</div>
+              <div className="featureops-history-subtle" style={{ fontSize: 11.5 }}>
+                These rows are upload events only. They are not directly comparable versions. To compare drift, open a family below and select two saved registry versions from that family.
+              </div>
               {!driftRuns.length ? (
-                <div style={{ borderRadius: 8, border: '1px dashed #cbd5e1', background: '#f8fafc', color: '#475569', padding: '12px', fontSize: 11.5 }}>
+                <div style={{ borderRadius: 8, border: '1px dashed #cbd5e1', background: '#f1f5f9', color: '#334155', fontWeight: 600, padding: '12px', fontSize: 11.5 }}>
                   No upload events recorded yet.
                 </div>
               ) : (
                 <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#334155' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#0f172a' }}>
                     <thead>
-                      <tr style={{ background: '#f8fafc' }}>
+                      <tr style={{ background: '#e2e8f0' }}>
                         {['Dataset Name', 'Uploaded At', 'Linked Family', 'Release Summary'].map((header) => (
-                          <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>{header}</th>
+                          <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #cbd5e1', color: '#1e293b', fontWeight: 800 }}>{header}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {driftRuns.slice().reverse().map((run) => (
                         <tr key={run.run_id}>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{run.dataset_name}</td>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{new Date(run.created_at).toLocaleString('en-GB')}</td>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{run.family_id || 'Not linked'}</td>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0', fontWeight: 700, color: '#0f172a' }}>{run.dataset_name}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0', color: '#1e293b', fontWeight: 600 }}>{new Date(run.created_at).toLocaleString('en-GB')}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0', color: '#1e293b', fontWeight: 600 }}>
+                            {run.family_id ? (families.find((family) => family.family_id === run.family_id)?.family_name || run.family_id) : 'Not linked'}
+                          </td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                              <span>{summarizeReleaseResults(run.release_results || [])}</span>
-                              <button type="button" onClick={() => { loadDriftRun(run); setShowHistoryModal(false) }} style={{ borderRadius: 999, border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer' }}>
-                                Load This Upload
-                              </button>
+                              <span style={{ color: '#334155', fontWeight: 600 }}>{summarizeReleaseResults(run.release_results || [])}</span>
+                              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                <button type="button" onClick={() => { loadDriftRun(run); setShowHistoryModal(false) }} style={{ borderRadius: 999, border: '1px solid #64748b', background: '#ffffff', color: '#0f172a', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer', fontWeight: 700 }}>
+                                  Load This Upload
+                                </button>
+                                <button type="button" onClick={() => void deleteDriftRun(run.run_id)} style={{ borderRadius: 999, border: '1px solid #fecaca', background: '#fff1f2', color: '#b91c1c', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer', fontWeight: 700 }}>
+                                  Delete
+                                </button>
+                              </div>
                             </div>
                           </td>
                         </tr>
@@ -1954,22 +2076,29 @@ export default function FeatureOpsWorkflowPanel() {
                   </table>
                 </div>
               )}
-            </div>
             {viewFamilyId && (
-              <div style={{ display: 'grid', gap: 8 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Saved versions for {families.find((family) => family.family_id === viewFamilyId)?.family_name || viewFamilyId}</div>
+              <div style={{ display: 'grid', gap: 8, paddingTop: 12, borderTop: '2px solid #94a3b8' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div className="featureops-history-section-title" style={{ fontSize: 12 }}>Registry versions - {families.find((family) => family.family_id === viewFamilyId)?.family_name || viewFamilyId}</div>
+                  <div className="featureops-history-subtle" style={{ fontSize: 11.5 }}>
+                    Only saved registry versions in this same family can be compared. Uploaded Dataset History rows below are upload events, not comparable family versions.
+                  </div>
+                </div>
                 <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#334155' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#0f172a' }}>
                     <thead>
                       <tr style={{ background: '#f8fafc' }}>
-                        {['Version', 'File Name', 'Created Date', 'Rows', 'Columns', 'Release Summary', 'Actions'].map((header) => (
+                        {['Compare', 'Version', 'File Name', 'Created Date', 'Rows', 'Columns', 'Release Summary', 'Actions'].map((header) => (
                           <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>{header}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {(familyVersions[viewFamilyId] || []).map((version) => (
+                      {viewFamilyVersions.map((version) => (
                         <tr key={version.version_id}>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
+                            <input type="checkbox" checked={selectedCompareVersions.includes(version.version_number)} onChange={() => toggleCompareVersion(version.version_number)} />
+                          </td>
                           <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>v{version.version_number}</td>
                           <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{version.file_name || version.dataset_name}</td>
                           <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{new Date(version.created_at).toLocaleString('en-GB')}</td>
@@ -1980,6 +2109,7 @@ export default function FeatureOpsWorkflowPanel() {
                             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                               <button type="button" onClick={() => { void loadVersion(viewFamilyId, version.version_number); setShowHistoryModal(false) }} style={{ borderRadius: 999, border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer' }}>Load</button>
                               <button type="button" onClick={() => void approveVersion(viewFamilyId, version.version_number)} style={{ borderRadius: 999, border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer' }}>Set As Baseline</button>
+                              <button type="button" onClick={() => void deleteVersion(viewFamilyId, version.version_number)} style={{ borderRadius: 999, border: '1px solid #fecaca', background: '#fff1f2', color: '#b91c1c', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer', fontWeight: 700 }}>Delete</button>
                             </div>
                           </td>
                         </tr>
@@ -1987,188 +2117,590 @@ export default function FeatureOpsWorkflowPanel() {
                     </tbody>
                   </table>
                 </div>
+                {viewFamilyVersions.length < 2 && (
+                  <div style={{ borderRadius: 8, border: '1px solid #dbeafe', background: '#eff6ff', color: '#1e3a8a', padding: '10px 12px', fontSize: 11.5 }}>
+                    This family currently has only {viewFamilyVersions.length} saved registry version{viewFamilyVersions.length === 1 ? '' : 's'}. Add another dataset as a new version in this same family to enable comparison.
+                  </div>
+                )}
+                {versionPairComparison && (
+                  <div className="featureops-history-compare-card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 800, color: '#0f172a' }}>Compared versions: v{versionPairComparison.left.version_number} vs v{versionPairComparison.right.version_number}</div>
+                        <div style={{ fontSize: 11, color: '#475569' }}>Columns compared: {versionPairComparison.comparedColumns} | No drift: {versionPairComparison.severityCounts.NONE} | Low drift: {versionPairComparison.severityCounts.LOW} | Moderate drift: {versionPairComparison.severityCounts.MODERATE} | High drift: {versionPairComparison.severityCounts.HIGH}</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                        <button type="button" className={`featureops-filter-pill${historyModalViewMode === 'left' ? ' active' : ''}`} onClick={() => setHistoryModalViewMode('left')}>View v{versionPairComparison.left.version_number} Summary</button>
+                        <button type="button" className={`featureops-filter-pill${historyModalViewMode === 'right' ? ' active' : ''}`} onClick={() => setHistoryModalViewMode('right')}>View v{versionPairComparison.right.version_number} Summary</button>
+                        <button type="button" className={`featureops-filter-pill${historyModalViewMode === 'comparison' ? ' active' : ''}`} onClick={() => setHistoryModalViewMode('comparison')}>View Comparison</button>
+                      </div>
+                    </div>
+                    <div style={{ overflowX: 'auto', marginTop: 10 }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#0f172a' }}>
+                        <thead>
+                          <tr style={{ background: '#eef4fb' }}>
+                            {(historyModalViewMode === 'comparison'
+                              ? ['Column', `v${versionPairComparison.left.version_number} Meaning`, `v${versionPairComparison.right.version_number} Meaning`, `v${versionPairComparison.left.version_number} Scale`, `v${versionPairComparison.right.version_number} Scale`, 'Drift', 'Release', 'Reason']
+                              : ['Column', 'Role', 'Scale', 'Release', 'Summary', 'Created']).map((header) => (
+                              <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #dbe5f0', color: '#334155' }}>{header}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(historyModalViewMode === 'comparison'
+                            ? versionPairComparison.external.map((row) => {
+                                const release = versionPairComparison.releaseByColumn[row.column_name]
+                                const leftScale = versionPairComparison.left.semantic_profiles.find((item) => item.column_name === row.column_name)?.detected_scale || '-'
+                                const rightScale = versionPairComparison.right.semantic_profiles.find((item) => item.column_name === row.column_name)?.detected_scale || '-'
+                                return (
+                                  <tr key={`compare-${row.column_name}`}>
+                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0', fontWeight: 700 }}>{row.column_name}</td>
+                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{row.baseline_meaning}</td>
+                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{row.current_detected_meaning}</td>
+                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{leftScale}</td>
+                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{rightScale}</td>
+                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{row.drift_severity}</td>
+                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{release?.release_status || '-'}</td>
+                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>{row.evidence.join(' ') || release?.explanation || 'stable'}</td>
+                                  </tr>
+                                )
+                              })
+                            : (historyModalViewMode === 'left' ? versionPairComparison.left : versionPairComparison.right).semantic_profiles.map((profile) => {
+                                const source = historyModalViewMode === 'left' ? versionPairComparison.left : versionPairComparison.right
+                                const release = source.release_results.find((item) => item.column_name === profile.column_name)
+                                return (
+                                  <tr key={`${historyModalViewMode}-${profile.column_name}`}>
+                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0', fontWeight: 700 }}>{profile.column_name}</td>
+                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{profile.generic_role}</td>
+                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{profile.detected_scale}</td>
+                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{release?.release_status || '-'}</td>
+                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>{profile.approved_or_detected_meaning}</td>
+                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{new Date(source.created_at).toLocaleString('en-GB')}</td>
+                                  </tr>
+                                )
+                              }))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
+            </div>
           </div>
         </div>
       )}
 
-      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 10 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Current Upload</div>
-        {!hasUpload ? (
-          <div style={{ borderRadius: 8, border: '1px dashed #cbd5e1', background: '#f8fafc', color: '#475569', padding: '12px', fontSize: 11.5 }}>
-            No dataset is loaded. Upload a CSV/JSON file to start the workflow.
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 8 }}>
-            {[
-              ['File', datasetName],
-              ['Rows', String(datasetRows.length)],
-              ['Columns', String(columns.length)],
-              ['Uploaded at', new Date(uploadTime).toLocaleString('en-GB')],
-              ['Detected target column', targetColumn],
-              ['Workflow type', workflowMode],
-              ['Internal drift', internalDriftStatus],
-            ].map(([label, value]) => (
-              <div key={label} style={{ borderRadius: 8, border: '1px solid #e2e8f0', background: '#f8fafc', padding: '9px 10px' }}>
-                <div style={{ fontSize: 10.5, color: '#64748b' }}>{label}</div>
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#111827' }}>{value}</div>
-              </div>
-            ))}
-          </div>
-        )}
-      </article>
-
-      <article className="glass-card panel-section" style={{ borderRadius: 10, padding: 12, display: 'grid', gap: 10 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#ecf6ff' }}>Workflow Progress</div>
-        {workflowSteps.length ? (
-          <>
-            <ul className="intake-step-list">
-              {workflowSteps.map((step) => (
-                <li key={step.label} className={`step-${step.status}`}>
-                  <div className="featureops-step-copy">
-                    <span>{step.label}</span>
-                    <small>{step.agent}{step.reason ? ` | ${step.reason}` : ''}</small>
-                  </div>
-                  <strong>{step.status}</strong>
-                </li>
-              ))}
-            </ul>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
-              <div className="runtime-card">
-                <h4>Agents</h4>
-                <ul className="meta-list compact">
-                  {agentStatuses.map((item) => (
-                    <li key={item.agent}>
-                      <span>{item.agent}</span>
-                      <strong>{item.status}</strong>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="runtime-card">
-                <h4>Counts</h4>
-                <ul className="meta-list compact">
-                  <li><span>Column profiles</span><strong>{profiles.length}</strong></li>
-                  <li><span>Semantic profiles</span><strong>{semanticProfiles.length}</strong></li>
-                  <li><span>Internal drift rows</span><strong>{internalDrift.length}</strong></li>
-                  <li><span>External drift rows</span><strong>{lastWorkflowMode === 'version' ? externalDrift.length : 0}</strong></li>
-                </ul>
-              </div>
-              <div className="runtime-card">
-                <h4>Release Summary</h4>
-                <ul className="meta-list compact">
-                  <li><span>READY</span><strong>{releaseCounts.READY}</strong></li>
-                  <li><span>CONDITIONAL</span><strong>{releaseCounts.CONDITIONAL}</strong></li>
-                  <li><span>QUARANTINED</span><strong>{releaseCounts.QUARANTINED}</strong></li>
-                </ul>
-                <button type="button" className="df-btn" onClick={downloadFeatureOpsReport} disabled={!reportText.trim()}>
-                  Download Workflow Report
-                </button>
-              </div>
+      <div className="featureops-top-detail-grid">
+        <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 10 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Workflow Messages</div>
+          {workflowSteps.length > 0 ? (
+            <div style={{ display: 'grid', gap: 8 }}>
+              {workflowSteps.map((step) => {
+                const tone = workflowStatusTone(step.status)
+                const isExpanded = expandedWorkflowStepKey === step.label
+                return (
+                  <button
+                    key={`workflow-message-${step.label}`}
+                    type="button"
+                    onClick={() => setExpandedWorkflowStepKey((current) => (current === step.label ? null : step.label))}
+                    className="featureops-expand-card"
+                    style={{ borderRadius: 10, border: `1px solid ${tone.border}`, background: '#ffffff', padding: '10px 12px', display: 'grid', gap: 6 }}
+                    title={isExpanded ? 'Collapse details' : 'Show full details'}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                      <strong className={isExpanded ? '' : 'featureops-truncate-single'} style={{ fontSize: 11.5, color: '#0f172a', textAlign: 'left' }}>{step.label}</strong>
+                      <span style={{ fontSize: 10.5, color: '#64748b', fontWeight: 700 }}>{step.duration}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'grid', gap: 6, minWidth: 0, flex: '1 1 260px' }}>
+                        <div className={isExpanded ? '' : 'featureops-truncate-single'} style={{ fontSize: 11, color: '#334155', textAlign: 'left' }}>{step.detail}</div>
+                        <div className={isExpanded ? '' : 'featureops-truncate-single'} style={{ fontSize: 10.5, color: '#64748b', textAlign: 'left' }}>{step.agent}</div>
+                      </div>
+                      <span style={{ borderRadius: 999, background: tone.bg, color: tone.text, border: `1px solid ${tone.border}`, padding: '3px 8px', fontSize: 10.5, fontWeight: 800, alignSelf: 'center', flex: '0 0 auto' }}>
+                        {workflowStatusLabel(step.status)}
+                      </span>
+                    </div>
+                  </button>
+                )
+              })}
             </div>
-          </>
-        ) : (
-          <div className="featureops-empty-state">
-            Workflow steps will appear after you save a baseline or version.
-          </div>
-        )}
-      </article>
-
-      <article className="glass-card panel-section" style={{ borderRadius: 10, padding: 12, display: 'grid', gap: 10 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
-          <div className="runtime-card">
-            <h4>Internal Semantic Drift</h4>
-            <p className="muted-text">Checks drift within the currently uploaded dataset.</p>
-            <ul className="meta-list compact">
-              <li><span>Compared columns</span><strong>{internalDrift.length}</strong></li>
-              <li><span>Status</span><strong>{hasUpload ? 'completed' : 'pending'}</strong></li>
-            </ul>
-          </div>
-          <div className="runtime-card">
-            <h4>External Semantic Drift</h4>
-            {lastWorkflowMode === 'baseline' ? (
-              <>
-                <p className="muted-text">Skipped for first baseline creation because there is no previous baseline to compare.</p>
-                <ul className="meta-list compact">
-                  <li><span>Status</span><strong>skipped</strong></li>
-                </ul>
-              </>
-            ) : (
-              <>
-                <p className="muted-text">Checks drift between this upload and the selected baseline version.</p>
-                <ul className="meta-list compact">
-                  <li><span>Compared columns</span><strong>{selectedBaseline ? externalDrift.length : 0}</strong></li>
-                  <li><span>Status</span><strong>{selectedBaseline ? 'completed' : 'pending'}</strong></li>
-                </ul>
-              </>
+          ) : (
+            <div className="featureops-empty-state">
+              Workflow steps will appear here after you save a baseline or version.
+            </div>
+          )}
+          <div className="featureops-message-list">
+            {messages.length ? messages.slice(-4).reverse().map((item) => {
+              const tone = messageTone(item.type)
+              return (
+                <div key={item.id} className="featureops-message-item" style={{ background: tone.bg, borderColor: tone.border, color: tone.text }}>
+                  <span style={{ fontSize: 11.5 }}>{item.message}</span>
+                  <strong style={{ fontSize: 11 }}>{item.type.toUpperCase()}</strong>
+                </div>
+              )
+            }) : (
+              <div className="featureops-empty-state">
+                Workflow messages will appear here after an upload or save action.
+              </div>
             )}
           </div>
+        </article>
+
+        <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Current Upload Summary</div>
+          {!hasUpload ? (
+            <div className="featureops-empty-state">
+              No dataset is loaded. Upload a CSV or JSON file to start the workflow.
+            </div>
+          ) : (
+            <>
+              <div className="featureops-overview-grid">
+                {[
+                  ['Dataset', datasetName],
+                  ['Rows / Columns', `${datasetRows.length} rows / ${columns.length} columns`],
+                  ['Workflow type', activeWorkflowType],
+                  ['Selected baseline', selectedBaseline ? `${selectedBaseline.dataset_name} v${selectedBaseline.version_number}` : isNewBaselineFlow ? 'New baseline flow' : matchedBaseline ? `${matchedBaseline.family_name} v${matchedBaseline.version_number}` : 'Not selected'],
+                  ...(isNewBaselineFlow
+                    ? [['Drift scope', 'Internal drift only for this new dataset family']]
+                    : [[
+                        'Drift vs registry latest',
+                        hasUpload && selectedFamilyId && registryLatestVersion ? `Compared with saved v${registryLatestVersion.version_number}` : selectedBaseline ? `Compared with v${selectedBaseline.version_number}` : 'N/A',
+                      ], ['Match confidence', matchedBaseline ? `${matchedConfidence}%` : 'N/A']]),
+                ].map(([label, value]) => {
+                  const cardKey = `${label}:${String(value)}`
+                  const isExpanded = expandedSummaryKey === cardKey
+                  return (
+                    <button
+                      type="button"
+                      key={label}
+                      className="featureops-summary-card featureops-expand-card"
+                      onClick={() => setExpandedSummaryKey((current) => (current === cardKey ? null : cardKey))}
+                      title={isExpanded ? 'Collapse details' : 'Show full details'}
+                    >
+                      <span>{label}</span>
+                      <strong className={isExpanded ? '' : 'featureops-truncate-single'}>{value}</strong>
+                    </button>
+                  )
+                })}
+              </div>
+              <div className="featureops-summary-inline">
+                <span>Uploaded time</span>
+                <strong>{uploadTime ? new Date(uploadTime).toLocaleString('en-GB') : 'N/A'}</strong>
+              </div>
+              {!isNewBaselineFlow && versionPairComparison && (
+                <div className="featureops-history-compare-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: '#0f172a' }}>Current Comparison: v{versionPairComparison.left.version_number} vs v{versionPairComparison.right.version_number}</div>
+                    <div style={{ fontSize: 11, color: '#475569' }}>Compared versions: v{versionPairComparison.left.version_number} vs v{versionPairComparison.right.version_number} | Columns compared: {versionPairComparison.comparedColumns} | No drift: {versionPairComparison.severityCounts.NONE} | Low drift: {versionPairComparison.severityCounts.LOW} | Moderate drift: {versionPairComparison.severityCounts.MODERATE} | High drift: {versionPairComparison.severityCounts.HIGH}</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    <button type="button" className={`featureops-filter-pill${dashboardCompareViewMode === 'left' ? ' active' : ''}`} onClick={() => setDashboardCompareViewMode('left')}>View v{versionPairComparison.left.version_number} Summary</button>
+                    <button type="button" className={`featureops-filter-pill${dashboardCompareViewMode === 'right' ? ' active' : ''}`} onClick={() => setDashboardCompareViewMode('right')}>View v{versionPairComparison.right.version_number} Summary</button>
+                    <button type="button" className={`featureops-filter-pill${dashboardCompareViewMode === 'comparison' ? ' active' : ''}`} onClick={() => setDashboardCompareViewMode('comparison')}>View Comparison</button>
+                  </div>
+                </div>
+                <div style={{ overflowX: 'auto', marginTop: 10 }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#0f172a' }}>
+                    <thead>
+                      <tr style={{ background: '#eef4fb' }}>
+                        {(dashboardCompareViewMode === 'comparison'
+                          ? ['Column', `v${versionPairComparison.left.version_number} Meaning`, `v${versionPairComparison.right.version_number} Meaning`, `v${versionPairComparison.left.version_number} Scale`, `v${versionPairComparison.right.version_number} Scale`, 'Drift', 'Release', 'Reason']
+                          : ['Column', 'Role', 'Scale', 'Release', 'Summary'])
+                          .map((header) => (
+                            <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #dbe5f0', color: '#334155' }}>{header}</th>
+                          ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(dashboardCompareViewMode === 'comparison'
+                        ? versionPairComparison.external.map((row) => {
+                            const release = versionPairComparison.releaseByColumn[row.column_name]
+                            const leftScale = versionPairComparison.left.semantic_profiles.find((item) => item.column_name === row.column_name)?.detected_scale || '-'
+                            const rightScale = versionPairComparison.right.semantic_profiles.find((item) => item.column_name === row.column_name)?.detected_scale || '-'
+                            return (
+                              <tr key={`summary-compare-${row.column_name}`}>
+                                <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0', fontWeight: 700 }}>{row.column_name}</td>
+                                <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{row.baseline_meaning}</td>
+                                <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{row.current_detected_meaning}</td>
+                                <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{leftScale}</td>
+                                <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{rightScale}</td>
+                                <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{row.drift_severity}</td>
+                                <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{release?.release_status || '-'}</td>
+                                <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>{row.evidence.join(' ') || release?.explanation || '-'}</td>
+                              </tr>
+                            )
+                          })
+                        : (dashboardCompareViewMode === 'left' ? versionPairComparison.left : versionPairComparison.right).semantic_profiles.map((profile) => {
+                            const source = dashboardCompareViewMode === 'left' ? versionPairComparison.left : versionPairComparison.right
+                            const release = source.release_results.find((item) => item.column_name === profile.column_name)
+                            return (
+                              <tr key={`summary-${dashboardCompareViewMode}-${profile.column_name}`}>
+                                <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0', fontWeight: 700 }}>{profile.column_name}</td>
+                                <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{profile.generic_role}</td>
+                                <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{profile.detected_scale}</td>
+                                <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{release?.release_status || '-'}</td>
+                                <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>{profile.approved_or_detected_meaning}</td>
+                              </tr>
+                            )
+                          })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                </div>
+              )}
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
+                  <thead>
+                    <tr style={{ background: '#f8fafc' }}>
+                      {columns.slice(0, showFullPreview ? columns.length : 8).map((column) => (
+                        <th key={column} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0' }}>{column}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {datasetRows.slice(0, showFullPreview ? Math.min(datasetRows.length, 25) : 5).map((row, rowIndex) => (
+                      <tr key={`preview-${rowIndex}`}>
+                        {columns.slice(0, showFullPreview ? columns.length : 8).map((column) => (
+                          <td key={`${rowIndex}-${column}`} style={{ padding: '7px 6px', borderBottom: '1px solid #f1f5f9', maxWidth: 160, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {String(row[column] ?? '-')}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <button type="button" onClick={() => setShowFullPreview((value) => !value)} style={{ justifySelf: 'start', border: 'none', background: 'transparent', color: '#2563eb', fontSize: 11, fontWeight: 700, cursor: 'pointer', padding: 0 }}>
+                {showFullPreview ? 'Show fewer rows' : 'View full'}
+              </button>
+            </>
+          )}
+        </article>
+      </div>
+
+      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Release Summary Cards</div>
+        <div className="featureops-release-grid">
+          {(['READY', 'CONDITIONAL', 'QUARANTINED'] as FeatureStatus[]).map((status) => {
+            const tone = releaseTone(status)
+            return (
+              <div key={status} className="featureops-status-card" style={{ borderColor: tone.border, background: tone.bg }}>
+                <span style={{ color: tone.text }}>{status}</span>
+                <strong>{releaseCounts[status]}</strong>
+              </div>
+            )
+          })}
         </div>
       </article>
 
-
-      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 10 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Dataset Snapshot</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8 }}>
-          {[
-            ['File name', datasetName],
-            ['Rows', String(datasetRows.length)],
-            ['Columns', String(columns.length)],
-            ['Uploaded at', new Date(uploadTime).toLocaleString('en-GB')],
-            ['Workflow type', workflowMode],
-            ['Closest baseline', matchedBaseline ? `${matchedBaseline.family_name} v${matchedBaseline.version_number}` : 'No strong match'],
-            ['Match confidence', matchedBaseline ? `${Math.round(matchedBaseline.match_score * 100)}%` : 'N/A'],
-            ['Selected comparison baseline', selectedBaseline ? `${selectedBaseline.dataset_name} v${selectedBaseline.version_number}` : 'Not selected'],
-          ].map(([label, value]) => (
-            <div key={label} style={{ borderRadius: 8, border: '1px solid #e2e8f0', background: '#f8fafc', padding: '9px 10px' }}>
-              <div style={{ fontSize: 10.5, color: '#64748b' }}>{label}</div>
-              <div style={{ fontSize: 12, fontWeight: 800, color: '#111827' }}>{value}</div>
+      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Visual Summary</div>
+        <div className="featureops-visual-grid">
+          <div className="featureops-visual-card">
+            <div className="featureops-visual-title">Release Status</div>
+            <div className="featureops-donut-wrap">
+              <div
+                className="featureops-donut"
+                style={{
+                  background: `conic-gradient(#0f9d58 0 ${releaseResults.length ? (releaseCounts.READY / releaseResults.length) * 360 : 0}deg, #f59e0b ${releaseResults.length ? (releaseCounts.READY / releaseResults.length) * 360 : 0}deg ${releaseResults.length ? ((releaseCounts.READY + releaseCounts.CONDITIONAL) / releaseResults.length) * 360 : 0}deg, #ef4444 ${releaseResults.length ? ((releaseCounts.READY + releaseCounts.CONDITIONAL) / releaseResults.length) * 360 : 0}deg 360deg)`,
+                }}
+              >
+                <div className="featureops-donut-center">
+                  <strong>{releaseResults.length}</strong>
+                  <span>features</span>
+                </div>
+              </div>
             </div>
-          ))}
+            <div className="featureops-legend-list">
+              <span>READY {releaseCounts.READY}</span>
+              <span>CONDITIONAL {releaseCounts.CONDITIONAL}</span>
+              <span>QUARANTINED {releaseCounts.QUARANTINED}</span>
+            </div>
+          </div>
+
+          <div className="featureops-visual-card">
+            <div className="featureops-visual-title">Drift Severity</div>
+            <div className="featureops-bar-group">
+              {(['NONE', 'LOW', 'MODERATE', 'HIGH'] as DriftSeverity[]).map((severity) => {
+                const total = Math.max(1, Math.max(internalDrift.length, externalDrift.length || 1))
+                return (
+                  <div key={severity} className="featureops-bar-row">
+                    <span>{severity}</span>
+                    <div className="featureops-bar-stack">
+                      <div className="featureops-bar-track">
+                        <div className="featureops-bar-fill internal" style={{ width: `${(internalSeverityCounts[severity] / total) * 100}%` }} />
+                      </div>
+                      <strong>{internalSeverityCounts[severity]}</strong>
+                    </div>
+                    <div className="featureops-bar-stack">
+                      <div className="featureops-bar-track">
+                        <div className="featureops-bar-fill external" style={{ width: `${(externalSeverityCounts[severity] / total) * 100}%` }} />
+                      </div>
+                      <strong>{externalSeverityCounts[severity]}</strong>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            <div className="featureops-legend-list">
+              <span>Internal Drift</span>
+              <span>External Drift</span>
+            </div>
+          </div>
+
+          <div className="featureops-visual-card">
+            <div className="featureops-visual-title">Column Role Distribution</div>
+            <div className="featureops-role-list">
+              {roleDistribution.map((item) => (
+                <div key={item.role} className="featureops-role-row">
+                  <span>{item.role}</span>
+                  <div className="featureops-bar-track">
+                    <div className="featureops-bar-fill role" style={{ width: `${(item.count / Math.max(1, columns.length)) * 100}%` }} />
+                  </div>
+                  <strong>{item.count}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="featureops-visual-card">
+            <div className="featureops-visual-title">Baseline Match Confidence</div>
+            <div className="featureops-gauge-copy">
+              {matchedBaseline ? `${matchedConfidence}% matched with ${matchedBaseline.family_name} v${matchedBaseline.version_number}` : 'No saved baseline match yet.'}
+            </div>
+            <div className="featureops-gauge-track">
+              <div className="featureops-gauge-fill" style={{ width: `${matchedConfidence}%` }} />
+            </div>
+            <div className="featureops-gauge-meta">
+              <span>Selected baseline</span>
+              <strong>{selectedBaseline ? `${selectedBaseline.dataset_name} v${selectedBaseline.version_number}` : 'Auto-match pending'}</strong>
+            </div>
+          </div>
+
+          <div className="featureops-visual-card featureops-trust-card">
+            <div className="featureops-visual-title">Feature Trust Scores</div>
+            <div className="featureops-role-list">
+              {trustScores.slice(0, 6).map((item) => (
+                <div key={item.column_name} className="featureops-role-row">
+                  <span>{item.column_name}</span>
+                  <div className="featureops-bar-track">
+                    <div className={`featureops-bar-fill ${item.release_status === 'QUARANTINED' ? 'quarantined' : item.release_status === 'CONDITIONAL' ? 'conditional' : 'ready'}`} style={{ width: `${item.trust}%` }} />
+                  </div>
+                  <strong>{item.trust}%</strong>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-        <div style={{ fontSize: 11.5, color: '#475569' }}>
-          Top baseline matches:
-          {' '}
-          {matches.length ? matches.map((match) => `${match.family_name} ${Math.round(match.match_score * 100)}%`).join(' · ') : 'No saved dataset families yet.'}
+      </article>
+
+      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Drift Evidence Table</div>
+            <div className="muted-text" style={{ fontSize: 11 }}>Prioritized view of drifted, conditional, and quarantined columns.</div>
+          </div>
+          <div className="featureops-filter-row">
+            {(['All', 'Drifted', 'Conditional', 'Quarantined'] as const).map((tab) => (
+              <button key={tab} type="button" className={`featureops-filter-pill${evidenceFilter === tab ? ' active' : ''}`} onClick={() => setEvidenceFilter(tab)}>
+                {tab}
+              </button>
+            ))}
+          </div>
         </div>
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#334155' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
             <thead>
               <tr style={{ background: '#f8fafc' }}>
-                {columns.slice(0, showFullPreview ? columns.length : 8).map((column) => (
-                  <th key={column} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>{column}</th>
+                {['Column', 'Role', 'Internal Drift', 'External Drift', 'Release', 'Evidence'].map((header) => (
+                  <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0' }}>{header}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {datasetRows.slice(0, 5).map((row, rowIndex) => (
-                <tr key={`preview-${rowIndex}`}>
-                  {columns.slice(0, showFullPreview ? columns.length : 8).map((column) => (
-                    <td key={`${rowIndex}-${column}`} style={{ padding: '7px 6px', borderBottom: '1px solid #f1f5f9', maxWidth: 160, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {String(row[column] ?? '-')}
-                    </td>
-                  ))}
+              {visibleDriftEvidenceRows.slice(0, 12).map((row) => (
+                <tr key={`evidence-${row.column_name}`}>
+                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{row.column_name}</td>
+                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.role}</td>
+                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.internal_drift}</td>
+                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.external_drift}</td>
+                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.release_status}</td>
+                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#64748b' }}>{row.evidence}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        {columns.length > 8 && (
-          <button type="button" onClick={() => setShowFullPreview((value) => !value)} style={{ justifySelf: 'start', border: 'none', background: 'transparent', color: '#2563eb', fontSize: 11, fontWeight: 700, cursor: 'pointer', padding: 0 }}>
-            {showFullPreview ? 'Show fewer columns' : 'Show all columns'}
-          </button>
+      </article>
+
+      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Internal Semantic Drift</div>
+        <div className="featureops-summary-inline">
+          <span>Happens inside the same dataset.</span>
+          <strong>{internalDrift.length} columns checked</strong>
+        </div>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
+            <thead>
+              <tr style={{ background: '#f8fafc' }}>
+                {['Column', 'Compared using', 'Drift severity', 'Evidence', 'Recommended action'].map((header) => (
+                  <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0' }}>{header}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {internalDrift.slice(0, 10).map((row) => (
+                <tr key={`internal-${row.column_name}`}>
+                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{row.column_name}</td>
+                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.compared_by}</td>
+                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.drift_severity}</td>
+                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#64748b' }}>{row.evidence.join(' ')}</td>
+                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.recommended_action}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>External Semantic Drift</div>
+        {isNewBaselineFlow ? (
+          <div style={{ borderRadius: 8, border: '1px solid #dbeafe', background: '#eff6ff', color: '#1e3a8a', padding: '10px 12px', fontSize: 11.5, lineHeight: 1.6 }}>
+            This upload was saved as a brand-new dataset family, so only internal drift applies right now.
+            Add another saved version to this same family before external version-to-version drift comparison becomes available.
+          </div>
+        ) : !externalDriftBaseline ? (
+          <div style={{ borderRadius: 8, border: '1px solid #dbeafe', background: '#eff6ff', color: '#1e3a8a', padding: '10px 12px', fontSize: 11.5 }}>
+            Happens between dataset versions. Save a family version or select a baseline to compare drift.
+          </div>
+        ) : (
+          <>
+            <div className="featureops-summary-inline">
+              <span>Happens between dataset versions (latest saved snapshot vs current upload when a family is linked).</span>
+              <strong>{externalDrift.length} columns compared with v{externalDriftBaseline.version_number}</strong>
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc' }}>
+                    {['Column', 'Baseline meaning', 'Current meaning', 'Drift severity', 'Evidence'].map((header) => (
+                      <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0' }}>{header}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {externalDrift.slice(0, 10).map((row) => (
+                    <tr key={`external-${row.column_name}`}>
+                      <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{row.column_name}</td>
+                      <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.baseline_meaning}</td>
+                      <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.current_detected_meaning}</td>
+                      <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.drift_severity}</td>
+                      <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#64748b' }}>{row.evidence.join(' ')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </article>
 
-      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 10 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Column Role Mapping</div>
+      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Feature Release Gate</div>
+            <div className="muted-text" style={{ fontSize: 11 }}>Release-safe view with quick filters for examiners and admins.</div>
+          </div>
+          <div className="featureops-filter-row">
+            {(['All', 'READY', 'CONDITIONAL', 'QUARANTINED'] as const).map((tab) => (
+              <button key={tab} type="button" className={`featureops-filter-pill${releaseFilter === tab ? ' active' : ''}`} onClick={() => setReleaseFilter(tab)}>
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="featureops-release-grid">
+          {(['READY', 'CONDITIONAL', 'QUARANTINED'] as FeatureStatus[]).map((status) => {
+            const tone = releaseTone(status)
+            return (
+              <div key={status} className="featureops-status-card" style={{ borderColor: tone.border, background: tone.bg }}>
+                <span style={{ color: tone.text }}>{status}</span>
+                <strong>{releaseCounts[status]}</strong>
+              </div>
+            )
+          })}
+        </div>
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#334155' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
+            <thead>
+              <tr style={{ background: '#f8fafc' }}>
+                {['Column', 'Role', 'Release', 'Reason', 'Action'].map((header) => (
+                  <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0' }}>{header}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {visibleReleaseRows.slice(0, 16).map((row) => {
+                const tone = releaseTone(row.release_status)
+                return (
+                  <tr key={`release-${row.column_name}`}>
+                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{row.column_name}</td>
+                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.role}</td>
+                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
+                      <span style={{ borderRadius: 999, background: tone.text, color: '#ffffff', padding: '4px 8px', fontSize: 10, fontWeight: 800 }}>{row.release_status}</span>
+                    </td>
+                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.explanation}</td>
+                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.recommended_action}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Registry Summary</div>
+        <div className="featureops-overview-grid">
+          {[
+            ['Selected family', selectedFamilyId || 'Not selected'],
+            ['Latest comparison', selectedBaseline ? `Compared with v${selectedBaseline.version_number}` : lastWorkflowMode === 'baseline' ? 'New baseline flow' : 'No comparison baseline'],
+            ['Release summary', summarizeReleaseResults(releaseResults)],
+            ['Last updated', uploadTime ? new Date(uploadTime).toLocaleString('en-GB') : 'N/A'],
+          ].map(([label, value]) => (
+            <div key={label} className="featureops-summary-card">
+              <span>{label}</span>
+              <strong>{value}</strong>
+            </div>
+          ))}
+        </div>
+      </article>
+
+      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Recommendation Readiness</div>
+        {!isRecommendationCompatible ? (
+          <div style={{ borderRadius: 8, border: '1px solid #dbeafe', background: '#eff6ff', color: '#1e3a8a', padding: '10px 12px', fontSize: 11.5 }}>
+            This dataset is not recommendation-ready yet. The workflow is running FeatureOps semantic checks only.
+          </div>
+        ) : (
+          <div style={{ borderRadius: 8, border: '1px solid #dbeafe', background: '#eff6ff', color: '#1e3a8a', padding: '10px 12px', fontSize: 11.5 }}>
+            Recommendation-ready fields were detected. This upload can move forward into recommendation validation.
+          </div>
+        )}
+      </article>
+
+      <details className="featureops-detail-panel">
+        <summary>View Mapping Details</summary>
+        <div style={{ overflowX: 'auto', marginTop: 12 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
             <thead>
               <tr style={{ background: '#f8fafc' }}>
                 {['Column', 'Detected type', 'Assigned role', 'Confidence', 'Why', 'Change role'].map((header) => (
-                  <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>{header}</th>
+                  <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0' }}>{header}</th>
                 ))}
               </tr>
             </thead>
@@ -2187,9 +2719,6 @@ export default function FeatureOpsWorkflowPanel() {
                       <span style={{ borderRadius: 999, background: tone.bg, color: tone.text, padding: '3px 8px', fontSize: 10, fontWeight: 800 }}>
                         {Math.round(assessment.confidence * 100)}%
                       </span>
-                      {assessment.lowConfidence && (
-                        <div style={{ marginTop: 4, fontSize: 10, color: '#b45309', fontWeight: 700 }}>Low confidence for selected role</div>
-                      )}
                     </td>
                     <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#64748b' }}>
                       {manualRoles[profile.column_name] ? `${assessment.reason} Manual mapping applied.` : detection.reason}
@@ -2203,7 +2732,7 @@ export default function FeatureOpsWorkflowPanel() {
                           pushMessage('Role mapping updated.', 'success')
                           pushMessage('Release gate recalculated.', 'info')
                         }}
-                        style={{ borderRadius: 8, border: '1px solid #d1d5db', background: '#ffffff', color: '#0f172a', fontSize: 11, padding: '5px 8px', minWidth: 170 }}
+                        style={{ minWidth: 170 }}
                       >
                         {ROLE_OPTIONS.map((option) => (
                           <option key={`${profile.column_name}-${option}`} value={option}>{option}</option>
@@ -2216,16 +2745,16 @@ export default function FeatureOpsWorkflowPanel() {
             </tbody>
           </table>
         </div>
-      </article>
+      </details>
 
-      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 10 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Semantic Profile Overview</div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#334155' }}>
+      <details className="featureops-detail-panel">
+        <summary>View Semantic Profiles</summary>
+        <div style={{ overflowX: 'auto', marginTop: 12 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
             <thead>
               <tr style={{ background: '#f8fafc' }}>
-                {['Column', 'Role', 'Detected scale', 'Detected unit', 'Value direction', 'Semantic signature', 'Sample values'].map((header) => (
-                  <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>{header}</th>
+                {['Column', 'Role', 'Detected scale', 'Detected unit', 'Value direction', 'Semantic signature'].map((header) => (
+                  <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0' }}>{header}</th>
                 ))}
               </tr>
             </thead>
@@ -2238,166 +2767,15 @@ export default function FeatureOpsWorkflowPanel() {
                   <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{profile.detected_unit}</td>
                   <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{profile.value_direction}</td>
                   <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#64748b' }}>{profile.semantic_signature}</td>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#64748b' }}>{profiles.find((item) => item.column_name === profile.column_name)?.sample_values.join(', ')}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </article>
-
-      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 10 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Internal Semantic Drift</div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#334155' }}>
-            <thead>
-              <tr style={{ background: '#f8fafc' }}>
-                {['Column', 'Compared using', 'Drift severity', 'Evidence', 'Explanation', 'Recommended action'].map((header) => (
-                  <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>{header}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {internalDrift.map((row) => (
-                <tr key={`internal-${row.column_name}`}>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{row.column_name}</td>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.compared_by}</td>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.drift_severity}</td>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#64748b' }}>{row.evidence.join(' ')}</td>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.explanation}</td>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.recommended_action}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </article>
-
-      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 10 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>External Semantic Drift</div>
-        {!selectedBaseline ? (
-          <div style={{ borderRadius: 8, border: '1px solid #dbeafe', background: '#eff6ff', color: '#1e3a8a', padding: '10px 12px', fontSize: 11.5 }}>
-            External drift has not run yet. Select a baseline version to compare.
-          </div>
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#334155' }}>
-              <thead>
-                <tr style={{ background: '#f8fafc' }}>
-                  {['Column', 'Baseline meaning', 'Current meaning', 'Drift severity', 'Evidence', 'Explanation', 'Recommended action'].map((header) => (
-                    <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>{header}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {externalDrift.map((row) => (
-                  <tr key={`external-${row.column_name}`}>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{row.column_name}</td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.baseline_meaning}</td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.current_detected_meaning}</td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.drift_severity}</td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#64748b' }}>{row.evidence.join(' ')}</td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.explanation}</td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.recommended_action}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </article>
-
-      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 10 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Feature Release Gate</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
-          {(['READY', 'CONDITIONAL', 'QUARANTINED'] as FeatureStatus[]).map((status) => {
-            const tone = releaseTone(status)
-            return (
-              <div key={status} style={{ borderRadius: 8, border: `1px solid ${tone.border}`, background: tone.bg, padding: '10px 12px' }}>
-                <div style={{ fontSize: 10.5, color: tone.text }}>{status}</div>
-                <div style={{ fontSize: 24, fontWeight: 800, color: '#111827' }}>{releaseCounts[status]}</div>
-              </div>
-            )
-          })}
-        </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#334155' }}>
-            <thead>
-              <tr style={{ background: '#f8fafc' }}>
-                {['Column / feature', 'Role', 'Validation status', 'Internal drift', 'External drift', 'Release', 'Critical failures', 'Warnings', 'Reason / action'].map((header) => (
-                  <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>{header}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {releaseResults.map((row) => {
-                const tone = releaseTone(row.release_status)
-                return (
-                  <tr key={`release-${row.column_name}`}>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{row.column_name}</td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.role}</td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.validation_status}</td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.internal_drift_severity}</td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.external_drift_severity}</td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
-                      <span style={{ borderRadius: 999, background: tone.text, color: '#ffffff', padding: '4px 8px', fontSize: 10, fontWeight: 800 }}>{row.release_status}</span>
-                    </td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.critical_failures.join('; ') || 'None'}</td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.warnings.join('; ') || 'None'}</td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.explanation}</td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      </article>
-
-      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 10 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Registry Summary</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8 }}>
-          {[
-            ['Selected family', selectedFamilyId || 'Not selected'],
-            ['Selected version', selectedVersionNumber != null ? `v${selectedVersionNumber}` : 'Not selected'],
-            ['Comparison mode', selectedBaseline ? `Compared with ${selectedBaseline.dataset_family_id} v${selectedBaseline.version_number}` : 'No baseline comparison'],
-            ['Release summary', summarizeReleaseResults(releaseResults)],
-          ].map(([label, value]) => (
-            <div key={label} style={{ borderRadius: 8, border: '1px solid #e2e8f0', background: '#f8fafc', padding: '9px 10px' }}>
-              <div style={{ fontSize: 10.5, color: '#64748b' }}>{label}</div>
-              <div style={{ fontSize: 12, fontWeight: 800, color: '#111827' }}>{value}</div>
-            </div>
-          ))}
-        </div>
-        <div style={{ fontSize: 11.5, color: '#475569' }}>Last updated: {uploadTime ? new Date(uploadTime).toLocaleString('en-GB') : 'N/A'}</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
-          {(['READY', 'CONDITIONAL', 'QUARANTINED'] as FeatureStatus[]).map((status) => {
-            const rows = releaseResults.filter((row) => row.release_status === status)
-            return (
-              <div key={status} style={{ borderRadius: 8, border: '1px solid #e2e8f0', background: '#ffffff', padding: '10px 12px', display: 'grid', gap: 6 }}>
-                <div style={{ fontSize: 11.5, fontWeight: 700, color: '#111827' }}>{status} items</div>
-                {rows.length ? rows.map((row) => (
-                  <div key={`${status}-${row.column_name}`} style={{ fontSize: 10.5, color: '#475569' }}>
-                    <strong>{row.column_name}</strong>: {row.explanation}
-                  </div>
-                )) : <div style={{ fontSize: 10.5, color: '#94a3b8' }}>None</div>}
-              </div>
-            )
-          })}
-        </div>
-      </article>
-
-      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 10 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Recommendation Readiness</div>
-        {!isRecommendationCompatible ? (
-          <div style={{ borderRadius: 8, border: '1px solid #dbeafe', background: '#eff6ff', color: '#1e3a8a', padding: '10px 12px', fontSize: 11.5 }}>
-            This dataset is not recommendation-ready yet. The workflow runs FeatureOps semantic checks only.
-          </div>
-        ) : (
-          <div style={{ borderRadius: 8, border: '1px solid #dbeafe', background: '#eff6ff', color: '#1e3a8a', padding: '10px 12px', fontSize: 11.5 }}>
-            Recommendation-ready fields were detected. You can now enable recommendation validation on top of this workflow.
-          </div>
-        )}
-      </article>
+      </details>
     </section>
   )
 }
+
+
+
