@@ -1284,6 +1284,18 @@ export default function FeatureOpsWorkflowPanel() {
     }
   }
 
+  function toggleCompareVersion(versionNumber: number) {
+    setSelectedCompareVersions((previous) => {
+      if (previous.includes(versionNumber)) {
+        return previous.filter((value) => value !== versionNumber)
+      }
+      if (previous.length >= 2) {
+        return [...previous.slice(1), versionNumber].sort((left, right) => left - right)
+      }
+      return [...previous, versionNumber].sort((left, right) => left - right)
+    })
+  }
+
   useEffect(() => {
     void loadFamilies()
   }, [])
@@ -1305,7 +1317,7 @@ export default function FeatureOpsWorkflowPanel() {
       void saveAsNewBaseline()
     } else if (pendingSaveAction.mode === 'version' && pendingSaveAction.familyId) {
       setSelectedFamilyId(pendingSaveAction.familyId)
-      void addAsNewVersion()
+      void addAsNewVersion(pendingSaveAction.familyId)
     }
     setPendingSaveAction(null)
   }, [hasUpload, pendingSaveAction])
@@ -1318,7 +1330,9 @@ export default function FeatureOpsWorkflowPanel() {
       dataset_name: datasetName,
       family_id: null,
       version_id: null,
+      version_number: null,
       created_at: uploadTime,
+      dataset_rows: datasetRows,
       dataset_fingerprint: fingerprint,
       internal_drift_results: internalDrift,
       external_drift_results: externalDrift,
@@ -1340,6 +1354,8 @@ export default function FeatureOpsWorkflowPanel() {
   async function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
     if (!file) return
+    const targetFamilyId = pendingVersionFamilyIdRef.current
+    pendingVersionFamilyIdRef.current = null
     try {
       const content = await readDatasetText(file)
       const parsed = file.name.toLowerCase().endsWith('.json') ? parseJsonDataset(content) : parseDelimitedDataset(content)
@@ -1348,17 +1364,70 @@ export default function FeatureOpsWorkflowPanel() {
         setUploadedRows(null)
         return
       }
-      resetWorkflowState()
-      setUploadedRows(parsed)
-      setDatasetName(file.name)
-      setUploadTime(new Date().toISOString())
-      setDatasetError(null)
-      setMessages([])
-      setShowUploadModal(false)
-      setUploadChoiceMode('select')
-      pushMessage('Dataset uploaded successfully.', 'success')
-      pushMessage('Dataset profiled successfully.', 'success')
-      pushMessage('Internal semantic consistency check completed.', 'success')
+      const cols = Array.from(new Set(parsed.flatMap((row) => Object.keys(row))))
+      const uploadedSignature = buildDatasetContentSignature(parsed, {
+        row_count: parsed.length,
+        column_count: cols.length,
+        column_names: cols,
+      })
+
+      if (targetFamilyId) {
+        const duplicateVersion = findDuplicateVersionInFamily(targetFamilyId, uploadedSignature)
+        if (duplicateVersion) {
+          const familyName = families.find((item) => item.family_id === targetFamilyId)?.family_name || targetFamilyId
+          setDuplicateDatasetResult({
+            familyId: targetFamilyId,
+            familyName,
+            versionNumber: duplicateVersion.version_number,
+          })
+          setPendingSaveAction(null)
+          setShowUploadModal(false)
+          setUploadChoiceMode('select')
+          setDatasetError(null)
+          pushMessage(`Duplicate dataset detected: ${familyName} v${duplicateVersion.version_number}.`, 'warning')
+          return
+        }
+        resetWorkflowState()
+        setUploadedRows(parsed)
+        setDatasetName(file.name)
+        setUploadTime(new Date().toISOString())
+        setDatasetError(null)
+        setMessages([])
+        setShowUploadModal(false)
+        setUploadChoiceMode('select')
+        setSelectedFamilyId(targetFamilyId)
+        const family = families.find((item) => item.family_id === targetFamilyId)
+        const baselineNum = family?.approved_baseline_version ?? family?.latest_version ?? null
+        setSelectedVersionNumber(baselineNum)
+        const vers = familyVersions[targetFamilyId] || []
+        const baselineRow = baselineNum != null ? vers.find((item) => item.version_number === baselineNum) : null
+        const baselineForSanity = baselineRow || vers[0] || null
+        const sanity = runVersionSanityCheck(cols, baselineForSanity)
+        if (!sanity.passed) {
+          setSanityCheckResult(sanity)
+          setPendingSaveAction(null)
+          pushMessage('Basic sanity check failed. The uploaded file has different columns from the selected baseline.', 'error')
+        } else {
+          setPendingSaveAction({ mode: 'version', familyId: targetFamilyId })
+          pushMessage('Dataset uploaded successfully.', 'success')
+          pushMessage('Dataset profiled successfully.', 'success')
+          pushMessage('Internal semantic consistency check completed.', 'success')
+          pushMessage(`External drift checked against registry v${baselineForSanity?.version_number ?? baselineNum ?? 'Ã¢â‚¬â€'}.`, 'info')
+        }
+      } else {
+        resetWorkflowState()
+        setUploadedRows(parsed)
+        setDatasetName(file.name)
+        setUploadTime(new Date().toISOString())
+        setDatasetError(null)
+        setMessages([])
+        setShowUploadModal(false)
+        setUploadChoiceMode('select')
+        setPendingSaveAction({ mode: 'baseline' })
+        pushMessage('Dataset uploaded successfully.', 'success')
+        pushMessage('Dataset profiled successfully.', 'success')
+        pushMessage('Internal semantic consistency check completed.', 'success')
+      }
     } catch (error) {
       setDatasetError(`Unable to read dataset: ${String(error)}`)
       pushMessage('Dataset upload failed.', 'error')
@@ -1393,9 +1462,31 @@ export default function FeatureOpsWorkflowPanel() {
     if (!hasUpload) return
     const familyName = datasetName.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim() || matchedBaseline?.family_name || 'Uploaded Dataset'
     if (!familyName) return
+    const existingFamily = families.find((item) => normalizeFamilyName(String(item.family_name || '')) === normalizeFamilyName(familyName))
+    if (existingFamily) {
+      const duplicateVersion = findDuplicateVersionInFamily(existingFamily.family_id)
+      if (duplicateVersion) {
+        setDuplicateDatasetResult({
+          familyId: existingFamily.family_id,
+          familyName: existingFamily.family_name,
+          versionNumber: duplicateVersion.version_number,
+        })
+        pushMessage(`Duplicate dataset detected: ${existingFamily.family_name} v${duplicateVersion.version_number}.`, 'warning')
+        return
+      }
+      const nextBaseline = (familyVersions[existingFamily.family_id] || []).find((item) => item.version_number === (existingFamily.approved_baseline_version || existingFamily.latest_version))
+        || (familyVersions[existingFamily.family_id] || [])[0]
+        || null
+      setSelectedFamilyId(existingFamily.family_id)
+      setSelectedVersionNumber(existingFamily.approved_baseline_version || existingFamily.latest_version || null)
+      pushMessage(`Family "${existingFamily.family_name}" already exists. Saving this upload as a new version instead.`, 'info')
+      await addAsNewVersion(existingFamily.family_id, nextBaseline)
+      return
+    }
     setSavingWorkflow(true)
     setLastWorkflowMode('baseline')
-    setWorkflowSteps(buildWorkflowSteps('baseline', 8))
+    setWorkflowSteps(buildWorkflowSteps('baseline', 6, false, columns.length))
+    pushMessage('Pending: creating new baseline family.', 'pending')
     const payload = {
       dataset_name: datasetName,
       file_name: datasetName,
@@ -1422,7 +1513,7 @@ export default function FeatureOpsWorkflowPanel() {
       })
       const result = await response.json()
       if (result.status === 'ok') {
-        const completedSteps = buildWorkflowSteps('baseline', 11)
+        const completedSteps = buildWorkflowSteps('baseline', 7, false, columns.length)
         setWorkflowSteps(completedSteps)
         pushMessage(result.message || 'New dataset family baseline created successfully.', 'success')
         pushMessage('FeatureOps registry updated.', 'success')
@@ -1434,27 +1525,47 @@ export default function FeatureOpsWorkflowPanel() {
         setShowUploadModal(false)
         setUploadChoiceMode('select')
       } else {
-        setWorkflowSteps(buildWorkflowSteps('baseline', 8, true))
+        setWorkflowSteps(buildWorkflowSteps('baseline', 6, true, columns.length))
         pushMessage(result.detail || result.message || 'Unable to create baseline.', 'error')
       }
     } catch (error) {
-      setWorkflowSteps(buildWorkflowSteps('baseline', 8, true))
+      setWorkflowSteps(buildWorkflowSteps('baseline', 6, true, columns.length))
       pushMessage(`Unable to create baseline: ${String(error)}`, 'error')
     } finally {
       setSavingWorkflow(false)
     }
   }
 
-  async function addAsNewVersion() {
-    if (!selectedFamilyId || !hasUpload) return
+  async function addAsNewVersion(targetFamilyId?: string, baselineOverride?: StoredVersion | null) {
+    const familyId = targetFamilyId || selectedFamilyId
+    if (!familyId || !hasUpload) return
+    const duplicateVersion = findDuplicateVersionInFamily(familyId)
+    if (duplicateVersion) {
+      const familyName = families.find((item) => item.family_id === familyId)?.family_name || familyId
+      setDuplicateDatasetResult({
+        familyId,
+        familyName,
+        versionNumber: duplicateVersion.version_number,
+      })
+      pushMessage(`Duplicate dataset detected: ${familyName} v${duplicateVersion.version_number}.`, 'warning')
+      return
+    }
+    const baselineToCheck = baselineOverride || (familyId === selectedFamilyId ? selectedBaseline : null) || (familyVersions[familyId] || [])[0] || null
+    const sanity = runVersionSanityCheck(columns, baselineToCheck)
+    if (!sanity.passed) {
+      setSanityCheckResult(sanity)
+      pushMessage('Basic sanity check failed. The uploaded file has different columns from the selected baseline.', 'error')
+      return
+    }
     const note = versionNote || 'Semantic drift follow-up version'
     setSavingWorkflow(true)
     setLastWorkflowMode('version')
-    setWorkflowSteps(buildWorkflowSteps('version', 9))
+    setWorkflowSteps(buildWorkflowSteps('version', 6, false, columns.length))
+    pushMessage('Pending: saving dataset as a new version.', 'pending')
     const payload = {
       dataset_name: datasetName,
       file_name: datasetName,
-      family_id: selectedFamilyId,
+      family_id: familyId,
       version_note: note || undefined,
       created_at: uploadTime,
       row_count: datasetRows.length,
@@ -1469,29 +1580,31 @@ export default function FeatureOpsWorkflowPanel() {
       release_results: releaseResults,
     }
     try {
-      const response = await fetch(`${apiBase}/featureops/families/${selectedFamilyId}/versions`, {
+      const response = await fetch(`${apiBase}/featureops/families/${familyId}/versions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
       const result = await response.json()
       if (result.status === 'ok') {
-        const completedSteps = buildWorkflowSteps('version', 12)
+        const completedSteps = buildWorkflowSteps('version', 7, false, columns.length)
         setWorkflowSteps(completedSteps)
         pushMessage('External semantic drift comparison completed.', 'success')
         pushMessage(result.message || 'Dataset added as a new version.', 'success')
         pushMessage('FeatureOps registry updated.', 'success')
         await loadFamilies()
-        setViewFamilyId(selectedFamilyId)
-        setReportText(buildFeatureOpsReport('version', `${result.version?.family_name || selectedFamilyId} v${result.version?.version_number || ''}`, completedSteps))
+        setSelectedFamilyId(familyId)
+        setSelectedVersionNumber(result.version?.version_number || null)
+        setViewFamilyId(familyId)
+        setReportText(buildFeatureOpsReport('version', `${result.version?.family_name || familyId} v${result.version?.version_number || ''}`, completedSteps))
         setShowUploadModal(false)
         setUploadChoiceMode('select')
       } else {
-        setWorkflowSteps(buildWorkflowSteps('version', 9, true))
+        setWorkflowSteps(buildWorkflowSteps('version', 6, true, columns.length))
         pushMessage(result.detail || result.message || 'Unable to add version.', 'error')
       }
     } catch (error) {
-      setWorkflowSteps(buildWorkflowSteps('version', 9, true))
+      setWorkflowSteps(buildWorkflowSteps('version', 6, true, columns.length))
       pushMessage(`Unable to add version: ${String(error)}`, 'error')
     } finally {
       setSavingWorkflow(false)
@@ -1509,6 +1622,7 @@ export default function FeatureOpsWorkflowPanel() {
       dataset_name: datasetName,
       family_id: selectedFamilyId || null,
       version_id: selectedBaseline?.version_id || null,
+      version_number: selectedBaseline?.version_number || null,
       created_at: uploadTime,
       dataset_rows: datasetRows,
       dataset_fingerprint: fingerprint,
@@ -1542,6 +1656,7 @@ export default function FeatureOpsWorkflowPanel() {
       setSelectedFamilyId(familyId)
       setSelectedVersionNumber(versionNumber)
       setViewFamilyId(familyId)
+      setLastWorkflowMode('version')
       pushMessage('Saved dataset version loaded successfully.', 'success')
     }
   }
@@ -1573,12 +1688,106 @@ export default function FeatureOpsWorkflowPanel() {
     }
   }
 
+  async function deleteVersion(familyId: string, versionNumber: number) {
+    pushMessage(`Pending: deleting version v${versionNumber}.`, 'pending')
+    const response = await fetch(`${apiBase}/featureops/families/${familyId}/versions/${versionNumber}`, {
+      method: 'DELETE',
+    })
+    const payload = await response.json()
+    if (payload.status === 'ok') {
+      pushMessage(payload.message || `Version v${versionNumber} deleted.`, 'success')
+      setSelectedCompareVersions((previous) => previous.filter((value) => value !== versionNumber))
+      if (selectedFamilyId === familyId && selectedVersionNumber === versionNumber) {
+        setUploadedRows(null)
+        setDatasetName('')
+        setUploadTime('')
+        setDatasetError(null)
+        setLastWorkflowMode(null)
+        setSelectedVersionNumber(null)
+      }
+      if (payload.result?.family_deleted) {
+        if (viewFamilyId === familyId) setViewFamilyId('')
+        if (selectedFamilyId === familyId) {
+          setSelectedFamilyId('')
+          setSelectedVersionNumber(null)
+        }
+      } else if (selectedVersionNumber === versionNumber) {
+        setSelectedVersionNumber(null)
+      }
+      await loadFamilies()
+    } else {
+      pushMessage(payload.detail || 'Unable to delete dataset version.', 'error')
+    }
+  }
+
+  async function deleteFamily(familyId: string) {
+    const familyName = families.find((item) => item.family_id === familyId)?.family_name || familyId
+    pushMessage(`Pending: deleting dataset family "${familyName}".`, 'pending')
+    const response = await fetch(`${apiBase}/featureops/families/${familyId}`, {
+      method: 'DELETE',
+    })
+    const payload = await response.json()
+    if (payload.status === 'ok') {
+      pushMessage(payload.message || 'Dataset family deleted successfully.', 'success')
+      setSelectedCompareVersions([])
+      if (viewFamilyId === familyId) setViewFamilyId('')
+      if (selectedFamilyId === familyId) {
+        setSelectedFamilyId('')
+        setSelectedVersionNumber(null)
+      }
+      await loadFamilies()
+    } else {
+      pushMessage(payload.detail || 'Unable to delete dataset family.', 'error')
+    }
+  }
+
+  async function deleteDriftRun(runId: string) {
+    pushMessage('Pending: deleting upload history record.', 'pending')
+    const runToDelete = driftRuns.find((item) => item.run_id === runId) || null
+    const linkedVersion = runToDelete?.family_id
+      ? (familyVersions[runToDelete.family_id] || []).find((version) =>
+          version.created_at === runToDelete.created_at
+          && (version.file_name === runToDelete.dataset_name || version.dataset_name === runToDelete.dataset_name),
+        ) || null
+      : null
+    if (linkedVersion && runToDelete?.family_id) {
+      await deleteVersion(runToDelete.family_id, linkedVersion.version_number)
+      await fetch(`${apiBase}/featureops/drift-runs/${runId}`, { method: 'DELETE' }).catch(() => null)
+      if (datasetName === runToDelete.dataset_name && uploadTime === runToDelete.created_at) {
+        setUploadedRows(null)
+        setDatasetName('')
+        setUploadTime('')
+        setDatasetError(null)
+        setLastWorkflowMode(null)
+      }
+      await loadFamilies()
+      return
+    }
+    const response = await fetch(`${apiBase}/featureops/drift-runs/${runId}`, {
+      method: 'DELETE',
+    })
+    const payload = await response.json()
+    if (payload.status === 'ok') {
+      pushMessage(payload.message || 'Upload history record deleted.', 'success')
+      if (runToDelete && datasetName === runToDelete.dataset_name && uploadTime === runToDelete.created_at) {
+        setUploadedRows(null)
+        setDatasetName('')
+        setUploadTime('')
+        setDatasetError(null)
+        setLastWorkflowMode(null)
+      }
+      await loadFamilies()
+    } else {
+      pushMessage(payload.detail || 'Unable to delete upload history record.', 'error')
+    }
+  }
+
   return (
-    <section className="df-dashboard-shell featureops-shell" style={{ padding: '12px 0 24px', display: 'grid', gap: 12 }}>
+    <section className="df-dashboard-shell featureops-shell" style={{ padding: '12px 12px 24px', display: 'grid', gap: 12, width: '100%', maxWidth: 'none' }}>
       <div className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap', padding: '14px 16px' }}>
         <div>
           <div style={{ fontSize: 18, fontWeight: 800, color: '#ecf6ff' }}>Agentic AI DE Workflow</div>
-          <div style={{ fontSize: 12, color: '#98abc8', marginTop: 4 }}>Monitor dataset drift, baseline versions, and FeatureOps evidence in one place.</div>
+          <div style={{ fontSize: 12, color: '#98abc8', marginTop: 4 }}>Semantic Drift Monitoring and FeatureOps Release Gate.</div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <input ref={fileInputRef} type="file" accept=".csv,.json" onChange={handleFileUpload} style={{ display: 'none' }} />
