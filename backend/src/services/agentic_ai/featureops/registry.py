@@ -38,7 +38,13 @@ class FeatureOpsDatasetRegistry:
 
     def list_families(self) -> List[Dict[str, Any]]:
         families = self._read_json(self.families_path, [])
-        return families if isinstance(families, list) else []
+        if not isinstance(families, list):
+            return []
+        return sorted(
+            families,
+            key=lambda item: str(item.get("updated_at") or item.get("created_at") or ""),
+            reverse=True,
+        )
 
     def get_family(self, family_id: str) -> Optional[Dict[str, Any]]:
         return next((family for family in self.list_families() if family.get("family_id") == family_id), None)
@@ -55,6 +61,8 @@ class FeatureOpsDatasetRegistry:
         families = self.list_families()
         family_name = str(payload.get("family_name") or payload.get("dataset_name") or "Unnamed Dataset Family")
         family_id = self._slugify(family_name)
+        if any(str(item.get("family_id")) == family_id for item in families):
+            raise ValueError("Dataset family already exists. Add this upload as a new version instead.")
         now = str(payload.get("saved_at") or payload.get("created_at"))
         family = {
             "family_id": family_id,
@@ -68,7 +76,6 @@ class FeatureOpsDatasetRegistry:
             "version_count": 1,
             "baseline_status": "ACTIVE",
         }
-        families = [item for item in families if item.get("family_id") != family_id]
         families.append(family)
         self._write_json(self.families_path, families)
 

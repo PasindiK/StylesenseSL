@@ -149,6 +149,7 @@ class FeatureOpsDatasetVersionRequest(BaseModel):
     row_count: int
     column_count: int
     column_names: List[str]
+    dataset_rows: Optional[List[Dict[str, Any]]] = None
     dataset_fingerprint: Dict[str, Any]
     column_profiles: List[Dict[str, Any]]
     semantic_profiles: List[Dict[str, Any]]
@@ -162,6 +163,7 @@ class FeatureOpsDriftRunRequest(BaseModel):
     family_id: Optional[str] = None
     version_id: Optional[str] = None
     created_at: str
+    dataset_rows: Optional[List[Dict[str, Any]]] = None
     dataset_fingerprint: Dict[str, Any]
     internal_drift_results: List[Dict[str, Any]]
     external_drift_results: Optional[List[Dict[str, Any]]] = None
@@ -2168,7 +2170,10 @@ def featureops_get_version(family_id: str, version_number: int):
 
 @app.post("/api/featureops/families/baseline")
 def featureops_save_baseline(payload: FeatureOpsDatasetVersionRequest):
-    family = featureops_registry.save_new_family_baseline(payload.model_dump())
+    try:
+        family = featureops_registry.save_new_family_baseline(payload.model_dump())
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
     return {
         "status": "ok",
         "message": "New dataset family baseline created successfully.",
@@ -2178,7 +2183,10 @@ def featureops_save_baseline(payload: FeatureOpsDatasetVersionRequest):
 
 @app.post("/api/featureops/families/{family_id}/versions")
 def featureops_add_version(family_id: str, payload: FeatureOpsDatasetVersionRequest):
-    version = featureops_registry.add_version(family_id, payload.model_dump())
+    try:
+        version = featureops_registry.add_version(family_id, payload.model_dump())
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
     return {
         "status": "ok",
         "message": f"Dataset added as version v{version['version_number']} under {version['family_name']}.",
@@ -2188,7 +2196,10 @@ def featureops_add_version(family_id: str, payload: FeatureOpsDatasetVersionRequ
 
 @app.post("/api/featureops/families/{family_id}/versions/{version_number}/approve")
 def featureops_approve_version(family_id: str, version_number: int):
-    family = featureops_registry.set_approved_baseline(family_id, version_number)
+    try:
+        family = featureops_registry.set_approved_baseline(family_id, version_number)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
     return {
         "status": "ok",
         "message": f"Version v{version_number} is now the approved baseline for {family['family_name']}.",
