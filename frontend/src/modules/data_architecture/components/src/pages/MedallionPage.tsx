@@ -3,7 +3,7 @@ import type { DashboardSummaryResponse, LayerId, MedallionFilesResponse } from '
 import { MetricCard } from '../cards/MetricCard';
 import { GaugeChart } from '../charts/GaugeChart';
 import { Panel } from '../panels/Panel';
-import { formatBytes } from '../utils/formatters';
+import { formatBytes, formatRechartsCount } from '../utils/formatters';
 
 interface MedallionPageProps {
   summary: DashboardSummaryResponse;
@@ -38,7 +38,7 @@ export function MedallionPage({ summary, medallionFiles, loading }: MedallionPag
                 <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" />
                 <XAxis dataKey="layer" />
                 <YAxis />
-                <Tooltip formatter={(val: number | undefined) => val ? val.toLocaleString() : 'N/A'} />
+                <Tooltip formatter={(val) => formatRechartsCount(val)} />
                 <Bar dataKey="records" fill="#0f766e" />
               </BarChart>
             </ResponsiveContainer>
