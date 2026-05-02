@@ -148,7 +148,11 @@ export function StoragePage({ summary }: StoragePageProps) {
                     <Cell key={`cell-${index}`} fill={entry.fill} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: number | undefined) => (value !== undefined ? `${value.toFixed(2)} GB` : 'N/A')} />
+                <Tooltip
+                  formatter={(value: unknown) =>
+                    typeof value === 'number' ? `${value.toFixed(2)} GB` : 'N/A'
+                  }
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -163,7 +167,11 @@ export function StoragePage({ summary }: StoragePageProps) {
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="date" />
                 <YAxis />
-                <Tooltip formatter={(value: number | undefined) => (value !== undefined ? `${value.toFixed(2)} GB` : 'N/A')} />
+                <Tooltip
+                  formatter={(value: unknown) =>
+                    typeof value === 'number' ? `${value.toFixed(2)} GB` : 'N/A'
+                  }
+                />
                 <Line type="monotone" dataKey="GB" stroke="#3b82f6" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>

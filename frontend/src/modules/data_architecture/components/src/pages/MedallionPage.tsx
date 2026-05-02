@@ -38,7 +38,11 @@ export function MedallionPage({ summary, medallionFiles, loading }: MedallionPag
                 <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" />
                 <XAxis dataKey="layer" />
                 <YAxis />
-                <Tooltip formatter={(val: number | undefined) => val ? val.toLocaleString() : 'N/A'} />
+                <Tooltip
+                  formatter={(value: unknown) =>
+                    typeof value === 'number' ? value.toLocaleString() : 'N/A'
+                  }
+                />
                 <Bar dataKey="records" fill="#0f766e" />
               </BarChart>
             </ResponsiveContainer>

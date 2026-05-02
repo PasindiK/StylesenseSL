@@ -117,7 +117,11 @@ export function OverviewPage({ summary }: OverviewPageProps) {
                     <Cell key={`tier-${item.tier}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: number | undefined) => value !== undefined ? formatBytes(value) : 'N/A'} />
+                <Tooltip
+                  formatter={(value: unknown) =>
+                    typeof value === 'number' ? formatBytes(value) : 'N/A'
+                  }
+                />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
@@ -133,7 +137,11 @@ export function OverviewPage({ summary }: OverviewPageProps) {
                 <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" />
                 <XAxis dataKey="layer" />
                 <YAxis />
-                <Tooltip formatter={(value: number | undefined) => value !== undefined ? formatBytes(value) : 'N/A'} />
+                <Tooltip
+                  formatter={(value: unknown) =>
+                    typeof value === 'number' ? formatBytes(value) : 'N/A'
+                  }
+                />
                 <Bar dataKey="size_bytes" fill="#0f766e" name="Layer Volume" />
               </BarChart>
             </ResponsiveContainer>
