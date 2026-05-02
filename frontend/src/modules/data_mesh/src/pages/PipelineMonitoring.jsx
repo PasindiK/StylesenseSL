@@ -26,6 +26,14 @@ export default function PipelineMonitoring() {
   const [pendingRerunQuestion, setPendingRerunQuestion] = useState("");
   const [authError, setAuthError] = useState("");
   const [authSubmitting, setAuthSubmitting] = useState(false);
+  const [adminUsername, setAdminUsername] = useState(
+    localStorage.getItem("dm_admin_username") || localStorage.getItem("dm_rerun_username") || ""
+  );
+  const [adminPassword, setAdminPassword] = useState("");
+  const [uploadFile, setUploadFile] = useState(null);
+  const [adminRunning, setAdminRunning] = useState(false);
+  const [adminError, setAdminError] = useState("");
+  const [adminResult, setAdminResult] = useState(null);
   const messagesEndRef = useRef(null);
   const sessionIdRef = useRef(`dm-pm-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
 
@@ -219,6 +227,50 @@ export default function PipelineMonitoring() {
     setAuthError("");
   }
 
+  async function runGovernanceUploadWorkflow() {
+    setAdminError("");
+    setAdminResult(null);
+
+    const username = adminUsername.trim();
+    if (!username || !adminPassword) {
+      setAdminError("Admin username and password are required.");
+      return;
+    }
+
+    if (!uploadFile) {
+      setAdminError("Please choose a CSV file to upload.");
+      return;
+    }
+
+    try {
+      setAdminRunning(true);
+      localStorage.setItem("dm_admin_username", username);
+
+      const formData = new FormData();
+      formData.append("upload_file", uploadFile);
+      formData.append("session_id", sessionIdRef.current);
+      formData.append("user_id", localStorage.getItem("dm_user_id") || "it22893970");
+      formData.append("auth_username", username);
+      formData.append("auth_password", adminPassword);
+
+      const response = await axios.post(
+        `${API_BASE}/admin/governance-test-cases/upload-and-rerun`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+      setAdminResult(response?.data || null);
+      setAdminPassword("");
+      setUploadFile(null);
+      await loadRerunStatus();
+    } catch (error) {
+      const detail = error?.response?.data?.detail;
+      setAdminError(typeof detail === "string" ? detail : "Governance evaluation workflow failed.");
+    } finally {
+      setAdminRunning(false);
+    }
+  }
+
   return (
     <div className="dm-pm-wrap">
       <div className="dm-pm-header">
@@ -242,6 +294,48 @@ export default function PipelineMonitoring() {
               <div className="dm-pm-health">Health: <b>{metrics.health}</b></div>
             </>
           )}
+
+          <div className="dm-pm-admin-box">
+            <div className="dm-pm-admin-title">Governance Evaluation Test Cases</div>
+            <div className="dm-pm-admin-note">
+              Upload a CSV to replace the mapped active Silver dataset, rerun the existing pipeline, and refresh governance outputs.
+            </div>
+            <div className="dm-pm-admin-controls">
+              <input
+                type="file"
+                accept=".csv,text/csv"
+                onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+              />
+              <input
+                value={adminUsername}
+                onChange={(e) => setAdminUsername(e.target.value)}
+                placeholder="Admin username"
+              />
+              <input
+                type="password"
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                placeholder="Admin password"
+              />
+              <button type="button" onClick={runGovernanceUploadWorkflow} disabled={adminRunning}>
+                {adminRunning ? "Running..." : "Load Test Dataset to Silver & Rerun Pipeline"}
+              </button>
+            </div>
+            <div className="dm-pm-admin-note">
+              Target domain is identified automatically from uploaded file name or mapped dataset name.
+            </div>
+            {adminError ? <div className="dm-pm-admin-error">{adminError}</div> : null}
+
+            {adminResult ? (
+              <div className="dm-pm-admin-summary">
+                <div><b>Uploaded File:</b> {adminResult?.uploaded_file_name || "N/A"}</div>
+                <div><b>Mapped Domain:</b> {adminResult?.mapped_domain || "N/A"}</div>
+                <div><b>Replaced in Silver:</b> {adminResult?.replaced_in_silver ? "Yes" : "No"}</div>
+                <div><b>Pipeline Rerun:</b> {adminResult?.pipeline_rerun?.succeeded ? "Success" : "Fail"}</div>
+                <div><b>Latest Governance Refresh Time:</b> {adminResult?.governance_refresh?.latest_refresh_time || "N/A"}</div>
+              </div>
+            ) : null}
+          </div>
         </div>
 
         <div className="dm-pm-card dm-pm-chat">
