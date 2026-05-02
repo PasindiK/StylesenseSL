@@ -35,12 +35,13 @@ class SemanticDriftDetector:
         state = self._load_state()
         previous = state.get(feature_name)
         reasons = []
-        score = 0.0
+        semantic_score = 0.0
+        statistical_score = 0.0
 
         current_signature = self._signature(definition)
         if previous:
             if previous.get("definition_signature") != current_signature:
-                score += 0.7
+                semantic_score += 0.75
                 reasons.append("Feature definition signature changed from the previous release.")
 
             previous_mean = previous.get("stats", {}).get("mean")
@@ -50,13 +51,19 @@ class SemanticDriftDetector:
             if previous_mean is not None and current_mean is not None:
                 delta_mean = abs(float(current_mean) - float(previous_mean))
                 if delta_mean > 0.35:
-                    score += 0.2
+                    statistical_score += 0.45
                     reasons.append("Feature mean shifted materially from its previous release baseline.")
+                elif delta_mean > 0.20:
+                    statistical_score += 0.25
+                    reasons.append("Feature mean shifted moderately from its previous release baseline.")
             if previous_std is not None and current_std is not None:
                 delta_std = abs(float(current_std) - float(previous_std))
                 if delta_std > 0.35:
-                    score += 0.1
+                    statistical_score += 0.30
                     reasons.append("Feature dispersion shifted materially from its previous release baseline.")
+                elif delta_std > 0.20:
+                    statistical_score += 0.15
+                    reasons.append("Feature dispersion shifted moderately from its previous release baseline.")
 
         state[feature_name] = {
             "definition_signature": current_signature,
@@ -64,6 +71,23 @@ class SemanticDriftDetector:
         }
         self._save_state(state)
 
-        score = max(0.0, min(1.0, score))
-        return DriftResult(drift_detected=score >= 0.7, score=score, reasons=reasons)
+        semantic_score = max(0.0, min(1.0, semantic_score))
+        statistical_score = max(0.0, min(1.0, statistical_score))
+        score = max(semantic_score, statistical_score)
+        severity = "low"
+        if semantic_score >= 0.75 or statistical_score >= 0.65:
+            severity = "high"
+        elif semantic_score >= 0.45 or statistical_score >= 0.25:
+            severity = "moderate"
 
+        score = max(0.0, min(1.0, score))
+        return DriftResult(
+            drift_detected=semantic_score >= 0.45 or statistical_score >= 0.25,
+            score=score,
+            semantic_score=semantic_score,
+            statistical_score=statistical_score,
+            semantic_drift_detected=semantic_score >= 0.45,
+            statistical_drift_detected=statistical_score >= 0.25,
+            severity=severity,
+            reasons=reasons,
+        )

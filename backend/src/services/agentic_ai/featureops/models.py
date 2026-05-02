@@ -40,6 +40,11 @@ class FeatureValidationResult:
 class DriftResult:
     drift_detected: bool
     score: float
+    semantic_score: float = 0.0
+    statistical_score: float = 0.0
+    semantic_drift_detected: bool = False
+    statistical_drift_detected: bool = False
+    severity: str = "low"
     reasons: List[str] = field(default_factory=list)
 
 
@@ -49,6 +54,8 @@ class FeatureReleaseDecision:
     validation: FeatureValidationResult
     drift: DriftResult
     lineage: Dict[str, Any] = field(default_factory=dict)
+    checks: Dict[str, Any] = field(default_factory=dict)
+    reasons: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -58,4 +65,3 @@ class RankedCandidate:
     stage_scores: Dict[str, float]
     release_status: str
     reasons: List[str]
-

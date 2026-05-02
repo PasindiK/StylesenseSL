@@ -49,6 +49,8 @@ class FeatureContractValidator:
     def validate(self, features: Dict[str, Any]) -> FeatureValidationResult:
         issues: List[FeatureValidationIssue] = []
         for contract in self.contracts:
+            if contract.name not in features:
+                continue
             value = features.get(contract.name)
 
             if value is None:
@@ -92,4 +94,3 @@ class FeatureContractValidator:
                     )
 
         return FeatureValidationResult(is_valid=not any(i.severity == "hard" for i in issues), issues=issues)
-

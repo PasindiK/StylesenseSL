@@ -42,8 +42,14 @@ logging.basicConfig(level=logging.INFO)
 class CatalogAgent:
     def __init__(self, loader: DataLoader = None):
         self.loader = loader or DataLoader()
-        # load default products into memory
-        self.loader.load_products()
+        # Reuse preloaded data when the app has already initialized the loader.
+        if self.loader.products is None:
+            self.loader.load_products()
+        if getattr(self.loader, "shops", None) is None:
+            try:
+                self.loader.load_shops()
+            except Exception:
+                pass
         self.kg_client = Neo4jKGClient()
         self.kg_events = KGEventWriter(self.kg_client)
         

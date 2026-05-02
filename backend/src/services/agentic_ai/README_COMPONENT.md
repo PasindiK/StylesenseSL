@@ -51,3 +51,14 @@ The trained model is saved under:
 
 If the model file is absent, the component still works using the governed
 geometric fallback ranker.
+
+## DE Workflow
+
+The DE Workflow dashboard supports a baseline library and semantic drift
+monitoring across dataset families and versions. Admins can upload datasets,
+save new dataset family baselines, add uploads as new versions, load previous
+versions, and compare current uploads against selected baselines. Internal
+semantic drift is detected inside the uploaded dataset, while external semantic
+drift is detected against a saved semantic baseline. The release gate combines
+these signals and marks columns/features as READY, CONDITIONAL, or
+QUARANTINED using deterministic non-compensatory rules.

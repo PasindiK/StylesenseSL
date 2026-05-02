@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Pencil, RefreshCw, UserRound } from 'lucide-react'
 import type { KGPreferenceSignal } from '../services/kgSignals'
+import FeatureOpsWorkflowPanel from '../components/FeatureOpsWorkflowPanel'
 import OrderAssistantPage from './OrderAssistantPage'
 
 type DashboardSection =
@@ -9,6 +10,7 @@ type DashboardSection =
   | 'user_profile'
   | 'system_overview'
   | 'knowledge_graph'
+  | 'featureops_workflow'
   | 'feedback_center'
 
 type OrderAssistantCheckoutRequest = {
@@ -415,6 +417,7 @@ export default function AgenticAIDashboard({
     () => [
       { key: 'chat' as DashboardSection, label: 'AI Stylist' },
       { key: 'order_assistant' as DashboardSection, label: 'Order Assistant' },
+      { key: 'featureops_workflow' as DashboardSection, label: 'DE Workflow' },
       { key: 'system_overview' as DashboardSection, label: 'System Overview' },
       { key: 'feedback_center' as DashboardSection, label: 'Recommendation Feedback' },
     ],
@@ -2536,6 +2539,8 @@ export default function AgenticAIDashboard({
             </section>
           </>
         )}
+
+        {activeSection === 'featureops_workflow' && <FeatureOpsWorkflowPanel />}
 
         {activeSection === 'feedback_center' && (
           <>

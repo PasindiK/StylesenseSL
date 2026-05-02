@@ -31,7 +31,12 @@ class FeatureStoreRegistry:
         payload[feature_name] = {
             "status": decision.status,
             "lineage": decision.lineage,
+            "checks": decision.checks,
+            "reasons": decision.reasons,
             "drift_score": decision.drift.score,
+            "semantic_drift_score": decision.drift.semantic_score,
+            "statistical_drift_score": decision.drift.statistical_score,
+            "drift_severity": decision.drift.severity,
             "drift_reasons": decision.drift.reasons,
             "validation_issues": [
                 {
@@ -49,4 +54,3 @@ class FeatureStoreRegistry:
         payload = self._load()
         feature_payload = payload.get(feature_name) or {}
         return str(feature_payload.get("status") or "READY")
-

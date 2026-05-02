@@ -20,12 +20,78 @@ _min_request_interval = 5.0  # Minimum 5 seconds between requests to avoid 429 e
 LLM_MOCK = os.getenv("LLM_MOCK", "0") in ("1", "true", "True")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY") or os.getenv("GROK_API_KEY", "")
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+STYLING_GROQ_API_KEY = os.getenv("STYLING_GROQ_API_KEY", "")
+STYLING_GROQ_MODEL = os.getenv("STYLING_GROQ_MODEL", GROQ_MODEL)
 
-
-def _get_groq_client() -> OpenAI:
-    if not GROQ_API_KEY:
+def _get_groq_client(api_key: str | None = None) -> OpenAI:
+    resolved_key = api_key or GROQ_API_KEY
+    if not resolved_key:
         raise RuntimeError("GROQ_API_KEY is required for LLM calls")
-    return OpenAI(api_key=GROQ_API_KEY, base_url="https://api.groq.com/openai/v1")
+    return OpenAI(api_key=resolved_key, base_url="https://api.groq.com/openai/v1")
+
+
+def _call_groq(
+    prompt: str,
+    *,
+    api_key: str | None = None,
+    model: str | None = None,
+    max_output_tokens: int = 512,
+    temperature: float = 0.0,
+    system_prompt: str = "You are a helpful fashion assistant.",
+) -> dict:
+    global _last_request_time
+
+    resolved_key = api_key or GROQ_API_KEY
+    resolved_model = model or GROQ_MODEL
+
+    if resolved_key:
+        elapsed = time.time() - _last_request_time
+        if elapsed < _min_request_interval:
+            time.sleep(_min_request_interval - elapsed)
+
+    if not resolved_key:
+        return {"predictions": [""]}
+
+    try:
+        client = _get_groq_client(resolved_key)
+        response = client.chat.completions.create(
+            model=resolved_model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=temperature,
+            max_tokens=max_output_tokens,
+        )
+        _last_request_time = time.time()
+        text = (response.choices[0].message.content or "").strip()
+        return {"predictions": [text]}
+    except Exception as e:
+        logger.warning(f"Groq API call failed: {e}")
+        return {"predictions": [""]}
+
+
+def _normalize_styling_advice(user_name: str, advice: str) -> str:
+    cleaned = advice.strip().strip('"\'').replace("\r\n", "\n")
+    intro_prefixes = (
+        f"hey {user_name.lower()}",
+        f"hi {user_name.lower()}",
+        f"hello {user_name.lower()}",
+        "here are",
+        "here's",
+    )
+
+    lines = [line.strip() for line in cleaned.split("\n") if line.strip()]
+    while lines and any(lines[0].lower().startswith(prefix) for prefix in intro_prefixes):
+        lines.pop(0)
+
+    bullet_lines = []
+    for line in lines:
+        normalized = line.lstrip("-*•✓").strip()
+        if normalized:
+            bullet_lines.append(f"- {normalized.rstrip(' ,;')}")
+
+    return "\n".join(bullet_lines[:5])
 
 
 def predict(prompt: str, max_output_tokens: int = 512, temperature: float = 0.0) -> dict:
@@ -34,14 +100,6 @@ def predict(prompt: str, max_output_tokens: int = 512, temperature: float = 0.0)
     In mock mode this returns a small canned plan derived heuristically from the prompt.
     In real mode this calls Groq chat completions and returns {'predictions': [text]}.
     """
-    global _last_request_time
-    
-    # Rate limiting to avoid 429 errors
-    if GROQ_API_KEY:
-        elapsed = time.time() - _last_request_time
-        if elapsed < _min_request_interval:
-            time.sleep(_min_request_interval - elapsed)
-    
     if LLM_MOCK:
         # very small heuristic: if prompt contains keywords produce a simple plan
         lp = prompt.lower()
@@ -56,26 +114,11 @@ def predict(prompt: str, max_output_tokens: int = 512, temperature: float = 0.0)
         text = json.dumps(plan)
         return {"predictions": [text]}
     
-    if GROQ_API_KEY:
-        try:
-            client = _get_groq_client()
-            response = client.chat.completions.create(
-                model=GROQ_MODEL,
-                messages=[
-                    {"role": "system", "content": "You are a helpful fashion assistant."},
-                    {"role": "user", "content": prompt},
-                ],
-                temperature=temperature,
-                max_tokens=max_output_tokens,
-            )
-            _last_request_time = time.time()
-            text = (response.choices[0].message.content or "").strip()
-            return {"predictions": [text]}
-        except Exception as e:
-            logger.warning(f"Groq API call failed: {e}")
-            return {"predictions": [""]}
-
-    return {"predictions": [""]}
+    return _call_groq(
+        prompt,
+        max_output_tokens=max_output_tokens,
+        temperature=temperature,
+    )
 
 
 def extract_text(response: typing.Any) -> str:
@@ -136,6 +179,65 @@ def generate_styling_advice_with_gemini(
     Returns:
         Friendly, personalized styling advice (text only, no JSON)
     """
+    styling_key = STYLING_GROQ_API_KEY or GROQ_API_KEY
+    if not styling_key:
+        fallback_advice = """- Fit is everything, so choose pieces that sit cleanly on your shoulders and chest.
+- Start with versatile neutrals, then add one standout layer or accessory.
+- Keep the outfit balanced by matching the formality of your top, bottom, and shoes."""
+        return f"Hey {user_name}! Here's my styling advice:\n\n{fallback_advice}\n\nWould you like me to suggest some specific items that match this style?"
+
+    try:
+        topic_context = fashion_topic if fashion_topic else query or "styling in general"
+        context = personalization_context or {}
+        ctx_lines = []
+        if context.get("preferred_style"):
+            ctx_lines.append(f"Preferred style: {context.get('preferred_style')}")
+        if context.get("favorite_colors"):
+            ctx_lines.append(f"Favorite colors: {context.get('favorite_colors')}")
+        if context.get("size"):
+            ctx_lines.append(f"Usual size: {context.get('size')}")
+        if context.get("budget"):
+            ctx_lines.append(f"Budget preference: {context.get('budget')}")
+        if context.get("recent_recommended_items"):
+            recent = context.get("recent_recommended_items")
+            if isinstance(recent, list) and recent:
+                ctx_lines.append(f"Recent recommended items: {', '.join([str(x) for x in recent[:3]])}")
+        personalization_block = "\n".join(ctx_lines) if ctx_lines else "No known user preferences."
+
+        prompt = f"""You are a friendly fashion stylist named StylesenseSL.
+
+User Name: {user_name}
+Topic: How to style {topic_context}
+User context:\n{personalization_block}
+
+IMPORTANT: Return ONLY human-readable text. NO JSON, NO CODE, NO ACTIONS.
+Do not greet the user. Do not repeat their name. Do not add an introduction or conclusion.
+Give exactly 3 concise styling tips.
+Start each tip with a hyphen (-).
+Keep each tip to 1-2 short sentences.
+
+Tone: Warm, casual, encouraging, conversational.
+Include actionable, specific advice that the user can apply immediately.
+When user context is available, adapt the advice to it naturally.
+"""
+
+        response = _call_groq(
+            prompt,
+            api_key=styling_key,
+            model=STYLING_GROQ_MODEL,
+            max_output_tokens=180,
+            temperature=0.5,
+            system_prompt="You are a precise fashion stylist who returns clean bullet-point advice.",
+        )
+        advice = _normalize_styling_advice(user_name, extract_text(response))
+        advice_lower = advice.lower()
+        has_json = advice.startswith("[") or advice.startswith("{") or '"action"' in advice or "'action'" in advice or "catalog_search" in advice_lower
+        has_prompt = "you are a friendly fashion stylist" in advice_lower or "important:" in advice_lower or "user name:" in advice_lower
+        if advice and len(advice) > 20 and not has_json and not has_prompt:
+            return f"Hey {user_name}! Here's my styling advice:\n\n{advice}\n\nWould you like me to suggest some specific items that match this style?"
+    except Exception as e:
+        logger.warning(f"Styling advice generation failed: {e}")
+
     if not GROQ_API_KEY:
         return f"Hey {user_name}! Here are some universal fashion tips: Fit is key, start with basics, layer thoughtfully, and remember confidence is your best accessory!"
     
