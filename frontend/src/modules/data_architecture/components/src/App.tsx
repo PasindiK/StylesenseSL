@@ -44,6 +44,19 @@ export default function App() {
     }
   }, [currentPage, medallionFiles]);
 
+  useEffect(() => {
+    if (currentPage !== 'approvals') {
+      return;
+    }
+
+    // Keep approval queue fresh while user is actively reviewing drift events.
+    const approvalsTimer = window.setInterval(() => {
+      refresh();
+    }, 5000);
+
+    return () => window.clearInterval(approvalsTimer);
+  }, [currentPage, refresh]);
+
   if (error) {
     return (
       <ToastProvider>

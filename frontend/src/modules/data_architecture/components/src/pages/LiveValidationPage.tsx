@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
 import { MetricCard } from '../cards/MetricCard';
+import { BaselineDetectionCard } from '../cards/BaselineDetectionCard';
 import { Panel } from '../panels/Panel';
 import { useToast } from '../notifications/ToastProvider';
+import { useAutoDetectBaseline } from '../hooks/useAutoDetectBaseline';
 import * as dashboardApi from '../api/dashboardApi';
 import type {
   DashboardSummaryResponse,
@@ -90,6 +92,7 @@ function toMetricRows(snapshot: LiveValidationResult | null) {
 
 export function LiveValidationPage({ summary, onOperationFinished }: LiveValidationPageProps) {
   const { showToast } = useToast();
+  const { detectBaseline, loading: detecting, result: detectionResult, error: detectionError, reset: resetDetection } = useAutoDetectBaseline();
 
   const [datasets, setDatasets] = useState<LiveInputDataset[]>([]);
   const [loadingDatasets, setLoadingDatasets] = useState(false);
@@ -135,9 +138,32 @@ export function LiveValidationPage({ summary, onOperationFinished }: LiveValidat
     refreshBaselineInputs();
   }, []);
 
-  const onUploadFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleConfirmDetectedBaseline = (baselineName: string) => {
+    // Find the dataset that matches the detected baseline
+    const matchingDataset = datasets.find(
+      (dataset) => dataset.dataset_name.toLowerCase().includes(baselineName.toLowerCase())
+    );
+    
+    if (matchingDataset) {
+      setSelectedDatasetId(matchingDataset.id);
+      showToast(`Baseline set to: ${matchingDataset.dataset_name}`, 'success', 2000);
+    }
+  };
+
+  const onUploadFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null;
     setUploadFile(file);
+    resetDetection();
+
+    if (file) {
+      showToast('Detecting baseline schema...', 'running', 1500);
+      const detectionResult = await detectBaseline(file);
+      if (detectionResult) {
+        showToast(`Detected: ${detectionResult.detection.detected_baseline.toUpperCase()} (${Math.round(detectionResult.detection.confidence * 100)}%)`, 'success', 2000);
+      } else if (detectionError) {
+        showToast(`Detection failed: ${detectionError}`, 'error', 3000);
+      }
+    }
   };
 
   const onSubmitValidation = async (event: FormEvent<HTMLFormElement>) => {
@@ -297,6 +323,26 @@ export function LiveValidationPage({ summary, onOperationFinished }: LiveValidat
               </div>
             </div>
 
+            {detecting && (
+              <div className="loading-row">
+                <span className="spinner" />
+                Analyzing file for baseline schema...
+              </div>
+            )}
+
+            {detectionError && (
+              <div className="status-banner error">
+                Auto-detection failed: {detectionError}
+              </div>
+            )}
+
+            {detectionResult && detectionResult.detection && (
+              <BaselineDetectionCard
+                detection={detectionResult.detection}
+                onConfirm={handleConfirmDetectedBaseline}
+              />
+            )}
+
             <label className="checkbox-row" htmlFor="ingest-checkbox">
               <input
                 id="ingest-checkbox"
@@ -339,8 +385,35 @@ export function LiveValidationPage({ summary, onOperationFinished }: LiveValidat
                 <span>Missing: {result.drift_counts.missing || 0}</span>
                 <span>Type changes: {result.drift_counts.dtype || 0}</span>
                 <span>Renames: {result.drift_counts.renames || 0}</span>
+                <span>Model Decision: {result.model_decision}</span>
                 <span>Risk: {result.risk_level}</span>
               </div>
+
+              {result.decision_reason && (
+                <div className="muted">
+                  Decision reason: {result.decision_reason}
+                </div>
+              )}
+
+              {result.drift_detected && result.queued_for_manual_approval === true && (
+                <div className="status-banner warning">
+                  This drift is queued for <strong>human approval</strong>. Open the <strong>Approvals</strong> tab to review
+                  {result.event_id ? (
+                    <>
+                      {' '}
+                      (event <code>{result.event_id}</code>)
+                    </>
+                  ) : null}
+                  .
+                </div>
+              )}
+
+              {result.drift_detected && result.queued_for_manual_approval === false && (
+                <div className="status-banner success">
+                  Drift was <strong>auto-approved</strong> by policy. It is logged as a drift event but does{' '}
+                  <strong>not</strong> appear in the Approvals queue (no manual step).
+                </div>
+              )}
 
               <div className="table-scroll">
                 <table className="data-table compact">
@@ -371,9 +444,15 @@ export function LiveValidationPage({ summary, onOperationFinished }: LiveValidat
                 </table>
               </div>
 
-              {result.event_id && (
+              {result.event_id && result.queued_for_manual_approval === true && (
                 <div className="muted">
                   Drift event logged for approvals: <code>{result.event_id}</code>
+                </div>
+              )}
+
+              {result.event_id && result.queued_for_manual_approval === false && (
+                <div className="muted">
+                  Drift event logged (auto-approved): <code>{result.event_id}</code>
                 </div>
               )}
 

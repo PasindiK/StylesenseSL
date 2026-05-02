@@ -8,12 +8,12 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'live_validation', label: 'Live Validation' },
+  { id: 'approvals', label: 'Approvals' },
+  { id: 'medallion', label: 'Medallion' },
+  { id: 'storage', label: 'Storage' },
   { id: 'explainability', label: 'Explainability' },
   { id: 'actions', label: 'Actions' },
-  { id: 'medallion', label: 'Medallion' },
-  { id: 'approvals', label: 'Approvals' },
   { id: 'timeline', label: 'Timeline' },
-  { id: 'storage', label: 'Storage' },
 ];
 
 interface DashboardLayoutProps {

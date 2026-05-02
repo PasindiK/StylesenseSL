@@ -26,7 +26,7 @@ import type {
   GovernanceAnalytics,
 } from '../types';
 
-const API_BASE = import.meta.env.VITE_DATA_ARCH_API_URL || 'http://localhost:8003/api';
+import { DATA_ARCH_API_BASE } from '../../../apiBase';
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const isFormData = options?.body instanceof FormData;
@@ -36,7 +36,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
       'Content-Type': 'application/json',
     };
 
-  const response = await fetch(`${API_BASE}${path}`, {
+  const response = await fetch(`${DATA_ARCH_API_BASE}${path}`, {
     headers: {
       ...baseHeaders,
       ...(options?.headers || {}),
