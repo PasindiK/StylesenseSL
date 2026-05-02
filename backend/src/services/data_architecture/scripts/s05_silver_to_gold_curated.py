@@ -3,8 +3,8 @@ import os
 import pandas as pd
 from datetime import datetime
 
-SILVER_ENRICHED_DIR = "silver/enriched"
-GOLD_DIR = "gold/curated"
+SILVER_ENRICHED_DIR = "medallions/silver/enriched"
+GOLD_DIR = "medallions/gold/curated"
 os.makedirs(GOLD_DIR, exist_ok=True)
 
 # ------------------------

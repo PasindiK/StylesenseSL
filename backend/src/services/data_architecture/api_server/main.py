@@ -18,11 +18,14 @@ import runpy
 import io
 import contextlib
 import re
+import numpy as np
 from difflib import SequenceMatcher
 from collections import defaultdict
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
+
+from medallions.gold.ml_decision_engine.action_selection import select_rl_action_from_scores
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -62,6 +65,13 @@ GOLD_CURATED_DIR = os.path.join(BASE_DIR, "medallions", "gold", "curated")
 CATEGORIZATION_CONFIG_PATH = os.path.join(BASE_DIR, "pipeline", "configs", "data_categorization.yaml")
 GOLD_ML_READY_DIR = os.path.join(BASE_DIR, "medallions", "gold", "ml_ready")
 GOLD_STAKEHOLDER_VIEWS_DIR = os.path.join(BASE_DIR, "medallions", "gold", "stakeholder_views")
+# Same medallion layout without the ``medallions/`` prefix (pipelines and samples write here too).
+BRONZE_RAW_LEGACY_DIR = os.path.join(BASE_DIR, "bronze", "raw")
+SILVER_CLEANED_LEGACY_DIR = os.path.join(BASE_DIR, "silver", "cleaned")
+SILVER_ENRICHED_LEGACY_DIR = os.path.join(BASE_DIR, "silver", "enriched")
+GOLD_CURATED_LEGACY_DIR = os.path.join(BASE_DIR, "gold", "curated")
+GOLD_ML_READY_LEGACY_DIR = os.path.join(BASE_DIR, "gold", "ml_ready")
+GOLD_STAKEHOLDER_VIEWS_LEGACY_DIR = os.path.join(BASE_DIR, "gold", "stakeholder_views")
 AUDIT_LOG_JSONL_PATH = os.path.join(METADATA_DIR, "audit_logs", "audit_log.jsonl")
 SCHEMA_VERSION_DIR = os.path.join(METADATA_DIR, "schema_versions")
 SCHEMA_BASELINE_STATE_PATH = os.path.join(SCHEMA_VERSION_DIR, "baseline_state.json")
@@ -118,8 +128,12 @@ def load_json_file(filepath: str) -> Dict[str, Any]:
         return {}
 
 
-def load_drift_events(limit: int = None) -> List[Dict[str, Any]]:
-    """Load drift events from metadata/drift_events/, deduplicated by table (latest only)"""
+def load_drift_events(limit: int = None, deduplicate_by_table: bool = True) -> List[Dict[str, Any]]:
+    """Load drift events from metadata/drift_events/.
+
+    By default events are deduplicated by table (latest only) to keep legacy dashboards compact.
+    Set deduplicate_by_table=False when callers need complete event-level counts (e.g., approvals).
+    """
     events = []
     pattern = os.path.join(DRIFT_EVENTS_DIR, "*.json")
     
@@ -131,13 +145,16 @@ def load_drift_events(limit: int = None) -> List[Dict[str, Any]]:
             data["file"] = os.path.basename(filepath)
             all_events.append(data)
     
-    # Deduplicate by table - keep only the latest event per table
-    seen_tables = set()
-    for evt in all_events:
-        table = evt.get("table")
-        if table and table not in seen_tables:
-            events.append(evt)
-            seen_tables.add(table)
+    if deduplicate_by_table:
+        # Deduplicate by table - keep only the latest event per table
+        seen_tables = set()
+        for evt in all_events:
+            table = evt.get("table")
+            if table and table not in seen_tables:
+                events.append(evt)
+                seen_tables.add(table)
+    else:
+        events = all_events
     
     if limit:
         events = events[:limit]
@@ -192,18 +209,23 @@ def _parse_iso_timestamp(value: str) -> Optional[datetime]:
         return None
 
 
+# Above this size, medallion file scans use byte-based row estimates instead of reading every CSV line
+# (full scans across hundreds of bronze dumps were dominating dashboard load time).
+_CSV_FULL_ROW_SCAN_MAX_BYTES = 512 * 1024
+
+
 def _estimate_file_rows(filepath: str) -> int:
     """Estimate row count for CSV/Parquet file"""
     if not os.path.exists(filepath) or not os.path.isfile(filepath):
         return 0
 
     try:
-        if filepath.endswith(".csv"):
+        if filepath.lower().endswith(".csv"):
             with open(filepath, "r", encoding="utf-8", errors="ignore") as file_handle:
                 total_lines = sum(1 for _ in file_handle)
             return max(0, total_lines - 1)  # subtract header
 
-        if filepath.endswith(".parquet"):
+        if filepath.lower().endswith(".parquet"):
             pq = importlib.import_module("pyarrow.parquet")
             parquet_file = pq.ParquetFile(filepath)
             return parquet_file.metadata.num_rows or 0
@@ -211,6 +233,16 @@ def _estimate_file_rows(filepath: str) -> int:
         return 0
 
     return 0
+
+
+def _records_for_medallion_scan(full_path: str, size_bytes: int) -> int:
+    """Row count for dashboard/medallion listing: fast path for large CSVs, exact-ish for small files."""
+    if size_bytes > _CSV_FULL_ROW_SCAN_MAX_BYTES and full_path.lower().endswith(".csv"):
+        return _estimate_rows_from_size(size_bytes)
+    rows = _estimate_file_rows(full_path)
+    if rows <= 0:
+        rows = _estimate_rows_from_size(size_bytes)
+    return int(rows)
 
 
 def _calculate_average_resolution_hours(drift_events: List[Dict[str, Any]]) -> float:
@@ -852,6 +884,107 @@ async def health_check():
     }
 
 
+@app.get('/api/drift/pending-alerts')
+async def get_pending_alerts(force_refresh: bool = Query(False, description="Force cache bypass")):
+    """
+    Get pending drift alerts (high priority for UI updates).
+    NO CACHING - Always returns fresh data.
+    GET /api/drift/pending-alerts
+    
+    Returns list of pending approvals/alerts that need human review.
+    """
+    try:
+        # Always load fresh data (no caching) for alerts
+        drift_events = load_drift_events(limit=20)
+        quarantine_details = load_quarantine_details() if not force_refresh else []
+        
+        pending_alerts = []
+        
+        # Add drift events that need approval
+        for evt in drift_events:
+            decision = evt.get("decision", "").upper()
+            needs_approval = (evt.get("requires_approval", False) or 
+                            "REQUIRES" in decision or 
+                            "QUARANTINED" in decision)
+            is_not_resolved = not evt.get("approved", False) and not evt.get("rejected", False)
+            
+            if needs_approval and is_not_resolved:
+                # Ensure counts exist
+                if "counts" not in evt and "diff" in evt:
+                    diff = evt.get("diff", {})
+                    evt["counts"] = {
+                        "new": len(diff.get("new_columns", [])),
+                        "missing": len(diff.get("missing_columns", [])),
+                        "dtype": len(diff.get("dtype_changes", [])),
+                        "renames": len(diff.get("renames", []))
+                    }
+                
+                # Ensure risk_level exists
+                if "risk_level" not in evt:
+                    counts = evt.get("counts", {})
+                    total_changes = sum([counts.get("new", 0), counts.get("missing", 0), 
+                                       counts.get("dtype", 0), counts.get("renames", 0)])
+                    if total_changes > 10 or counts.get("missing", 0) > 0 or "QUARANTINED" in decision:
+                        evt["risk_level"] = "high"
+                    elif total_changes > 5:
+                        evt["risk_level"] = "medium"
+                    else:
+                        evt["risk_level"] = "low"
+                
+                alert = {
+                    "id": evt.get("file", ""),
+                    "event_id": evt.get("file", ""),
+                    "table": evt.get("table", ""),
+                    "timestamp": evt.get("timestamp", ""),
+                    "decision": evt.get("decision", ""),
+                    "risk_level": evt.get("risk_level", "medium"),
+                    "counts": evt.get("counts", {"new": 0, "missing": 0, "dtype": 0, "renames": 0}),
+                    "source_file": evt.get("source_file", ""),
+                    "approval_status": "Pending",
+                    "requires_approval": evt.get("requires_approval", True),
+                    "auto_approved": evt.get("auto_approved", False)
+                }
+                pending_alerts.append(alert)
+        
+        # Add quarantined datasets as pending alerts
+        for quarantine_item in quarantine_details:
+            alert = {
+                "id": f"quarantine_{quarantine_item.get('dataset', '')}_{quarantine_item.get('quarantine_date', '')}",
+                "event_id": f"quarantine_{quarantine_item.get('dataset', '')}_",
+                "table": quarantine_item.get("dataset", ""),
+                "timestamp": quarantine_item.get("quarantine_date", ""),
+                "decision": "QUARANTINED",
+                "risk_level": "high",
+                "counts": {"new": 0, "missing": 0, "dtype": 0, "renames": 0},
+                "source_file": quarantine_item.get("filename", ""),
+                "approval_status": "Pending",
+                "requires_approval": True,
+                "auto_approved": False
+            }
+            pending_alerts.append(alert)
+        
+        logger.info(f"[PENDING ALERTS] Returning {len(pending_alerts)} pending alerts (force_refresh={force_refresh})")
+        
+        return {
+            "generated_at": _utc_iso_now(),
+            "pending_alerts": pending_alerts,
+            "alerts_count": len(pending_alerts),
+            "has_pending": len(pending_alerts) > 0,
+            "high_risk_count": sum(1 for a in pending_alerts if a.get("risk_level") == "high"),
+        }
+    
+    except Exception as e:
+        logger.error(f"[PENDING ALERTS] Error: {e}", exc_info=True)
+        return {
+            "generated_at": _utc_iso_now(),
+            "pending_alerts": [],
+            "alerts_count": 0,
+            "has_pending": False,
+            "high_risk_count": 0,
+            "error": str(e)
+        }
+
+
 @app.get('/api/dashboard-data')
 async def get_dashboard_data():
     """
@@ -1286,7 +1419,10 @@ def _cache_get_or_build(cache_key: str, ttl_seconds: int, builder):
 
 
 def _invalidate_metrics_cache() -> None:
+    """Clear all cached metrics and dashboard data to force refresh on next request."""
+    cache_size_before = len(_METRICS_CACHE)
     _METRICS_CACHE.clear()
+    logger.debug(f"[CACHE] Invalidated {cache_size_before} cached entries. Alerts and metrics will be refreshed on next query.")
 
 
 def _is_data_file(filename: str) -> bool:
@@ -1338,14 +1474,43 @@ def _extract_dataset_name(path_or_name: str) -> str:
     return name or "dataset"
 
 
+def _dedupe_local_scan_roots(paths: List[str]) -> List[str]:
+    """Return unique directories so the same real path is not walked twice (e.g. symlinks)."""
+    seen: set = set()
+    out: List[str] = []
+    for raw in paths:
+        if not raw:
+            continue
+        try:
+            key = os.path.normcase(os.path.realpath(raw))
+        except OSError:
+            key = os.path.normcase(os.path.abspath(raw))
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(raw)
+    return out
+
+
 def _layer_local_paths(layer: str) -> List[str]:
     normalized = layer.lower()
     if normalized == "bronze":
-        return [BRONZE_RAW_DIR]
+        return _dedupe_local_scan_roots([BRONZE_RAW_DIR, BRONZE_RAW_LEGACY_DIR])
     if normalized == "silver":
-        return [SILVER_CLEANED_DIR, SILVER_ENRICHED_DIR]
+        return _dedupe_local_scan_roots(
+            [SILVER_CLEANED_DIR, SILVER_ENRICHED_DIR, SILVER_CLEANED_LEGACY_DIR, SILVER_ENRICHED_LEGACY_DIR]
+        )
     if normalized == "gold":
-        return [GOLD_CURATED_DIR, GOLD_ML_READY_DIR, GOLD_STAKEHOLDER_VIEWS_DIR]
+        return _dedupe_local_scan_roots(
+            [
+                GOLD_CURATED_DIR,
+                GOLD_ML_READY_DIR,
+                GOLD_STAKEHOLDER_VIEWS_DIR,
+                GOLD_CURATED_LEGACY_DIR,
+                GOLD_ML_READY_LEGACY_DIR,
+                GOLD_STAKEHOLDER_VIEWS_LEGACY_DIR,
+            ]
+        )
     raise ValueError(f"Unsupported layer: {layer}")
 
 
@@ -1388,9 +1553,7 @@ def _scan_layer_files_local(layer: str) -> Dict[str, Any]:
                 try:
                     size_bytes = int(os.path.getsize(full_path))
                     modified_dt = datetime.fromtimestamp(os.path.getmtime(full_path), tz=timezone.utc)
-                    rows = _estimate_file_rows(full_path)
-                    if rows <= 0:
-                        rows = _estimate_rows_from_size(size_bytes)
+                    rows = _records_for_medallion_scan(full_path, size_bytes)
                     relative_path = os.path.relpath(full_path, BASE_DIR).replace("\\", "/")
                     files.append(
                         {
@@ -1477,6 +1640,58 @@ def _scan_layer_files(layer: str) -> Dict[str, Any]:
             logger.warning("Falling back to filesystem scan for %s: %s", normalized, exc)
 
     return _scan_layer_files_local(normalized)
+
+
+def _filter_files_for_overview_volume_chart(layer: str, files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Subset of layer files for the Overview \"Data Volume\" bar chart.
+
+    - Bronze: all raw files (full layer listing).
+    - Silver: **cleaned + enriched** files (union, deduped by path). If neither bucket matches, full layer listing.
+    - Gold: **curated** outputs only; if none, fall back to full gold listing.
+    Works for local paths (``medallions/...``) and Azure paths (``layer/subdir/...``).
+    """
+    if not files:
+        return []
+
+    def path_name(file_entry: Dict[str, Any]) -> Tuple[str, str]:
+        p = str(file_entry.get("path") or "").replace("\\", "/").lower()
+        n = str(file_entry.get("name") or "").lower()
+        return p, n
+
+    if str(layer or "").lower() == "bronze":
+        return list(files)
+
+    if str(layer or "").lower() == "silver":
+        enriched: List[Dict[str, Any]] = []
+        cleaned: List[Dict[str, Any]] = []
+        for f in files:
+            p, n = path_name(f)
+            if "/enriched/" in p or p.startswith("enriched/") or n.endswith("_enriched.csv"):
+                enriched.append(f)
+            elif "/cleaned/" in p or p.startswith("cleaned/") or n.endswith("_cleaned.csv"):
+                cleaned.append(f)
+        combined = enriched + cleaned
+        if not combined:
+            return list(files)
+        seen: set = set()
+        out: List[Dict[str, Any]] = []
+        for f in combined:
+            key = str(f.get("path") or "") or str(f.get("name") or "")
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(f)
+        return out
+
+    if str(layer or "").lower() == "gold":
+        curated: List[Dict[str, Any]] = []
+        for f in files:
+            p, _n = path_name(f)
+            if "/curated/" in p or p.startswith("curated/") or "gold/curated" in p:
+                curated.append(f)
+        return curated if curated else list(files)
+
+    return list(files)
 
 
 def _build_layer_stats(files: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -1961,10 +2176,20 @@ def _build_ingestion_series(bronze_files: List[Dict[str, Any]], pending_approval
 
 
 def _build_freshness_series(files_by_layer: Dict[str, List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
+    """Per-day staleness from real file mtimes: hours between last layer update (as of that day) and end of that day.
+
+    For past days, the reference instant is 23:59:59 UTC on that day.
+    For today, the reference instant is ``now`` so the last point reflects current freshness.
+    """
     now_utc = datetime.now(timezone.utc)
     output: List[Dict[str, Any]] = []
     for day_offset in range(13, -1, -1):
         day = (now_utc - timedelta(days=day_offset)).date()
+        if day == now_utc.date():
+            ref_instant = now_utc
+        else:
+            ref_instant = datetime(day.year, day.month, day.day, 23, 59, 59, tzinfo=timezone.utc)
+
         point: Dict[str, Any] = {"date": day.isoformat()}
 
         for layer in ["bronze", "silver", "gold"]:
@@ -1972,14 +2197,17 @@ def _build_freshness_series(files_by_layer: Dict[str, List[Dict[str, Any]]]) -> 
             latest_for_day = None
             for item in layer_files:
                 ts = _parse_dt(item.get("last_modified"))
-                if ts and ts.date() <= day and (latest_for_day is None or ts > latest_for_day):
+                if not ts:
+                    continue
+                if ts <= ref_instant and (latest_for_day is None or ts > latest_for_day):
                     latest_for_day = ts
 
             if latest_for_day is None:
                 point[f"{layer}_freshness_hours"] = None
                 point[f"{layer}_last_update"] = None
             else:
-                point[f"{layer}_freshness_hours"] = round((now_utc - latest_for_day).total_seconds() / 3600, 2)
+                age_seconds = (ref_instant - latest_for_day).total_seconds()
+                point[f"{layer}_freshness_hours"] = round(max(0.0, age_seconds) / 3600, 2)
                 point[f"{layer}_last_update"] = _safe_iso(latest_for_day)
 
         output.append(point)
@@ -2058,20 +2286,28 @@ def _build_timeline_events(files_by_layer: Dict[str, List[Dict[str, Any]]], drif
 
 
 def _load_drift_events_for_dashboard() -> Dict[str, Any]:
-    drift_events = load_drift_events(limit=200)
+    # Use full event history here so approval counts reflect every pending request.
+    drift_events = load_drift_events(limit=500, deduplicate_by_table=False)
     pending = []
     approved = 0
     rejected = 0
+    today_utc = datetime.utcnow().date()
 
     for evt in drift_events:
-        approved_flag = bool(evt.get("approved", False))
+        decision_upper = str(evt.get("decision", "")).upper()
+        auto_approved_flag = bool(evt.get("auto_approved", False)) or "AUTO_" in decision_upper
+        approved_flag = bool(evt.get("approved", False)) or auto_approved_flag
         rejected_flag = bool(evt.get("rejected", False))
-        if approved_flag:
+
+        # Count approved/rejected events that happened today only.
+        approved_ts = _parse_iso_timestamp(str(evt.get("approved_at") or evt.get("timestamp") or ""))
+        rejected_ts = _parse_iso_timestamp(str(evt.get("rejected_at") or evt.get("timestamp") or ""))
+        if approved_flag and approved_ts and approved_ts.date() == today_utc:
             approved += 1
-        if rejected_flag:
+        if rejected_flag and rejected_ts and rejected_ts.date() == today_utc:
             rejected += 1
 
-        needs_approval = bool(evt.get("requires_approval", False)) or "QUARANTINED" in str(evt.get("decision", "")).upper()
+        needs_approval = bool(evt.get("requires_approval", False)) or "QUARANTINED" in decision_upper
         if needs_approval and not approved_flag and not rejected_flag:
             if "counts" not in evt and isinstance(evt.get("diff", {}), dict):
                 diff = evt.get("diff", {})
@@ -2187,6 +2423,10 @@ def _build_summary_payload() -> Dict[str, Any]:
         ],
     }
 
+    volume_bronze_stats = _build_layer_stats(_filter_files_for_overview_volume_chart("bronze", files_by_layer["bronze"]))
+    volume_silver_stats = _build_layer_stats(_filter_files_for_overview_volume_chart("silver", files_by_layer["silver"]))
+    volume_gold_stats = _build_layer_stats(_filter_files_for_overview_volume_chart("gold", files_by_layer["gold"]))
+
     return {
         "generated_at": _utc_iso_now(),
         "source": {
@@ -2197,13 +2437,26 @@ def _build_summary_payload() -> Dict[str, Any]:
         "overview": {
             "metrics": overview_metrics,
             "pipeline_flow": _build_pipeline_flow(layer_stats, len(pending_approvals)),
+            "pipeline_flow_basis": (
+                "Carryover metrics are derived from summed estimated row counts per medallion layer "
+                "(filesystem or Azure blob listing), not from pipeline execution logs."
+            ),
             "freshness": _build_freshness_series(files_by_layer),
+            "freshness_basis": (
+                "Hours since the latest data file mtime in each layer, measured at end of each calendar day "
+                "(today uses current time). Based on medallion file scans."
+            ),
             "ingestion_metrics": ingestion_metrics,
             "data_volume_distribution": [
-                {"layer": "Bronze", "size_bytes": int(layer_stats["bronze"].get("size_bytes", 0) or 0)},
-                {"layer": "Silver", "size_bytes": int(layer_stats["silver"].get("size_bytes", 0) or 0)},
-                {"layer": "Gold", "size_bytes": int(layer_stats["gold"].get("size_bytes", 0) or 0)},
+                {"layer": "Bronze", "size_bytes": int(volume_bronze_stats.get("size_bytes", 0) or 0)},
+                {"layer": "Silver", "size_bytes": int(volume_silver_stats.get("size_bytes", 0) or 0)},
+                {"layer": "Gold", "size_bytes": int(volume_gold_stats.get("size_bytes", 0) or 0)},
             ],
+            "data_volume_basis": (
+                "Byte totals from live file sizes: Bronze = all raw files under medallion and legacy bronze/raw roots; "
+                "Silver = cleaned + enriched files combined (deduped by path); Gold = curated only (or all gold files if no curated path match). "
+                "Legacy paths (e.g. silver/cleaned beside medallions/silver/cleaned) are included so the chart matches on-disk data."
+            ),
             "storage_tier_usage": storage_tier_usage,
         },
         "governance": governance_payload,
@@ -2491,9 +2744,22 @@ def _infer_series_dtype(series: Any) -> str:
             return "integer"
         return "float"
 
-    dt_ratio = float(pd.to_datetime(sample, errors="coerce", utc=True).notna().mean())
-    if dt_ratio >= 0.98:
-        return "datetime"
+    # Try datetime with common formats first to suppress dateutil warnings
+    try:
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            dt_attempt = pd.to_datetime(sample, format="%Y-%m-%d", errors="coerce")
+            if dt_attempt.notna().mean() >= 0.98:
+                return "datetime"
+            dt_attempt = pd.to_datetime(sample, format="%Y-%m-%dT%H:%M:%S", errors="coerce")
+            if dt_attempt.notna().mean() >= 0.98:
+                return "datetime"
+            dt_ratio = float(pd.to_datetime(sample, errors="coerce", utc=True).notna().mean())
+            if dt_ratio >= 0.98:
+                return "datetime"
+    except Exception:
+        pass
 
     return "string"
 
@@ -2568,44 +2834,164 @@ async def _load_current_schema_lookup() -> Dict[str, Dict[str, Any]]:
     return lookup
 
 
+# Equivalence classes for known retail / lakehouse column synonyms (lowercase members).
+_COLUMN_SYNONYM_GROUPS: List[frozenset] = [
+    frozenset({"order_id", "transaction_id", "txn_id", "sale_id", "purchase_id"}),
+    frozenset({"line_item_id", "order_line_id", "order_item_id"}),
+    frozenset({"product_id", "product_code", "sku", "item_code", "product_sku"}),
+    frozenset({"customer_id", "user_id", "cust_id", "client_id", "buyer_id"}),
+    frozenset({"shop_id", "store_id", "vendor_id", "merchant_id", "retailer_id"}),
+    frozenset({"quantity", "qty", "qnty", "quan", "units"}),
+    frozenset({"order_date", "transaction_date", "txn_date", "sale_date", "purchase_date", "ordered_at"}),
+    frozenset({"price", "price_lkr", "price_usd", "price_gbp", "price_eur", "unit_price", "sale_price", "list_price"}),
+    frozenset({"amount", "total_amount", "line_total", "final_amount", "subtotal", "grand_total"}),
+    frozenset({"discount", "discount_pct", "discount_percent", "disc_pct", "discount_amount"}),
+    frozenset({"country", "country_code", "nation", "iso_country"}),
+    frozenset({"created_at", "created_ts", "create_ts", "creation_date", "created"}),
+    frozenset({"updated_at", "updated_ts", "modified_at", "last_updated"}),
+    frozenset({"stock_count", "stock", "inventory", "inventory_qty", "on_hand", "stock_qty"}),
+    frozenset({"category_id", "cat_id"}),
+    frozenset({"category", "category_name", "product_category", "cat_name"}),
+    frozenset({"name", "product_name", "item_name", "title", "display_name"}),
+    frozenset({"email", "e_mail", "email_address"}),
+    frozenset({"phone", "phone_number", "mobile", "tel", "msisdn"}),
+    frozenset({"description", "desc", "details", "product_description"}),
+    frozenset({"color", "colour", "product_color"}),
+    frozenset({"fabric", "material", "textile"}),
+]
+
+_SYNONYM_GROUP_INDEX: Dict[str, int] = {}
+for _i, _grp in enumerate(_COLUMN_SYNONYM_GROUPS):
+    for _n in _grp:
+        _SYNONYM_GROUP_INDEX[_n.lower()] = _i
+
+_GENERIC_TOKENS = frozenset({"id", "ts", "at", "no", "num", "key", "cd", "lr"})
+
+
+def _meaningful_column_tokens(col: str) -> set:
+    parts = re.split(r"[_\s]+", col.lower().strip())
+    return {p for p in parts if p and len(p) > 1 and p not in _GENERIC_TOKENS}
+
+
+def _is_id_like_column(col: str) -> bool:
+    c = col.lower().strip()
+    return c.endswith("_id") or c in {"id", "sku"}
+
+
+def _regional_or_prefix_column_match(a: str, b: str) -> bool:
+    """Currency/locale suffixes (price_lkr) or longer_name = short + '_' + suffix."""
+    if a == b:
+        return True
+    for suffix in ("_lkr", "_usd", "_gbp", "_eur", "_sl", "_lk", "_inr"):
+        if a.endswith(suffix) and a[: -len(suffix)] == b:
+            return True
+        if b.endswith(suffix) and b[: -len(suffix)] == a:
+            return True
+    short, long = (a, b) if len(a) <= len(b) else (b, a)
+    if len(short) >= 3 and long.startswith(short + "_"):
+        return True
+    return False
+
+
+def _score_rename_pair(
+    missing: str,
+    new: str,
+    expected_types: Dict[str, str],
+    actual_types: Dict[str, str],
+) -> Optional[tuple]:
+    """
+    Returns (composite_score, raw_string_similarity, type_match, match_type) or None if not a plausible rename.
+    composite_score is used only for ranking; raw_string_similarity is what we show in the UI.
+    """
+    ml, nl = missing.lower().strip(), new.lower().strip()
+    if ml == nl:
+        return None
+
+    type_match = expected_types.get(missing) == actual_types.get(new)
+    raw = SequenceMatcher(None, ml, nl).ratio()
+    tm, tn = _meaningful_column_tokens(missing), _meaningful_column_tokens(new)
+    union = tm | tn
+    jacc = (len(tm & tn) / len(union)) if union else 0.0
+    id_m, id_n = _is_id_like_column(missing), _is_id_like_column(new)
+
+    gi = _SYNONYM_GROUP_INDEX.get(ml)
+    gj = _SYNONYM_GROUP_INDEX.get(nl)
+    if gi is not None and gi == gj:
+        return (0.96, raw, type_match, "synonym")
+
+    if _regional_or_prefix_column_match(ml, nl):
+        if type_match:
+            return (max(0.88, raw), raw, type_match, "pattern")
+        if raw >= 0.78:
+            return (max(0.82, raw), raw, type_match, "pattern")
+
+    # Two different *id columns (order_id vs shop_id): never accept fuzzy substring "id" tricks
+    if id_m and id_n and (gi is None or gj is None or gi != gj):
+        if raw < 0.82 and jacc < 0.45:
+            return None
+        if raw < 0.74:
+            return None
+
+    composite = raw + (0.12 if type_match else 0.0) + (0.22 * jacc)
+    composite = min(composite, 0.94)
+
+    if not type_match and raw < 0.86:
+        return None
+    if composite < 0.70 and raw < 0.72:
+        return None
+    if composite < 0.68:
+        return None
+
+    # SequenceMatcher often inflates score when unrelated names share a substring (e.g. "discount"
+    # vs "stock_count" ~63% from "s" + "count"). Require token overlap or very high raw match.
+    if jacc == 0.0 and raw < 0.82:
+        return None
+
+    return (composite, raw, type_match, "standard")
+
+
 def _detect_schema_renames(
     missing_columns: List[str],
     new_columns: List[str],
     expected_types: Dict[str, str],
     actual_types: Dict[str, str],
-    similarity_threshold: float = 0.72,
+    similarity_threshold: float = 0.70,
 ) -> Dict[str, Any]:
-    renames: List[Dict[str, Any]] = []
-    used_missing = set()
-    used_new = set()
+    """
+    Pair missing vs new columns that are likely renames.
 
+    - Uses explicit synonym groups (not substring matching on \"id\", which caused false positives).
+    - Prefers global one-to-one assignment by score (greedy on sorted pairs).
+    - Stricter fuzzy thresholds; regional/prefix patterns (e.g. price_lkr) still supported.
+    """
+    candidates: List[tuple] = []
     for missing_col in missing_columns:
-        best_match = None
-        best_score = 0.0
         for new_col in new_columns:
-            if new_col in used_new:
+            scored = _score_rename_pair(missing_col, new_col, expected_types, actual_types)
+            if scored is None:
                 continue
+            composite, raw_sim, type_match, match_type = scored
+            if composite < similarity_threshold:
+                continue
+            candidates.append((composite, raw_sim, type_match, match_type, missing_col, new_col))
 
-            similarity = SequenceMatcher(None, missing_col.lower(), new_col.lower()).ratio()
-            type_match = expected_types.get(missing_col) == actual_types.get(new_col)
-            weighted_score = similarity + (0.15 if type_match else 0.0)
+    candidates.sort(key=lambda row: -row[0])
+    used_missing: set = set()
+    used_new: set = set()
+    renames: List[Dict[str, Any]] = []
 
-            if similarity >= similarity_threshold and weighted_score > best_score:
-                best_score = weighted_score
-                best_match = (new_col, similarity, type_match)
-
-        if best_match is None:
+    for composite, raw_sim, type_match, match_type, missing_col, new_col in candidates:
+        if missing_col in used_missing or new_col in used_new:
             continue
-
-        matched_name, similarity, type_match = best_match
         used_missing.add(missing_col)
-        used_new.add(matched_name)
+        used_new.add(new_col)
         renames.append(
             {
                 "old_name": missing_col,
-                "new_name": matched_name,
-                "similarity": round(float(similarity), 3),
+                "new_name": new_col,
+                "similarity": round(float(raw_sim), 3),
                 "type_match": bool(type_match),
+                "match_type": match_type,
             }
         )
 
@@ -2664,15 +3050,335 @@ def _build_drift_counts(diff_payload: Dict[str, Any]) -> Dict[str, int]:
     }
 
 
-def _derive_drift_risk(diff_payload: Dict[str, Any]) -> str:
-    counts = _build_drift_counts(diff_payload)
-    total_changes = sum(counts.values())
+def _load_rl_policy():
+    """
+    Load the trained contextual bandit (LinUCB) policy.
+    
+    Research Innovation: Using ML-based decision making for autonomous
+    schema drift handling instead of rule-based heuristics.
+    """
+    try:
+        # Try to find the model file
+        model_filename = "policy.json"
+        possible_paths = [
+            # From api_server directory
+            os.path.join(os.path.dirname(__file__), "..", "medallions", "gold", "ml_decision_engine", "models", model_filename),
+            # From BASE_DIR
+            os.path.join(BASE_DIR, "medallions", "gold", "ml_decision_engine", "models", model_filename),
+        ]
+        
+        policy_path = None
+        ml_engine_dir = None
+        for path in possible_paths:
+            if os.path.exists(path):
+                policy_path = path
+                ml_engine_dir = os.path.dirname(path).replace("\\models", "")
+                break
+        
+        if not policy_path or not ml_engine_dir:
+            logger.warning(f"[RL POLICY] Model not found. Searched: {possible_paths}")
+            return None
+        
+        # Dynamically import policy module using importlib
+        sys.path.insert(0, ml_engine_dir)
+        try:
+            spec = importlib.util.spec_from_file_location("policy", os.path.join(ml_engine_dir, "policy.py"))
+            policy_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(policy_module)
+            LinUCBPolicy = policy_module.LinUCBPolicy
+        finally:
+            if ml_engine_dir in sys.path:
+                sys.path.remove(ml_engine_dir)
+        
+        policy = LinUCBPolicy.load(policy_path)
+        logger.info(f"[RL POLICY] ✅ Successfully loaded trained policy from {policy_path}")
+        return policy
+    except Exception as e:
+        logger.error(f"[RL POLICY] ❌ Failed to load policy: {e}", exc_info=True)
+        return None
 
-    if counts["missing"] > 0 or counts["dtype"] >= 4 or total_changes >= 8:
-        return "high"
-    if counts["dtype"] > 0 or counts["renames"] > 0 or counts["new"] >= 3:
-        return "medium"
-    return "low"
+
+# Global policy cache
+_RL_POLICY = None
+
+def _get_rl_policy():
+    """Get or load the RL policy (cached)."""
+    global _RL_POLICY
+    if _RL_POLICY is None:
+        _RL_POLICY = _load_rl_policy()
+    return _RL_POLICY
+
+
+def _build_drift_feature_vector(diff_payload: Dict[str, Any]) -> np.ndarray:
+    """
+    Extract 16-dimensional feature vector from drift event for RL model.
+    Matches the feature space used during model training.
+    
+    IMPROVEMENT v2: Handle partial rename scenarios
+    - Not all new columns need to be renames (some can be truly new)
+    - Count which new/missing columns are actually part of renames
+    - Subtract renamed columns from new/missing counts
+    - This handles mixed scenarios: some renames + some truly new columns
+    """
+    import numpy as np
+    
+    # Extract schema changes
+    new_cols_list = diff_payload.get("new_in_uploaded", [])
+    missing_cols_list = diff_payload.get("missing_in_uploaded", [])
+    new_cols = len(new_cols_list)
+    missing_cols = len(missing_cols_list)
+    dtype_changes = len(diff_payload.get("dtype_changes", []))
+    renames = diff_payload.get("renames", [])
+    rename_count = len(renames)
+    
+    # Calculate rename metrics
+    avg_rename_similarity = 0.0
+    rename_type_match_ratio = 0.0
+    if renames:
+        avg_rename_similarity = sum(r.get("similarity", 0.9) for r in renames) / rename_count
+        rename_type_match_ratio = sum(1 for r in renames if r.get("type_match", False)) / rename_count
+    
+    # ✨ IMPROVED v2: Handle partial rename scenarios
+    # Count how many "new" and "missing" columns are actually part of renames
+    # Example: new=[price_LKR, stock_count, rating], missing=[price, inventory]
+    #          renames=[price_LKR→price, stock_count→inventory]
+    #          → price_LKR, stock_count are accounted for by renames (don't count as new/missing)
+    #          → rating is truly new (count it)
+    #          → price, inventory are accounted for by renames (don't count as missing)
+    
+    adjusted_new_cols = new_cols
+    adjusted_missing_cols = missing_cols
+    
+    # ✨ IMPROVED: Lower threshold to 0.50 to accommodate semantic/synonym matches
+    # Reasoning: Semantic synonyms (stock_count→inventory) may have low string similarity (0.2)
+    # but high semantic similarity + type matching makes them reliable renames
+    # We check rename_type_match_ratio which is HIGH (1.0 = 100% type matches), so this is safe
+    if rename_count > 0 and avg_rename_similarity >= 0.50 and rename_type_match_ratio >= 0.8:
+        # High-quality renames exist (good type matching), extract which columns are renamed
+        renamed_new = set()  # new columns that are part of renames
+        renamed_missing = set()  # missing columns that are part of renames
+        
+        for rename in renames:
+            # Handle both old and new key names for backward compatibility
+            new_name = rename.get("new_name") or rename.get("new", "")
+            old_name = rename.get("old_name") or rename.get("old", "")
+            
+            # Check if this rename's new name is in our new columns list
+            if new_name and new_name in new_cols_list:
+                renamed_new.add(new_name)
+            
+            # Check if this rename's old name is in our missing columns list
+            if old_name and old_name in missing_cols_list:
+                renamed_missing.add(old_name)
+        
+        # Subtract renamed columns from new/missing counts
+        # These aren't truly "new" or "missing", they're just renamed
+        adjusted_new_cols = max(0, new_cols - len(renamed_new))
+        adjusted_missing_cols = max(0, missing_cols - len(renamed_missing))
+        
+        if len(renamed_new) > 0 or len(renamed_missing) > 0:
+            logger.debug(f"[RENAME DETECTION] Partial rename scenario:")
+            logger.debug(f"  - Renamed columns: {len(renamed_new)} new, {len(renamed_missing)} missing")
+            logger.debug(f"  - Truly new columns: {adjusted_new_cols}")
+            logger.debug(f"  - Truly missing columns: {adjusted_missing_cols}")
+            logger.debug(f"  - Renames with avg similarity: {avg_rename_similarity:.2f}")
+    
+    # Calculate ratios (using adjusted counts)
+    total_changes = max(adjusted_new_cols + adjusted_missing_cols + dtype_changes + rename_count, 1)
+    new_col_ratio = adjusted_new_cols / total_changes if total_changes > 0 else 0.0
+    missing_col_ratio = adjusted_missing_cols / total_changes if total_changes > 0 else 0.0
+    dtype_change_ratio = dtype_changes / total_changes if total_changes > 0 else 0.0
+    rename_ratio = rename_count / total_changes if total_changes > 0 else 0.0
+    
+    # Default metrics (would come from actual DQ/pipeline in production)
+    null_ratio_delta = 0.0
+    duplicate_ratio = 0.0
+    downstream_failures = 0.0
+    avg_latency_ms = 0.0
+    storage_tier_imp = 0.0
+    row_count_delta = 0.0
+    
+    # Construct 16-dimensional feature vector (must match training)
+    # Note: Using adjusted counts so the model understands safe renames
+    vector = np.array([
+        float(adjusted_new_cols),
+        float(adjusted_missing_cols),
+        float(dtype_changes),
+        float(rename_count),
+        float(avg_rename_similarity),
+        float(rename_type_match_ratio),
+        float(new_col_ratio),
+        float(missing_col_ratio),
+        float(dtype_change_ratio),
+        float(rename_ratio),
+        float(null_ratio_delta),
+        float(duplicate_ratio),
+        float(downstream_failures),
+        float(avg_latency_ms),
+        float(storage_tier_imp),
+        float(row_count_delta),
+    ], dtype=np.float32)
+    
+    return vector
+
+
+def _derive_drift_decision_rl(diff_payload: Dict[str, Any]) -> tuple:
+    """
+    ML-Based Schema Drift Decision Making using Contextual Bandit (LinUCB).
+    
+    Uses LinUCB scores for **all** arms: the action with the highest UCB score is selected.
+    If two or more arms share the top score, the winner is chosen using a drift-aware
+    priority order (conservative when severity is high, permissive when low).
+
+    Returns: (decision, action, confidence, explanation)
+    """
+    import numpy as np
+    
+    logger.info(f"[RL DRIFT DECISION] ════════════════════════════════════════════════════")
+    logger.info(f"[RL DRIFT DECISION] Using ML-Based Contextual Bandit (LinUCB) Model")
+    
+    # Get trained policy
+    policy = _get_rl_policy()
+    if policy is None:
+        logger.warning(f"[RL DRIFT DECISION] ⚠️ No trained model, falling back to rule-based")
+        return _derive_drift_decision_fallback(diff_payload)
+    
+    # Build feature vector
+    try:
+        feature_vector = _build_drift_feature_vector(diff_payload)
+        logger.info(f"[RL DRIFT DECISION] Feature Vector (16-dim): {feature_vector}")
+    except Exception as e:
+        logger.error(f"[RL DRIFT DECISION] Failed to build features: {e}")
+        return _derive_drift_decision_fallback(diff_payload)
+    
+    score_meta: Dict[str, Any] = {}
+    try:
+        if hasattr(policy, "score_actions"):
+            scores = policy.score_actions(feature_vector)
+            action, confidence_score, score_meta = select_rl_action_from_scores(scores, diff_payload)
+            for aname, sc in sorted(scores.items(), key=lambda kv: (-kv[1], kv[0])):
+                logger.info(f"[RL DRIFT DECISION]   UCB score  {aname}: {sc:.4f}")
+            tie_note = ""
+            if score_meta.get("score_tie"):
+                tie_note = (
+                    f" | tie-break severity={score_meta.get('tie_break_severity')}"
+                    f" applied={score_meta.get('tie_break_applied')}"
+                )
+            logger.info(
+                f"[RL DRIFT DECISION] Top score {confidence_score:.4f} → selected action: {action}{tie_note}"
+            )
+        else:
+            action, confidence_score = policy.choose_action(feature_vector)
+            logger.info(f"[RL DRIFT DECISION] Model selected action: {action} (score: {confidence_score:.3f})")
+    except Exception as e:
+        logger.error(f"[RL DRIFT DECISION] Model inference failed: {e}", exc_info=True)
+        return _derive_drift_decision_fallback(diff_payload)
+    
+    # Get explainability
+    try:
+        explanation = policy.explain(action, feature_vector)
+        logger.info(f"[RL DRIFT DECISION] Model explanation: {explanation}")
+    except Exception:
+        explanation = {}
+    if score_meta:
+        explanation = {**(explanation or {}), **score_meta}
+    
+    # Map RL action to pipeline decision
+    action_to_decision = {
+        "auto_merge_schema": ("AUTO_ACCEPT", "low"),
+        "create_new_schema_version": ("AUTO_ACCEPT", "low"),
+        "quarantine_data": ("QUARANTINE", "high"),
+        "rollback_previous_schema": ("ROLLBACK", "high"),
+        "require_human_approval": ("REQUIRES_APPROVAL", "high"),
+    }
+    
+    decision, risk_level = action_to_decision.get(action, ("REQUIRES_APPROVAL", "high"))
+    
+    logger.info(f"[RL DRIFT DECISION] RL Action: {action}")
+    logger.info(f"[RL DRIFT DECISION] Decision: {decision}")
+    logger.info(f"[RL DRIFT DECISION] Risk Level: {risk_level}")
+    logger.info(f"[RL DRIFT DECISION] Confidence: {confidence_score:.3f}")
+    logger.info(f"[RL DRIFT DECISION] ════════════════════════════════════════════════════")
+    
+    return decision, action, confidence_score, explanation
+
+
+def _derive_drift_decision_fallback(diff_payload: Dict[str, Any]) -> tuple:
+    """
+    Intelligent rule-based decision when RL model returns identical scores.
+    Prioritizes auto-approval for low-risk changes, escalates high-risk to review.
+    
+    Decision Logic:
+    - AUTO_ACCEPT: Single new column, low risk
+    - AUTO_ACCEPT: Type changes only (no missing columns)
+    - REQUIRES_APPROVAL: Missing columns (data loss risk)
+    - REQUIRES_APPROVAL: Multiple dtype changes
+    - REQUIRES_APPROVAL: Large number of changes
+    """
+    counts = _build_drift_counts(diff_payload)
+    missing = counts.get("missing", 0)
+    dtype_changes = counts.get("dtype", 0)
+    new_cols = counts.get("new", 0)
+    renames = counts.get("renames", 0)
+    total_changes = sum(counts.values())
+    
+    logger.info(f"[FALLBACK DECISION] Counts: new={new_cols}, missing={missing}, dtype={dtype_changes}, renames={renames}, total={total_changes}")
+    
+    # CRITICAL: Missing columns = data loss risk → ALWAYS escalate
+    if missing > 0:
+        logger.info(f"[FALLBACK DECISION] Missing {missing} columns detected → REQUIRES_APPROVAL")
+        return ("REQUIRES_APPROVAL", "require_human_approval", 0.4, {"reason": "Missing columns indicate potential data loss"})
+    
+    # Multiple dtype changes = risky → escalate
+    if dtype_changes >= 3:
+        logger.info(f"[FALLBACK DECISION] {dtype_changes} dtype changes detected → REQUIRES_APPROVAL")
+        return ("REQUIRES_APPROVAL", "require_human_approval", 0.5, {"reason": "Multiple type changes require verification"})
+    
+    # Many total changes = risky → escalate
+    if total_changes >= 8:
+        logger.info(f"[FALLBACK DECISION] {total_changes} total changes detected → REQUIRES_APPROVAL")
+        return ("REQUIRES_APPROVAL", "require_human_approval", 0.5, {"reason": "High number of schema changes"})
+    
+    # Single dtype change = manageable → AUTO_ACCEPT
+    if dtype_changes == 1 and new_cols == 0 and renames == 0:
+        logger.info(f"[FALLBACK DECISION] Single dtype change (low risk) → AUTO_ACCEPT")
+        return ("AUTO_ACCEPT", "auto_merge_schema", 0.75, {"reason": "Single type change, low risk"})
+    
+    # A few new columns = manageable → AUTO_ACCEPT
+    if new_cols <= 2 and missing == 0 and dtype_changes == 0:
+        logger.info(f"[FALLBACK DECISION] {new_cols} new columns (low risk) → AUTO_ACCEPT")
+        return ("AUTO_ACCEPT", "create_new_schema_version", 0.8, {"reason": f"New columns only ({new_cols}), no data loss"})
+    
+    # Renames only = safe → AUTO_ACCEPT
+    if renames > 0 and missing == 0 and dtype_changes == 0 and new_cols == 0:
+        logger.info(f"[FALLBACK DECISION] Schema renames only (safe) → AUTO_ACCEPT")
+        return ("AUTO_ACCEPT", "auto_merge_schema", 0.85, {"reason": "Renames only, data preserved"})
+    
+    # Medium risk (2 dtype changes or 3-5 new columns) → escalate
+    if dtype_changes == 2 or (3 <= new_cols <= 5):
+        logger.info(f"[FALLBACK DECISION] Medium risk (dtype={dtype_changes}, new_cols={new_cols}) → REQUIRES_APPROVAL")
+        return ("REQUIRES_APPROVAL", "create_new_schema_version", 0.6, {"reason": "Medium risk - verify compatibility"})
+    
+    # Default: AUTO_ACCEPT for minimal changes
+    logger.info(f"[FALLBACK DECISION] Minimal changes → AUTO_ACCEPT (default)")
+    return ("AUTO_ACCEPT", "auto_merge_schema", 0.85, {"reason": "Minimal schema changes, low risk"})
+
+
+def _derive_drift_risk(diff_payload: Dict[str, Any]) -> str:
+    """
+    Deprecated: Use RL-based decision making instead.
+    Kept for backward compatibility.
+    """
+    decision, action, confidence, _ = _derive_drift_decision_rl(diff_payload)
+    
+    # Map decision back to risk level for compatibility
+    risk_map = {
+        "AUTO_ACCEPT": "low",
+        "REQUIRES_APPROVAL": "high",
+        "QUARANTINE": "high",
+        "ROLLBACK": "high",
+    }
+    return risk_map.get(decision, "high")
 
 
 def _snapshot_demo_metrics(summary_payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -2691,6 +3397,34 @@ def _snapshot_demo_metrics(summary_payload: Dict[str, Any]) -> Dict[str, Any]:
         "data_quality_score": float(overview_metrics.get("data_quality_score", 0.0) or 0.0),
         "total_storage_used_gb": float(storage_cards.get("total_storage_used", 0.0) or 0.0),
         "pipeline_status": str(actions.get("pipeline_status", "Unknown") or "Unknown"),
+    }
+
+
+def _snapshot_demo_metrics_fast() -> Dict[str, Any]:
+    """Build only the small metric subset needed by live validation.
+
+    This avoids building the full dashboard summary (audit analytics, charts, etc.)
+    during upload validation requests.
+    """
+    layer_stats: Dict[str, Dict[str, Any]] = {}
+    total_storage_bytes = 0
+    for layer in ["bronze", "silver", "gold"]:
+        scanned = _scan_layer_files(layer)
+        files = scanned.get("files", []) if isinstance(scanned, dict) else []
+        stats = _build_layer_stats(files)
+        layer_stats[layer] = stats
+        total_storage_bytes += int(stats.get("size_bytes", 0) or 0)
+
+    drift_data = _load_drift_events_for_dashboard()
+    pending_approvals = drift_data.get("pending", [])
+
+    return {
+        "total_records_ingested_today": int(layer_stats.get("bronze", {}).get("records_today", 0) or 0),
+        "bronze_files_count": int(layer_stats.get("bronze", {}).get("file_count", 0) or 0),
+        "active_drift_alerts": len(pending_approvals),
+        "data_quality_score": float(_calculate_quality_score_pct()),
+        "total_storage_used_gb": round(total_storage_bytes / (1024 ** 3), 4),
+        "pipeline_status": "Paused" if len(pending_approvals) > 0 else "Running",
     }
 
 
@@ -2727,7 +3461,20 @@ def _write_live_drift_event(
     baseline_dataset_id: str,
     diff_payload: Dict[str, Any],
     ingestion_payload: Optional[Dict[str, Any]] = None,
+    auto_approved: bool = False,
+    rl_action: Optional[str] = None,
 ) -> str:
+    """Write a drift event with proper approval tracking.
+    
+    Args:
+        table_name: Dataset name
+        source_file: Original filename
+        baseline_dataset_id: Baseline dataset reference
+        diff_payload: Schema differences detected
+        ingestion_payload: Ingestion details
+        auto_approved: Whether ML model auto-approved this drift
+        rl_action: The RL action selected (e.g., 'require_human_approval')
+    """
     os.makedirs(DRIFT_EVENTS_DIR, exist_ok=True)
 
     counts = _build_drift_counts(diff_payload)
@@ -2736,16 +3483,39 @@ def _write_live_drift_event(
     event_filename = f"drift_{_sanitize_name_token(table_name)}_{timestamp}.json"
     event_path = os.path.join(DRIFT_EVENTS_DIR, event_filename)
 
+    # Determine approval status: explicit RL action takes precedence over risk level
+    if auto_approved:
+        decision = "AUTO_APPROVED"
+        requires_approval = False
+    elif rl_action == "require_human_approval":
+        decision = "REQUIRES_APPROVAL"
+        requires_approval = True
+    elif rl_action == "quarantine_data":
+        decision = "QUARANTINE"
+        requires_approval = True
+    elif rl_action == "rollback_previous_schema":
+        decision = "ROLLBACK"
+        requires_approval = True
+    else:
+        # Fallback: use risk level
+        requires_approval = risk_level in ["medium", "high"]
+        decision = "REQUIRES_APPROVAL" if requires_approval else "AUTO_APPROVED"
+
     event_payload = {
         "timestamp": _utc_iso_now(),
         "table": table_name,
         "source_file": source_file,
         "baseline_dataset": baseline_dataset_id,
-        "decision": "REQUIRES_APPROVAL",
-        "requires_approval": True,
+        "decision": decision,
+        "requires_approval": requires_approval,
+        "auto_approved": auto_approved,
         "risk_level": risk_level,
+        "rl_action": rl_action,
         "counts": counts,
         "diff": diff_payload,
+        "approved": False,
+        "rejected": False,
+        "approval_timestamp": None,
     }
     if ingestion_payload:
         event_payload["ingestion"] = ingestion_payload
@@ -2753,6 +3523,7 @@ def _write_live_drift_event(
     with open(event_path, "w", encoding="utf-8") as file_handle:
         json.dump(event_payload, file_handle, indent=2)
 
+    logger.info(f"[DRIFT EVENT] Written: {event_filename} | Decision: {decision} | Requires Approval: {requires_approval}")
     return event_filename
 
 
@@ -2810,6 +3581,62 @@ async def get_live_input_datasets(
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+@app.post('/api/drift/auto-detect-baseline')
+async def auto_detect_baseline_endpoint(upload_file: UploadFile = File(...)):
+    """
+    Auto-detect which baseline schema the uploaded file matches.
+    
+    Uses intelligent matching to identify if the file is:
+    - users_dataset.csv
+    - final_products.csv
+    - transactions_dataset.csv
+    - shops_dataset.csv
+    - trends_dataset.csv
+    
+    Returns: Detection result with confidence, alternatives, and reasoning.
+    """
+    try:
+        if not upload_file.filename:
+            raise HTTPException(status_code=400, detail="Upload file name is required.")
+
+        if not str(upload_file.filename).lower().endswith(".csv"):
+            raise HTTPException(status_code=400, detail="Only CSV uploads are supported.")
+
+        file_bytes = await upload_file.read()
+        if not file_bytes:
+            raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+
+        import pandas as pd
+        
+        uploaded_df = pd.read_csv(io.BytesIO(file_bytes), low_memory=False)
+
+        if uploaded_df.empty and len(uploaded_df.columns) == 0:
+            raise HTTPException(status_code=400, detail="Uploaded CSV does not contain tabular data.")
+
+        # Import and use the auto-detector
+        from baseline_auto_detector import BaselineAutoDetector
+        
+        detector = BaselineAutoDetector()
+        detection_result = detector.detect_baseline(uploaded_df, filename=upload_file.filename)
+        
+        logger.info(f"[BASELINE AUTO-DETECT] Auto-detection completed for {upload_file.filename}")
+        
+        return {
+            "generated_at": _utc_iso_now(),
+            "file": upload_file.filename,
+            "file_rows": len(uploaded_df),
+            "file_columns": len(uploaded_df.columns),
+            "detection": detection_result,
+            "next_step": f"Use detected baseline '{detection_result['detected_baseline']}' for schema drift validation or select alternative"
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error(f"[BASELINE AUTO-DETECT] Error during baseline detection: {exc}")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
 @app.post('/api/drift/live-validate-upload')
 async def live_validate_uploaded_dataset(
     baseline_dataset_id: str = Form(...),
@@ -2857,9 +3684,14 @@ async def live_validate_uploaded_dataset(
         diff_payload = _compare_schema_maps(baseline_schema, uploaded_schema)
         drift_counts = _build_drift_counts(diff_payload)
         drift_detected = any(value > 0 for value in drift_counts.values())
+        
+        # DEBUG: Log drift detection
+        logger.info(f"[SCHEMA DRIFT DEBUG] File: {upload_file.filename}")
+        logger.info(f"[SCHEMA DRIFT DEBUG] Drift Counts: {drift_counts}")
+        logger.info(f"[SCHEMA DRIFT DEBUG] Total Changes: {sum(drift_counts.values())}")
+        logger.info(f"[SCHEMA DRIFT DEBUG] Drift Detected: {drift_detected}")
 
-        before_summary = _build_summary_payload()
-        before_metrics = _snapshot_demo_metrics(before_summary)
+        before_metrics = _snapshot_demo_metrics_fast()
 
         ingest_enabled = str(ingest_to_bronze).strip().lower() not in {"false", "0", "no", "off"}
         ingestion_result = {
@@ -2880,18 +3712,152 @@ async def live_validate_uploaded_dataset(
             "reason": "Pipeline execution skipped"
         }
         
+        rl_decision: Optional[str] = None
+        rl_bandit_meta: Optional[Dict[str, Any]] = None
         if drift_detected:
             resolved_table = str((baseline_lookup or {}).get("table") or "").strip()
             table_name = _sanitize_name_token(dataset_name or resolved_table or _extract_dataset_name(baseline_path))
-            event_id = _write_live_drift_event(
-                table_name=table_name,
-                source_file=upload_file.filename,
-                baseline_dataset_id=baseline_dataset_id,
-                diff_payload=diff_payload,
-                ingestion_payload=ingestion_result,
-            )
-            risk_level = _derive_drift_risk(diff_payload)
-            pipeline_execution["reason"] = "Drift detected - requires approval before pipeline execution"
+            
+            # ✨ ML-BASED DECISION MAKING (Research Novelty) ✨
+            rl_decision, rl_action, confidence, explanation = _derive_drift_decision_rl(diff_payload)
+            expl = explanation if isinstance(explanation, dict) else {}
+            rl_bandit_meta = {
+                "selected_rl_action": rl_action,
+                "action_scores": expl.get("action_scores"),
+                "top_score": expl.get("top_score"),
+                "score_tie": expl.get("score_tie"),
+                "tied_actions": expl.get("tied_actions"),
+                "tie_break_applied": expl.get("tie_break_applied"),
+                "tie_break_severity": expl.get("tie_break_severity"),
+                "tie_break_rule": expl.get("tie_break_rule"),
+            }
+            
+            logger.info(f"[SCHEMA DRIFT RL-DECISION] ════════════════════════════════════════════════════")
+            logger.info(f"[SCHEMA DRIFT RL-DECISION] Table: {table_name}")
+            logger.info(f"[SCHEMA DRIFT RL-DECISION] RL Action: {rl_action}")
+            logger.info(f"[SCHEMA DRIFT RL-DECISION] Decision: {rl_decision}")
+            logger.info(f"[SCHEMA DRIFT RL-DECISION] Confidence: {confidence:.3f}")
+            logger.info(f"[SCHEMA DRIFT RL-DECISION] Changes: new={drift_counts.get('new', 0)}, missing={drift_counts.get('missing', 0)}, dtype={drift_counts.get('dtype', 0)}, renames={drift_counts.get('renames', 0)}")
+            logger.info(f"[SCHEMA DRIFT RL-DECISION] Explanation: {explanation}")
+            logger.info(f"[SCHEMA DRIFT RL-DECISION] ════════════════════════════════════════════════════")
+            
+            # Execute based on RL model's decision
+            if rl_decision == "AUTO_ACCEPT":
+                # ✨ ML-approved drift: Execute pipeline autonomously
+                logger.info(f"[SCHEMA DRIFT RL-DECISION] 🤖 ML-MODEL AUTO-APPROVED (via {rl_action})")
+                logger.info(f"[SCHEMA DRIFT RL-DECISION] Reason: Contextual bandit model confidence: {confidence:.3f}")
+                logger.info(f"[SCHEMA DRIFT RL-DECISION] Pipeline will be triggered automatically...")
+                
+                risk_level = "low"
+                event_id = _write_live_drift_event(
+                    table_name=table_name,
+                    source_file=upload_file.filename,
+                    baseline_dataset_id=baseline_dataset_id,
+                    diff_payload=diff_payload,
+                    ingestion_payload=ingestion_result,
+                    auto_approved=True,
+                )
+                
+                # Execute pipeline immediately for ML-approved drift
+                if ingestion_result.get("saved"):
+                    try:
+                        logger.info(f"[SCHEMA DRIFT RL-DECISION] Starting Bronze→Silver transformation...")
+                        bronze_to_silver_result = _run_bronze_to_silver_jobs()
+                        logger.info(f"[SCHEMA DRIFT RL-DECISION] ✅ Bronze→Silver complete")
+                        
+                        logger.info(f"[SCHEMA DRIFT RL-DECISION] Starting Silver→Gold aggregation...")
+                        silver_to_gold_result = _run_silver_to_gold_jobs()
+                        logger.info(f"[SCHEMA DRIFT RL-DECISION] ✅ Silver→Gold complete")
+                        
+                        logger.info(f"[SCHEMA DRIFT RL-DECISION] Syncing medallion layers to Azure...")
+                        layers_sync = _sync_medallion_layers_to_azure(["silver", "gold"])
+                        logger.info(f"[SCHEMA DRIFT RL-DECISION] ✅ Azure sync complete")
+                        
+                        logger.info(f"[SCHEMA DRIFT RL-DECISION] 🎉 PIPELINE EXECUTED SUCCESSFULLY (ML-DRIVEN)")
+                        
+                        pipeline_execution = {
+                            "triggered": True,
+                            "ml_approved_drift": True,
+                            "rl_action": rl_action,
+                            "rl_confidence": float(confidence),
+                            "bronze_to_silver": bronze_to_silver_result,
+                            "silver_to_gold": silver_to_gold_result,
+                            "layers_synced": layers_sync,
+                            "reason": f"ML-approved schema drift via action '{rl_action}' (confidence: {confidence:.3f}). Autonomous pipeline execution enabled. Changes: {drift_counts}"
+                        }
+                    except Exception as pipeline_error:
+                        logger.error(f"[SCHEMA DRIFT RL-DECISION] ❌ PIPELINE EXECUTION FAILED")
+                        logger.error(f"[SCHEMA DRIFT RL-DECISION] Error: {pipeline_error}", exc_info=True)
+                        pipeline_execution = {
+                            "triggered": True,
+                            "status": "error",
+                            "error": str(pipeline_error),
+                            "reason": "Pipeline execution failed after ML-approval"
+                        }
+            
+            elif rl_decision == "REQUIRES_APPROVAL":
+                # ML recommends human review
+                logger.info(f"[SCHEMA DRIFT RL-DECISION] 🟡 ML-ESCALATED TO HUMAN (via {rl_action})")
+                logger.info(f"[SCHEMA DRIFT RL-DECISION] Reason: Model recommends human review")
+                logger.info(f"[SCHEMA DRIFT RL-DECISION] Pipeline paused - awaiting human review")
+                
+                event_id = _write_live_drift_event(
+                    table_name=table_name,
+                    source_file=upload_file.filename,
+                    baseline_dataset_id=baseline_dataset_id,
+                    diff_payload=diff_payload,
+                    ingestion_payload=ingestion_result,
+                    rl_action=rl_action,
+                )
+                pipeline_execution["reason"] = f"ML-recommended review via action '{rl_action}' (confidence: {confidence:.3f})"
+                risk_level = "high"
+            
+            elif rl_decision == "QUARANTINE":
+                # ML recommends quarantine (pause for safety)
+                logger.info(f"[SCHEMA DRIFT RL-DECISION] ⚠️ ML-QUARANTINED DATA (via {rl_action})")
+                logger.info(f"[SCHEMA DRIFT RL-DECISION] Reason: Model flagged data for quarantine")
+                
+                event_id = _write_live_drift_event(
+                    table_name=table_name,
+                    source_file=upload_file.filename,
+                    baseline_dataset_id=baseline_dataset_id,
+                    diff_payload=diff_payload,
+                    ingestion_payload=ingestion_result,
+                    rl_action=rl_action,
+                )
+                pipeline_execution["reason"] = f"Data quarantined by ML model action '{rl_action}'"
+                risk_level = "high"
+            
+            elif rl_decision == "ROLLBACK":
+                # ML recommends rollback
+                logger.info(f"[SCHEMA DRIFT RL-DECISION] 🔄 ML-INITIATED ROLLBACK (via {rl_action})")
+                logger.info(f"[SCHEMA DRIFT RL-DECISION] Reason: Model recommends reverting to previous schema")
+                
+                event_id = _write_live_drift_event(
+                    table_name=table_name,
+                    source_file=upload_file.filename,
+                    baseline_dataset_id=baseline_dataset_id,
+                    diff_payload=diff_payload,
+                    ingestion_payload=ingestion_result,
+                    rl_action=rl_action,
+                )
+                pipeline_execution["reason"] = f"Rollback initiated by ML model action '{rl_action}'"
+                risk_level = "high"
+            else:
+                logger.warning(
+                    "[SCHEMA DRIFT RL-DECISION] Unknown RL decision %r; escalating to human review",
+                    rl_decision,
+                )
+                event_id = _write_live_drift_event(
+                    table_name=table_name,
+                    source_file=upload_file.filename,
+                    baseline_dataset_id=baseline_dataset_id,
+                    diff_payload=diff_payload,
+                    ingestion_payload=ingestion_result,
+                    rl_action=rl_action,
+                )
+                pipeline_execution["reason"] = f"Unknown RL decision {rl_decision!r}; manual review required"
+                risk_level = "high"
         else:
             # No drift detected and file was ingested - automatically trigger medallion pipeline
             if ingestion_result.get("saved"):
@@ -2914,22 +3880,81 @@ async def live_validate_uploaded_dataset(
                     }
 
         _invalidate_metrics_cache()
-        after_summary = _build_summary_payload()
-        after_metrics = _snapshot_demo_metrics(after_summary)
+        after_metrics = _snapshot_demo_metrics_fast()
 
         status_message = (
-            "Schema drift detected and logged for approval."
-            if drift_detected
-            else "No schema drift detected. Uploaded dataset matches the selected baseline schema."
+            f"LOW risk schema drift detected and auto-approved. Pipeline continued automatically."
+            if drift_detected and risk_level == "low"
+            else (
+                f"{risk_level.upper()} risk schema drift detected. Requires human approval."
+                if drift_detected
+                else "No schema drift detected. Uploaded dataset matches the selected baseline schema."
+            )
         )
+        
+        # Risk-based decision logic
+        if not drift_detected:
+            model_decision = "AUTO_ACCEPT"
+            decision_reason = "No schema drift was detected. The upload is automatically accepted for downstream processing."
+            logger.info(f"[SCHEMA DRIFT AUTO-DECISION] ✅ AUTO-ACCEPT (No drift detected)")
+        elif risk_level == "low":
+            model_decision = "AUTO_ACCEPT"
+            decision_reason = f"LOW risk schema drift detected. Auto-approved per data governance policy. Changes: {drift_counts}. Pipeline execution triggered automatically."
+            logger.info(f"[SCHEMA DRIFT AUTO-DECISION] ✅ AUTO-ACCEPT (Low risk drift)")
+        else:  # medium or high risk
+            model_decision = "REQUIRES_APPROVAL"
+            decision_reason = f"{risk_level.upper()} risk schema drift detected. Human approval required per data governance policy. Changes: {drift_counts}"
+            logger.info(f"[SCHEMA DRIFT AUTO-DECISION] ⏳ REQUIRES_APPROVAL ({risk_level.upper()} risk drift)")
+        
+        logger.info(f"[SCHEMA DRIFT AUTO-DECISION] Final Decision: {model_decision}")
+        logger.info(f"[SCHEMA DRIFT AUTO-DECISION] ════════════════════════════════════════════════════")
 
         uploaded_preview = json.loads(uploaded_df.head(5).to_json(orient="records", date_format="iso"))
+
+        # ✨ BUILD UPDATED ALERTS LIST FOR IMMEDIATE FRONTEND UPDATE ✨
+        # Reload drift events to include the newly created event
+        updated_drift_events = load_drift_events(limit=20)
+        pending_alerts = []
+        
+        for evt in updated_drift_events:
+            decision = evt.get("decision", "").upper()
+            needs_approval = (evt.get("requires_approval", False) or 
+                            "REQUIRES" in decision or 
+                            "QUARANTINED" in decision)
+            is_not_resolved = not evt.get("approved", False) and not evt.get("rejected", False)
+            
+            if needs_approval and is_not_resolved:
+                alert = {
+                    "id": evt.get("file", ""),
+                    "table": evt.get("table", ""),
+                    "timestamp": evt.get("timestamp", ""),
+                    "decision": evt.get("decision", ""),
+                    "risk_level": evt.get("risk_level", "medium"),
+                    "counts": evt.get("counts", {"new": 0, "missing": 0, "dtype": 0, "renames": 0}),
+                    "source_file": evt.get("source_file", ""),
+                    "approval_status": "Pending"
+                }
+                pending_alerts.append(alert)
+        
+        # Update live metrics with pending approvals
+        live_metrics = calculate_live_metrics(updated_drift_events, load_drift_actions(limit=10))
+        live_metrics["pending_approvals"] = len(pending_alerts)
+        live_metrics["pipeline_status"] = "Paused" if len(pending_alerts) > 0 else "Running"
+
+        queued_for_manual_approval = bool(
+            event_id
+            and drift_detected
+            and rl_decision != "AUTO_ACCEPT"
+        )
 
         return {
             "generated_at": _utc_iso_now(),
             "status_message": status_message,
+            "model_decision": model_decision,
+            "decision_reason": decision_reason,
             "drift_detected": drift_detected,
             "risk_level": risk_level,
+            "queued_for_manual_approval": queued_for_manual_approval,
             "drift_counts": drift_counts,
             "diff": diff_payload,
             "event_id": event_id,
@@ -2947,6 +3972,10 @@ async def live_validate_uploaded_dataset(
             "pipeline_execution": pipeline_execution,
             "before_metrics": before_metrics,
             "after_metrics": after_metrics,
+            "pending_alerts": pending_alerts,
+            "alerts_count": len(pending_alerts),
+            "live_metrics": live_metrics,
+            "rl_bandit": rl_bandit_meta,
         }
     except HTTPException:
         raise
@@ -3463,7 +4492,10 @@ async def get_schema_versions(
             ]
 
             for version_item in versions:
-                version_item["is_current_baseline"] = int(version_item.get("version", 0) or 0) == active_baseline_version
+                is_active = int(version_item.get("version", 0) or 0) == active_baseline_version
+                # Keep both flags aligned so UI badges remain consistent after rollback.
+                version_item["is_current_baseline"] = is_active
+                version_item["is_baseline"] = is_active
 
             versions_desc = sorted(versions, key=lambda item: int(item.get("version", 0)), reverse=True)
             versions_desc = versions_desc[:limit]
@@ -4049,6 +5081,15 @@ def _blob_name_for_layer_file(local_file_path: str, layer: str) -> str:
     return os.path.basename(local_file_path)
 
 
+def _target_blob_tier_for_layer(layer: str) -> str:
+    """Default Azure blob tier policy by medallion layer."""
+    normalized = str(layer or "").strip().lower()
+    # Requested policy: bronze HOT, silver COOL, gold HOT.
+    if normalized == "silver":
+        return "COOL"
+    return "HOT"
+
+
 def _upload_local_file_to_azure(local_file_path: str, layer: str, connection_string: str) -> Dict[str, Any]:
     normalized_layer = str(layer or "").strip().lower()
     result: Dict[str, Any] = {
@@ -4069,6 +5110,7 @@ def _upload_local_file_to_azure(local_file_path: str, layer: str, connection_str
 
     try:
         from azure.storage.blob import BlobServiceClient
+        from azure.storage.blob import StandardBlobTier
     except Exception as exc:
         result["error"] = f"Azure Blob dependency unavailable: {exc}"
         return result
@@ -4088,11 +5130,25 @@ def _upload_local_file_to_azure(local_file_path: str, layer: str, connection_str
         with open(local_file_path, "rb") as data:
             blob_client.upload_blob(data, overwrite=True)
 
+        # Explicitly enforce default tier policy on every upload.
+        target_tier = _target_blob_tier_for_layer(normalized_layer)
+        try:
+            tier_enum = {
+                "HOT": StandardBlobTier.Hot,
+                "COOL": StandardBlobTier.Cool,
+                "ARCHIVE": StandardBlobTier.Archive,
+            }.get(target_tier.upper(), StandardBlobTier.Hot)
+            blob_client.set_standard_blob_tier(standard_blob_tier=tier_enum)
+        except Exception as tier_exc:
+            # Do not fail the upload if tier update fails; return warning for visibility.
+            result["tier_warning"] = str(tier_exc)
+
         result.update(
             {
                 "status": "success",
                 "azure_blob_path": f"{normalized_layer}/{blob_name}",
                 "size_bytes": int(os.path.getsize(local_file_path)),
+                "target_blob_tier": target_tier,
             }
         )
         return result
@@ -4286,6 +5342,62 @@ def _default_storage_policy_rules() -> Dict[str, Any]:
     }
 
 
+def _normalize_policy_tier_name(value: Any) -> str:
+    tier = str(value or "").strip().upper()
+    if tier == "WARM":
+        return "COOL"
+    if tier == "COLD":
+        return "ARCHIVE"
+    return tier or "UNKNOWN"
+
+
+def _build_storage_policy_compliance(dataset_details: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Compare current blob tier against target policy tier for each dataset."""
+    comparisons: List[Dict[str, Any]] = []
+    matched = 0
+    mismatched = 0
+    unknown = 0
+
+    for item in dataset_details or []:
+        if not isinstance(item, dict):
+            continue
+
+        current_tier = _normalize_policy_tier_name(item.get("current_blob_tier"))
+        target_tier = _normalize_policy_tier_name(item.get("target_policy_tier"))
+        status = "unknown"
+        if current_tier != "UNKNOWN" and target_tier != "UNKNOWN":
+            if current_tier == target_tier:
+                status = "match"
+                matched += 1
+            else:
+                status = "mismatch"
+                mismatched += 1
+        else:
+            unknown += 1
+
+        comparisons.append(
+            {
+                "dataset_name": item.get("dataset_name"),
+                "medallion_layer": item.get("medallion_layer"),
+                "blob_path": item.get("blob_path"),
+                "current_blob_tier": current_tier,
+                "target_policy_tier": target_tier,
+                "status": status,
+            }
+        )
+
+    return {
+        "summary": {
+            "total": len(comparisons),
+            "matched": matched,
+            "mismatched": mismatched,
+            "unknown": unknown,
+            "compliance_pct": round((matched / len(comparisons)) * 100, 2) if comparisons else 0.0,
+        },
+        "datasets": comparisons,
+    }
+
+
 def _load_seasonal_tier_manager():
     """Load SeasonalTierManager directly from storage module path."""
     import sys
@@ -4309,7 +5421,7 @@ async def get_current_storage_tiers():
         
         if not conn_str:
             # Return mock data if Azure not configured
-            return {
+            response = {
                 "hot": ["transactions", "products", "users", "inventory"],
                 "warm": ["orders_history", "user_preferences"],
                 "cold": ["archived_transactions", "old_logs"],
@@ -4352,6 +5464,10 @@ async def get_current_storage_tiers():
                 "auto_tiering_enabled": True,
                 "source": "mock_data"
             }
+            response["policy_compliance"] = _build_storage_policy_compliance(
+                response.get("dataset_details", [])
+            )
+            return response
         
         SeasonalTierManager = _load_seasonal_tier_manager()
         
@@ -4364,13 +5480,16 @@ async def get_current_storage_tiers():
         assignments.setdefault("dataset_details", [])
         assignments.setdefault("policy_rules", manager.get_policy_explanation())
         assignments["source"] = "azure"
+        assignments["policy_compliance"] = _build_storage_policy_compliance(
+            assignments.get("dataset_details", [])
+        )
         
         return assignments
     
     except Exception as e:
         logger.error(f"Error retrieving tier assignments: {e}")
         # Fallback to mock data
-        return {
+        response = {
             "hot": ["transactions", "products"],
             "warm": ["orders_history"],
             "cold": ["archived_transactions"],
@@ -4383,6 +5502,10 @@ async def get_current_storage_tiers():
             "source": "error_fallback",
             "error": str(e)
         }
+        response["policy_compliance"] = _build_storage_policy_compliance(
+            response.get("dataset_details", [])
+        )
+        return response
 
 
 @app.post('/api/storage-tiers/update')

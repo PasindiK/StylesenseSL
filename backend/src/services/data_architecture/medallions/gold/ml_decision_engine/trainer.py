@@ -3,6 +3,7 @@ import glob
 import json
 import joblib
 import numpy as np
+from .action_selection import select_rl_action_from_scores
 from .feature_builder import build_feature_vector
 from .policy import LinUCBPolicy, EpsilonGreedyPolicy
 from .reward_simulator import simulate_reward, load_weights
@@ -56,7 +57,13 @@ def offline_train(events_dir: str, policy_save_path: str = None, policy_type: st
         for ev in events:
             fb = build_feature_vector(ev, dq_metrics=ev.get("extra", {}).get("dq_metrics", {}), pipeline_meta=ev.get("extra", {}).get("pipeline_meta", {}))
             x = fb["vector"]
-            action, score = policy.choose_action(x)
+            diff = ev.get("diff") if isinstance(ev.get("diff"), dict) else {}
+            if policy_type == "linucb":
+                scores = policy.score_actions(x)
+                action, score, bandit_meta = select_rl_action_from_scores(scores, diff)
+            else:
+                action, score = policy.choose_action(x)
+                bandit_meta = {}
             reward = simulate_reward(action, fb, weights=weights)
             policy.update(action, x, reward)
             action_counts[action] += 1
@@ -74,6 +81,7 @@ def offline_train(events_dir: str, policy_save_path: str = None, policy_type: st
                 "score": score,
                 "reward": reward,
                 "explain": explain,
+                "bandit_meta": bandit_meta,
             }
             _append_decision_log(record)
 
