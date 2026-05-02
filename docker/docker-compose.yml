@@ -1,3 +1,5 @@
+# Default: Neo4j + Agentic backend + frontend.
+# Extra APIs: docker compose --profile microservices up --build
 services:
   neo4j:
     image: neo4j:5
@@ -23,13 +25,14 @@ services:
   backend:
     build:
       context: ..
-      dockerfile: docker/Dockerfile.backend
+      dockerfile: docker/backend/Dockerfile.agentic
     ports:
       - "8000:8000"
     environment:
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MOCK=${GEMINI_MOCK:-}
       - PYTHONUNBUFFERED=1
-      - KG_ENABLED=true
+      - KG_ENABLED=${KG_ENABLED:-true}
       - NEO4J_URI=bolt://neo4j:7687
       - NEO4J_USER=neo4j
       - NEO4J_PASSWORD=password
@@ -40,7 +43,6 @@ services:
     depends_on:
       neo4j:
         condition: service_healthy
-    command: ["sh", "-c", "pip install --no-cache-dir beautifulsoup4 neo4j && python -m uvicorn src.api.app:app --host 0.0.0.0 --port 8000"]
     networks:
       - stylesense
     restart: unless-stopped
@@ -49,7 +51,46 @@ services:
       interval: 10s
       timeout: 5s
       retries: 30
-      start_period: 60s
+      start_period: 120s
+
+  data-mesh:
+    profiles: ["microservices"]
+    build:
+      context: ..
+      dockerfile: docker/backend/Dockerfile.data-mesh
+    ports:
+      - "8001:8001"
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - stylesense
+    restart: unless-stopped
+
+  data-fabric:
+    profiles: ["microservices"]
+    build:
+      context: ..
+      dockerfile: docker/backend/Dockerfile.data-fabric
+    ports:
+      - "8002:8002"
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - stylesense
+    restart: unless-stopped
+
+  data-architecture:
+    profiles: ["microservices"]
+    build:
+      context: ..
+      dockerfile: docker/backend/Dockerfile.data-architecture
+    ports:
+      - "8003:8003"
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - stylesense
+    restart: unless-stopped
 
   frontend:
     build:
@@ -61,7 +102,10 @@ services:
       backend:
         condition: service_healthy
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=http://localhost:8000/api
+      - VITE_DATA_MESH_API_URL=http://localhost:8001
+      - VITE_DATA_FABRIC_API_URL=http://localhost:8002/api
+      - VITE_DATA_ARCH_API_URL=http://localhost:8003/api
     networks:
       - stylesense
     restart: unless-stopped

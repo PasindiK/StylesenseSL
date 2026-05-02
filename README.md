@@ -119,9 +119,18 @@ From repository root:
 docker compose -f docker/docker-compose.yml up --build
 ```
 
-Services:
-- Backend: `http://localhost:8000`
+Services (default):
+- Agentic backend: `http://localhost:8000`
 - Frontend: `http://localhost:3000`
+- Neo4j browser: `http://localhost:7474`
+
+Optional Mesh / Fabric / Architecture APIs:
+
+```powershell
+docker compose -f docker/docker-compose.yml --profile microservices up --build
+```
+
+Dockerfiles live under `docker/backend/` (`Dockerfile.agentic`, `Dockerfile.data-mesh`, `Dockerfile.data-fabric`, `Dockerfile.data-architecture`).
 
 ## Main API Endpoints
 

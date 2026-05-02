@@ -1,5 +1,8 @@
-# Single-service image when build context is the `backend/` directory:
-#   docker build -t stylesense-agentic ./backend
+# Agentic AI — main FastAPI catalog / chat API (port 8000 by default).
+# Build from repository root:
+#   docker build -f docker/backend/Dockerfile.agentic .
+#
+# Render / cloud: set PORT in the environment (this image respects it).
 
 FROM python:3.11-slim
 
@@ -9,11 +12,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY src/ ./src/
-COPY data/ ./data/
+COPY backend/src/ ./src/
+COPY backend/data/ ./data/
 
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8000
