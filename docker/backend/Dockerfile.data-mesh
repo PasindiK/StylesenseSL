@@ -1,0 +1,25 @@
+# Data Mesh FastAPI service.
+# Build from repository root:
+#   docker build -f docker/backend/Dockerfile.data-mesh .
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY backend/src/services/data_mesh/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY backend/src/services/data_mesh/ ./
+
+ENV PYTHONUNBUFFERED=1
+ENV PORT=8001
+EXPOSE 8001
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD sh -c 'curl -sf "http://127.0.0.1:${PORT:-8001}/health" || exit 1'
+
+CMD ["sh", "-c", "exec python -m uvicorn main:app --host 0.0.0.0 --port ${PORT:-8001}"]
