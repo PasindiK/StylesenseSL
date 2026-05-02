@@ -26,6 +26,11 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, List, Optional, Tuple
 
 from medallions.gold.ml_decision_engine.action_selection import select_rl_action_from_scores
+from storage.medallion_blob_layout import (
+    blob_metadata_for_medallion_upload,
+    canonical_blob_path_for_upload,
+    layout_spec,
+)
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -72,6 +77,7 @@ SILVER_ENRICHED_LEGACY_DIR = os.path.join(BASE_DIR, "silver", "enriched")
 GOLD_CURATED_LEGACY_DIR = os.path.join(BASE_DIR, "gold", "curated")
 GOLD_ML_READY_LEGACY_DIR = os.path.join(BASE_DIR, "gold", "ml_ready")
 GOLD_STAKEHOLDER_VIEWS_LEGACY_DIR = os.path.join(BASE_DIR, "gold", "stakeholder_views")
+BRONZE_QUARANTINE_LEGACY_DIR = os.path.join(BASE_DIR, "bronze", "quarantine")
 AUDIT_LOG_JSONL_PATH = os.path.join(METADATA_DIR, "audit_logs", "audit_log.jsonl")
 SCHEMA_VERSION_DIR = os.path.join(METADATA_DIR, "schema_versions")
 SCHEMA_BASELINE_STATE_PATH = os.path.join(SCHEMA_VERSION_DIR, "baseline_state.json")
@@ -1457,6 +1463,39 @@ def _estimate_rows_from_size(size_bytes: int) -> int:
     return max(1, int(size_bytes / 220))
 
 
+def _count_csv_data_rows_from_bytes(file_bytes: bytes) -> int:
+    """Data rows only (first non-empty line treated as header). UTF-8 CSV in memory."""
+    if not file_bytes:
+        return 0
+    seen_header = False
+    data_rows = 0
+    for raw_line in file_bytes.splitlines():
+        if not raw_line.strip():
+            continue
+        if not seen_header:
+            seen_header = True
+            continue
+        data_rows += 1
+    return data_rows
+
+
+def _record_count_from_azure_blob_metadata(metadata: Any) -> Optional[int]:
+    if not isinstance(metadata, dict) or not metadata:
+        return None
+    raw = metadata.get("record_count")
+    if raw is None:
+        for key, val in metadata.items():
+            if str(key).lower() == "record_count":
+                raw = val
+                break
+    if raw is None or raw == "":
+        return None
+    try:
+        return max(0, int(str(raw).strip()))
+    except ValueError:
+        return None
+
+
 def _extract_dataset_name(path_or_name: str) -> str:
     name = os.path.basename(path_or_name)
     name = name.replace(".parquet", "").replace(".csv", "").replace(".jsonl", "").replace(".json", "")
@@ -1495,7 +1534,14 @@ def _dedupe_local_scan_roots(paths: List[str]) -> List[str]:
 def _layer_local_paths(layer: str) -> List[str]:
     normalized = layer.lower()
     if normalized == "bronze":
-        return _dedupe_local_scan_roots([BRONZE_RAW_DIR, BRONZE_RAW_LEGACY_DIR])
+        return _dedupe_local_scan_roots(
+            [
+                BRONZE_RAW_DIR,
+                QUARANTINE_DIR,
+                BRONZE_RAW_LEGACY_DIR,
+                BRONZE_QUARANTINE_LEGACY_DIR,
+            ]
+        )
     if normalized == "silver":
         return _dedupe_local_scan_roots(
             [SILVER_CLEANED_DIR, SILVER_ENRICHED_DIR, SILVER_CLEANED_LEGACY_DIR, SILVER_ENRICHED_LEGACY_DIR]
@@ -1589,7 +1635,12 @@ def _scan_layer_files_azure(layer: str, connection_string: str) -> Dict[str, Any
     container_client = service.get_container_client(layer.lower())
     files: List[Dict[str, Any]] = []
 
-    for blob in container_client.list_blobs():
+    try:
+        blob_iter = container_client.list_blobs(include=["metadata"])
+    except TypeError:
+        blob_iter = container_client.list_blobs()
+
+    for blob in blob_iter:
         blob_name = str(getattr(blob, "name", ""))
         if not _is_data_file(blob_name):
             continue
@@ -1603,7 +1654,12 @@ def _scan_layer_files_azure(layer: str, connection_string: str) -> Dict[str, Any
 
         tier_value = getattr(blob, "blob_tier", None)
         tier_name = str(tier_value.value if hasattr(tier_value, "value") else tier_value or "HOT").upper()
-        estimated_rows = _estimate_rows_from_size(size_bytes)
+        meta = getattr(blob, "metadata", None) or {}
+        from_meta = _record_count_from_azure_blob_metadata(meta)
+        if from_meta is not None:
+            estimated_rows = from_meta
+        else:
+            estimated_rows = _estimate_rows_from_size(size_bytes)
 
         files.append(
             {
@@ -2215,10 +2271,77 @@ def _build_freshness_series(files_by_layer: Dict[str, List[Dict[str, Any]]]) -> 
     return output
 
 
-def _build_pipeline_flow(layer_stats: Dict[str, Dict[str, Any]], pending_alerts: int) -> List[Dict[str, Any]]:
-    bronze_records = int(layer_stats.get("bronze", {}).get("records", 0) or 0)
-    silver_records = int(layer_stats.get("silver", {}).get("records", 0) or 0)
-    gold_records = int(layer_stats.get("gold", {}).get("records", 0) or 0)
+def _filter_files_for_pipeline_bronze(files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Raw ingest only; quarantine files are not part of the main pipeline carryover story."""
+    out: List[Dict[str, Any]] = []
+    for f in files:
+        p = str(f.get("path", "")).replace("\\", "/").lower()
+        n = str(f.get("name", "")).lower()
+        if "quarantine" in p:
+            continue
+        if "/raw/" in p or p.startswith("raw/") or n.endswith("_raw.csv"):
+            out.append(f)
+    if not out:
+        return [f for f in files if "quarantine" not in str(f.get("path", "")).lower()]
+    return out
+
+
+def _bronze_raw_records_today_from_file_list(bronze_files: List[Dict[str, Any]]) -> int:
+    """Sum of row counts for raw Bronze files only (quarantine excluded) with mtime date == today UTC."""
+    return int(
+        _build_layer_stats(_filter_files_for_pipeline_bronze(bronze_files)).get("records_today", 0) or 0
+    )
+
+
+def _silver_path_is_enriched(f: Dict[str, Any]) -> bool:
+    p = str(f.get("path", "")).lower()
+    n = str(f.get("name", "")).lower()
+    return "/enriched/" in p or p.startswith("enriched/") or n.endswith("_enriched.csv")
+
+
+def _silver_path_is_cleaned(f: Dict[str, Any]) -> bool:
+    p = str(f.get("path", "")).lower()
+    n = str(f.get("name", "")).lower()
+    return "/cleaned/" in p or p.startswith("cleaned/") or n.endswith("_cleaned.csv")
+
+
+def _silver_records_for_pipeline(files: List[Dict[str, Any]]) -> int:
+    """Per logical dataset, count enriched rows OR cleaned rows — never both (avoids ~2× inflation)."""
+    by_dataset: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    for f in files:
+        ds = str(f.get("dataset_name") or "").strip()
+        if not ds:
+            ds = _extract_dataset_name(str(f.get("path", "")))
+        by_dataset[ds].append(f)
+
+    total = 0
+    for _ds, group in by_dataset.items():
+        enriched = [f for f in group if _silver_path_is_enriched(f)]
+        cleaned = [f for f in group if _silver_path_is_cleaned(f)]
+        if enriched:
+            total += sum(int(f.get("records", 0) or 0) for f in enriched)
+        elif cleaned:
+            total += sum(int(f.get("records", 0) or 0) for f in cleaned)
+        else:
+            total += sum(int(f.get("records", 0) or 0) for f in group)
+    return int(total)
+
+
+def _pipeline_flow_record_totals(files_by_layer: Dict[str, List[Dict[str, Any]]]) -> Tuple[int, int, int]:
+    bronze_files = _filter_files_for_pipeline_bronze(files_by_layer.get("bronze", []))
+    bronze_records = sum(int(f.get("records", 0) or 0) for f in bronze_files)
+    silver_records = _silver_records_for_pipeline(files_by_layer.get("silver", []))
+    gold_files = _filter_files_for_overview_volume_chart("gold", files_by_layer.get("gold", []))
+    gold_records = sum(int(f.get("records", 0) or 0) for f in gold_files)
+    return int(bronze_records), int(silver_records), int(gold_records)
+
+
+def _build_pipeline_flow(
+    files_by_layer: Dict[str, List[Dict[str, Any]]],
+    pending_alerts: int,
+) -> List[Dict[str, Any]]:
+    bronze_records, silver_records, gold_records = _pipeline_flow_record_totals(files_by_layer)
+    _ = pending_alerts  # reserved for future health weighting
 
     def _safe_success(current: int, prev: int) -> float:
         if prev <= 0:
@@ -2351,7 +2474,9 @@ def _build_summary_payload() -> Dict[str, Any]:
         feature_importance = build_feature_importance_from_events(drift_events)
 
     overview_metrics = {
-        "total_records_ingested_today": int(layer_stats["bronze"].get("records_today", 0) or 0),
+        "total_records_ingested_today": _bronze_raw_records_today_from_file_list(
+            files_by_layer.get("bronze", [])
+        ),
         "bronze_files_count": int(layer_stats["bronze"].get("file_count", 0) or 0),
         "silver_datasets_count": int(layer_stats["silver"].get("file_count", 0) or 0),
         "gold_tables_count": int(layer_stats["gold"].get("file_count", 0) or 0),
@@ -2370,18 +2495,23 @@ def _build_summary_payload() -> Dict[str, Any]:
     governance_payload = _build_governance_analytics(audit_events, quality_score)
     ingestion_metrics = _build_ingestion_series(files_by_layer["bronze"], len(pending_approvals))
 
+    pipeline_flow_stages = _build_pipeline_flow(files_by_layer, len(pending_approvals))
+    br_flow = int(pipeline_flow_stages[0]["records_processed"]) if pipeline_flow_stages else 0
+    sr_flow = int(pipeline_flow_stages[1]["records_processed"]) if len(pipeline_flow_stages) > 1 else 0
+    gr_flow = int(pipeline_flow_stages[2]["records_processed"]) if len(pipeline_flow_stages) > 2 else 0
+
     medallion_payload = {
         "metrics": {
-            "bronze_records": int(layer_stats["bronze"].get("records", 0) or 0),
-            "silver_records": int(layer_stats["silver"].get("records", 0) or 0),
-            "gold_records": int(layer_stats["gold"].get("records", 0) or 0),
+            "bronze_records": br_flow,
+            "silver_records": sr_flow,
+            "gold_records": gr_flow,
         },
         "layer_comparison": [
-            {"layer": "Bronze", "records": int(layer_stats["bronze"].get("records", 0) or 0)},
-            {"layer": "Silver", "records": int(layer_stats["silver"].get("records", 0) or 0)},
-            {"layer": "Gold", "records": int(layer_stats["gold"].get("records", 0) or 0)},
+            {"layer": "Bronze", "records": br_flow},
+            {"layer": "Silver", "records": sr_flow},
+            {"layer": "Gold", "records": gr_flow},
         ],
-        "transformation_success_rate": _build_pipeline_flow(layer_stats, len(pending_approvals))[-1]["success_rate"],
+        "transformation_success_rate": pipeline_flow_stages[-1]["success_rate"] if pipeline_flow_stages else 0.0,
         "dataset_explorer": {
             "bronze": files_by_layer["bronze"][:30],
             "silver": files_by_layer["silver"][:30],
@@ -2436,10 +2566,11 @@ def _build_summary_payload() -> Dict[str, Any]:
         },
         "overview": {
             "metrics": overview_metrics,
-            "pipeline_flow": _build_pipeline_flow(layer_stats, len(pending_approvals)),
+            "pipeline_flow": pipeline_flow_stages,
             "pipeline_flow_basis": (
-                "Carryover metrics are derived from summed estimated row counts per medallion layer "
-                "(filesystem or Azure blob listing), not from pipeline execution logs."
+                "Bronze = sum of row counts for raw files only (quarantine excluded). "
+                "Silver = per dataset, enriched files only when present, otherwise cleaned — never both, so cleaned+enriched are not double-counted. "
+                "Gold = curated outputs only. Row counts use blob metadata record_count when present, else file scan or size estimate."
             ),
             "freshness": _build_freshness_series(files_by_layer),
             "freshness_basis": (
@@ -3408,9 +3539,12 @@ def _snapshot_demo_metrics_fast() -> Dict[str, Any]:
     """
     layer_stats: Dict[str, Dict[str, Any]] = {}
     total_storage_bytes = 0
+    bronze_files_scanned: List[Dict[str, Any]] = []
     for layer in ["bronze", "silver", "gold"]:
         scanned = _scan_layer_files(layer)
         files = scanned.get("files", []) if isinstance(scanned, dict) else []
+        if layer == "bronze":
+            bronze_files_scanned = files
         stats = _build_layer_stats(files)
         layer_stats[layer] = stats
         total_storage_bytes += int(stats.get("size_bytes", 0) or 0)
@@ -3419,7 +3553,91 @@ def _snapshot_demo_metrics_fast() -> Dict[str, Any]:
     pending_approvals = drift_data.get("pending", [])
 
     return {
-        "total_records_ingested_today": int(layer_stats.get("bronze", {}).get("records_today", 0) or 0),
+        "total_records_ingested_today": _bronze_raw_records_today_from_file_list(bronze_files_scanned),
+        "bronze_files_count": int(layer_stats.get("bronze", {}).get("file_count", 0) or 0),
+        "active_drift_alerts": len(pending_approvals),
+        "data_quality_score": float(_calculate_quality_score_pct()),
+        "total_storage_used_gb": round(total_storage_bytes / (1024 ** 3), 4),
+        "pipeline_status": "Paused" if len(pending_approvals) > 0 else "Running",
+    }
+
+
+def _live_validate_use_fast_path() -> bool:
+    """Demo-friendly defaults: avoid Azure blob listing and full medallion pipeline on upload.
+
+    Set ``DATA_ARCH_LIVE_VALIDATE_FAST=0`` (or ``false``) to restore full behavior.
+    """
+    raw = str(os.environ.get("DATA_ARCH_LIVE_VALIDATE_FAST", "1") or "1").strip().lower()
+    return raw not in ("0", "false", "no", "off")
+
+
+_LIVE_VALIDATE_PIPELINE_SKIP_REASON = (
+    "Skipped for fast live validation (DATA_ARCH_LIVE_VALIDATE_FAST=1, default). "
+    "File is still saved under medallions/bronze/raw and mirrored to Azure when configured. "
+    "Set DATA_ARCH_LIVE_VALIDATE_FAST=0 to run full Bronze→Silver→Gold jobs and layer sync."
+)
+
+
+def _scan_layer_files_local_quick(layer: str) -> Dict[str, Any]:
+    """Filesystem scan only: stat + size-based row estimates (no CSV line reads, no Azure API)."""
+    files: List[Dict[str, Any]] = []
+    for root_path in _layer_local_paths(layer):
+        if not os.path.exists(root_path):
+            continue
+
+        for root, _, names in os.walk(root_path):
+            for name in names:
+                if not _is_data_file(name):
+                    continue
+                full_path = os.path.join(root, name)
+                try:
+                    size_bytes = int(os.path.getsize(full_path))
+                    modified_dt = datetime.fromtimestamp(os.path.getmtime(full_path), tz=timezone.utc)
+                    rows = int(_records_for_medallion_scan(full_path, size_bytes))
+                    relative_path = os.path.relpath(full_path, BASE_DIR).replace("\\", "/")
+                    files.append(
+                        {
+                            "layer": layer,
+                            "name": name,
+                            "dataset_name": _extract_dataset_name(name),
+                            "path": relative_path,
+                            "size_bytes": size_bytes,
+                            "records": rows,
+                            "last_modified": _safe_iso(modified_dt),
+                            "access_tier": _derive_local_tier(layer, modified_dt),
+                            "source": "filesystem",
+                        }
+                    )
+                except Exception:
+                    continue
+
+    files.sort(key=lambda item: item.get("last_modified") or "", reverse=True)
+    return {
+        "layer": layer,
+        "source": "filesystem",
+        "files": files,
+    }
+
+
+def _snapshot_live_validate_metrics_fast() -> Dict[str, Any]:
+    """Before/after metrics for live upload without listing every blob in Azure or scanning CSV rows."""
+    layer_stats: Dict[str, Dict[str, Any]] = {}
+    total_storage_bytes = 0
+    bronze_files_quick: List[Dict[str, Any]] = []
+    for layer in ["bronze", "silver", "gold"]:
+        scanned = _scan_layer_files_local_quick(layer)
+        files = scanned.get("files", []) if isinstance(scanned, dict) else []
+        if layer == "bronze":
+            bronze_files_quick = files
+        stats = _build_layer_stats(files)
+        layer_stats[layer] = stats
+        total_storage_bytes += int(stats.get("size_bytes", 0) or 0)
+
+    drift_data = _load_drift_events_for_dashboard()
+    pending_approvals = drift_data.get("pending", [])
+
+    return {
+        "total_records_ingested_today": _bronze_raw_records_today_from_file_list(bronze_files_quick),
         "bronze_files_count": int(layer_stats.get("bronze", {}).get("file_count", 0) or 0),
         "active_drift_alerts": len(pending_approvals),
         "data_quality_score": float(_calculate_quality_score_pct()),
@@ -3439,18 +3657,34 @@ def _persist_live_upload_to_bronze(file_bytes: bytes, dataset_token: str, origin
     with open(output_path, "wb") as file_handle:
         file_handle.write(file_bytes)
 
+    data_row_count = _count_csv_data_rows_from_bytes(file_bytes)
     result: Dict[str, Any] = {
         "saved": True,
         "local_path": os.path.relpath(output_path, BASE_DIR).replace("\\", "/"),
         "size_bytes": len(file_bytes),
+        "data_row_count": data_row_count,
     }
 
-    sync_result = _sync_local_file_to_azure_from_relative_path(result["local_path"], layer="bronze")
+    sync_result = _sync_local_file_to_azure_from_relative_path(
+        result["local_path"],
+        layer="bronze",
+        record_count=data_row_count,
+    )
     if sync_result.get("status") == "success":
         result["azure_blob_path"] = sync_result.get("azure_blob_path")
+        logger.info(
+            "Live upload mirrored to Azure: %s",
+            sync_result.get("azure_blob_path"),
+        )
     elif sync_result.get("status") in {"failed", "skipped"}:
         reason = str(sync_result.get("error") or sync_result.get("reason") or "Azure upload skipped")
         result["azure_upload_error"] = reason
+        logger.warning(
+            "Live upload Azure sync %s: %s (local file ok: %s)",
+            sync_result.get("status"),
+            reason,
+            result["local_path"],
+        )
 
     return result
 
@@ -3663,7 +3897,14 @@ async def live_validate_uploaded_dataset(
 
         import pandas as pd
 
-        uploaded_df = pd.read_csv(io.BytesIO(file_bytes), low_memory=False)
+        live_fast = _live_validate_use_fast_path()
+        # Fast path: only read enough rows for schema + preview (demo latency); full file still written to bronze.
+        _upload_nrows = 3000 if live_fast else None
+        uploaded_df = pd.read_csv(
+            io.BytesIO(file_bytes),
+            low_memory=False,
+            nrows=_upload_nrows,
+        )
 
         if uploaded_df.empty and len(uploaded_df.columns) == 0:
             raise HTTPException(status_code=400, detail="Uploaded CSV does not contain tabular data.")
@@ -3691,7 +3932,11 @@ async def live_validate_uploaded_dataset(
         logger.info(f"[SCHEMA DRIFT DEBUG] Total Changes: {sum(drift_counts.values())}")
         logger.info(f"[SCHEMA DRIFT DEBUG] Drift Detected: {drift_detected}")
 
-        before_metrics = _snapshot_demo_metrics_fast()
+        before_metrics = (
+            _snapshot_live_validate_metrics_fast()
+            if live_fast
+            else _snapshot_demo_metrics_fast()
+        )
 
         ingest_enabled = str(ingest_to_bronze).strip().lower() not in {"false", "0", "no", "off"}
         ingestion_result = {
@@ -3760,40 +4005,47 @@ async def live_validate_uploaded_dataset(
                 
                 # Execute pipeline immediately for ML-approved drift
                 if ingestion_result.get("saved"):
-                    try:
-                        logger.info(f"[SCHEMA DRIFT RL-DECISION] Starting Bronze→Silver transformation...")
-                        bronze_to_silver_result = _run_bronze_to_silver_jobs()
-                        logger.info(f"[SCHEMA DRIFT RL-DECISION] ✅ Bronze→Silver complete")
-                        
-                        logger.info(f"[SCHEMA DRIFT RL-DECISION] Starting Silver→Gold aggregation...")
-                        silver_to_gold_result = _run_silver_to_gold_jobs()
-                        logger.info(f"[SCHEMA DRIFT RL-DECISION] ✅ Silver→Gold complete")
-                        
-                        logger.info(f"[SCHEMA DRIFT RL-DECISION] Syncing medallion layers to Azure...")
-                        layers_sync = _sync_medallion_layers_to_azure(["silver", "gold"])
-                        logger.info(f"[SCHEMA DRIFT RL-DECISION] ✅ Azure sync complete")
-                        
-                        logger.info(f"[SCHEMA DRIFT RL-DECISION] 🎉 PIPELINE EXECUTED SUCCESSFULLY (ML-DRIVEN)")
-                        
+                    if live_fast:
                         pipeline_execution = {
-                            "triggered": True,
-                            "ml_approved_drift": True,
-                            "rl_action": rl_action,
-                            "rl_confidence": float(confidence),
-                            "bronze_to_silver": bronze_to_silver_result,
-                            "silver_to_gold": silver_to_gold_result,
-                            "layers_synced": layers_sync,
-                            "reason": f"ML-approved schema drift via action '{rl_action}' (confidence: {confidence:.3f}). Autonomous pipeline execution enabled. Changes: {drift_counts}"
+                            "triggered": False,
+                            "skipped_for_fast_live_validate": True,
+                            "reason": _LIVE_VALIDATE_PIPELINE_SKIP_REASON,
                         }
-                    except Exception as pipeline_error:
-                        logger.error(f"[SCHEMA DRIFT RL-DECISION] ❌ PIPELINE EXECUTION FAILED")
-                        logger.error(f"[SCHEMA DRIFT RL-DECISION] Error: {pipeline_error}", exc_info=True)
-                        pipeline_execution = {
-                            "triggered": True,
-                            "status": "error",
-                            "error": str(pipeline_error),
-                            "reason": "Pipeline execution failed after ML-approval"
-                        }
+                    else:
+                        try:
+                            logger.info(f"[SCHEMA DRIFT RL-DECISION] Starting Bronze→Silver transformation...")
+                            bronze_to_silver_result = _run_bronze_to_silver_jobs()
+                            logger.info(f"[SCHEMA DRIFT RL-DECISION] ✅ Bronze→Silver complete")
+
+                            logger.info(f"[SCHEMA DRIFT RL-DECISION] Starting Silver→Gold aggregation...")
+                            silver_to_gold_result = _run_silver_to_gold_jobs()
+                            logger.info(f"[SCHEMA DRIFT RL-DECISION] ✅ Silver→Gold complete")
+
+                            logger.info(f"[SCHEMA DRIFT RL-DECISION] Syncing medallion layers to Azure...")
+                            layers_sync = _sync_medallion_layers_to_azure(["silver", "gold"])
+                            logger.info(f"[SCHEMA DRIFT RL-DECISION] ✅ Azure sync complete")
+
+                            logger.info(f"[SCHEMA DRIFT RL-DECISION] 🎉 PIPELINE EXECUTED SUCCESSFULLY (ML-DRIVEN)")
+
+                            pipeline_execution = {
+                                "triggered": True,
+                                "ml_approved_drift": True,
+                                "rl_action": rl_action,
+                                "rl_confidence": float(confidence),
+                                "bronze_to_silver": bronze_to_silver_result,
+                                "silver_to_gold": silver_to_gold_result,
+                                "layers_synced": layers_sync,
+                                "reason": f"ML-approved schema drift via action '{rl_action}' (confidence: {confidence:.3f}). Autonomous pipeline execution enabled. Changes: {drift_counts}",
+                            }
+                        except Exception as pipeline_error:
+                            logger.error(f"[SCHEMA DRIFT RL-DECISION] ❌ PIPELINE EXECUTION FAILED")
+                            logger.error(f"[SCHEMA DRIFT RL-DECISION] Error: {pipeline_error}", exc_info=True)
+                            pipeline_execution = {
+                                "triggered": True,
+                                "status": "error",
+                                "error": str(pipeline_error),
+                                "reason": "Pipeline execution failed after ML-approval",
+                            }
             
             elif rl_decision == "REQUIRES_APPROVAL":
                 # ML recommends human review
@@ -3861,37 +4113,62 @@ async def live_validate_uploaded_dataset(
         else:
             # No drift detected and file was ingested - automatically trigger medallion pipeline
             if ingestion_result.get("saved"):
-                try:
-                    bronze_to_silver_result = _run_bronze_to_silver_jobs()
-                    silver_to_gold_result = _run_silver_to_gold_jobs()
-                    layers_sync = _sync_medallion_layers_to_azure(["silver", "gold"])
-                    
+                if live_fast:
                     pipeline_execution = {
-                        "triggered": True,
-                        "bronze_to_silver": bronze_to_silver_result,
-                        "silver_to_gold": silver_to_gold_result,
-                        "layers_synced": layers_sync,
+                        "triggered": False,
+                        "skipped_for_fast_live_validate": True,
+                        "reason": _LIVE_VALIDATE_PIPELINE_SKIP_REASON,
                     }
-                except Exception as pipeline_error:
-                    pipeline_execution = {
-                        "triggered": True,
-                        "status": "error",
-                        "error": str(pipeline_error),
-                    }
+                else:
+                    try:
+                        bronze_to_silver_result = _run_bronze_to_silver_jobs()
+                        silver_to_gold_result = _run_silver_to_gold_jobs()
+                        layers_sync = _sync_medallion_layers_to_azure(["silver", "gold"])
+
+                        pipeline_execution = {
+                            "triggered": True,
+                            "bronze_to_silver": bronze_to_silver_result,
+                            "silver_to_gold": silver_to_gold_result,
+                            "layers_synced": layers_sync,
+                        }
+                    except Exception as pipeline_error:
+                        pipeline_execution = {
+                            "triggered": True,
+                            "status": "error",
+                            "error": str(pipeline_error),
+                        }
 
         _invalidate_metrics_cache()
-        after_metrics = _snapshot_demo_metrics_fast()
-
-        status_message = (
-            f"LOW risk schema drift detected and auto-approved. Pipeline continued automatically."
-            if drift_detected and risk_level == "low"
-            else (
-                f"{risk_level.upper()} risk schema drift detected. Requires human approval."
-                if drift_detected
-                else "No schema drift detected. Uploaded dataset matches the selected baseline schema."
-            )
+        after_metrics = (
+            _snapshot_live_validate_metrics_fast()
+            if live_fast
+            else _snapshot_demo_metrics_fast()
         )
-        
+
+        pipeline_skipped_demo = bool(pipeline_execution.get("skipped_for_fast_live_validate"))
+
+        if drift_detected and risk_level == "low":
+            status_message = (
+                "LOW risk schema drift detected and auto-approved. "
+                + (
+                    "Full medallion pipeline skipped for demo speed; upload is in Bronze."
+                    if pipeline_skipped_demo
+                    else "Pipeline continued automatically."
+                )
+            )
+        elif drift_detected:
+            status_message = f"{risk_level.upper()} risk schema drift detected. Requires human approval."
+        else:
+            ingested_ok = bool(ingestion_result.get("saved"))
+            status_message = (
+                "No schema drift detected. "
+                + (
+                    "File ingested to Bronze; full pipeline skipped for demo speed."
+                    if pipeline_skipped_demo and ingested_ok
+                    else "Uploaded dataset matches the selected baseline schema."
+                )
+            )
+
         # Risk-based decision logic
         if not drift_detected:
             model_decision = "AUTO_ACCEPT"
@@ -3905,6 +4182,18 @@ async def live_validate_uploaded_dataset(
             model_decision = "REQUIRES_APPROVAL"
             decision_reason = f"{risk_level.upper()} risk schema drift detected. Human approval required per data governance policy. Changes: {drift_counts}"
             logger.info(f"[SCHEMA DRIFT AUTO-DECISION] ⏳ REQUIRES_APPROVAL ({risk_level.upper()} risk drift)")
+
+        if pipeline_skipped_demo and ingestion_result.get("saved"):
+            if drift_detected and risk_level == "low":
+                decision_reason = (
+                    f"LOW risk schema drift auto-approved (changes: {drift_counts}). "
+                    "Full Bronze→Silver→Gold run skipped for demo speed (DATA_ARCH_LIVE_VALIDATE_FAST=1); file is in Bronze."
+                )
+            elif not drift_detected:
+                decision_reason = (
+                    "No schema drift. Upload accepted. Full medallion pipeline skipped for demo speed "
+                    "(DATA_ARCH_LIVE_VALIDATE_FAST=1); file is in Bronze."
+                )
         
         logger.info(f"[SCHEMA DRIFT AUTO-DECISION] Final Decision: {model_decision}")
         logger.info(f"[SCHEMA DRIFT AUTO-DECISION] ════════════════════════════════════════════════════")
@@ -4623,6 +4912,15 @@ async def get_governance_audit_log(limit: Optional[int] = Query(500, description
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+@app.get('/api/storage/medallion-blob-layout')
+async def get_medallion_blob_layout():
+    """
+    Contract for other components: Azure container per layer, substage blob prefixes,
+    and naming rules (no duplicate layer segment inside the container path).
+    """
+    return layout_spec()
+
+
 @app.get('/api/storage/tier-statistics')
 async def get_storage_tier_statistics():
     """
@@ -5043,25 +5341,48 @@ async def reject_drift(request: ApproveRejectRequest):
 # Storage Tier Management Endpoints
 # ============================================================================
 
+def _parse_azure_connection_string_from_env_file(env_path: str) -> Optional[str]:
+    if not env_path or not os.path.isfile(env_path):
+        return None
+    try:
+        with open(env_path, "r", encoding="utf-8") as handle:
+            for line in handle:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, value = line.split("=", 1)
+                if key.strip() == "AZURE_STORAGE_CONNECTION_STRING":
+                    out = value.strip().strip('"').strip("'")
+                    return out or None
+    except Exception:
+        return None
+    return None
+
+
 def get_azure_connection_string() -> Optional[str]:
-    """Get Azure connection string from environment"""
-    conn_str = os.environ.get('AZURE_STORAGE_CONNECTION_STRING')
-    if not conn_str:
-        env_file = os.path.join(BASE_DIR, '.env')
-        if os.path.exists(env_file):
-            try:
-                with open(env_file, 'r', encoding='utf-8') as f:
-                    for line in f:
-                        line = line.strip()
-                        if not line or line.startswith('#') or '=' not in line:
-                            continue
-                        key, value = line.split('=', 1)
-                        if key.strip() == 'AZURE_STORAGE_CONNECTION_STRING':
-                            conn_str = value.strip().strip('"').strip("'")
-                            break
-            except Exception:
-                conn_str = None
-    return conn_str
+    """Resolve Azure connection string: process env, then nearest ``.env`` up the directory tree."""
+    raw = os.environ.get("AZURE_STORAGE_CONNECTION_STRING")
+    if raw:
+        s = raw.strip().strip('"').strip("'")
+        if s:
+            return s
+
+    seen: set = set()
+    here = os.path.abspath(BASE_DIR)
+    for _ in range(10):
+        candidate = os.path.join(here, ".env")
+        if candidate not in seen:
+            seen.add(candidate)
+            conn_str = _parse_azure_connection_string_from_env_file(candidate)
+            if conn_str:
+                logger.info("Loaded AZURE_STORAGE_CONNECTION_STRING from %s", candidate)
+                return conn_str
+        parent = os.path.dirname(here)
+        if parent == here:
+            break
+        here = parent
+
+    return None
 
 
 def _infer_layer_from_relative_path(relative_path: str) -> Optional[str]:
@@ -5075,10 +5396,8 @@ def _infer_layer_from_relative_path(relative_path: str) -> Optional[str]:
 
 
 def _blob_name_for_layer_file(local_file_path: str, layer: str) -> str:
-    layer_root = os.path.join(BASE_DIR, "medallions", layer.lower())
-    if _path_within(local_file_path, layer_root):
-        return os.path.relpath(local_file_path, layer_root).replace("\\", "/")
-    return os.path.basename(local_file_path)
+    """Blob path inside the layer container (substage-first; legacy folders mapped)."""
+    return canonical_blob_path_for_upload(local_file_path, layer, BASE_DIR)
 
 
 def _target_blob_tier_for_layer(layer: str) -> str:
@@ -5090,7 +5409,12 @@ def _target_blob_tier_for_layer(layer: str) -> str:
     return "HOT"
 
 
-def _upload_local_file_to_azure(local_file_path: str, layer: str, connection_string: str) -> Dict[str, Any]:
+def _upload_local_file_to_azure(
+    local_file_path: str,
+    layer: str,
+    connection_string: str,
+    record_count: Optional[int] = None,
+) -> Dict[str, Any]:
     normalized_layer = str(layer or "").strip().lower()
     result: Dict[str, Any] = {
         "status": "failed",
@@ -5127,11 +5451,20 @@ def _upload_local_file_to_azure(local_file_path: str, layer: str, connection_str
         blob_name = _blob_name_for_layer_file(local_file_path, normalized_layer)
         blob_client = container.get_blob_client(blob_name)
 
+        target_tier = _target_blob_tier_for_layer(normalized_layer)
+        repo_rel = str(result.get("local_file") or "")
+        upload_metadata = blob_metadata_for_medallion_upload(
+            normalized_layer,
+            blob_name,
+            repo_rel,
+            target_tier,
+            record_count=record_count,
+        )
+
         with open(local_file_path, "rb") as data:
-            blob_client.upload_blob(data, overwrite=True)
+            blob_client.upload_blob(data, overwrite=True, metadata=upload_metadata)
 
         # Explicitly enforce default tier policy on every upload.
-        target_tier = _target_blob_tier_for_layer(normalized_layer)
         try:
             tier_enum = {
                 "HOT": StandardBlobTier.Hot,
@@ -5149,6 +5482,9 @@ def _upload_local_file_to_azure(local_file_path: str, layer: str, connection_str
                 "azure_blob_path": f"{normalized_layer}/{blob_name}",
                 "size_bytes": int(os.path.getsize(local_file_path)),
                 "target_blob_tier": target_tier,
+                "layout_version": upload_metadata.get("layout_version"),
+                "substage": upload_metadata.get("substage"),
+                "record_count": upload_metadata.get("record_count"),
             }
         )
         return result
@@ -5157,7 +5493,11 @@ def _upload_local_file_to_azure(local_file_path: str, layer: str, connection_str
         return result
 
 
-def _sync_local_file_to_azure_from_relative_path(relative_path: str, layer: Optional[str] = None) -> Dict[str, Any]:
+def _sync_local_file_to_azure_from_relative_path(
+    relative_path: str,
+    layer: Optional[str] = None,
+    record_count: Optional[int] = None,
+) -> Dict[str, Any]:
     normalized_rel = str(relative_path or "").strip().replace("\\", "/")
     if not normalized_rel:
         return {
@@ -5190,7 +5530,12 @@ def _sync_local_file_to_azure_from_relative_path(relative_path: str, layer: Opti
             "local_path": normalized_rel,
         }
 
-    upload_result = _upload_local_file_to_azure(absolute, resolved_layer, conn_str)
+    upload_result = _upload_local_file_to_azure(
+        absolute,
+        resolved_layer,
+        conn_str,
+        record_count=record_count,
+    )
     upload_result["local_path"] = normalized_rel
     return upload_result
 
