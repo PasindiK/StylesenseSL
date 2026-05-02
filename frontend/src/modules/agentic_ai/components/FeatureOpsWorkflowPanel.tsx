@@ -2210,16 +2210,18 @@ export default function FeatureOpsWorkflowPanel() {
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                       <strong className={isExpanded ? '' : 'featureops-truncate-single'} style={{ fontSize: 11.5, color: '#0f172a', textAlign: 'left' }}>{step.label}</strong>
-                      <span style={{ fontSize: 10.5, color: '#64748b', fontWeight: 700 }}>{step.duration}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                       <div style={{ display: 'grid', gap: 6, minWidth: 0, flex: '1 1 260px' }}>
                         <div className={isExpanded ? '' : 'featureops-truncate-single'} style={{ fontSize: 11, color: '#334155', textAlign: 'left' }}>{step.detail}</div>
                         <div className={isExpanded ? '' : 'featureops-truncate-single'} style={{ fontSize: 10.5, color: '#64748b', textAlign: 'left' }}>{step.agent}</div>
                       </div>
-                      <span style={{ borderRadius: 999, background: tone.bg, color: tone.text, border: `1px solid ${tone.border}`, padding: '3px 8px', fontSize: 10.5, fontWeight: 800, alignSelf: 'center', flex: '0 0 auto' }}>
-                        {workflowStatusLabel(step.status)}
-                      </span>
+                      <div style={{ display: 'grid', gap: 6, justifyItems: 'end', alignSelf: 'center', flex: '0 0 auto' }}>
+                        <span style={{ fontSize: 10.5, color: '#64748b', fontWeight: 700 }}>{step.duration}</span>
+                        <span style={{ borderRadius: 999, background: tone.bg, color: tone.text, border: `1px solid ${tone.border}`, padding: '3px 8px', fontSize: 10.5, fontWeight: 800 }}>
+                          {workflowStatusLabel(step.status)}
+                        </span>
+                      </div>
                     </div>
                   </button>
                 )
@@ -2389,7 +2391,7 @@ export default function FeatureOpsWorkflowPanel() {
             return (
               <div key={status} className="featureops-status-card" style={{ borderColor: tone.border, background: tone.bg }}>
                 <span style={{ color: tone.text }}>{status}</span>
-                <strong>{releaseCounts[status]}</strong>
+                <strong style={{ color: '#0f172a' }}>{releaseCounts[status]}</strong>
               </div>
             )
           })}
@@ -2629,7 +2631,7 @@ export default function FeatureOpsWorkflowPanel() {
             return (
               <div key={status} className="featureops-status-card" style={{ borderColor: tone.border, background: tone.bg }}>
                 <span style={{ color: tone.text }}>{status}</span>
-                <strong>{releaseCounts[status]}</strong>
+                <strong style={{ color: '#0f172a' }}>{releaseCounts[status]}</strong>
               </div>
             )
           })}
