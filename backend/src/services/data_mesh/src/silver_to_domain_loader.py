@@ -29,8 +29,11 @@ class SilverToDomainLoaderService:
     def __init__(self, data_root: Path):
         self.data_root = Path(data_root)
         self.silver_dir = self.data_root / "Data" / "Silver-data"
+        self.domain_products_dir = self.data_root / "Data_Mesh_Domains"
         self.contracts_dir = self.data_root / "Contracts"
         self.audit_log_path = self.data_root / "monitoring" / "logs" / "silver_domain_loader_audit.json"
+        self.review_decisions_path = self.data_root / "monitoring" / "logs" / "domain_review_decisions.json"
+        self.review_tickets_path = self.data_root / "monitoring" / "logs" / "domain_review_tickets.json"
 
     def list_silver_datasets(self) -> dict:
         datasets = []
@@ -62,7 +65,7 @@ class SilverToDomainLoaderService:
             action = self._action_from_confidence(confidence_score)
             candidate_domain_name = (
                 self._candidate_domain_name(csv_path.name, columns_detected, ranked)
-                if action == "NEW_DOMAIN_CANDIDATE"
+                if action == "NEW_DOMAIN_CANDIDATE_PENDING_REVIEW"
                 else None
             )
             final_domain = best.domain if action == "AUTO_ASSIGN" and best else None
@@ -98,6 +101,88 @@ class SilverToDomainLoaderService:
         limit = max(1, min(int(limit), 500))
         all_rows = self._read_audit_rows()
         return {"results": all_rows[:limit], "count": min(limit, len(all_rows)), "total": len(all_rows)}
+
+    def submit_review_decision(
+        self,
+        detection_run_id: str,
+        dataset_name: str,
+        reviewer_action: str,
+        approved_domain: str | None = None,
+        reviewer_note: str | None = None,
+    ) -> dict:
+        detection_run_id = str(detection_run_id or "").strip()
+        dataset_name = str(dataset_name or "").strip()
+        reviewer_action = str(reviewer_action or "").strip().upper()
+        approved_domain = str(approved_domain or "").strip() or None
+        reviewer_note = str(reviewer_note or "").strip() or None
+
+        if not detection_run_id:
+            raise ValueError("detection_run_id is required.")
+        if not dataset_name:
+            raise ValueError("dataset_name is required.")
+        if not reviewer_action:
+            raise ValueError("reviewer_action is required.")
+
+        allowed_actions = {
+            "APPROVE_ASSIGNMENT",
+            "CHANGE_DOMAIN",
+            "VALIDATE_CANDIDATE",
+            "CREATE_DOMAIN_AFTER_APPROVAL",
+            "RAISE_TICKET",
+            "REJECT",
+        }
+        if reviewer_action not in allowed_actions:
+            raise ValueError(f"Unsupported reviewer_action: {reviewer_action}")
+
+        detection_record = self._find_detection_record(detection_run_id, dataset_name)
+        if detection_record is None:
+            raise ValueError("No matching detection record found for provided run and dataset.")
+
+        ticket_required = reviewer_action == "RAISE_TICKET"
+        ticket_status = "OPEN" if ticket_required else "NONE"
+        ticket_id = None
+        if ticket_required:
+            ticket_id = f"TKT-{str(uuid.uuid4())[:8].upper()}"
+            self._append_ticket(
+                {
+                    "ticket_id": ticket_id,
+                    "dataset_name": dataset_name,
+                    "candidate_domain_name": detection_record.get("candidate_domain_name"),
+                    "reason": reviewer_note or "Raised from Silver-to-Domain review queue.",
+                    "status": "OPEN",
+                    "timestamp": datetime.now().isoformat(timespec="seconds"),
+                }
+            )
+
+        decision = {
+            "decision_id": str(uuid.uuid4())[:10],
+            "detection_run_id": detection_run_id,
+            "dataset_name": dataset_name,
+            "original_action": detection_record.get("action"),
+            "proposed_domain": detection_record.get("best_domain"),
+            "candidate_domain_name": detection_record.get("candidate_domain_name"),
+            "reviewer_action": reviewer_action,
+            "approved_domain": approved_domain,
+            "ticket_required": ticket_required,
+            "ticket_status": ticket_status,
+            "ticket_id": ticket_id,
+            "reviewer_note": reviewer_note,
+            "timestamp": datetime.now().isoformat(timespec="seconds"),
+        }
+        if reviewer_action == "CREATE_DOMAIN_AFTER_APPROVAL":
+            if not approved_domain:
+                raise ValueError("approved_domain is required for CREATE_DOMAIN_AFTER_APPROVAL.")
+            creation_result = self._create_domain_after_approval(
+                dataset_name=dataset_name,
+                approved_domain=approved_domain,
+            )
+            decision["domain_creation"] = creation_result
+        self._append_review_decision(decision)
+        return {"success": True, "decision": decision}
+
+    def get_review_decisions(self) -> dict:
+        rows = self._read_json_rows(self.review_decisions_path)
+        return {"decisions": rows, "count": len(rows)}
 
     def upload_silver_dataset(self, filename: str, raw_bytes: bytes) -> dict:
         name = Path(str(filename or "")).name
@@ -147,9 +232,13 @@ class SilverToDomainLoaderService:
     def clear_detection_history(self) -> dict:
         if self.audit_log_path.exists():
             self.audit_log_path.unlink(missing_ok=True)
+        if self.review_decisions_path.exists():
+            self.review_decisions_path.unlink(missing_ok=True)
+        if self.review_tickets_path.exists():
+            self.review_tickets_path.unlink(missing_ok=True)
         return {
             "success": True,
-            "message": "Silver-to-domain detection history cleared.",
+            "message": "Silver-to-domain detection/review history cleared.",
         }
 
     def reset_demo_state(self) -> dict:
@@ -309,7 +398,7 @@ class SilverToDomainLoaderService:
             return "AUTO_ASSIGN"
         if confidence >= 0.4:
             return "PROVISIONAL_ASSIGN"
-        return "NEW_DOMAIN_CANDIDATE"
+        return "NEW_DOMAIN_CANDIDATE_PENDING_REVIEW"
 
     def _candidate_domain_name(self, dataset_name: str, columns_detected: list[str], ranked: list[DomainScore]) -> str:
         stop_words = {"clean", "silver", "data", "dataset", "raw", "v1", "v2", "csv", "test"}
@@ -356,6 +445,11 @@ class SilverToDomainLoaderService:
             return f"Assigned to {pretty_domain} because {match_part} matched the {pretty_domain} signature; {scoring_part}."
         if action == "PROVISIONAL_ASSIGN":
             return f"Provisionally assigned to {pretty_domain}; {match_part} partially matched the {pretty_domain} signature; {scoring_part}."
+        if action == "NEW_DOMAIN_CANDIDATE_PENDING_REVIEW":
+            return (
+                f"Detected as NEW_DOMAIN_CANDIDATE_PENDING_REVIEW ({candidate_domain_name}); {match_part} is not strong "
+                f"enough for automatic domain creation, so governance review is required; {scoring_part}."
+            )
         return (
             f"Detected as NEW_DOMAIN_CANDIDATE ({candidate_domain_name}) because {match_part} was not strong enough "
             f"for reliable assignment; {scoring_part}."
@@ -377,3 +471,56 @@ class SilverToDomainLoaderService:
         existing = self._read_audit_rows()
         combined = list(new_rows) + existing
         self.audit_log_path.write_text(json.dumps(combined, indent=2), encoding="utf-8")
+
+    def _find_detection_record(self, detection_run_id: str, dataset_name: str) -> dict | None:
+        rows = self._read_audit_rows()
+        target_dataset = dataset_name.strip().lower()
+        for row in rows:
+            if str(row.get("run_id") or "") != detection_run_id:
+                continue
+            if str(row.get("dataset_name") or "").strip().lower() != target_dataset:
+                continue
+            return row
+        return None
+
+    def _read_json_rows(self, path: Path) -> list[dict]:
+        if not path.exists():
+            return []
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            return []
+        if isinstance(payload, list):
+            return [item for item in payload if isinstance(item, dict)]
+        return []
+
+    def _append_review_decision(self, decision: dict) -> None:
+        self.review_decisions_path.parent.mkdir(parents=True, exist_ok=True)
+        rows = self._read_json_rows(self.review_decisions_path)
+        rows.insert(0, decision)
+        self.review_decisions_path.write_text(json.dumps(rows, indent=2), encoding="utf-8")
+
+    def _append_ticket(self, ticket: dict) -> None:
+        self.review_tickets_path.parent.mkdir(parents=True, exist_ok=True)
+        rows = self._read_json_rows(self.review_tickets_path)
+        rows.insert(0, ticket)
+        self.review_tickets_path.write_text(json.dumps(rows, indent=2), encoding="utf-8")
+
+    def _create_domain_after_approval(self, dataset_name: str, approved_domain: str) -> dict:
+        normalized_domain = str(approved_domain or "").strip().lower()
+        if not normalized_domain.endswith("_domain"):
+            normalized_domain = f"{normalized_domain}_domain"
+        source = self.silver_dir / Path(dataset_name).name
+        if not source.exists():
+            raise ValueError(f"Source Silver dataset not found: {dataset_name}")
+
+        target_folder = self.domain_products_dir / normalized_domain
+        target_folder.mkdir(parents=True, exist_ok=True)
+        target_file = target_folder / f"{normalized_domain}.csv"
+        target_file.write_bytes(source.read_bytes())
+        return {
+            "created": True,
+            "domain": normalized_domain,
+            "domain_file": str(target_file),
+            "source_dataset": str(source),
+        }

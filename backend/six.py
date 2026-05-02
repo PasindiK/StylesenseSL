@@ -5,7 +5,10 @@ from __future__ import annotations
 import _thread
 import sys
 import types
-import winreg
+try:
+    import winreg  # type: ignore
+except ImportError:  # pragma: no cover - non-Windows platforms
+    winreg = None
 
 PY2 = False
 PY3 = True
@@ -45,6 +48,7 @@ def add_metaclass(metaclass):
 _moves = types.ModuleType("six.moves")
 _moves._thread = _thread
 _moves.range = range
-_moves.winreg = winreg
+if winreg is not None:
+    _moves.winreg = winreg
 sys.modules["six.moves"] = _moves
 moves = _moves

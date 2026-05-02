@@ -15,6 +15,7 @@ function formatTime(value) {
 function actionColor(action) {
   if (action === "AUTO_ASSIGN") return "green";
   if (action === "PROVISIONAL_ASSIGN") return "orange";
+  if (action === "NEW_DOMAIN_CANDIDATE_PENDING_REVIEW") return "purple";
   return "magenta";
 }
 
@@ -26,6 +27,7 @@ function confidenceText(value) {
 export default function SilverToDomainLoader() {
   const [datasetRows, setDatasetRows] = useState([]);
   const [resultRows, setResultRows] = useState([]);
+  const [decisions, setDecisions] = useState([]);
   const [historyRows, setHistoryRows] = useState([]);
   const [latestRunId, setLatestRunId] = useState("");
   const [showHistory, setShowHistory] = useState(false);
@@ -35,6 +37,7 @@ export default function SilverToDomainLoader() {
   const [uploading, setUploading] = useState(false);
   const [resettingDemo, setResettingDemo] = useState(false);
   const [selectedUploadFile, setSelectedUploadFile] = useState(null);
+  const [reviewSubmitting, setReviewSubmitting] = useState("");
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -60,6 +63,15 @@ export default function SilverToDomainLoader() {
       setError("Unable to load detection results.");
     } finally {
       setLoadingResults(false);
+    }
+  };
+
+  const loadReviewDecisions = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/api/datamesh/domain-review/decisions`);
+      setDecisions(Array.isArray(res?.data?.decisions) ? res.data.decisions : []);
+    } catch (_err) {
+      setDecisions([]);
     }
   };
 
@@ -99,7 +111,7 @@ export default function SilverToDomainLoader() {
       setSuccessMessage(`Detection completed successfully. Run ID: ${runId}. Processed datasets: ${count}.`);
       const latestRows = Array.isArray(res?.data?.results) ? res.data.results : [];
       applyLatestRunRows(latestRows);
-      await loadDatasets();
+      await Promise.all([loadDatasets(), loadReviewDecisions()]);
     } catch (_err) {
       setError("Failed to run auto domain detection.");
     } finally {
@@ -144,6 +156,7 @@ export default function SilverToDomainLoader() {
       setResultRows([]);
       setHistoryRows([]);
       setLatestRunId("");
+      setDecisions([]);
       await loadDatasets();
     } catch (err) {
       setError(err?.response?.data?.detail || "Failed to reset demo state.");
@@ -152,9 +165,108 @@ export default function SilverToDomainLoader() {
     }
   };
 
+  const submitReviewAction = async (record, reviewerAction) => {
+    const submitKey = `${record.dataset_name}-${reviewerAction}`;
+    setReviewSubmitting(submitKey);
+    setError("");
+    setSuccessMessage("");
+    try {
+      let approvedDomain = "";
+      if (reviewerAction === "CHANGE_DOMAIN" || reviewerAction === "CREATE_DOMAIN_AFTER_APPROVAL") {
+        approvedDomain = window.prompt("Enter approved domain (e.g. sales_domain):", record.best_domain || "") || "";
+      }
+      const reviewerNote = window.prompt("Reviewer note (optional):", "") || "";
+      await axios.post(`${API_BASE}/api/datamesh/domain-review/decision`, {
+        detection_run_id: record.run_id,
+        dataset_name: record.dataset_name,
+        reviewer_action: reviewerAction,
+        approved_domain: approvedDomain,
+        reviewer_note: reviewerNote,
+      });
+      setSuccessMessage(`Review decision submitted: ${reviewerAction} for ${record.dataset_name}.`);
+      await loadReviewDecisions();
+    } catch (err) {
+      setError(err?.response?.data?.detail || "Failed to submit review decision.");
+    } finally {
+      setReviewSubmitting("");
+    }
+  };
+
+  const renderReviewActions = (record) => {
+    const isProvisional = record.action === "PROVISIONAL_ASSIGN";
+    const isCandidate = record.action === "NEW_DOMAIN_CANDIDATE_PENDING_REVIEW";
+
+    if (isProvisional) {
+      return (
+        <Space wrap>
+          <Button
+            size="small"
+            loading={reviewSubmitting === `${record.dataset_name}-APPROVE_ASSIGNMENT`}
+            onClick={() => submitReviewAction(record, "APPROVE_ASSIGNMENT")}
+          >
+            Approve Assignment
+          </Button>
+          <Button
+            size="small"
+            loading={reviewSubmitting === `${record.dataset_name}-CHANGE_DOMAIN`}
+            onClick={() => submitReviewAction(record, "CHANGE_DOMAIN")}
+          >
+            Change Domain
+          </Button>
+          <Button
+            size="small"
+            danger
+            loading={reviewSubmitting === `${record.dataset_name}-REJECT`}
+            onClick={() => submitReviewAction(record, "REJECT")}
+          >
+            Reject
+          </Button>
+        </Space>
+      );
+    }
+
+    if (isCandidate) {
+      return (
+        <Space wrap>
+          <Button
+            size="small"
+            loading={reviewSubmitting === `${record.dataset_name}-VALIDATE_CANDIDATE`}
+            onClick={() => submitReviewAction(record, "VALIDATE_CANDIDATE")}
+          >
+            Validate Candidate
+          </Button>
+          <Button
+            size="small"
+            loading={reviewSubmitting === `${record.dataset_name}-CREATE_DOMAIN_AFTER_APPROVAL`}
+            onClick={() => submitReviewAction(record, "CREATE_DOMAIN_AFTER_APPROVAL")}
+          >
+            Create Domain After Approval
+          </Button>
+          <Button
+            size="small"
+            loading={reviewSubmitting === `${record.dataset_name}-RAISE_TICKET`}
+            onClick={() => submitReviewAction(record, "RAISE_TICKET")}
+          >
+            Raise Governance Ticket
+          </Button>
+          <Button
+            size="small"
+            danger
+            loading={reviewSubmitting === `${record.dataset_name}-REJECT`}
+            onClick={() => submitReviewAction(record, "REJECT")}
+          >
+            Reject Candidate
+          </Button>
+        </Space>
+      );
+    }
+
+    return "-";
+  };
+
   useEffect(() => {
     setError("");
-    Promise.all([loadDatasets(), loadResults()]);
+    Promise.all([loadDatasets(), loadResults(), loadReviewDecisions()]);
   }, []);
 
   const datasetTableData = useMemo(
@@ -203,6 +315,7 @@ export default function SilverToDomainLoader() {
     { title: "Candidate domain name", dataIndex: "candidate_domain_name", key: "candidate_domain_name", render: (v) => v || "-" },
     { title: "Final domain", dataIndex: "final_domain", key: "final_domain", render: (v) => v || "-" },
     { title: "Timestamp", dataIndex: "timestamp", key: "timestamp", render: formatTime },
+    { title: "Review Actions", key: "review_actions", render: (_, record) => renderReviewActions(record) },
   ];
 
   return (
@@ -216,11 +329,19 @@ export default function SilverToDomainLoader() {
           into Data Mesh domains. Low-confidence datasets are flagged for review or created as new domain candidates.
         </Paragraph>
       </Card>
+      <Card style={{ marginBottom: 16 }}>
+        <Title level={4} style={{ marginBottom: 8 }}>Human-in-the-Loop Domain Governance</Title>
+        <Paragraph style={{ marginBottom: 0, color: "#64748b" }}>
+          New or uncertain domains are not created automatically in production. The system identifies candidate domains
+          and sends them to a governance review process. Reviewers can approve, change, reject, or raise a governance
+          ticket before any domain product is created.
+        </Paragraph>
+      </Card>
       <Alert
         type="info"
         showIcon
         style={{ marginBottom: 16 }}
-        message="Decision guide: AUTO_ASSIGN = high confidence; PROVISIONAL_ASSIGN = medium confidence (review required); NEW_DOMAIN_CANDIDATE = low confidence (possible new domain)."
+        message="Decision guide: AUTO_ASSIGN = high confidence; PROVISIONAL_ASSIGN = medium confidence (review required); NEW_DOMAIN_CANDIDATE_PENDING_REVIEW = low confidence (human review required)."
       />
       <Card title="Upload Silver Dataset" style={{ marginBottom: 16 }}>
         <Paragraph style={{ color: "#64748b", marginBottom: 10 }}>
@@ -323,6 +444,23 @@ export default function SilverToDomainLoader() {
           loading={loadingResults}
           pagination={{ pageSize: 10 }}
           columns={detectionColumns}
+        />
+      </Card>
+
+      <Card title={`Review Decisions (${decisions.length})`} style={{ marginTop: 16 }}>
+        <Table
+          dataSource={decisions.map((item, index) => ({ ...item, key: `${item.decision_id || "decision"}-${index}` }))}
+          pagination={{ pageSize: 8 }}
+          columns={[
+            { title: "Decision ID", dataIndex: "decision_id", key: "decision_id" },
+            { title: "Run ID", dataIndex: "detection_run_id", key: "detection_run_id" },
+            { title: "Dataset", dataIndex: "dataset_name", key: "dataset_name" },
+            { title: "Original Action", dataIndex: "original_action", key: "original_action" },
+            { title: "Reviewer Action", dataIndex: "reviewer_action", key: "reviewer_action" },
+            { title: "Approved Domain", dataIndex: "approved_domain", key: "approved_domain", render: (v) => v || "-" },
+            { title: "Ticket", dataIndex: "ticket_status", key: "ticket_status" },
+            { title: "Timestamp", dataIndex: "timestamp", key: "timestamp", render: formatTime },
+          ]}
         />
       </Card>
 

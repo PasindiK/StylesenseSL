@@ -1625,6 +1625,27 @@ def reset_domain_detect_demo_state():
     return silver_domain_loader_service.reset_demo_state()
 
 
+@app.post("/api/datamesh/domain-review/decision")
+def submit_domain_review_decision(payload: dict = Body(default={})):
+    try:
+        return silver_domain_loader_service.submit_review_decision(
+            detection_run_id=str(payload.get("detection_run_id") or ""),
+            dataset_name=str(payload.get("dataset_name") or ""),
+            reviewer_action=str(payload.get("reviewer_action") or ""),
+            approved_domain=payload.get("approved_domain"),
+            reviewer_note=payload.get("reviewer_note"),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to submit review decision: {exc}")
+
+
+@app.get("/api/datamesh/domain-review/decisions")
+def get_domain_review_decisions():
+    return silver_domain_loader_service.get_review_decisions()
+
+
 @app.get("/api/datamesh/domain-detect/results")
 def get_domain_detect_results(limit: int = 50):
     """Get recent Silver-to-domain detection results from audit log."""
