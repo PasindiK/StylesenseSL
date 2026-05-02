@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-03-09T22:53:32.502455Z",
+  "table": "transactions_live_refresh_live_20260309_140300_live_20260309_143643_live_20260309_150843",
+  "source_file": "transactions.csv",
+  "baseline_dataset": "medallions/bronze/raw/transactions_live_refresh_live_20260309_140300_live_20260309_143643_live_20260309_150843.csv",
+  "decision": "REQUIRES_APPROVAL",
+  "requires_approval": true,
+  "risk_level": "high",
+  "counts": {
+    "new": 4,
+    "missing": 4,
+    "dtype": 0,
+    "renames": 0
+  },
+  "diff": {
+    "new_columns": [
+      "transaction_id",
+      "user_id",
+      "quantity",
+      "date"
+    ],
+    "missing_columns": [
+      "product_name",
+      "category",
+      "price",
+      "stock"
+    ],
+    "dtype_changes": [],
+    "renames": []
+  },
+  "ingestion": {
+    "saved": true,
+    "local_path": "medallions/bronze/raw/transactions_live_refresh_live_20260309_140300_live_20260309_143643_live_20260309_150843_live_20260309_225331.csv",
+    "size_bytes": 168,
+    "azure_blob_path": "bronze/raw/transactions_live_refresh_live_20260309_140300_live_20260309_143643_live_20260309_150843_live_20260309_225331.csv"
+  },
+  "approved": true,
+  "approved_at": "2026-03-09T22:55:39.271080Z",
+  "approved_by": "user"
+}

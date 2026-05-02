@@ -1,0 +1,52 @@
+{
+  "timestamp": "2026-03-10T00:47:47.651714Z",
+  "table": "transactions_live_refresh_live_20260309_140300_live_20260309_143643_live_20260309_150843_live_20260309_225331",
+  "source_file": "mixed_drift_2.csv",
+  "baseline_dataset": "medallions/bronze/raw/transactions_live_refresh_live_20260309_140300_live_20260309_143643_live_20260309_150843_live_20260309_225331.csv",
+  "decision": "REQUIRES_APPROVAL",
+  "requires_approval": true,
+  "risk_level": "high",
+  "counts": {
+    "new": 13,
+    "missing": 4,
+    "dtype": 1,
+    "renames": 0
+  },
+  "diff": {
+    "new_columns": [
+      "shop_id",
+      "name",
+      "color",
+      "fabric",
+      "size_range",
+      "price_LKR",
+      "product_url",
+      "created_ts",
+      "popularity_score",
+      "stock_count",
+      "seasonal_score",
+      "material_grade",
+      "category_name"
+    ],
+    "missing_columns": [
+      "transaction_id",
+      "user_id",
+      "quantity",
+      "date"
+    ],
+    "dtype_changes": [
+      {
+        "column": "product_id",
+        "expected": "integer",
+        "actual": "float"
+      }
+    ],
+    "renames": []
+  },
+  "ingestion": {
+    "saved": true,
+    "local_path": "medallions/bronze/raw/transactions_live_refresh_live_20260309_140300_live_20260309_143643_live_20260309_150843_live_20260309_225331_live_20260310_004745.csv",
+    "size_bytes": 103553,
+    "azure_blob_path": "bronze/raw/transactions_live_refresh_live_20260309_140300_live_20260309_143643_live_20260309_150843_live_20260309_225331_live_20260310_004745.csv"
+  }
+}

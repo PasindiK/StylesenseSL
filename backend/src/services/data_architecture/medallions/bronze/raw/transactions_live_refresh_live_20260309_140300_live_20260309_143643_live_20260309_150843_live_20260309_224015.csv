@@ -1,0 +1,6 @@
+user_id,name,email,age,country
+1,John Doe,john@example.com,28,USA
+2,Jane Smith,jane@example.com,32,UK
+3,Michael Lee,michael@example.com,24,Canada
+4,Sara Khan,sara@example.com,30,Pakistan
+5,David Silva,david@example.com,35,Brazil

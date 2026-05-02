@@ -4,13 +4,13 @@ import { DashboardLayout } from './layout/DashboardLayout';
 import { LoadingPanel } from './panels/Panel';
 import { useDashboardSummary } from './hooks/useDashboardSummary';
 import { OverviewPage } from './pages/OverviewPage';
-import { GovernancePage } from './pages/GovernancePage';
 import { ExplainabilityPage } from './pages/ExplainabilityPage';
 import { ActionsPage } from './pages/ActionsPage';
 import { MedallionPage } from './pages/MedallionPage';
 import { ApprovalsPage } from './pages/ApprovalsPage';
 import { TimelinePage } from './pages/TimelinePage';
 import { StoragePage } from './pages/StoragePage';
+import { LiveValidationPage } from './pages/LiveValidationPage';
 import type { DashboardPageId, LayerId, MedallionFilesResponse } from './types';
 import * as dashboardApi from './api/dashboardApi';
 
@@ -85,8 +85,8 @@ export default function App() {
     switch (currentPage) {
       case 'overview':
         return <OverviewPage summary={summary} />;
-      case 'governance':
-        return <GovernancePage summary={summary} />;
+      case 'live_validation':
+        return <LiveValidationPage summary={summary} onOperationFinished={refresh} />;
       case 'explainability':
         return <ExplainabilityPage summary={summary} />;
       case 'actions':

@@ -1,0 +1,1 @@
+"""Data Architecture routes placeholder."""

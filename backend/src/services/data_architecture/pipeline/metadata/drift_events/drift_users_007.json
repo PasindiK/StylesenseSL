@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-01-03T04:00:00",
+  "table": "users",
+  "source_file": "raw/users_data.csv",
+  "diff": {
+    "new_columns": [
+      "updated_ts"
+    ],
+    "missing_columns": [],
+    "dtype_changes": [],
+    "renames": []
+  },
+  "extra": {
+    "dq_metrics": {
+      "null_ratio_delta": -0.01,
+      "duplicate_ratio": 0.0
+    },
+    "pipeline_meta": {
+      "downstream_failure_count": 0,
+      "avg_latency_ms": 314,
+      "storage_move": "warm",
+      "row_count_delta": -823
+    }
+  }
+}

@@ -3,6 +3,7 @@ pandas
 fastapi
 python-multipart
 uvicorn
+python-multipart
 rapidfuzz
 google-auth
 requests
@@ -17,3 +18,5 @@ tenacity
 structlog
 pydantic
 lxml
+PyYAML
+xgboost

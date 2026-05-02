@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-01-05T08:00:00",
+  "table": "transactions",
+  "source_file": "raw/transactions_data.csv",
+  "diff": {
+    "new_columns": [
+      "field_x"
+    ],
+    "missing_columns": [
+      "old_field"
+    ],
+    "dtype_changes": [
+      "price: int -> float"
+    ],
+    "renames": [
+      {
+        "old_name": "user_name",
+        "new_name": "username",
+        "similarity": 0.92,
+        "type_match": true
+      }
+    ]
+  },
+  "extra": {
+    "dq_metrics": {
+      "null_ratio_delta": 0.05,
+      "duplicate_ratio": 0.015
+    },
+    "pipeline_meta": {
+      "downstream_failure_count": 1,
+      "avg_latency_ms": 330,
+      "storage_move": "warm",
+      "row_count_delta": 4218
+    }
+  }
+}

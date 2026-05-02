@@ -1,0 +1,249 @@
+import React, { useMemo } from 'react';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import type { DashboardSummaryResponse } from '../types';
+import { MetricCard } from '../cards/MetricCard';
+import { Panel } from '../panels/Panel';
+import { compactDateTime, formatBytes } from '../utils/formatters';
+
+interface StoragePageProps {
+  summary: DashboardSummaryResponse;
+}
+
+const TIER_COLORS: Record<string, string> = {
+  HOT: '#ef4444',
+  WARM: '#f59e0b',
+  COLD: '#3b82f6',
+  ARCHIVE: '#6b7280',
+  UNKNOWN: '#9ca3af',
+};
+
+function tierTone(value: string): React.CSSProperties {
+  const tier = value.toUpperCase();
+  if (tier === 'HOT') {
+    return { backgroundColor: '#fee2e2', color: '#991b1b' };
+  }
+  if (tier === 'WARM' || tier === 'COOL') {
+    return { backgroundColor: '#fef3c7', color: '#92400e' };
+  }
+  if (tier === 'COLD' || tier === 'ARCHIVE') {
+    return { backgroundColor: '#dbeafe', color: '#1e40af' };
+  }
+  return { backgroundColor: '#f3f4f6', color: '#374151' };
+}
+
+export function StoragePage({ summary }: StoragePageProps) {
+  const { storage } = summary;
+
+  const activeStorageBytes = useMemo(() => {
+    return {
+      total: storage.total_size_bytes,
+      hot: storage.hot_tier_bytes,
+      warm: storage.warm_tier_bytes,
+      cold: storage.cold_tier_bytes,
+    };
+  }, [storage]);
+
+  const tierUsageData = useMemo(() => {
+    return storage.tier_usage.map((tier) => {
+      const tierName = String(tier.tier || 'UNKNOWN').toUpperCase();
+      const gbValue =
+        typeof tier.size_gb === 'number'
+          ? tier.size_gb
+          : Number(tier.size_bytes || 0) / (1024 ** 3);
+      return {
+        name: tierName,
+        value: gbValue,
+        fill: TIER_COLORS[tierName] || TIER_COLORS.UNKNOWN,
+      };
+    });
+  }, [storage.tier_usage]);
+
+  const growthData = (storage.growth_timeline || []).map((point) => ({
+    date: point.date,
+    GB: point.total_gb,
+  }));
+
+  const fallbackGrowthData = (storage.storage_growth_over_time || []).map((point) => ({
+    date: point.date,
+    GB: point.cumulative_size_gb,
+  }));
+
+  const storageGrowthSeries = growthData.length > 0 ? growthData : fallbackGrowthData;
+
+  const datasetActivityData = useMemo(() => {
+    if (!seasonalMode || !seasonalData) {
+      return [];
+    }
+
+    return seasonalData.dataset_activity.map((item) => ({
+      dataset: item.dataset.length > 20 ? `${item.dataset.slice(0, 20)}...` : item.dataset,
+      sizeGb: item.size_gb,
+      tier: item.tier,
+    }));
+  }, [seasonalMode, seasonalData]);
+
+  const tierMovementData = useMemo(
+    () =>
+      storage.tier_usage.map((tier) => ({
+        tier: tier.tier,
+        files: tier.file_count || 0,
+      })),
+    [storage.tier_usage],
+  );
+
+  const highlightedDatasets = useMemo(() => {
+    if (!seasonalData) {
+      return new Set<string>();
+    }
+    return new Set(seasonalData.highlighted_datasets.map((item) => item.toLowerCase()));
+  }, [seasonalData]);
+
+  return (
+    <div className="grid-12 animate-fade page-grid">
+      <div className="span-3">
+        <MetricCard
+          label="Total Storage"
+          value={formatBytes(activeStorageBytes.total)}
+          hint="All tiers combined"
+          tone="neutral"
+        />
+      </div>
+      <div className="span-3">
+        <MetricCard
+          label="HOT Tier"
+          value={formatBytes(activeStorageBytes.hot)}
+          hint="Active datasets"
+          tone="neutral"
+        />
+      </div>
+      <div className="span-3">
+        <MetricCard
+          label="WARM Tier"
+          value={formatBytes(activeStorageBytes.warm)}
+          hint="Infrequent access"
+          tone="neutral"
+        />
+      </div>
+      <div className="span-3">
+        <MetricCard
+          label="COLD Tier"
+          value={formatBytes(activeStorageBytes.cold)}
+          hint="Archived datasets"
+                  label={(entry) => `${entry.name}: ${entry.value.toFixed(2)} GB`}
+                >
+                  {tierUsageData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value: number | undefined) => (value !== undefined ? `${value.toFixed(2)} GB` : 'N/A')} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </Panel>
+      </div>
+
+      <div className="span-6">
+        <Panel title="Storage Growth" subtitle="Total storage growth over time">
+          <div className="chart-box large">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={storageGrowthSeries}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip formatter={(value: number | undefined) => (value !== undefined ? `${value.toFixed(2)} GB` : 'N/A')} />
+                <Line type="monotone" dataKey="GB" stroke="#3b82f6" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </Panel>
+      </div>
+
+      <div className="span-6">
+        <Panel
+          title={seasonalMode ? 'Dataset Activity (Seasonal)' : 'Tier Movement Activity'}
+          subtitle={seasonalMode ? 'Most active seasonal datasets' : 'File count by tier'}
+        >
+          <div className="chart-box large">
+            <ResponsiveContainer width="100%" height="100%">
+              {seasonalMode ? (
+                <BarChart data={datasetActivityData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="dataset" tick={{ fontSize: 11 }} />
+                  <YAxis />
+                  <Tooltip formatter={(value: number | undefined) => (value !== undefined ? `${value.toFixed(2)} GB` : 'N/A')} />
+                  <Bar dataKey="sizeGb" fill="#0f766e" />
+                </BarChart>
+              ) : (
+                <BarChart data={tierMovementData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="tier" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="files" fill="#3b82f6" />
+                </BarChart>
+              )}
+            </ResponsiveContainer>
+          </div>
+        </Panel>
+      </div>
+
+      <div className="span-6">
+        <Panel title="Largest Datasets" subtitle="Top datasets by size">
+          <div className="table-scroll table-scroll-medium">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Dataset</th>
+                "Tier Usage Distribution"
+          subtitle="Storage by tier"
+                  <th>Last Modified</th>
+                </tr>
+              </thead>
+              <tbody>
+                {storage.largest_datasets.length > 0 ? (
+                  storage.largest_datasets.map((dataset, idx) => {
+                    const datasetName = (dataset.name || dataset.dataset || '').toString();
+                    const tier = (dataset.tier || dataset.layer || 'unknown').toString().toUpperCase();
+                    return (
+                      <tr key={idx}>
+                        <td>{datasetName}</td>
+                        <td>{formatBytes(dataset.size_bytes)}</td>
+                        <td>
+                          <span
+                            style={{
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '4px',
+                              fontSize: '0.8rem',
+                              ...tierTone(tier),
+                            }}
+                          >
+                            {tier}
+                          </span>
+                        </td>
+                        <td>{compactDateTime(dataset.last_modified)}</td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr className="loading-row">
+                    <td colSpan={4}>No dataset information available</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
+      </div>

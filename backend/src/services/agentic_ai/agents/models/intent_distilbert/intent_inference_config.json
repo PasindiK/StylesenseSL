@@ -41,9 +41,8 @@
     "10": "styling_advice",
     "11": "view_cart"
   },
-  "temperature": 0.8222189545631409,
+  "temperature": 0.8216663599014282,
   "confidence_threshold": 0.3,
-  "ambiguity_margin": 0.08,
   "val_accuracy": 0.93,
   "accepted_accuracy": 0.94,
   "raw_val_accuracy": 1.0,

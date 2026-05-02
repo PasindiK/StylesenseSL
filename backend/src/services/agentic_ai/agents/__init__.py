@@ -1,9 +1,7 @@
-from .catalog_agent import CatalogAgent
-from .personalization_agent import PersonalizationAgent
-from .intent_classifier_agent import IntentClassifierAgent
-from .order_agent import OrderAgent
-from .vector_search_agent import VectorSearchAgent
-from .conversation_memory import ConversationMemory
-from .fashion_embedding_model import FashionEmbeddingModel
-from .query_structuring_agent import QueryStructuringAgent
-from .link_order_assistant_agent import LinkOrderAssistantAgent
+"""Agentic AI agents package.
+
+Keep package initialization lightweight so utility modules such as the
+LambdaMART training/evaluation pipeline can be imported without pulling in
+the full runtime dependency graph.
+"""
+

@@ -13,6 +13,24 @@ from .virtual_integration import (
     IntelligentRelationshipDiscovery,
     InferredRelationship,
 )
+from .relationship_engines import (
+    StructuralFeatureExtractor,
+    StatisticalFeatureExtractor,
+    BehavioralFeatureExtractor,
+    FeatureVectorBuilder,
+    RelationshipScoringEngine,
+    RelationshipDiscoveryEngine,
+)
+from .relationship_discovery_engine import (
+    RelationshipDiscoveryEngine as RelationshipDiscoveryEngineV2,
+    InferredRelationship as InferredRelationshipV2,
+)
+from .statistical_features import StatisticalFeatureExtractor as StatisticalFeatureExtractorV2
+from .behavioral_features import BehavioralFeatureExtractor as BehavioralFeatureExtractorV2
+from .feature_vector_builder import FeatureVectorBuilder as FeatureVectorBuilderV2
+from .scoring_engine import RelationshipScoringEngine as RelationshipScoringEngineV2
+from .join_executor import JoinExecutor, ManualInterventionRequired
+from .autonomous_agent import AutonomousIntegrationAgent, AgentRunReport
 
 __all__ = [
     "WorkflowOrchestrator",
@@ -23,4 +41,20 @@ __all__ = [
     "VirtualIntegrationLayer",
     "IntelligentRelationshipDiscovery",
     "InferredRelationship",
+    "StructuralFeatureExtractor",
+    "StatisticalFeatureExtractor",
+    "BehavioralFeatureExtractor",
+    "FeatureVectorBuilder",
+    "RelationshipScoringEngine",
+    "RelationshipDiscoveryEngine",
+    "StatisticalFeatureExtractorV2",
+    "BehavioralFeatureExtractorV2",
+    "FeatureVectorBuilderV2",
+    "RelationshipScoringEngineV2",
+    "JoinExecutor",
+    "ManualInterventionRequired",
+    "AutonomousIntegrationAgent",
+    "AgentRunReport",
+    "RelationshipDiscoveryEngineV2",
+    "InferredRelationshipV2",
 ]

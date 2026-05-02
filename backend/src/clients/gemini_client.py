@@ -1,23 +1,15 @@
-"""Simple Gemini Pro client wrapper with a mock mode for local development.
+"""LLM client wrapper (Groq) with a mock mode for local development.
 
-Usage:
-  - Set environment vars: `GEMINI_MOCK=1` to use mock mode (no cloud calls).
-  - Set `GEMINI_API_KEY` for direct Gemini Pro API access (recommended)
-  - For Vertex AI set:
-      `GOOGLE_SERVICE_ACCOUNT_FILE` -> path to service account JSON
-      `GEMINI_PROJECT`, `GEMINI_LOCATION`, `GEMINI_ENDPOINT_ID`
-
-The client returns a dict resembling Vertex AI predict responses with a
-`predictions` list where the first item is the response text (string).
+This module keeps existing helper function names for compatibility,
+but routes all LLM calls through Groq only.
 """
 import os
 import json
 import typing
 import logging
 import time
-from functools import lru_cache
 
-import requests
+from openai import OpenAI
 
 logger = logging.getLogger(__name__)
 
@@ -25,57 +17,90 @@ logger = logging.getLogger(__name__)
 _last_request_time = 0
 _min_request_interval = 5.0  # Minimum 5 seconds between requests to avoid 429 errors
 
-# Disable mock mode by default since we have a real API key
-GEMINI_MOCK = os.getenv("GEMINI_MOCK", "0") in ("1", "true", "True")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyA70RQJ4279U48aX8yWhM5X91pGCmIyGvk")
+LLM_MOCK = os.getenv("LLM_MOCK", "0") in ("1", "true", "True")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY") or os.getenv("GROK_API_KEY", "")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+STYLING_GROQ_API_KEY = os.getenv("STYLING_GROQ_API_KEY", "")
+STYLING_GROQ_MODEL = os.getenv("STYLING_GROQ_MODEL", GROQ_MODEL)
 
-# Force disable mock if API key is present
-if GEMINI_API_KEY and GEMINI_API_KEY != "AIzaSyA70RQJ4279U48aX8yWhM5X91pGCmIyGvk":
-    GEMINI_MOCK = False
-
-SERVICE_ACCOUNT_FILE = os.getenv("GOOGLE_SERVICE_ACCOUNT_FILE")
-PROJECT = os.getenv("GEMINI_PROJECT")
-LOCATION = os.getenv("GEMINI_LOCATION")
-ENDPOINT_ID = os.getenv("GEMINI_ENDPOINT_ID")
-
-def _make_endpoint_url():
-    if not PROJECT or not LOCATION or not ENDPOINT_ID:
-        return None
-    return f"https://{LOCATION}-aiplatform.googleapis.com/v1/projects/{PROJECT}/locations/{LOCATION}/endpoints/{ENDPOINT_ID}:predict"
+def _get_groq_client(api_key: str | None = None) -> OpenAI:
+    resolved_key = api_key or GROQ_API_KEY
+    if not resolved_key:
+        raise RuntimeError("GROQ_API_KEY is required for LLM calls")
+    return OpenAI(api_key=resolved_key, base_url="https://api.groq.com/openai/v1")
 
 
-def _get_access_token() -> str:
-    # lazy import to avoid hard dependency when using mock mode
+def _call_groq(
+    prompt: str,
+    *,
+    api_key: str | None = None,
+    model: str | None = None,
+    max_output_tokens: int = 512,
+    temperature: float = 0.0,
+    system_prompt: str = "You are a helpful fashion assistant.",
+) -> dict:
+    global _last_request_time
+
+    resolved_key = api_key or GROQ_API_KEY
+    resolved_model = model or GROQ_MODEL
+
+    if resolved_key:
+        elapsed = time.time() - _last_request_time
+        if elapsed < _min_request_interval:
+            time.sleep(_min_request_interval - elapsed)
+
+    if not resolved_key:
+        return {"predictions": [""]}
+
     try:
-        from google.oauth2 import service_account
-        from google.auth.transport.requests import Request
+        client = _get_groq_client(resolved_key)
+        response = client.chat.completions.create(
+            model=resolved_model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=temperature,
+            max_tokens=max_output_tokens,
+        )
+        _last_request_time = time.time()
+        text = (response.choices[0].message.content or "").strip()
+        return {"predictions": [text]}
     except Exception as e:
-        raise RuntimeError("google-auth package required for real Gemini calls. Install google-auth") from e
+        logger.warning(f"Groq API call failed: {e}")
+        return {"predictions": [""]}
 
-    if not SERVICE_ACCOUNT_FILE:
-        raise RuntimeError("GOOGLE_SERVICE_ACCOUNT_FILE environment variable is required for real calls")
 
-    creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=["https://www.googleapis.com/auth/cloud-platform"])
-    creds.refresh(Request())
-    return creds.token
+def _normalize_styling_advice(user_name: str, advice: str) -> str:
+    cleaned = advice.strip().strip('"\'').replace("\r\n", "\n")
+    intro_prefixes = (
+        f"hey {user_name.lower()}",
+        f"hi {user_name.lower()}",
+        f"hello {user_name.lower()}",
+        "here are",
+        "here's",
+    )
+
+    lines = [line.strip() for line in cleaned.split("\n") if line.strip()]
+    while lines and any(lines[0].lower().startswith(prefix) for prefix in intro_prefixes):
+        lines.pop(0)
+
+    bullet_lines = []
+    for line in lines:
+        normalized = line.lstrip("-*•✓").strip()
+        if normalized:
+            bullet_lines.append(f"- {normalized.rstrip(' ,;')}")
+
+    return "\n".join(bullet_lines[:5])
 
 
 def predict(prompt: str, max_output_tokens: int = 512, temperature: float = 0.0) -> dict:
     """Return a dict with a `predictions` key containing the textual LLM response(s).
 
     In mock mode this returns a small canned plan derived heuristically from the prompt.
-    With GEMINI_API_KEY, calls Google's Gemini Pro API directly.
-    In real mode this calls the Vertex AI endpoint identified by env vars.
+    In real mode this calls Groq chat completions and returns {'predictions': [text]}.
     """
-    global _last_request_time
-    
-    # Rate limiting to avoid 429 errors
-    if GEMINI_API_KEY:
-        elapsed = time.time() - _last_request_time
-        if elapsed < _min_request_interval:
-            time.sleep(_min_request_interval - elapsed)
-    
-    if GEMINI_MOCK:
+    if LLM_MOCK:
         # very small heuristic: if prompt contains keywords produce a simple plan
         lp = prompt.lower()
         plan = []
@@ -89,84 +114,23 @@ def predict(prompt: str, max_output_tokens: int = 512, temperature: float = 0.0)
         text = json.dumps(plan)
         return {"predictions": [text]}
     
-    # Try Gemini Pro API first (simpler, recommended)
-    if GEMINI_API_KEY:
-        try:
-            url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent"
-            headers = {"Content-Type": "application/json"}
-            payload = {
-                "contents": [{
-                    "parts": [{"text": prompt}]
-                }],
-                "generationConfig": {
-                    "temperature": temperature,
-                    "maxOutputTokens": max_output_tokens
-                }
-            }
-            resp = requests.post(
-                f"{url}?key={GEMINI_API_KEY}",
-                headers=headers,
-                json=payload,
-                timeout=30
-            )
-            _last_request_time = time.time()  # Update last request time
-            resp.raise_for_status()
-            data = resp.json()
-            # Extract text from Gemini response format
-            if "candidates" in data and len(data["candidates"]) > 0:
-                content = data["candidates"][0].get("content", {})
-                parts = content.get("parts", [])
-                if parts and "text" in parts[0]:
-                    return {"predictions": [parts[0]["text"]]}
-            return {"predictions": [json.dumps(data)]}
-        except Exception as e:
-            logger.warning(f"Gemini API call failed: {e}, falling back to empty response")
-            # Return empty text that will trigger fallback in calling function
-            return {"predictions": [""]}
-
-    url = _make_endpoint_url()
-    if not url:
-        raise RuntimeError("GEMINI_PROJECT, GEMINI_LOCATION and GEMINI_ENDPOINT_ID must be set for real calls")
-
-    token = _get_access_token()
-    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-    payload = {
-        "instances": [{"content": prompt}],
-        "parameters": {"temperature": temperature, "maxOutputTokens": max_output_tokens},
-    }
-    resp = requests.post(url, headers=headers, json=payload, timeout=30)
-    resp.raise_for_status()
-    try:
-        return resp.json()
-    except Exception:
-        # return raw text if JSON parsing fails
-        return {"predictions": [resp.text]}
+    return _call_groq(
+        prompt,
+        max_output_tokens=max_output_tokens,
+        temperature=temperature,
+    )
 
 
 def extract_text(response: typing.Any) -> str:
     """Extract a single response text from predict-like responses.
     
-    Handles both Vertex AI format (predictions) and Gemini API format (candidates).
+    Handles normalized predict-like response format.
     """
     if not response:
         return ""
     
     if isinstance(response, dict):
-        # Try Gemini API format first (candidates)
-        if "candidates" in response and isinstance(response["candidates"], list) and len(response["candidates"]) > 0:
-            first_candidate = response["candidates"][0]
-            if isinstance(first_candidate, dict) and "content" in first_candidate:
-                content = first_candidate["content"]
-                if isinstance(content, dict) and "parts" in content:
-                    parts = content["parts"]
-                    if isinstance(parts, list) and len(parts) > 0:
-                        part = parts[0]
-                        if isinstance(part, dict) and "text" in part:
-                            return part["text"]
-                if isinstance(content, dict) and "text" in content:
-                    return content["text"]
-        
-        # Try Vertex AI format (predictions)
+        # Try normalized format (predictions)
         preds = response.get("predictions")
         if isinstance(preds, list) and len(preds) > 0:
             first = preds[0]
@@ -199,7 +163,12 @@ def parse_query_with_gemini(query: str) -> dict:
     return {"category": None, "color": None, "size": None, "budget": None, "style_preferences": None}
 
 
-def generate_styling_advice_with_gemini(user_name: str, query: str, fashion_topic: str = None) -> str:
+def generate_styling_advice_with_gemini(
+    user_name: str,
+    query: str,
+    fashion_topic: str = None,
+    personalization_context: dict | None = None,
+) -> str:
     """Generate personalized styling advice using Gemini API.
     
     Args:
@@ -210,17 +179,92 @@ def generate_styling_advice_with_gemini(user_name: str, query: str, fashion_topi
     Returns:
         Friendly, personalized styling advice (text only, no JSON)
     """
-    if not GEMINI_API_KEY:
+    styling_key = STYLING_GROQ_API_KEY or GROQ_API_KEY
+    if not styling_key:
+        fallback_advice = """- Fit is everything, so choose pieces that sit cleanly on your shoulders and chest.
+- Start with versatile neutrals, then add one standout layer or accessory.
+- Keep the outfit balanced by matching the formality of your top, bottom, and shoes."""
+        return f"Hey {user_name}! Here's my styling advice:\n\n{fallback_advice}\n\nWould you like me to suggest some specific items that match this style?"
+
+    try:
+        topic_context = fashion_topic if fashion_topic else query or "styling in general"
+        context = personalization_context or {}
+        ctx_lines = []
+        if context.get("preferred_style"):
+            ctx_lines.append(f"Preferred style: {context.get('preferred_style')}")
+        if context.get("favorite_colors"):
+            ctx_lines.append(f"Favorite colors: {context.get('favorite_colors')}")
+        if context.get("size"):
+            ctx_lines.append(f"Usual size: {context.get('size')}")
+        if context.get("budget"):
+            ctx_lines.append(f"Budget preference: {context.get('budget')}")
+        if context.get("recent_recommended_items"):
+            recent = context.get("recent_recommended_items")
+            if isinstance(recent, list) and recent:
+                ctx_lines.append(f"Recent recommended items: {', '.join([str(x) for x in recent[:3]])}")
+        personalization_block = "\n".join(ctx_lines) if ctx_lines else "No known user preferences."
+
+        prompt = f"""You are a friendly fashion stylist named StylesenseSL.
+
+User Name: {user_name}
+Topic: How to style {topic_context}
+User context:\n{personalization_block}
+
+IMPORTANT: Return ONLY human-readable text. NO JSON, NO CODE, NO ACTIONS.
+Do not greet the user. Do not repeat their name. Do not add an introduction or conclusion.
+Give exactly 3 concise styling tips.
+Start each tip with a hyphen (-).
+Keep each tip to 1-2 short sentences.
+
+Tone: Warm, casual, encouraging, conversational.
+Include actionable, specific advice that the user can apply immediately.
+When user context is available, adapt the advice to it naturally.
+"""
+
+        response = _call_groq(
+            prompt,
+            api_key=styling_key,
+            model=STYLING_GROQ_MODEL,
+            max_output_tokens=180,
+            temperature=0.5,
+            system_prompt="You are a precise fashion stylist who returns clean bullet-point advice.",
+        )
+        advice = _normalize_styling_advice(user_name, extract_text(response))
+        advice_lower = advice.lower()
+        has_json = advice.startswith("[") or advice.startswith("{") or '"action"' in advice or "'action'" in advice or "catalog_search" in advice_lower
+        has_prompt = "you are a friendly fashion stylist" in advice_lower or "important:" in advice_lower or "user name:" in advice_lower
+        if advice and len(advice) > 20 and not has_json and not has_prompt:
+            return f"Hey {user_name}! Here's my styling advice:\n\n{advice}\n\nWould you like me to suggest some specific items that match this style?"
+    except Exception as e:
+        logger.warning(f"Styling advice generation failed: {e}")
+
+    if not GROQ_API_KEY:
         return f"Hey {user_name}! Here are some universal fashion tips: Fit is key, start with basics, layer thoughtfully, and remember confidence is your best accessory!"
     
     try:
         topic_context = fashion_topic if fashion_topic else "styling in general"
+        context = personalization_context or {}
+        ctx_lines = []
+        if context.get("preferred_style"):
+            ctx_lines.append(f"Preferred style: {context.get('preferred_style')}")
+        if context.get("favorite_colors"):
+            ctx_lines.append(f"Favorite colors: {context.get('favorite_colors')}")
+        if context.get("size"):
+            ctx_lines.append(f"Usual size: {context.get('size')}")
+        if context.get("budget"):
+            ctx_lines.append(f"Budget preference: {context.get('budget')}")
+        if context.get("recent_recommended_items"):
+            recent = context.get("recent_recommended_items")
+            if isinstance(recent, list) and recent:
+                ctx_lines.append(f"Recent recommended items: {', '.join([str(x) for x in recent[:3]])}")
+        personalization_block = "\n".join(ctx_lines) if ctx_lines else "No known user preferences."
         
         # Force text-only output with explicit instruction
         prompt = f"""You are a friendly fashion stylist named StylesenseSL.
 
 User Name: {user_name}
 Topic: How to style {topic_context}
+User context:\n{personalization_block}
 
 IMPORTANT: Return ONLY human-readable text. NO JSON, NO CODE, NO ACTIONS. Just plain text tips.
 
@@ -228,6 +272,7 @@ Give exactly 3-5 concise styling tips. Start each tip with a checkmark symbol (�
 
 Tone: Warm, casual, encouraging, conversational.
 Include actionable, specific advice that the user can apply immediately.
+When user context is available, adapt the advice to it naturally.
 
 Example format:
 ✓ Pair joggers with a fitted hoodie or jacket for a casual, balanced look.
@@ -273,6 +318,47 @@ Now write your response:"""
     return f"Hey {user_name}! Here's my styling advice:\n\n{fallback_advice}\n\nWould you like me to suggest some specific items?"
 
 
+def generate_outfit_explanation_with_gemini(query: str, top_products: list, structured_query: dict = None) -> str:
+    """Generate concise outfit explanation text for already-ranked top products."""
+    if not top_products:
+        return "I selected these items because they align with your fashion request and profile preferences."
+
+    if not GROQ_API_KEY:
+        names = [str(p.get("name") or p.get("product_name") or "item") for p in top_products[:3]]
+        return (
+            "These picks work well together for your request. "
+            f"Top options like {', '.join(names)} balance style, color, and budget."
+        )
+
+    try:
+        product_lines = []
+        for p in top_products[:3]:
+            name = str(p.get("name") or p.get("product_name") or "Item")
+            category = str(p.get("category") or "")
+            color = str(p.get("color") or "")
+            price = p.get("price") or p.get("price_LKR")
+            product_lines.append(f"- {name} | category={category} | color={color} | price={price}")
+
+        sq = structured_query or {}
+        prompt = (
+            "You are a fashion assistant. Explain why these top products match the request. "
+            "Return ONLY plain text, 2-3 short sentences, no JSON.\n"
+            f"User query: {query}\n"
+            f"Structured query: style={sq.get('style')}, event={sq.get('event')}, budget={sq.get('budget')}\n"
+            "Top products:\n"
+            + "\n".join(product_lines)
+        )
+        response = predict(prompt, max_output_tokens=120, temperature=0.4)
+        text = extract_text(response).strip().strip('"\'')
+        if text and len(text) > 20 and not text.startswith("{") and not text.startswith("["):
+            return text
+    except Exception as e:
+        logger.warning(f"Outfit explanation generation failed: {e}")
+
+    names = [str(p.get("name") or p.get("product_name") or "item") for p in top_products[:3]]
+    return f"These picks were chosen to match your request, with strong fit on style and relevance. Top options include {', '.join(names)}."
+
+
 def clarify_ambiguous_query(query: str, user_name: str = None) -> str:
     """Use Gemini to generate clarification request for ambiguous queries.
     
@@ -283,7 +369,7 @@ def clarify_ambiguous_query(query: str, user_name: str = None) -> str:
     Returns:
         Friendly clarification message (text only, no JSON)
     """
-    if not GEMINI_API_KEY:
+    if not GROQ_API_KEY:
         return f"I'd love to help! Could you tell me more? For example: color, category (t-shirts, joggers), size, or budget?"
     
     try:
@@ -352,7 +438,7 @@ def dynamic_small_talk(user_name: str = None, last_product: str = None, recent_i
     ]
     
     # Try Gemini API for dynamic, context-aware responses
-    if GEMINI_API_KEY:
+    if GROQ_API_KEY:
         try:
             # Build context-rich prompt for better responses
             context_parts = [f"user_name={user_name or 'there'}", f"time={time_of_day}"]

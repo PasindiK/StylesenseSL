@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Pencil, RefreshCw, UserRound } from 'lucide-react'
 import type { KGPreferenceSignal } from '../services/kgSignals'
+import FeatureOpsWorkflowPanel from '../components/FeatureOpsWorkflowPanel'
 import OrderAssistantPage from './OrderAssistantPage'
 
 type DashboardSection =
@@ -9,6 +10,7 @@ type DashboardSection =
   | 'user_profile'
   | 'system_overview'
   | 'knowledge_graph'
+  | 'featureops_workflow'
   | 'feedback_center'
 
 type OrderAssistantCheckoutRequest = {
@@ -287,8 +289,23 @@ export default function AgenticAIDashboard({
 
   useEffect(() => {
     if (!initialSection) return
+    if (initialSection === 'knowledge_graph') {
+      setActiveSection('system_overview')
+      return
+    }
     setActiveSection(initialSection)
   }, [initialSection])
+
+  useEffect(() => {
+    if (activeSection === 'knowledge_graph') {
+      setActiveSection('system_overview')
+    }
+  }, [activeSection])
+
+  useEffect(() => {
+    if (!orderAssistantCheckoutRequest?.id) return
+    setActiveSection('order_assistant')
+  }, [orderAssistantCheckoutRequest?.id])
 
   const apiBase = useMemo(() => {
     if (typeof window !== 'undefined' && (window as any).VITE_API_URL) {
@@ -400,8 +417,8 @@ export default function AgenticAIDashboard({
     () => [
       { key: 'chat' as DashboardSection, label: 'AI Stylist' },
       { key: 'order_assistant' as DashboardSection, label: 'Order Assistant' },
+      { key: 'featureops_workflow' as DashboardSection, label: 'DE Workflow' },
       { key: 'system_overview' as DashboardSection, label: 'System Overview' },
-      { key: 'knowledge_graph' as DashboardSection, label: 'Knowledge Graph' },
       { key: 'feedback_center' as DashboardSection, label: 'Recommendation Feedback' },
     ],
     [],
@@ -614,6 +631,7 @@ export default function AgenticAIDashboard({
       strategy_usage: { 'Knowledge Graph': 0, 'Hybrid ML': 0, 'Content Based': 0 },
       top_recommendation_paths: [] as string[],
       query_logs: [] as Array<{
+        query_id?: string
         ts: number
         user_id: string
         query: string
@@ -636,6 +654,18 @@ export default function AgenticAIDashboard({
           reason: string
         }>
       }>,
+      size_availability_proof: [] as Array<{
+        ts: number
+        event_type?: string
+        query_id: string
+        user_id?: string
+        product_id: string
+        product_name?: string
+        size: string
+        stock_before: number
+        stock_after: number
+        visible_to_user: boolean
+      }>,
       kg_growth: {
         user_wise: [] as Array<{ user_id: string; events: number; avg_score: number }>,
         system_wise: [] as Array<{ date: string; requests: number; recommendations: number }>,
@@ -646,6 +676,26 @@ export default function AgenticAIDashboard({
         checkout_count: 0,
         add_to_cart_count: 0,
       },
+      query_feedback_summary: {
+        total: 6,
+        positive_rate: 66.7,
+        negative_rate: 16.7,
+        skip_rate: 16.7,
+      },
+      query_feedback: [] as Array<{
+        feedback_id: string
+        query_id: string
+        user_id: string
+        query_text: string
+        detected_intent: string
+        feedback_type: 'yes' | 'no' | 'skip'
+        recommendation_count: number
+        model_route?: string
+        structured_style?: string
+        structured_event?: string
+        structured_budget?: string
+        ts: number
+      }>,
       user_management: {
         total_users: 0,
         active_users: 0,
@@ -692,8 +742,13 @@ export default function AgenticAIDashboard({
       strategyUsage: source.strategy_usage || defaults.strategy_usage,
       topPaths: source.top_recommendation_paths || defaults.top_recommendation_paths,
       queryLogs: Array.isArray(source.query_logs) ? source.query_logs : defaults.query_logs,
+      sizeAvailabilityProof: Array.isArray(source.size_availability_proof)
+        ? source.size_availability_proof
+        : defaults.size_availability_proof,
       kgGrowth: source.kg_growth || defaults.kg_growth,
       satisfaction: source.satisfaction || defaults.satisfaction,
+      queryFeedbackSummary: source.query_feedback_summary || defaults.query_feedback_summary,
+      queryFeedback: Array.isArray(source.query_feedback) ? source.query_feedback : defaults.query_feedback,
       userManagement: source.user_management || defaults.user_management,
       userInteractions: source.user_interactions || defaults.user_interactions,
       recommendationWeights: source.recommendation_weights || defaults.recommendation_weights,
@@ -1176,6 +1231,45 @@ export default function AgenticAIDashboard({
     return allQueryLogs.filter((log: any) => String(log?.user_id || '') === selectedQueryLogUser)
   }, [allQueryLogs, selectedQueryLogUser])
 
+  const sizeAvailabilityProofRows = useMemo(() => {
+    const rows = Array.isArray(metrics.sizeAvailabilityProof) ? metrics.sizeAvailabilityProof : []
+    return [...rows]
+      .slice(-60)
+      .reverse()
+      .map((row: any, idx: number) => ({
+        key: `${String(row?.query_id || 'qid')}-${String(row?.product_id || 'pid')}-${idx}`,
+        eventType: String(row?.event_type || 'unknown'),
+        queryId: String(row?.query_id || '-'),
+        productId: String(row?.product_id || '-'),
+        productName: String(row?.product_name || '-'),
+        size: String(row?.size || '-'),
+        stockBefore: Number(row?.stock_before || 0),
+        stockAfter: Number(row?.stock_after || 0),
+        visibleToUser: !!row?.visible_to_user,
+      }))
+  }, [metrics.sizeAvailabilityProof])
+
+  const queryFeedbackRows = useMemo(() => {
+    const rows = Array.isArray(metrics.queryFeedback) ? metrics.queryFeedback : []
+    return [...rows]
+      .slice(-60)
+      .reverse()
+      .map((row: any, idx: number) => ({
+        key: `${String(row?.feedback_id || 'qf')}-${idx}`,
+        feedbackId: String(row?.feedback_id || '-'),
+        queryId: String(row?.query_id || '-'),
+        userId: String(row?.user_id || 'anonymous'),
+        queryText: String(row?.query_text || '-'),
+        detectedIntent: String(row?.detected_intent || 'unknown'),
+        feedbackType: String(row?.feedback_type || 'skip'),
+        recommendationCount: Number(row?.recommendation_count || 0),
+        modelRoute: String(row?.model_route || '-'),
+        structuredStyle: String(row?.structured_style || '-'),
+        structuredEvent: String(row?.structured_event || '-'),
+        structuredBudget: String(row?.structured_budget || '-'),
+      }))
+  }, [metrics.queryFeedback])
+
   function getQueryLogUserLabel(rawUserId: unknown) {
     const uid = String(rawUserId || '').trim()
     if (!uid) return 'n/a'
@@ -1590,16 +1684,21 @@ export default function AgenticAIDashboard({
                               border: '1px solid #1e293b',
                               background: '#1e293b',
                               color: '#f8fafc',
-                              width: 34,
                               height: 34,
+                              minWidth: 94,
                               display: 'inline-flex',
                               alignItems: 'center',
                               justifyContent: 'center',
+                              gap: 6,
+                              padding: '0 10px',
+                              fontSize: 12,
+                              fontWeight: 700,
                               cursor: 'pointer',
                               boxShadow: '0 2px 8px rgba(15,23,42,0.25)',
                             }}
                           >
-                            <RefreshCw size={13} />
+                            <RefreshCw size={16} color="#f8fafc" strokeWidth={2.8} absoluteStrokeWidth />
+                            refresh
                           </button>
                         </div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -1673,17 +1772,22 @@ export default function AgenticAIDashboard({
                           border: '1px solid #1e293b',
                           background: '#1e293b',
                           color: '#f8fafc',
-                          width: 34,
                           height: 34,
+                          minWidth: 94,
                           display: 'inline-flex',
                           alignItems: 'center',
                           justifyContent: 'center',
+                          gap: 6,
+                          padding: '0 10px',
+                          fontSize: 12,
+                          fontWeight: 700,
                           cursor: cartSummaryRefreshing ? 'not-allowed' : 'pointer',
                           boxShadow: '0 2px 8px rgba(15,23,42,0.25)',
                           opacity: cartSummaryRefreshing ? 0.65 : 1,
                         }}
                       >
-                        <RefreshCw size={13} />
+                        <RefreshCw size={16} color="#f8fafc" strokeWidth={2.8} absoluteStrokeWidth />
+                        refresh
                       </button>
                     </div>
                     <div>Items in Cart: <strong>{formatNumber(Number(userProfileData.cart_summary?.items_count || 0))}</strong></div>
@@ -1773,9 +1877,11 @@ export default function AgenticAIDashboard({
                     <button
                       type="button"
                       onClick={() => setMetricsRefreshTick((v) => v + 1)}
-                      style={{ borderRadius: 6, border: '1px solid #334155', background: '#1f2937', color: '#f8fafc', fontSize: 11, padding: '4px 8px', cursor: 'pointer' }}
+                      title="Refresh knowledge graph metrics"
+                      aria-label="Refresh knowledge graph metrics"
+                      style={{ borderRadius: 999, border: '2px solid #334155', background: '#e2e8f0', color: '#020617', width: 36, height: 36, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                     >
-                      Refresh
+                      <RefreshCw size={18} color="#020617" strokeWidth={3} />
                     </button>
                   </div>
                 </div>
@@ -2077,9 +2183,11 @@ export default function AgenticAIDashboard({
                     <button
                       type="button"
                       onClick={() => setMetricsRefreshTick((v) => v + 1)}
-                      style={{ border: 'none', background: 'transparent', color: '#374151', fontSize: 10, fontWeight: 700, padding: '4px 4px', cursor: 'pointer' }}
+                      title="Refresh system overview"
+                      aria-label="Refresh system overview"
+                      style={{ borderRadius: 999, border: '2px solid #334155', background: '#e2e8f0', color: '#0f172a', width: 36, height: 36, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 1px 4px rgba(15,23,42,0.12)' }}
                     >
-                      Refresh
+                      <RefreshCw size={18} color="#020617" strokeWidth={3} />
                     </button>
                   </div>
                 </div>
@@ -2221,26 +2329,7 @@ export default function AgenticAIDashboard({
                       </article>
                     </section>
 
-                    <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                      <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 8 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Recommendation Weights</div>
-                        {[
-                          { label: 'Collaborative Filtering', value: Number(metrics.recommendationWeights?.collaborative_filtering || 0), color: '#2563eb' },
-                          { label: 'Content-Based Filtering', value: Number(metrics.recommendationWeights?.content_based_filtering || 0), color: '#7c3aed' },
-                          { label: 'Hybrid Approach', value: Number(metrics.recommendationWeights?.hybrid_approach || 0), color: '#db2777' },
-                        ].map((item) => (
-                          <div key={item.label} style={{ display: 'grid', gap: 4 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#4b5563' }}>
-                              <span>{item.label}</span>
-                              <span>{item.value.toFixed(1)}%</span>
-                            </div>
-                            <div style={{ height: 8, borderRadius: 999, overflow: 'hidden', background: '#e5e7eb' }}>
-                              <div style={{ width: `${item.value}%`, height: '100%', background: item.color }} />
-                            </div>
-                          </div>
-                        ))}
-                      </article>
-
+                    <section style={{ display: 'grid', gap: 10 }}>
                       <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 8 }}>
                         <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>User Satisfaction (Checkout / Add to Cart)</div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -2256,54 +2345,45 @@ export default function AgenticAIDashboard({
                       </article>
                     </section>
 
-                    <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <section style={{ display: 'grid', gap: 10 }}>
                       <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 8 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Weekly Interaction Trends</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Size Availability Proof</div>
+                          <div style={{ fontSize: 10, color: '#6b7280' }}>Query-level stock visibility and reservation transitions</div>
+                        </div>
                         <div style={{ overflowX: 'auto' }}>
-                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, color: '#374151' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#374151' }}>
                             <thead>
                               <tr style={{ background: '#f9fafb' }}>
-                                {['Day', 'Views', 'Clicks', 'Cart Add', 'Checkouts'].map((h) => (
-                                  <th key={h} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e5e7eb', color: '#6b7280' }}>{h}</th>
+                                {['Event', 'Query ID', 'Product ID', 'Product', 'Size', 'Stock Before', 'Stock After', 'Visible To User'].map((h) => (
+                                  <th key={`proof-${h}`} style={{ textAlign: 'left', padding: '6px 5px', borderBottom: '1px solid #e5e7eb', color: '#6b7280', fontWeight: 700 }}>{h}</th>
                                 ))}
                               </tr>
                             </thead>
                             <tbody>
-                              {interactionWeekRows.map((row) => (
-                                <tr key={row.day}>
-                                  <td style={{ padding: '7px 6px', borderBottom: '1px solid #f3f4f6', fontWeight: 700 }}>{row.day}</td>
-                                  <td style={{ padding: '7px 6px', borderBottom: '1px solid #f3f4f6' }}>{formatNumber(row.views)}</td>
-                                  <td style={{ padding: '7px 6px', borderBottom: '1px solid #f3f4f6' }}>{formatNumber(row.clicks)}</td>
-                                  <td style={{ padding: '7px 6px', borderBottom: '1px solid #f3f4f6' }}>{formatNumber(row.cartAdditions)}</td>
-                                  <td style={{ padding: '7px 6px', borderBottom: '1px solid #f3f4f6' }}>{formatNumber(row.checkouts)}</td>
+                              {sizeAvailabilityProofRows.length === 0 ? (
+                                <tr>
+                                  <td colSpan={8} style={{ padding: '18px 8px', textAlign: 'center', color: '#94a3b8' }}>
+                                    No size availability proof events yet.
+                                  </td>
                                 </tr>
-                              ))}
+                              ) : (
+                                sizeAvailabilityProofRows.map((row) => (
+                                  <tr key={row.key}>
+                                    <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6', fontFamily: 'monospace' }}>{row.eventType}</td>
+                                    <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6', fontFamily: 'monospace' }}>{row.queryId}</td>
+                                    <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6', fontFamily: 'monospace' }}>{row.productId}</td>
+                                    <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6', maxWidth: 220, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={row.productName}>{row.productName}</td>
+                                    <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{row.size}</td>
+                                    <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{formatNumber(row.stockBefore)}</td>
+                                    <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{formatNumber(row.stockAfter)}</td>
+                                    <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{row.visibleToUser ? 'Yes' : 'No'}</td>
+                                  </tr>
+                                ))
+                              )}
                             </tbody>
                           </table>
                         </div>
-                      </article>
-
-                      <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 8 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>KG Growth Map (System-wise)</div>
-                        {(metrics.kgGrowth?.system_wise || []).slice(-7).map((row: { date: string; requests: number; recommendations: number }) => {
-                          const req = Number(row.requests || 0)
-                          const rec = Number(row.recommendations || 0)
-                          const total = Math.max(req + rec, 1)
-                          const reqWidth = (req / total) * 100
-                          const recWidth = (rec / total) * 100
-                          return (
-                            <div key={row.date} style={{ display: 'grid', gap: 3 }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#4b5563' }}>
-                                <span>{row.date}</span>
-                                <span>Req {req} | Reco {rec}</span>
-                              </div>
-                              <div style={{ height: 8, borderRadius: 999, overflow: 'hidden', background: '#e5e7eb', display: 'flex' }}>
-                                <div style={{ width: `${reqWidth}%`, background: '#3b82f6' }} />
-                                <div style={{ width: `${recWidth}%`, background: '#14b8a6' }} />
-                              </div>
-                            </div>
-                          )
-                        })}
                       </article>
                     </section>
                   </>
@@ -2460,6 +2540,8 @@ export default function AgenticAIDashboard({
           </>
         )}
 
+        {activeSection === 'featureops_workflow' && <FeatureOpsWorkflowPanel />}
+
         {activeSection === 'feedback_center' && (
           <>
             <section style={{ background: '#f8fafc', borderRadius: 12, border: '1px solid #e2e8f0', padding: 12, color: '#0f172a' }}>
@@ -2472,9 +2554,11 @@ export default function AgenticAIDashboard({
                   <button
                     type="button"
                     onClick={() => setMetricsRefreshTick((v) => v + 1)}
-                    style={{ borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', color: '#0f172a', fontSize: 12, padding: '6px 10px', cursor: 'pointer' }}
+                    title="Refresh feedback center metrics"
+                    aria-label="Refresh feedback center metrics"
+                    style={{ borderRadius: 999, border: '2px solid #334155', background: '#e2e8f0', color: '#0f172a', width: 38, height: 38, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 1px 5px rgba(15,23,42,0.12)' }}
                   >
-                    Refresh
+                    <RefreshCw size={18} color="#020617" strokeWidth={3} />
                   </button>
                 </div>
 
@@ -2508,174 +2592,63 @@ export default function AgenticAIDashboard({
                   </article>
                 </section>
 
-                <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <section>
                   <article style={{ borderRadius: 8, border: '1px solid #e2e8f0', background: '#ffffff', padding: 10, display: 'grid', gap: 8 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Recommendation Mix</div>
-                    {[
-                      { label: 'Collaborative', raw: Number(metrics.recommendationWeights?.collaborative_filtering || 0), color: '#2563eb' },
-                      { label: 'Content Based', raw: Number(metrics.recommendationWeights?.content_based_filtering || 0), color: '#7c3aed' },
-                      { label: 'Hybrid', raw: Number(metrics.recommendationWeights?.hybrid_approach || 0), color: '#db2777' },
-                    ].map((item) => {
-                      const pct = clamp(item.raw <= 1 ? item.raw * 100 : item.raw, 0, 100)
-                      return (
-                        <div key={item.label} style={{ display: 'grid', gap: 4 }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#4b5563' }}>
-                            <span>{item.label}</span>
-                            <span>{pct.toFixed(1)}%</span>
-                          </div>
-                          <div style={{ height: 8, borderRadius: 999, overflow: 'hidden', background: '#e2e8f0' }}>
-                            <div style={{ width: `${pct}%`, height: '100%', background: item.color }} />
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </article>
-
-                  <article style={{ borderRadius: 8, border: '1px solid #e2e8f0', background: '#ffffff', padding: 10, display: 'grid', gap: 8 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Recent Rated Events</div>
-                    <div style={{ maxHeight: 220, overflow: 'auto', border: '1px solid #f1f5f9', borderRadius: 8 }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, color: '#334155' }}>
-                        <thead>
-                          <tr style={{ background: '#f8fafc' }}>
-                            <th style={{ textAlign: 'left', padding: '7px 8px', borderBottom: '1px solid #e2e8f0' }}>User</th>
-                            <th style={{ textAlign: 'left', padding: '7px 8px', borderBottom: '1px solid #e2e8f0' }}>Event</th>
-                            <th style={{ textAlign: 'left', padding: '7px 8px', borderBottom: '1px solid #e2e8f0' }}>Rating</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {(Array.isArray(metrics.userInteractions?.recent) ? metrics.userInteractions.recent : [])
-                            .filter((item: any) => Number(item?.rating || 0) > 0)
-                            .slice(0, 15)
-                            .map((item: any, idx: number) => (
-                              <tr key={`${item.user}-${item.event}-${idx}`}>
-                                <td style={{ padding: '7px 8px', borderBottom: '1px solid #f1f5f9' }}>{String(item.user || '-')}</td>
-                                <td style={{ padding: '7px 8px', borderBottom: '1px solid #f1f5f9' }}>{String(item.event || '-')}</td>
-                                <td style={{ padding: '7px 8px', borderBottom: '1px solid #f1f5f9' }}>{Number(item.rating || 0)}</td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </table>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Query Feedback Analytics</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8 }}>
+                      <div style={{ borderRadius: 8, border: '1px solid #bae6fd', background: '#f0f9ff', padding: 10 }}>
+                        <div style={{ fontSize: 11, color: '#0369a1' }}>Total Query Feedback</div>
+                        <div style={{ fontSize: 24, fontWeight: 800 }}>{formatNumber(Number(metrics.queryFeedbackSummary?.total || 0))}</div>
+                      </div>
+                      <div style={{ borderRadius: 8, border: '1px solid #bbf7d0', background: '#f0fdf4', padding: 10 }}>
+                        <div style={{ fontSize: 11, color: '#166534' }}>Positive Feedback Rate</div>
+                        <div style={{ fontSize: 24, fontWeight: 800 }}>{Number(metrics.queryFeedbackSummary?.positive_rate || 0).toFixed(1)}%</div>
+                      </div>
+                      <div style={{ borderRadius: 8, border: '1px solid #fecaca', background: '#fef2f2', padding: 10 }}>
+                        <div style={{ fontSize: 11, color: '#991b1b' }}>Negative Feedback Rate</div>
+                        <div style={{ fontSize: 24, fontWeight: 800 }}>{Number(metrics.queryFeedbackSummary?.negative_rate || 0).toFixed(1)}%</div>
+                      </div>
+                      <div style={{ borderRadius: 8, border: '1px solid #fde68a', background: '#fffbeb', padding: 10 }}>
+                        <div style={{ fontSize: 11, color: '#92400e' }}>Skip Rate</div>
+                        <div style={{ fontSize: 24, fontWeight: 800 }}>{Number(metrics.queryFeedbackSummary?.skip_rate || 0).toFixed(1)}%</div>
+                      </div>
                     </div>
                   </article>
                 </section>
 
                 <section style={{ display: 'grid', gap: 10 }}>
                   <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 8 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Live Recommendation Query Quality</div>
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                        <input
-                          type="text"
-                          value={queryLogUserSearch}
-                          onChange={(e) => setQueryLogUserSearch(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && queryLogTopMatch) {
-                              setSelectedQueryLogUser(queryLogTopMatch.id)
-                            }
-                          }}
-                          placeholder="Search user..."
-                          style={{ borderRadius: 8, border: '1px solid #d1d5db', background: '#ffffff', color: '#0f172a', fontSize: 12, padding: '6px 10px', minWidth: 180 }}
-                        />
-                        <select
-                          value={selectedQueryLogUser}
-                          onChange={(e) => setSelectedQueryLogUser(e.target.value)}
-                          style={{ borderRadius: 8, border: '1px solid #d1d5db', background: '#ffffff', color: '#0f172a', fontSize: 12, padding: '6px 10px', minWidth: 170 }}
-                        >
-                          <option value="all">Select user</option>
-                          {queryLogFilteredUserOptions.map((item) => (
-                            <option key={`feedback-${item.id}`} value={item.id}>
-                              {item.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                    {queryLogUserSearch.trim() && queryLogTopMatch && (
-                      <div style={{ fontSize: 11, color: '#64748b' }}>
-                        Suggested match:{' '}
-                        <button
-                          type="button"
-                          onClick={() => setSelectedQueryLogUser(queryLogTopMatch.id)}
-                          style={{ border: 'none', background: 'transparent', color: '#2563eb', cursor: 'pointer', padding: 0, fontSize: 11, fontWeight: 700 }}
-                        >
-                          {queryLogTopMatch.label}
-                        </button>
-                      </div>
-                    )}
-                  </article>
-
-                  <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 8 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>User Query Logs</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Query Feedback Analytics</div>
                     <div style={{ overflowX: 'auto' }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#374151' }}>
                         <thead>
                           <tr style={{ background: '#f9fafb' }}>
-                            {['User', 'Query', 'Intent', 'Fallback', 'Personalized', 'Weight', 'Model Route', 'KG Used', 'PKL Used', 'LLM', 'Fine-tuned'].map((h) => (
-                              <th key={`feedback-user-${h}`} style={{ textAlign: 'left', padding: '6px 5px', borderBottom: '1px solid #e5e7eb', color: '#6b7280', fontWeight: 700 }}>{h}</th>
+                            {['Feedback ID', 'Query ID', 'User', 'Query', 'Intent', 'Feedback', 'Reco Count', 'Model Route', 'Style', 'Event', 'Budget'].map((h) => (
+                              <th key={`qf-${h}`} style={{ textAlign: 'left', padding: '6px 5px', borderBottom: '1px solid #e5e7eb', color: '#6b7280', fontWeight: 700 }}>{h}</th>
                             ))}
                           </tr>
                         </thead>
                         <tbody>
-                          {selectedUserQueryLogs.length === 0 ? (
+                          {queryFeedbackRows.length === 0 ? (
                             <tr>
                               <td colSpan={11} style={{ padding: '18px 8px', textAlign: 'center', color: '#94a3b8' }}>
-                                {selectedQueryLogUser === 'all' ? 'Select a user to view user-specific query logs.' : 'No query logs found for this user.'}
+                                No query feedback records yet.
                               </td>
                             </tr>
                           ) : (
-                            selectedUserQueryLogs.slice(0, 30).map((log: any, idx: number) => (
-                              <tr key={`feedback-user-row-${log.ts || idx}-${log.user_id || 'u'}`}>
-                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{getQueryLogUserLabel(log.user_id)}</td>
-                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6', maxWidth: 260, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={String(log.query || '')}>{String(log.query || '-')}</td>
-                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.intent || 'n/a')}</td>
-                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.fallback_used ? 'Yes' : 'No'}</td>
-                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.personalized ? 'Yes' : 'No'}</td>
-                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{Number(log.final_response_weight || 0).toFixed(3)}</td>
-                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.model_route || log.intent_method || '-')}</td>
-                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.uses_kg ? 'Yes' : 'No'}</td>
-                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.pkl_model_used ? 'Yes' : 'No'}</td>
-                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.llm_used || 'n/a')}</td>
-                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.fine_tuned_model || '-')}</td>
-                              </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </article>
-
-                  <article style={{ borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb', padding: 10, display: 'grid', gap: 8 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>All Query Logs</div>
-                    <div style={{ overflowX: 'auto' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#374151' }}>
-                        <thead>
-                          <tr style={{ background: '#f9fafb' }}>
-                            {['User', 'Query', 'Intent', 'Fallback', 'Personalized', 'Weight', 'Model Route', 'KG Used', 'PKL Used', 'LLM', 'Fine-tuned'].map((h) => (
-                              <th key={`feedback-all-${h}`} style={{ textAlign: 'left', padding: '6px 5px', borderBottom: '1px solid #e5e7eb', color: '#6b7280', fontWeight: 700 }}>{h}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {allQueryLogs.length === 0 ? (
-                            <tr>
-                              <td colSpan={11} style={{ padding: '18px 8px', textAlign: 'center', color: '#94a3b8' }}>
-                                No query logs fetched yet.
-                              </td>
-                            </tr>
-                          ) : (
-                            allQueryLogs.slice(0, 50).map((log: any, idx: number) => (
-                              <tr key={`feedback-all-row-${log.ts || idx}-${log.user_id || 'u'}`}>
-                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{getQueryLogUserLabel(log.user_id)}</td>
-                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6', maxWidth: 260, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={String(log.query || '')}>{String(log.query || '-')}</td>
-                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.intent || 'n/a')}</td>
-                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.fallback_used ? 'Yes' : 'No'}</td>
-                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.personalized ? 'Yes' : 'No'}</td>
-                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{Number(log.final_response_weight || 0).toFixed(3)}</td>
-                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.model_route || log.intent_method || '-')}</td>
-                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.uses_kg ? 'Yes' : 'No'}</td>
-                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{log.pkl_model_used ? 'Yes' : 'No'}</td>
-                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.llm_used || 'n/a')}</td>
-                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{String(log.fine_tuned_model || '-')}</td>
+                            queryFeedbackRows.map((row) => (
+                              <tr key={row.key}>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6', fontFamily: 'monospace' }}>{row.feedbackId}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6', fontFamily: 'monospace' }}>{row.queryId}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{row.userId}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6', maxWidth: 240, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={row.queryText}>{row.queryText}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{row.detectedIntent}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{row.feedbackType}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{formatNumber(row.recommendationCount)}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{row.modelRoute}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{row.structuredStyle}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{row.structuredEvent}</td>
+                                <td style={{ padding: '6px 5px', borderBottom: '1px solid #f3f4f6' }}>{row.structuredBudget}</td>
                               </tr>
                             ))
                           )}
@@ -2684,6 +2657,7 @@ export default function AgenticAIDashboard({
                     </div>
                   </article>
                 </section>
+
               </div>
             </section>
           </>
