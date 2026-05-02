@@ -1,0 +1,115 @@
+.featureops-shell {
+  font-family: "Manrope", "Segoe UI", sans-serif;
+}
+
+.featureops-shell article {
+  background: rgba(16, 28, 44, 0.58) !important;
+  border: 1px solid rgba(142, 175, 207, 0.2) !important;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 24px 54px rgba(3, 8, 16, 0.22);
+}
+
+.featureops-shell table,
+.featureops-shell td,
+.featureops-shell th,
+.featureops-shell div,
+.featureops-shell span,
+.featureops-shell p,
+.featureops-shell strong,
+.featureops-shell label {
+  color: inherit;
+}
+
+.featureops-shell article > div:first-child,
+.featureops-shell h3,
+.featureops-shell h4 {
+  color: #eaf4ff !important;
+}
+
+.featureops-shell .muted-text,
+.featureops-shell article p,
+.featureops-shell small {
+  color: #98abc8 !important;
+}
+
+.featureops-shell table {
+  color: #dbe8f6 !important;
+}
+
+.featureops-shell th {
+  color: #9ab0cc !important;
+}
+
+.featureops-shell td {
+  border-bottom-color: rgba(122, 146, 176, 0.18) !important;
+}
+
+.featureops-shell select,
+.featureops-shell input {
+  border-radius: 10px;
+  border: 1px solid rgba(118, 153, 186, 0.28);
+  background: rgba(8, 17, 29, 0.75);
+  color: #d6e6f8;
+  padding: 0.5rem 0.6rem;
+}
+
+.featureops-shell select option {
+  color: #0f172a;
+}
+
+.featureops-step-copy {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.featureops-step-copy span {
+  color: #dbe8f6 !important;
+}
+
+.featureops-message-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.featureops-message-item {
+  border: 1px solid;
+  border-radius: 10px;
+  padding: 0.65rem 0.8rem;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.featureops-metric-card {
+  border-radius: 10px;
+  border: 1px solid rgba(124, 152, 188, 0.2);
+  background: rgba(22, 39, 63, 0.72);
+  padding: 0.55rem 0.65rem;
+}
+
+.featureops-metric-card span {
+  display: block;
+  color: #97acca !important;
+  font-size: 0.72rem;
+  margin-bottom: 0.25rem;
+}
+
+.featureops-metric-card strong {
+  color: #edf7ff !important;
+  font-size: 0.84rem;
+}
+
+.featureops-empty-state {
+  border: 1px dashed rgba(122, 161, 196, 0.45);
+  border-radius: 12px;
+  background: rgba(14, 28, 46, 0.6);
+  padding: 0.95rem;
+  color: #b4c6df;
+}
+
+.featureops-shell .featureops-chip {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
