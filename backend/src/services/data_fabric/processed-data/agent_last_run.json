@@ -1,0 +1,35 @@
+{
+  "source": "intake",
+  "saved_at": "2026-04-12T13:41:27.371852+00:00",
+  "report": {
+    "started_at": "2026-04-12T19:11:27.342317",
+    "finished_at": "2026-04-12T19:11:27.371687",
+    "new_datasets": [
+      "interactions_dataset",
+      "orders",
+      "orders_live_test",
+      "orders_version_new",
+      "payments",
+      "shops_dataset",
+      "synthetic_outerwear_sri_lanka_with_shop_ids",
+      "transactions10K",
+      "trends_dataset",
+      "user_preferences_dataset",
+      "users_dataset",
+      "virtual_orders_customers_20260307221521",
+      "virtual_orders_orders_version_new_20260308131342",
+      "virtual_orders_orders_version_new_20260308195854",
+      "virtual_transactions10K_users_dataset_20260307220953",
+      "virtual_transactions10K_users_dataset_20260307221439",
+      "virtual_transactions_users"
+    ],
+    "updated_datasets": [],
+    "relationships_discovered": 0,
+    "usage_updates": 0,
+    "behavioral_updates": 226,
+    "drift_flags": 0,
+    "retrained": false,
+    "retrained_model_version": null,
+    "retrained_labels": 42
+  }
+}

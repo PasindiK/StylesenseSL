@@ -20,6 +20,7 @@ class CleaningAction(Enum):
     """Types of cleaning actions performed."""
     DROPPED_NULL_PK = "dropped_null_pk"
     DROPPED_DUPLICATE_PK = "dropped_duplicate_pk"
+    REGENERATED_PK = "regenerated_pk"
     REMOVED_FK_ORPHAN = "removed_fk_orphan"
     FILLED_MISSING_VALUE = "filled_missing_value"
 
@@ -66,6 +67,7 @@ class DataCleaner:
         datasets: Dict[str, pd.DataFrame],
         primary_keys: Dict[str, List[str]],
         foreign_keys: List[Tuple[str, str, str, str]],
+        pk_strategy: str = "drop",
         drop_orphans: bool = True,
         fill_missing: bool = False
     ) -> Tuple[Dict[str, pd.DataFrame], Dict[str, CleaningReport]]:
@@ -76,6 +78,7 @@ class DataCleaner:
             datasets: Dict of {dataset_name: DataFrame}
             primary_keys: Dict of {dataset_name: [pk_columns]}
             foreign_keys: List of (child_dataset, child_col, parent_dataset, parent_col)
+            pk_strategy: "drop" (remove invalid PK rows) or "regenerate" (single-PK only)
             drop_orphans: Whether to remove FK orphans
             fill_missing: Whether to fill missing values
             
@@ -89,7 +92,10 @@ class DataCleaner:
         for dataset_name, df in datasets.items():
             pk_cols = primary_keys.get(dataset_name, [])
             if pk_cols:
-                df = self._clean_primary_keys(df, dataset_name, pk_cols)
+                if pk_strategy == "regenerate":
+                    df = self._regenerate_primary_keys(df, dataset_name, pk_cols)
+                else:
+                    df = self._clean_primary_keys(df, dataset_name, pk_cols)
             cleaned_datasets[dataset_name] = df
         
         # Step 2: Remove foreign key orphans
@@ -111,6 +117,48 @@ class DataCleaner:
                 cleaned_datasets[dataset_name] = df
         
         return cleaned_datasets, self.cleaning_reports
+
+    def _regenerate_primary_keys(
+        self,
+        df: pd.DataFrame,
+        dataset_name: str,
+        pk_columns: List[str],
+    ) -> pd.DataFrame:
+        """Regenerate primary key values for single-column PK datasets.
+
+        This keeps all rows and assigns a deterministic 1..N sequence.
+        """
+        if len(pk_columns) != 1:
+            return self._clean_primary_keys(df, dataset_name, pk_columns)
+
+        pk_col = pk_columns[0]
+        if pk_col not in df.columns:
+            return df
+
+        initial_rows = len(df)
+        regenerated_count = int(
+            df[pk_col].isna().sum()
+            + df[pk_col].dropna().duplicated(keep='first').sum()
+        )
+
+        if initial_rows == 0 or regenerated_count == 0:
+            return df
+
+        df = df.copy()
+        df[pk_col] = pd.Series(range(1, initial_rows + 1), index=df.index, dtype="Int64")
+
+        self.cleaning_reports[dataset_name] = CleaningReport(
+            dataset_name=dataset_name,
+            initial_rows=initial_rows,
+            final_rows=initial_rows,
+            rows_removed=0,
+            actions=[],
+            action_counts={CleaningAction.REGENERATED_PK.value: regenerated_count},
+            details=[
+                f"Regenerated primary key column '{pk_col}' for {initial_rows} rows"
+            ],
+        )
+        return df
     
     def _clean_primary_keys(
         self,

@@ -1,0 +1,1 @@
+"""Global database module placeholder."""

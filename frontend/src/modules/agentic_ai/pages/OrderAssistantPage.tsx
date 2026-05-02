@@ -47,6 +47,8 @@ type SelectionDraft = {
   color?: string
 }
 
+type ShopifyVariantMap = Record<string, number>
+
 type EditableProfile = OrderAssistantProfile
 type SatisfactionAction = 'checkout' | 'add_to_cart'
 
@@ -83,6 +85,121 @@ function buildSelectedProductUrl(url: string | undefined, selection: SelectionDr
   } catch {
     return url
   }
+}
+
+function normalizeVariantToken(value: string | undefined) {
+  return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '')
+}
+
+function parseVariantIdFromAddToCartUrl(url: string | undefined) {
+  if (!url) return undefined
+  try {
+    const parsed = new URL(url)
+    const idParam = parsed.searchParams.get('id')
+    if (idParam && /^\d+$/.test(idParam)) {
+      return Number(idParam)
+    }
+
+    const pathMatch = parsed.pathname.match(/\/cart\/(\d+)(?::\d+)?/i)
+    if (pathMatch?.[1]) {
+      return Number(pathMatch[1])
+    }
+  } catch {
+    return undefined
+  }
+  return undefined
+}
+
+function resolveVariantIdForSelection(variantMap: ShopifyVariantMap | undefined, selection: SelectionDraft) {
+  if (!variantMap) return undefined
+
+  const desiredSize = normalizeVariantToken(selection.size)
+  const desiredColor = normalizeVariantToken(selection.color)
+
+  for (const [compoundKey, variantId] of Object.entries(variantMap)) {
+    const entries = compoundKey.split('|').map((pair) => {
+      const [key, value] = pair.split(':')
+      return { key: String(key || '').toLowerCase(), value: normalizeVariantToken(value) }
+    })
+
+    if (desiredSize) {
+      const sizeEntry = entries.find((entry) => entry.key.includes('size') || entry.key === 'option1')
+      if (!sizeEntry || sizeEntry.value !== desiredSize) {
+        continue
+      }
+    }
+
+    if (desiredColor) {
+      const colorEntry = entries.find((entry) => entry.key.includes('color') || entry.key.includes('colour'))
+      if (!colorEntry || colorEntry.value !== desiredColor) {
+        continue
+      }
+    }
+
+    return variantId
+  }
+
+  return undefined
+}
+
+function buildExternalSiteCartUrl(product: OrderAssistantProduct, selection: SelectionDraft) {
+  const baseProductUrl = product.url
+  const addToCartUrl = product.add_to_cart_url
+  const qty = Math.max(1, Number(selection.quantity || 1))
+
+  const isShopifyProduct = Boolean(baseProductUrl && /\/products\/[^/?#]+/i.test(baseProductUrl))
+  if (isShopifyProduct && baseProductUrl) {
+    let shopifyVariantMap: ShopifyVariantMap | undefined
+    if (product.variants && typeof product.variants === 'object') {
+      const rawMap = (product.variants as { shopify_variant_map?: ShopifyVariantMap }).shopify_variant_map
+      if (rawMap && typeof rawMap === 'object') {
+        shopifyVariantMap = rawMap
+      }
+    }
+
+    const variantId =
+      resolveVariantIdForSelection(shopifyVariantMap, selection) ||
+      parseVariantIdFromAddToCartUrl(addToCartUrl)
+
+    if (variantId) {
+      try {
+        const parsed = new URL(baseProductUrl)
+        const addUrl = new URL(`${parsed.protocol}//${parsed.host}/cart/add`)
+        addUrl.searchParams.set('id', String(variantId))
+        addUrl.searchParams.set('quantity', String(qty))
+        addUrl.searchParams.set('return_to', '/cart')
+        return addUrl.toString()
+      } catch {
+        return undefined
+      }
+    }
+
+    return undefined
+  }
+
+  if (addToCartUrl) {
+    const lower = addToCartUrl.toLowerCase()
+    if (lower.includes('checkout')) {
+      return undefined
+    }
+
+    try {
+      const parsedAddUrl = new URL(addToCartUrl)
+      if (parsedAddUrl.pathname.toLowerCase().includes('/cart/add')) {
+        parsedAddUrl.searchParams.set('quantity', String(qty))
+        if (!parsedAddUrl.searchParams.has('return_to')) {
+          parsedAddUrl.searchParams.set('return_to', '/cart')
+        }
+        return parsedAddUrl.toString()
+      }
+    } catch {
+      return buildSelectedProductUrl(addToCartUrl, selection)
+    }
+
+    return buildSelectedProductUrl(addToCartUrl, selection)
+  }
+
+  return undefined
 }
 
 function computePriceBreakdown(product: OrderAssistantProduct, selection: SelectionDraft): PriceBreakdown {
@@ -1002,15 +1119,17 @@ export default function OrderAssistantPage({
   async function handleActionBubbleClick(kind: 'checkout' | 'add-to-cart', product: OrderAssistantProduct, selection: SelectionDraft) {
     const filteredProductUrl = buildSelectedProductUrl(product.url, selection)
     const filteredCheckoutUrl = buildSelectedProductUrl(product.buy_now_url || product.checkout_url || product.url, selection)
-    const filteredAddToCartUrl = buildSelectedProductUrl(product.add_to_cart_url || product.url, selection)
+    const externalSiteCartUrl = buildExternalSiteCartUrl(product, selection)
 
     if (kind === 'add-to-cart') {
       addUserActionMessage('Add to Cart')
       setLoading(true)
       try {
         await addToGlobalCart(product, selection)
-        if (filteredAddToCartUrl && typeof window !== 'undefined') {
-          window.open(filteredAddToCartUrl, '_blank', 'noopener,noreferrer')
+        let openedSiteCart = false
+        if (externalSiteCartUrl && typeof window !== 'undefined') {
+          window.open(externalSiteCartUrl, '_blank', 'noopener,noreferrer')
+          openedSiteCart = true
         }
         if (onOpenShoppingCart) {
           await onOpenShoppingCart()
@@ -1023,7 +1142,9 @@ export default function OrderAssistantPage({
           {
             id: crypto.randomUUID(),
             sender: 'assistant',
-            text: 'Added to site cart and app global cart.',
+            text: openedSiteCart
+              ? 'Added to site cart and app global cart.'
+              : 'Added to app global cart. External site cart link is unavailable for this product/selection.',
             at: nowText(),
           },
         ])
@@ -1657,7 +1778,24 @@ export default function OrderAssistantPage({
                           />
                         </label>
                         <div style={{ display: 'flex', gap: 8 }}>
-                          <button type="button" onClick={handleSaveProfile} disabled={loading}>Save</button>
+                          <button
+                            type="button"
+                            onClick={handleSaveProfile}
+                            disabled={loading}
+                            style={{
+                              borderRadius: 6,
+                              border: '1px solid rgba(34,197,94,0.5)',
+                              background: 'rgba(22,163,74,0.8)',
+                              color: '#ffffff',
+                              padding: '8px 14px',
+                              fontSize: 13,
+                              fontWeight: 600,
+                              cursor: loading ? 'not-allowed' : 'pointer',
+                              opacity: loading ? 0.6 : 1,
+                            }}
+                          >
+                            Save
+                          </button>
                           <button
                             type="button"
                             onClick={() => {
@@ -1665,6 +1803,17 @@ export default function OrderAssistantPage({
                               setProfileEditMode(false)
                             }}
                             disabled={loading}
+                            style={{
+                              borderRadius: 6,
+                              border: '1px solid rgba(107,114,128,0.5)',
+                              background: 'rgba(55,65,81,0.6)',
+                              color: '#e2e8f0',
+                              padding: '8px 14px',
+                              fontSize: 13,
+                              fontWeight: 600,
+                              cursor: loading ? 'not-allowed' : 'pointer',
+                              opacity: loading ? 0.6 : 1,
+                            }}
                           >
                             Cancel
                           </button>
@@ -1691,6 +1840,17 @@ export default function OrderAssistantPage({
                                 setProfileEditMode(true)
                               }}
                               disabled={loading}
+                              style={{
+                                borderRadius: 6,
+                                border: '1px solid rgba(59,130,246,0.5)',
+                                background: 'rgba(37,99,235,0.7)',
+                                color: '#ffffff',
+                                padding: '8px 14px',
+                                fontSize: 13,
+                                fontWeight: 600,
+                                cursor: loading ? 'not-allowed' : 'pointer',
+                                opacity: loading ? 0.6 : 1,
+                              }}
                             >
                               Edit Profile
                             </button>
@@ -1702,6 +1862,17 @@ export default function OrderAssistantPage({
                                 void handleConfirmProfileDetails()
                               }}
                               disabled={loading}
+                              style={{
+                                borderRadius: 6,
+                                border: '1px solid rgba(34,197,94,0.5)',
+                                background: 'rgba(22,163,74,0.8)',
+                                color: '#ffffff',
+                                padding: '8px 14px',
+                                fontSize: 13,
+                                fontWeight: 600,
+                                cursor: loading ? 'not-allowed' : 'pointer',
+                                opacity: loading ? 0.6 : 1,
+                              }}
                             >
                               {profileCheckoutOnlyMode ? 'Checkout' : 'Confirm Details'}
                             </button>

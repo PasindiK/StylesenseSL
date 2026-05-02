@@ -1,0 +1,1 @@
+"""Global configuration module placeholder."""

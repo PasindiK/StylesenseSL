@@ -1,0 +1,1 @@
+"""Global security module placeholder."""

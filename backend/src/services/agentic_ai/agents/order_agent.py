@@ -280,6 +280,7 @@ class OrderAgent:
                         robust_result['shipping_availability'] = checkout_shipping.get('shipping_availability') or 'Unknown'
                         if checkout_shipping.get('shipping_fee') is not None:
                             robust_result['shipping_fee'] = checkout_shipping.get('shipping_fee')
+                    robust_result = self._enrich_shopify_cart_links(url, robust_result)
                     robust_result = self._apply_ordered_size_extraction(url, robust_result, html_for_sizes=html_for_links)
                     return self._enrich_product_variants_with_rendered_html(url, robust_result)
             except Exception as robust_err:
@@ -329,6 +330,7 @@ class OrderAgent:
                     jsonld_product['shipping_availability'] = checkout_shipping.get('shipping_availability') or 'Unknown'
                     if checkout_shipping.get('shipping_fee') is not None:
                         jsonld_product['shipping_fee'] = checkout_shipping.get('shipping_fee')
+                jsonld_product = self._enrich_shopify_cart_links(url, jsonld_product)
                 jsonld_product['variants'] = {
                     'sizes': jsonld_product.get('available_sizes') or [],
                     'colors': jsonld_product.get('available_colors') or [],
@@ -341,6 +343,7 @@ class OrderAgent:
                 return None
 
             soup_product = self._extract_soup_fallback_product(soup, url, shop_name, domain)
+            soup_product = self._enrich_shopify_cart_links(url, soup_product)
             soup_product = self._apply_ordered_size_extraction(url, soup_product, html_for_sizes=html, soup_for_sizes=soup)
             return self._enrich_product_variants_with_rendered_html(url, soup_product)
 
@@ -536,8 +539,90 @@ class OrderAgent:
             'variants': {
                 'sizes': deduped_sizes,
                 'colors': deduped_colors,
+                'shopify_variant_map': self._build_shopify_variant_map(options, variants),
             },
         }
+
+    def _build_shopify_variant_map(self, options: List[Dict[str, Any]], variants: List[Dict[str, Any]]) -> Dict[str, int]:
+        """Build a normalized option-combination -> variant id map for Shopify products."""
+        option_name_by_index: Dict[int, str] = {}
+        for idx, option in enumerate(options, start=1):
+            if isinstance(option, dict):
+                option_name_by_index[idx] = str(option.get('name') or '').strip().lower()
+
+        def normalize_token(value: Any) -> str:
+            return re.sub(r'[^a-z0-9]+', '', str(value or '').strip().lower())
+
+        variant_map: Dict[str, int] = {}
+        for variant in variants:
+            if not isinstance(variant, dict):
+                continue
+            variant_id = variant.get('id')
+            if not isinstance(variant_id, int):
+                continue
+
+            parts: List[str] = []
+            for idx, key in enumerate(['option1', 'option2', 'option3'], start=1):
+                raw = str(variant.get(key) or '').strip()
+                if not raw:
+                    continue
+                option_name = option_name_by_index.get(idx, f'option{idx}')
+                normalized_value = normalize_token(raw)
+                if not normalized_value:
+                    continue
+                parts.append(f'{option_name}:{normalized_value}')
+
+            if parts:
+                variant_map['|'.join(parts)] = variant_id
+
+        return variant_map
+
+    def _enrich_shopify_cart_links(self, url: str, product: Dict[str, Any]) -> Dict[str, Any]:
+        """Ensure Shopify products always include a deterministic add-to-cart URL and variant map."""
+        if not isinstance(product, dict):
+            return product
+        if not re.search(r"/products/[^/?#]+", str(url), flags=re.I):
+            return product
+
+        parsed = urlparse(url)
+        handle_match = re.search(r"/products/([^/?#.]+)", parsed.path, flags=re.I)
+        if not handle_match:
+            return product
+
+        handle = handle_match.group(1)
+        base_url = f"{parsed.scheme}://{parsed.netloc}"
+        json_url = f"{base_url}/products/{handle}.js"
+
+        try:
+            response = requests.get(json_url, headers=self.headers, timeout=15)
+            response.raise_for_status()
+            payload = response.json()
+        except Exception:
+            return product
+
+        variants = payload.get('variants') or []
+        options = payload.get('options') or []
+        available_variants = [v for v in variants if isinstance(v, dict) and bool(v.get('available', True))]
+        candidate_variant = available_variants[0] if available_variants else (variants[0] if variants else None)
+        candidate_variant_id = candidate_variant.get('id') if isinstance(candidate_variant, dict) else None
+
+        variant_map = self._build_shopify_variant_map(
+            [opt for opt in options if isinstance(opt, dict)],
+            [v for v in variants if isinstance(v, dict)],
+        )
+
+        existing_variants = product.get('variants') if isinstance(product.get('variants'), dict) else {}
+        product['variants'] = {
+            **existing_variants,
+            'shopify_variant_map': variant_map,
+        }
+
+        if isinstance(candidate_variant_id, int):
+            product['add_to_cart_url'] = f"{base_url}/cart/{candidate_variant_id}:1"
+
+        product.setdefault('checkout_url', f"{base_url}/checkout")
+        product.setdefault('buy_now_url', f"{base_url}/checkout")
+        return product
 
     def _extract_jsonld_product(self, html: str, url: str, shop_name: str, domain: str) -> Optional[Dict[str, Any]]:
         """Try JSON-LD Product extraction using extruct first, then script fallback."""

@@ -11,6 +11,7 @@ import logging
 import pandas as pd
 from typing import Any, Dict, Optional
 from datetime import datetime
+import warnings
 
 logger = logging.getLogger(__name__)
 
@@ -18,22 +19,18 @@ logger = logging.getLogger(__name__)
 class DataPreprocessor:
     """Dynamic data preprocessing with automatic transformations."""
 
-    # Common date column patterns
+    # Date-like tokens matched as whole words or underscore-separated terms.
     DATE_COLUMN_PATTERNS = [
-        r"date",
-        r"time",
-        r"created",
-        r"updated",
-        r"modified",
-        r"timestamp",
-        r"birth",
-        r"expir",
-        r"valid",
-        r"start",
-        r"end",
-        r"year",
-        r"month",
-        r"day",
+        r"(^|_)(date|time|timestamp)($|_)",
+        r"(^|_)(created|updated|modified)($|_)",
+        r"(^|_)(birth|expiry|expired|valid|start|end)($|_)",
+        r"(^|_)(year|month|day)($|_)",
+    ]
+
+    IDENTIFIER_COLUMN_PATTERNS = [
+        r"_id$",
+        r"^id$",
+        r"^id_",
     ]
 
     # Common numeric column patterns
@@ -154,9 +151,20 @@ class DataPreprocessor:
             True if column likely contains dates
         """
         column_lower = column_name.lower()
+        if DataPreprocessor.is_identifier_column(column_lower):
+            return False
         return any(
             re.search(pattern, column_lower)
             for pattern in DataPreprocessor.DATE_COLUMN_PATTERNS
+        )
+
+    @staticmethod
+    def is_identifier_column(column_name: str) -> bool:
+        """Check if column name represents an identifier key."""
+        column_lower = column_name.lower()
+        return any(
+            re.search(pattern, column_lower)
+            for pattern in DataPreprocessor.IDENTIFIER_COLUMN_PATTERNS
         )
 
     @staticmethod
@@ -188,8 +196,14 @@ class DataPreprocessor:
             Normalized date Series in ISO format
         """
         try:
-            # Try to parse dates with automatic format detection
-            parsed = pd.to_datetime(series, errors="coerce")
+            # Parse mixed date formats explicitly; fallback keeps compatibility
+            # with older pandas versions that may not support format="mixed".
+            try:
+                parsed = pd.to_datetime(series, errors="coerce", format="mixed")
+            except (TypeError, ValueError):
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", category=UserWarning)
+                    parsed = pd.to_datetime(series, errors="coerce")
             
             # Convert to ISO format string (YYYY-MM-DD)
             # If datetime has time component, use ISO 8601 with time

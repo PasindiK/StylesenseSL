@@ -1681,16 +1681,21 @@ export default function AgenticAIDashboard({
                               border: '1px solid #1e293b',
                               background: '#1e293b',
                               color: '#f8fafc',
-                              width: 34,
                               height: 34,
+                              minWidth: 94,
                               display: 'inline-flex',
                               alignItems: 'center',
                               justifyContent: 'center',
+                              gap: 6,
+                              padding: '0 10px',
+                              fontSize: 12,
+                              fontWeight: 700,
                               cursor: 'pointer',
                               boxShadow: '0 2px 8px rgba(15,23,42,0.25)',
                             }}
                           >
-                            <RefreshCw size={13} />
+                            <RefreshCw size={16} color="#f8fafc" strokeWidth={2.8} absoluteStrokeWidth />
+                            refresh
                           </button>
                         </div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -1764,17 +1769,22 @@ export default function AgenticAIDashboard({
                           border: '1px solid #1e293b',
                           background: '#1e293b',
                           color: '#f8fafc',
-                          width: 34,
                           height: 34,
+                          minWidth: 94,
                           display: 'inline-flex',
                           alignItems: 'center',
                           justifyContent: 'center',
+                          gap: 6,
+                          padding: '0 10px',
+                          fontSize: 12,
+                          fontWeight: 700,
                           cursor: cartSummaryRefreshing ? 'not-allowed' : 'pointer',
                           boxShadow: '0 2px 8px rgba(15,23,42,0.25)',
                           opacity: cartSummaryRefreshing ? 0.65 : 1,
                         }}
                       >
-                        <RefreshCw size={13} />
+                        <RefreshCw size={16} color="#f8fafc" strokeWidth={2.8} absoluteStrokeWidth />
+                        refresh
                       </button>
                     </div>
                     <div>Items in Cart: <strong>{formatNumber(Number(userProfileData.cart_summary?.items_count || 0))}</strong></div>
@@ -1864,9 +1874,11 @@ export default function AgenticAIDashboard({
                     <button
                       type="button"
                       onClick={() => setMetricsRefreshTick((v) => v + 1)}
-                      style={{ borderRadius: 6, border: '1px solid #334155', background: '#1f2937', color: '#f8fafc', fontSize: 11, padding: '4px 8px', cursor: 'pointer' }}
+                      title="Refresh knowledge graph metrics"
+                      aria-label="Refresh knowledge graph metrics"
+                      style={{ borderRadius: 999, border: '2px solid #334155', background: '#e2e8f0', color: '#020617', width: 36, height: 36, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                     >
-                      Refresh
+                      <RefreshCw size={18} color="#020617" strokeWidth={3} />
                     </button>
                   </div>
                 </div>
@@ -2168,9 +2180,11 @@ export default function AgenticAIDashboard({
                     <button
                       type="button"
                       onClick={() => setMetricsRefreshTick((v) => v + 1)}
-                      style={{ border: 'none', background: 'transparent', color: '#374151', fontSize: 10, fontWeight: 700, padding: '4px 4px', cursor: 'pointer' }}
+                      title="Refresh system overview"
+                      aria-label="Refresh system overview"
+                      style={{ borderRadius: 999, border: '2px solid #334155', background: '#e2e8f0', color: '#0f172a', width: 36, height: 36, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 1px 4px rgba(15,23,42,0.12)' }}
                     >
-                      Refresh
+                      <RefreshCw size={18} color="#020617" strokeWidth={3} />
                     </button>
                   </div>
                 </div>
@@ -2535,9 +2549,11 @@ export default function AgenticAIDashboard({
                   <button
                     type="button"
                     onClick={() => setMetricsRefreshTick((v) => v + 1)}
-                    style={{ borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', color: '#0f172a', fontSize: 12, padding: '6px 10px', cursor: 'pointer' }}
+                    title="Refresh feedback center metrics"
+                    aria-label="Refresh feedback center metrics"
+                    style={{ borderRadius: 999, border: '2px solid #334155', background: '#e2e8f0', color: '#0f172a', width: 38, height: 38, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 1px 5px rgba(15,23,42,0.12)' }}
                   >
-                    Refresh
+                    <RefreshCw size={18} color="#020617" strokeWidth={3} />
                   </button>
                 </div>
 

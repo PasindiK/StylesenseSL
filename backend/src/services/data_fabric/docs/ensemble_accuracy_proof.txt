@@ -1,0 +1,65 @@
+ENSEMBLE ACCURACY COMPARISON (CURRENT MODEL ARTIFACTS)
+=======================================================
+Date: 2026-03-06
+Project: StylesenseSL / Data Fabric
+Purpose: Compare accuracy of LR-only, RF-only, and RF-heavy LR+RF ensemble
+using the current deployed .pkl files.
+
+Model Artifacts Used
+--------------------
+1) relationship_model_lr_v1.pkl  -> LogisticRegression
+2) relationship_model_v1.pkl     -> RandomForestClassifier
+3) Ensemble score                -> 0.3 * p(LR) + 0.7 * p(RF)
+
+Evaluation Setup
+----------------
+- Data source: synthetic dataset generator in scripts/train_relationship_model.py
+- Labels: generated from defined ground-truth links in the same script
+- Split: test_size=0.20, random_state=42, stratified
+- Prediction threshold: 0.50
+- Test set distribution: 17 samples (1 positive, 16 negative)
+
+Measured Results (Current Run)
+------------------------------
+Accuracy
+- LR only       : 0.8235
+- RF only       : 0.9412
+- Ensemble 30/70: 0.8824
+
+F1 Score
+- LR only       : 0.4000
+- RF only       : 0.6667
+- Ensemble 30/70: 0.5000
+
+Precision
+- LR only       : 0.2500
+- RF only       : 0.5000
+- Ensemble 30/70: 0.3333
+
+Recall
+- LR only       : 1.0000
+- RF only       : 1.0000
+- Ensemble 30/70: 1.0000
+
+ROC-AUC
+- LR only       : 1.0000
+- RF only       : 1.0000
+- Ensemble 30/70: 1.0000
+
+Direct Answer to "ensemble > each individual model?"
+-----------------------------------------------------
+For this current run: NO.
+- RF-only accuracy (0.9412) is higher than ensemble accuracy (0.8824).
+- Ensemble is higher than LR-only, but not higher than RF-only.
+
+Interpretation
+--------------
+This is expected in some datasets/runs: even an RF-heavy ensemble does not
+always beat the strongest single model. Ensemble can improve robustness, but
+accuracy gain is data-dependent.
+
+Recommendation for Fair Thesis Reporting
+----------------------------------------
+- Report all three metrics transparently (LR, RF, Ensemble).
+- Use larger test sets and repeated-split averages for final claims.
+- If needed, tune weights (instead of fixed defaults) on validation data.
