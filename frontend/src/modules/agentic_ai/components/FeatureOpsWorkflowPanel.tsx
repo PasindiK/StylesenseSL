@@ -141,11 +141,36 @@ type StoredVersion = {
   release_results: ReleaseResult[]
 }
 
+type VersionPairComparison = {
+  left: StoredVersion
+  right: StoredVersion
+  external: ExternalDriftResult[]
+  releaseByColumn: Record<string, ReleaseResult>
+  severityCounts: Record<DriftSeverity, number>
+  comparedColumns: number
+}
+
+type SanityCheckResult = {
+  passed: boolean
+  requiredColumns: string[]
+  importantColumns: string[]
+  missingColumns: string[]
+  extraColumns: string[]
+  columnCountDelta: number
+}
+
+type DuplicateDatasetResult = {
+  familyId: string
+  familyName: string
+  versionNumber: number
+}
+
 type DriftRunRecord = {
   run_id: string
   dataset_name: string
   family_id?: string | null
   version_id?: string | null
+  version_number?: number | null
   created_at: string
   dataset_rows?: DatasetRow[] | null
   dataset_fingerprint: DatasetFingerprint
@@ -157,7 +182,7 @@ type DriftRunRecord = {
 type StatusMessage = {
   id: string
   ts: string
-  type: 'success' | 'warning' | 'error' | 'info'
+  type: 'success' | 'warning' | 'error' | 'info' | 'pending'
   message: string
 }
 
@@ -339,10 +364,12 @@ function detectRole(profile: ColumnProfile): RoleDetection {
   let confidence = 0.25
   let reason = 'No strong deterministic pattern matched.'
 
-  if (keywordMatch(name, IDENTIFIER_KEYWORDS) && profile.unique_percent >= 0.75) {
+  if (keywordMatch(name, IDENTIFIER_KEYWORDS) && (profile.unique_percent >= 0.2 || name.endsWith('id'))) {
     detectedRole = 'Identifier'
-    confidence = 0.98
-    reason = 'Contains ID keyword and behaves like a high-uniqueness identifier.'
+    confidence = profile.unique_percent >= 0.75 ? 0.98 : 0.86
+    reason = profile.unique_percent >= 0.75
+      ? 'Contains ID keyword and behaves like a high-uniqueness identifier.'
+      : 'Contains ID keyword and behaves like a repeated entity identifier.'
   } else if (keywordMatch(name, TIMESTAMP_KEYWORDS) || profile.valid_date_percent >= 0.9) {
     detectedRole = 'Timestamp'
     confidence = keywordMatch(name, TIMESTAMP_KEYWORDS) && profile.valid_date_percent >= 0.75 ? 0.99 : 0.84
@@ -406,8 +433,12 @@ function assessRoleFit(profile: ColumnProfile, role: GenericRole, detection: Rol
   let confidence = 0.35
   let reason = 'Manual override applied, but the current column profile only weakly supports this role.'
   if (role === 'Identifier') {
-    confidence = profile.unique_percent >= 0.75 ? 0.86 : 0.48
-    reason = profile.unique_percent >= 0.75 ? 'Manual override fits a high-uniqueness identifier pattern.' : 'Identifier override has weak uniqueness support.'
+    confidence = keywordMatch(profile.column_name, IDENTIFIER_KEYWORDS) ? 0.84 : profile.unique_percent >= 0.75 ? 0.86 : 0.48
+    reason = keywordMatch(profile.column_name, IDENTIFIER_KEYWORDS)
+      ? 'Manual override fits an identifier-like column name even when entities repeat across rows.'
+      : profile.unique_percent >= 0.75
+        ? 'Manual override fits a high-uniqueness identifier pattern.'
+        : 'Identifier override has weak uniqueness support.'
   } else if (role === 'Timestamp') {
     confidence = profile.valid_date_percent >= 0.85 ? 0.92 : 0.34
     reason = profile.valid_date_percent >= 0.85 ? 'Manual override fits a strong datetime parsing pattern.' : 'Timestamp override has weak datetime evidence.'
@@ -701,6 +732,94 @@ function buildReleaseResults(profiles: ColumnProfile[], roles: Record<string, Ge
   })
 }
 
+function runVersionSanityCheck(currentColumns: string[], baselineVersion: StoredVersion | null): SanityCheckResult {
+  if (!baselineVersion) {
+    return {
+      passed: true,
+      requiredColumns: [],
+      importantColumns: [],
+      missingColumns: [],
+      extraColumns: [],
+      columnCountDelta: 0,
+    }
+  }
+  const baselineColumns = baselineVersion.column_names || []
+  const baselineSet = new Set(baselineColumns)
+  const currentSet = new Set(currentColumns)
+  const importantColumns = (baselineVersion.dataset_fingerprint?.important_columns || []).filter(Boolean)
+  const requiredColumns = importantColumns.length ? importantColumns : baselineColumns.slice(0, Math.min(5, baselineColumns.length))
+  const missingColumns = baselineColumns.filter((column) => !currentSet.has(column))
+  const missingImportant = requiredColumns.filter((column) => !currentSet.has(column))
+  const extraColumns = currentColumns.filter((column) => !baselineSet.has(column))
+  const columnCountDelta = Math.abs(currentColumns.length - baselineColumns.length)
+  const passed = missingColumns.length === 0 && missingImportant.length === 0 && columnCountDelta <= Math.max(2, Math.ceil(baselineColumns.length * 0.2))
+  return {
+    passed,
+    requiredColumns,
+    importantColumns,
+    missingColumns,
+    extraColumns,
+    columnCountDelta,
+  }
+}
+
+function buildVersionPairComparison(left: StoredVersion | null, right: StoredVersion | null): VersionPairComparison | null {
+  if (!left || !right) return null
+  const external = buildExternalDrift(right.semantic_profiles || [], left, `v${right.version_number}`)
+  const externalMap = external.reduce<Record<string, ExternalDriftResult>>((acc, item) => {
+    acc[item.column_name] = item
+    return acc
+  }, {})
+  const releaseByColumn = (right.release_results || []).reduce<Record<string, ReleaseResult>>((acc, row) => {
+    acc[row.column_name] = row
+    return acc
+  }, {})
+  const severityCounts = external.reduce((acc, row) => {
+    acc[row.drift_severity] += 1
+    return acc
+  }, { NONE: 0, LOW: 0, MODERATE: 0, HIGH: 0 } as Record<DriftSeverity, number>)
+  Object.keys(releaseByColumn).forEach((column) => {
+    if (!externalMap[column]) {
+      severityCounts.NONE += 1
+    }
+  })
+  return {
+    left,
+    right,
+    external,
+    releaseByColumn,
+    severityCounts,
+    comparedColumns: Math.max(external.length, Object.keys(releaseByColumn).length),
+  }
+}
+
+function buildDatasetContentSignature(rows: DatasetRow[], fallback?: {
+  row_count?: number | null
+  column_count?: number | null
+  column_names?: string[]
+  dataset_fingerprint?: DatasetFingerprint | null
+}) {
+  if (rows.length) {
+    const normalizedRows = rows.map((row) => Object.keys(row).sort().reduce<Record<string, DatasetValue>>((acc, key) => {
+      const value = row[key]
+      if (value == null) acc[key] = null
+      else if (typeof value === 'boolean') acc[key] = value
+      else acc[key] = String(value).trim()
+      return acc
+    }, {}))
+    const canonicalRows = normalizedRows
+      .map((row) => JSON.stringify(row))
+      .sort()
+    return JSON.stringify(canonicalRows)
+  }
+  return JSON.stringify({
+    row_count: fallback?.row_count ?? null,
+    column_count: fallback?.column_count ?? null,
+    column_names: fallback?.column_names || [],
+    dataset_fingerprint: fallback?.dataset_fingerprint || null,
+  })
+}
+
 function readDatasetText(file: File) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader()
@@ -781,10 +900,27 @@ function releaseTone(status: FeatureStatus) {
 }
 
 function messageTone(type: StatusMessage['type']) {
+  if (type === 'pending') return { bg: '#eff6ff', border: '#bfdbfe', text: '#1d4ed8' }
   if (type === 'success') return { bg: '#f0fdf4', border: '#bbf7d0', text: '#166534' }
   if (type === 'warning') return { bg: '#fffbeb', border: '#fde68a', text: '#92400e' }
   if (type === 'error') return { bg: '#fef2f2', border: '#fecaca', text: '#991b1b' }
   return { bg: '#eff6ff', border: '#bfdbfe', text: '#1d4ed8' }
+}
+
+function workflowStatusLabel(status: WorkflowStatus) {
+  if (status === 'completed') return 'COMPLETE'
+  if (status === 'running') return 'RUNNING'
+  if (status === 'skipped') return 'SKIPPED'
+  if (status === 'failed') return 'FAILED'
+  return 'PENDING'
+}
+
+function workflowStatusTone(status: WorkflowStatus) {
+  if (status === 'completed') return { bg: '#f0fdf4', border: '#bbf7d0', text: '#166534' }
+  if (status === 'running') return { bg: '#eff6ff', border: '#bfdbfe', text: '#1d4ed8' }
+  if (status === 'skipped') return { bg: '#f8fafc', border: '#cbd5e1', text: '#475569' }
+  if (status === 'failed') return { bg: '#fef2f2', border: '#fecaca', text: '#991b1b' }
+  return { bg: '#fff7ed', border: '#fed7aa', text: '#9a3412' }
 }
 
 function summarizeReleaseResults(results: ReleaseResult[]) {
@@ -804,40 +940,33 @@ type WorkflowStep = {
   label: string
   status: WorkflowStatus
   agent: string
+  detail: string
+  duration: string
   reason?: string
 }
 
-function buildWorkflowSteps(mode: 'baseline' | 'version', stage: number, failed = false): WorkflowStep[] {
+function buildWorkflowSteps(mode: 'baseline' | 'version', stage: number, failed = false, columnCount = 0): WorkflowStep[] {
   const baselineSteps: Array<Omit<WorkflowStep, 'status'>> = [
-    { label: 'Step 1: Load uploaded dataset', agent: 'Ingestion Agent' },
-    { label: 'Step 2: Profile columns', agent: 'Profiling Agent' },
-    { label: 'Step 3: Map generic schema roles', agent: 'Schema Mapping Agent' },
-    { label: 'Step 4: Build semantic profiles', agent: 'Semantic Profile Agent' },
-    { label: 'Step 5: Detect internal semantic drift', agent: 'Semantic Drift Agent' },
-    { label: 'Step 6: Compare with previous baseline', agent: 'Baseline Comparison Agent', reason: 'Skipped for first baseline because there is no prior baseline to compare.' },
-    { label: 'Step 7: Run feature release gate', agent: 'Release Gate Agent' },
-    { label: 'Step 8: Save baseline family', agent: 'Registry Writer Agent' },
-    { label: 'Step 9: Registry update', agent: 'Registry Update Agent' },
-    { label: 'Step 10: Generate report', agent: 'Reporting Agent' },
+    { label: '1. Dataset Upload', agent: 'Ingestion Agent', detail: 'Uploaded dataset accepted and staged for semantic monitoring.', duration: '0.4s' },
+    { label: '2. Column Profiling', agent: 'Profiling Agent', detail: `${columnCount || 0} columns profiled for type, scale, missingness, and patterns.`, duration: '0.9s' },
+    { label: '3. Semantic Profile Creation', agent: 'Semantic Profile Agent', detail: 'Generic roles, units, and semantic signatures generated.', duration: '1.0s' },
+    { label: '4. Internal Drift Check', agent: 'Semantic Drift Agent', detail: `${columnCount || 0} columns checked inside the uploaded dataset.`, duration: '1.2s' },
+    { label: '5. External Drift Check', agent: 'Baseline Comparison Agent', detail: 'Skipped because a brand-new baseline has no previous version to compare against.', duration: 'skipped' },
+    { label: '6. Release Gate & Registry Update', agent: 'Release Gate Agent', detail: 'Release decisions recorded and baseline family saved into the registry.', duration: '0.8s' },
   ]
   const versionSteps: Array<Omit<WorkflowStep, 'status'>> = [
-    { label: 'Step 1: Load uploaded dataset', agent: 'Ingestion Agent' },
-    { label: 'Step 2: Profile columns', agent: 'Profiling Agent' },
-    { label: 'Step 3: Map generic schema roles', agent: 'Schema Mapping Agent' },
-    { label: 'Step 4: Build semantic profiles', agent: 'Semantic Profile Agent' },
-    { label: 'Step 5: Detect internal semantic drift', agent: 'Semantic Drift Agent' },
-    { label: 'Step 6: Load selected baseline version', agent: 'History Loader Agent' },
-    { label: 'Step 7: Detect external semantic drift', agent: 'Baseline Comparison Agent' },
-    { label: 'Step 8: Run feature release gate', agent: 'Release Gate Agent' },
-    { label: 'Step 9: Save new dataset version', agent: 'Registry Writer Agent' },
-    { label: 'Step 10: Registry update', agent: 'Registry Update Agent' },
-    { label: 'Step 11: Generate report', agent: 'Reporting Agent' },
+    { label: '1. Dataset Upload', agent: 'Ingestion Agent', detail: 'Uploaded dataset accepted and staged for semantic monitoring.', duration: '0.4s' },
+    { label: '2. Column Profiling', agent: 'Profiling Agent', detail: `${columnCount || 0} columns profiled for type, scale, missingness, and patterns.`, duration: '0.9s' },
+    { label: '3. Semantic Profile Creation', agent: 'Semantic Profile Agent', detail: 'Generic roles, units, and semantic signatures generated.', duration: '1.0s' },
+    { label: '4. Internal Drift Check', agent: 'Semantic Drift Agent', detail: `${columnCount || 0} columns checked inside the uploaded dataset.`, duration: '1.2s' },
+    { label: '5. External Drift Check', agent: 'Baseline Comparison Agent', detail: 'Current upload compared against the selected saved baseline version.', duration: '1.1s' },
+    { label: '6. Release Gate & Registry Update', agent: 'Release Gate Agent', detail: 'Release decisions recorded and new version saved into the registry.', duration: '0.9s' },
   ]
   const steps = mode === 'baseline' ? baselineSteps : versionSteps
   return steps.map((step, index) => {
     const current = index + 1
     if (failed && current === stage) return { ...step, status: 'failed' }
-    if (mode === 'baseline' && current === 6) return { ...step, status: 'skipped' }
+    if (mode === 'baseline' && current === 5) return { ...step, status: 'skipped' }
     if (current < stage) return { ...step, status: 'completed' }
     if (current === stage) return { ...step, status: 'running' }
     return { ...step, status: 'pending' }
@@ -869,11 +998,25 @@ export default function FeatureOpsWorkflowPanel() {
   const [workflowSteps, setWorkflowSteps] = useState<WorkflowStep[]>([])
   const [lastWorkflowMode, setLastWorkflowMode] = useState<'baseline' | 'version' | null>(null)
   const [reportText, setReportText] = useState('')
+  const [evidenceFilter, setEvidenceFilter] = useState<'All' | 'Drifted' | 'Conditional' | 'Quarantined'>('All')
+  const [releaseFilter, setReleaseFilter] = useState<'All' | FeatureStatus>('All')
+  const [selectedCompareVersions, setSelectedCompareVersions] = useState<number[]>([])
+  const [historyModalViewMode, setHistoryModalViewMode] = useState<'comparison' | 'left' | 'right'>('comparison')
+  const [dashboardCompareViewMode, setDashboardCompareViewMode] = useState<'comparison' | 'left' | 'right'>('comparison')
+  const [sanityCheckResult, setSanityCheckResult] = useState<SanityCheckResult | null>(null)
+  const [duplicateDatasetResult, setDuplicateDatasetResult] = useState<DuplicateDatasetResult | null>(null)
+  const [expandedSummaryKey, setExpandedSummaryKey] = useState<string | null>(null)
+  const [expandedWorkflowStepKey, setExpandedWorkflowStepKey] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const pendingVersionFamilyIdRef = useRef<string | null>(null)
 
   const datasetRows = uploadedRows ?? []
   const hasUpload = datasetRows.length > 0
   const columns = useMemo(() => Array.from(new Set(datasetRows.flatMap((row) => Object.keys(row)))), [datasetRows])
+  const currentDatasetSignature = useMemo(
+    () => buildDatasetContentSignature(datasetRows, { row_count: datasetRows.length, column_count: columns.length, column_names: columns }),
+    [columns, datasetRows],
+  )
   const profiles = useMemo(() => columns.map((column) => buildColumnProfile(column, datasetRows, columns.length)), [columns, datasetRows])
   const detections = useMemo(() => profiles.reduce<Record<string, RoleDetection>>((acc, profile) => {
     acc[profile.column_name] = detectRole(profile)
@@ -896,12 +1039,24 @@ export default function FeatureOpsWorkflowPanel() {
     if (!selectedFamilyId || selectedVersionNumber == null) return null
     return (familyVersions[selectedFamilyId] || []).find((item) => item.version_number === selectedVersionNumber) || null
   }, [familyVersions, selectedFamilyId, selectedVersionNumber])
+  const registryLatestVersion = useMemo(() => {
+    if (!selectedFamilyId) return null
+    const list = familyVersions[selectedFamilyId] || []
+    if (!list.length) return null
+    return list.reduce((best, item) => (item.version_number > best.version_number ? item : best), list[0])
+  }, [familyVersions, selectedFamilyId])
+  const externalDriftBaseline = useMemo(() => {
+    if (hasUpload && selectedFamilyId && registryLatestVersion) {
+      return registryLatestVersion
+    }
+    return selectedBaseline
+  }, [hasUpload, registryLatestVersion, selectedBaseline, selectedFamilyId])
   const internalDrift = useMemo(() => buildInternalDrift(profiles, roles, datasetRows), [datasetRows, profiles, roles])
   const internalMap = useMemo(() => internalDrift.reduce<Record<string, InternalDriftResult>>((acc, item) => {
     acc[item.column_name] = item
     return acc
   }, {}), [internalDrift])
-  const externalDrift = useMemo(() => buildExternalDrift(semanticProfiles, selectedBaseline, 'current_upload'), [selectedBaseline, semanticProfiles])
+  const externalDrift = useMemo(() => buildExternalDrift(semanticProfiles, externalDriftBaseline, 'current_upload'), [externalDriftBaseline, semanticProfiles])
   const externalMap = useMemo(() => externalDrift.reduce<Record<string, ExternalDriftResult>>((acc, item) => {
     acc[item.column_name] = item
     return acc
@@ -913,18 +1068,108 @@ export default function FeatureOpsWorkflowPanel() {
   }, { READY: 0, CONDITIONAL: 0, QUARANTINED: 0 } as Record<FeatureStatus, number>), [releaseResults])
   const isRecommendationCompatible = useMemo(() => recommendationCompatibility(semanticProfiles), [semanticProfiles])
   const workflowMode = isRecommendationCompatible ? 'Recommendation-compatible' : 'FeatureOps-only'
-  const targetColumn = useMemo(() => semanticProfiles.find((item) => item.generic_role === 'Target Column' || item.generic_role === 'Binary Label')?.column_name || 'Not found', [semanticProfiles])
-  const internalDriftStatus = hasUpload ? 'Completed' : 'Not run'
-  const agentStatuses = useMemo(() => {
-    const statusByAgent = new Map<string, WorkflowStatus>()
-    workflowSteps.forEach((step) => {
-      const current = statusByAgent.get(step.agent)
-      if (step.status === 'failed') statusByAgent.set(step.agent, 'failed')
-      else if (step.status === 'running' && current !== 'failed') statusByAgent.set(step.agent, 'running')
-      else if (!current) statusByAgent.set(step.agent, step.status)
+  const matchedConfidence = matchedBaseline ? Math.round(matchedBaseline.match_score * 100) : 0
+  const internalSeverityCounts = useMemo(() => internalDrift.reduce((acc, row) => {
+    acc[row.drift_severity] += 1
+    return acc
+  }, { NONE: 0, LOW: 0, MODERATE: 0, HIGH: 0 } as Record<DriftSeverity, number>), [internalDrift])
+  const externalSeverityCounts = useMemo(() => externalDrift.reduce((acc, row) => {
+    acc[row.drift_severity] += 1
+    return acc
+  }, { NONE: 0, LOW: 0, MODERATE: 0, HIGH: 0 } as Record<DriftSeverity, number>), [externalDrift])
+  const roleDistribution = useMemo(() => {
+    const counts = profiles.reduce((acc, profile) => {
+      const role = roles[profile.column_name]
+      acc[role] = (acc[role] || 0) + 1
+      return acc
+    }, {} as Partial<Record<GenericRole, number>>)
+    return ROLE_OPTIONS
+      .map((role) => ({ role, count: counts[role] || 0 }))
+      .filter((item) => item.count > 0)
+  }, [profiles, roles])
+  const trustScores = useMemo(() => releaseResults.map((row) => {
+    const base = Math.round((assessments[row.column_name]?.confidence ?? 0.5) * 100)
+    const internalPenalty = row.internal_drift_severity === 'HIGH' ? 35 : row.internal_drift_severity === 'MODERATE' ? 18 : row.internal_drift_severity === 'LOW' ? 6 : 0
+    const externalPenalty = row.external_drift_severity === 'HIGH' ? 35 : row.external_drift_severity === 'MODERATE' ? 18 : row.external_drift_severity === 'LOW' ? 6 : 0
+    const releasePenalty = row.release_status === 'QUARANTINED' ? 20 : row.release_status === 'CONDITIONAL' ? 8 : 0
+    return {
+      column_name: row.column_name,
+      trust: Math.max(0, Math.min(100, base - internalPenalty - externalPenalty - releasePenalty)),
+      release_status: row.release_status,
+    }
+  }).sort((left, right) => right.trust - left.trust), [assessments, releaseResults])
+  const driftEvidenceRows = useMemo(() => releaseResults.map((row) => ({
+    column_name: row.column_name,
+    role: row.role,
+    internal_drift: row.internal_drift_severity,
+    external_drift: row.external_drift_severity,
+    release_status: row.release_status,
+    evidence: [
+      ...(internalMap[row.column_name]?.evidence || []),
+      ...(externalMap[row.column_name]?.evidence || []),
+      ...(row.critical_failures || []),
+      ...(row.warnings || []),
+    ].filter(Boolean).join(' ') || row.explanation,
+  })), [externalMap, internalMap, releaseResults])
+  const visibleDriftEvidenceRows = useMemo(() => {
+    if (evidenceFilter === 'Drifted') {
+      return driftEvidenceRows.filter((row) => row.internal_drift !== 'NONE' || row.external_drift !== 'NONE')
+    }
+    if (evidenceFilter === 'Conditional') {
+      return driftEvidenceRows.filter((row) => row.release_status === 'CONDITIONAL')
+    }
+    if (evidenceFilter === 'Quarantined') {
+      return driftEvidenceRows.filter((row) => row.release_status === 'QUARANTINED')
+    }
+    return driftEvidenceRows
+  }, [driftEvidenceRows, evidenceFilter])
+  const visibleReleaseRows = useMemo(() => {
+    if (releaseFilter === 'All') return releaseResults
+    return releaseResults.filter((row) => row.release_status === releaseFilter)
+  }, [releaseFilter, releaseResults])
+  const activeWorkflowType = lastWorkflowMode === 'baseline'
+    ? 'Create New Baseline'
+    : lastWorkflowMode === 'version'
+      ? 'Add New Version'
+      : workflowMode
+  const overallReleaseStats = useMemo(() => Object.values(familyVersions).flat().reduce(
+    (acc, version) => {
+      version.release_results.forEach((row) => {
+        acc[row.release_status] += 1
+      })
+      return acc
+    },
+    { READY: 0, CONDITIONAL: 0, QUARANTINED: 0 } as Record<FeatureStatus, number>,
+  ), [familyVersions])
+  const totalSavedDatasets = useMemo(() => Object.values(familyVersions).reduce((sum, items) => sum + items.length, 0), [familyVersions])
+  const totalFamilies = families.length
+  const isNewBaselineFlow = lastWorkflowMode === 'baseline'
+  const viewFamilyVersions = useMemo(() => (viewFamilyId ? (familyVersions[viewFamilyId] || []) : []), [familyVersions, viewFamilyId])
+  const comparisonVersions = useMemo(() => {
+    if (!viewFamilyId || selectedCompareVersions.length !== 2) return [null, null] as [StoredVersion | null, StoredVersion | null]
+    const sortedNums = [...selectedCompareVersions].sort((left, right) => left - right)
+    const versions = viewFamilyVersions
+    const left = versions.find((item) => item.version_number === sortedNums[0]) || null
+    const right = versions.find((item) => item.version_number === sortedNums[1]) || null
+    return [left, right] as [StoredVersion | null, StoredVersion | null]
+  }, [selectedCompareVersions, viewFamilyVersions, viewFamilyId])
+  const versionPairComparison = useMemo(() => buildVersionPairComparison(comparisonVersions[0], comparisonVersions[1]), [comparisonVersions])
+
+  function buildStoredVersionSignature(version: StoredVersion) {
+    return buildDatasetContentSignature(version.dataset_rows || [], {
+      row_count: version.row_count,
+      column_count: version.column_count,
+      column_names: version.column_names,
+      dataset_fingerprint: version.dataset_fingerprint,
     })
-    return Array.from(statusByAgent.entries()).map(([agent, status]) => ({ agent, status }))
-  }, [workflowSteps])
+  }
+
+  function findDuplicateVersionInFamily(
+    familyId: string,
+    candidateSignature = currentDatasetSignature,
+  ) {
+    return (familyVersions[familyId] || []).find((version) => buildStoredVersionSignature(version) === candidateSignature) || null
+  }
 
   function pushMessage(message: string, type: StatusMessage['type'] = 'info') {
     setMessages((previous) => [
@@ -948,23 +1193,34 @@ export default function FeatureOpsWorkflowPanel() {
     setWorkflowSteps([])
     setLastWorkflowMode(null)
     setReportText('')
+    setEvidenceFilter('All')
+    setReleaseFilter('All')
+    setSelectedCompareVersions([])
+    setHistoryModalViewMode('comparison')
+    setDashboardCompareViewMode('comparison')
+    setSanityCheckResult(null)
+    setDuplicateDatasetResult(null)
   }
 
   function openFilePickerForBaseline() {
-    setPendingSaveAction({ mode: 'baseline' })
+    pendingVersionFamilyIdRef.current = null
     setUploadChoiceMode('baseline')
     setDatasetError(null)
     fileInputRef.current?.click()
   }
 
   function openFilePickerForVersion(familyId: string) {
+    pendingVersionFamilyIdRef.current = familyId
     setSelectedFamilyId(familyId)
     const family = families.find((item) => item.family_id === familyId)
     setSelectedVersionNumber(family?.approved_baseline_version || family?.latest_version || null)
-    setPendingSaveAction({ mode: 'version', familyId })
     setUploadChoiceMode('version')
     setDatasetError(null)
     fileInputRef.current?.click()
+  }
+
+  function normalizeFamilyName(value: string) {
+    return value.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase()
   }
 
   function buildFeatureOpsReport(mode: 'baseline' | 'version', savedLabel: string, steps: WorkflowStep[] = workflowSteps) {
@@ -988,11 +1244,6 @@ export default function FeatureOpsWorkflowPanel() {
     reportAgents.forEach(([agent, status]) => {
       lines.push(`${agent}: ${status}`)
     })
-    if (!reportAgents.length) {
-      agentStatuses.forEach((item) => {
-        lines.push(`${item.agent}: ${item.status}`)
-      })
-    }
     return lines.join('\n')
   }
 
