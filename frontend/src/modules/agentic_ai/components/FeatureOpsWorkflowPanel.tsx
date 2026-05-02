@@ -194,6 +194,13 @@ type FamilyMatch = {
   match_score: number
 }
 
+type MappingReviewFinding = {
+  column_name: string
+  current_role: GenericRole
+  suggested_role: GenericRole
+  reason: string
+}
+
 const ROLE_OPTIONS: GenericRole[] = [
   'Identifier',
   'Timestamp',
@@ -236,13 +243,21 @@ function parseNumberish(value: DatasetValue): number | null {
   if (typeof value !== 'string') return null
   const trimmed = value.trim()
   if (!trimmed) return null
-  const parsed = Number(trimmed.replace(/[^0-9.+-]/g, ''))
+  if (/[a-z]/i.test(trimmed)) return null
+  const parsed = Number(trimmed.replace(/[%,$\s]/g, ''))
   return Number.isFinite(parsed) ? parsed : null
 }
 
 function parseDateValue(value: DatasetValue): number | null {
-  if (value == null || value === '') return null
-  const date = new Date(String(value))
+  if (value == null || value === '' || typeof value === 'number' || typeof value === 'boolean') return null
+  const raw = String(value).trim()
+  if (!raw) return null
+  const looksDateLike = /\d{4}[-/]\d{1,2}[-/]\d{1,2}/.test(raw)
+    || /\d{1,2}:\d{2}(:\d{2})?/.test(raw)
+    || /t\d{2}:\d{2}/i.test(raw)
+    || /\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b/i.test(raw)
+  if (!looksDateLike) return null
+  const date = new Date(raw)
   const time = date.getTime()
   return Number.isFinite(time) ? time : null
 }
@@ -267,8 +282,31 @@ function safeFixed(value: number | null, digits = 2) {
 }
 
 function keywordMatch(columnName: string, keywords: string[]) {
-  const lowered = columnName.toLowerCase()
-  return keywords.some((keyword) => lowered.includes(keyword))
+  const tokenized = columnName
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+  const tokens = tokenized ? tokenized.split(/\s+/) : []
+  const compact = tokens.join('')
+  return keywords.some((keyword) => {
+    const normalizedKeyword = keyword.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+    const keywordTokens = normalizedKeyword ? normalizedKeyword.split(/\s+/) : []
+    const keywordCompact = keywordTokens.join('')
+    if (!keywordTokens.length) return false
+    if (tokens.includes(normalizedKeyword)) return true
+    if (keywordTokens.length > 1 && tokenized.includes(normalizedKeyword)) return true
+    return keywordCompact.length >= 4 ? compact.includes(keywordCompact) : compact === keywordCompact
+  })
+}
+
+function inferIdentifierPattern(value: DatasetValue) {
+  const raw = String(value ?? '').trim()
+  if (!raw) return 'empty'
+  return raw
+    .replace(/[A-Z]/g, 'A')
+    .replace(/[a-z]/g, 'a')
+    .replace(/[0-9]/g, '9')
 }
 
 function inferScalePattern(values: number[]) {
@@ -363,18 +401,26 @@ function detectRole(profile: ColumnProfile): RoleDetection {
   let detectedRole: GenericRole = 'Unknown / Unmapped'
   let confidence = 0.25
   let reason = 'No strong deterministic pattern matched.'
+  const hasIdentifierKeyword = keywordMatch(name, IDENTIFIER_KEYWORDS)
+  const hasTimestampKeyword = keywordMatch(name, TIMESTAMP_KEYWORDS)
+  const hasTargetKeyword = keywordMatch(name, TARGET_KEYWORDS)
+  const hasBinaryKeyword = keywordMatch(name, BINARY_KEYWORDS)
+  const hasScoreKeyword = keywordMatch(name, SCORE_KEYWORDS)
+  const hasCountKeyword = keywordMatch(name, COUNT_KEYWORDS)
+  const hasRateKeyword = keywordMatch(name, RATE_KEYWORDS)
+  const hasTextKeyword = keywordMatch(name, TEXT_KEYWORDS)
 
-  if (keywordMatch(name, IDENTIFIER_KEYWORDS) && (profile.unique_percent >= 0.2 || name.endsWith('id'))) {
+  if (hasIdentifierKeyword && (profile.unique_percent >= 0.2 || name.endsWith('id'))) {
     detectedRole = 'Identifier'
     confidence = profile.unique_percent >= 0.75 ? 0.98 : 0.86
     reason = profile.unique_percent >= 0.75
       ? 'Contains ID keyword and behaves like a high-uniqueness identifier.'
       : 'Contains ID keyword and behaves like a repeated entity identifier.'
-  } else if (keywordMatch(name, TIMESTAMP_KEYWORDS) || profile.valid_date_percent >= 0.9) {
+  } else if ((hasTimestampKeyword || profile.valid_date_percent >= 0.9) && !hasBinaryKeyword && profile.inferred_type !== 'boolean') {
     detectedRole = 'Timestamp'
-    confidence = keywordMatch(name, TIMESTAMP_KEYWORDS) && profile.valid_date_percent >= 0.75 ? 0.99 : 0.84
+    confidence = hasTimestampKeyword && profile.valid_date_percent >= 0.75 ? 0.99 : 0.84
     reason = 'Parsed as datetime and/or contains a timestamp keyword.'
-  } else if (keywordMatch(name, TARGET_KEYWORDS)) {
+  } else if (hasTargetKeyword) {
     if (profile.binary_like_percent >= 0.8 || profile.inferred_type === 'boolean') {
       detectedRole = 'Target Column'
       confidence = 0.95
@@ -384,21 +430,21 @@ function detectRole(profile: ColumnProfile): RoleDetection {
       confidence = 0.86
       reason = 'Contains target/label keyword and behaves like a repeated class field.'
     }
-  } else if ((keywordMatch(name, BINARY_KEYWORDS) || profile.inferred_type === 'boolean') && profile.binary_like_percent >= 0.8) {
+  } else if ((hasBinaryKeyword || profile.inferred_type === 'boolean') && profile.binary_like_percent >= 0.8) {
     detectedRole = 'Binary Label'
     confidence = 0.92
     reason = 'Boolean/binary pattern matched.'
-  } else if (keywordMatch(name, SCORE_KEYWORDS) && (profile.inferred_type === 'numeric' || profile.inferred_type === 'mixed')) {
+  } else if (hasScoreKeyword && (profile.inferred_type === 'numeric' || profile.inferred_type === 'mixed')) {
     detectedRole = 'Score / Rating'
     confidence = ['0-1', '0-100', '1-5', '1-10'].includes(profile.scale_pattern) ? 0.95 : 0.82
     reason = 'Score keyword matched and values behave like a score.'
-  } else if (keywordMatch(name, COUNT_KEYWORDS) && (profile.inferred_type === 'numeric' || profile.inferred_type === 'mixed')) {
+  } else if (hasCountKeyword && (profile.inferred_type === 'numeric' || profile.inferred_type === 'mixed')) {
     detectedRole = 'Count / Activity'
     confidence = profile.integer_like_percent >= 0.7 && (profile.min ?? 0) >= 0 ? 0.9 : 0.76
     reason = 'Count/activity keyword matched and values look like activity counts.'
-  } else if ((keywordMatch(name, RATE_KEYWORDS) || name.includes('humidity')) && (profile.inferred_type === 'numeric' || profile.inferred_type === 'mixed') && ['0-1', '0-100'].includes(profile.scale_pattern) && (profile.min ?? 0) >= 0) {
+  } else if ((hasRateKeyword || name.includes('humidity')) && (profile.inferred_type === 'numeric' || profile.inferred_type === 'mixed') && ['0-1', '0-100'].includes(profile.scale_pattern) && (profile.min ?? 0) >= 0) {
     detectedRole = 'Rate / Percentage'
-    confidence = keywordMatch(name, RATE_KEYWORDS) || name.includes('humidity') ? 0.88 : 0.74
+    confidence = hasRateKeyword || name.includes('humidity') ? 0.88 : 0.74
     reason = 'Value range behaves like a bounded percentage or ratio.'
   } else if (profile.inferred_type === 'numeric' || profile.inferred_type === 'mixed') {
     detectedRole = 'Numeric Measure'
@@ -408,16 +454,26 @@ function detectRole(profile: ColumnProfile): RoleDetection {
     detectedRole = 'Categorical Attribute'
     confidence = 0.9
     reason = 'Repeated text values indicate a categorical attribute.'
-  } else if (profile.inferred_type === 'text' && (keywordMatch(name, TEXT_KEYWORDS) || profile.avg_string_length >= 12)) {
+  } else if (profile.inferred_type === 'text' && (hasTextKeyword || profile.avg_string_length >= 12)) {
     detectedRole = 'Text Attribute'
     confidence = 0.82
     reason = 'String values look like a descriptive text field.'
   }
 
+  if (name.includes('value') && (profile.inferred_type === 'numeric' || profile.inferred_type === 'mixed')) {
+    detectedRole = 'Numeric Measure'
+    confidence = Math.max(confidence, 0.9)
+    reason = 'Numeric value columns should be treated as measured values, not timestamps.'
+  }
   if (name.endsWith('status') && profile.inferred_type === 'text') {
     detectedRole = 'Categorical Attribute'
     confidence = Math.max(confidence, 0.9)
     reason = 'Status values are categorical labels, not binary targets.'
+  }
+  if (hasBinaryKeyword && (profile.binary_like_percent >= 0.8 || profile.inferred_type === 'boolean')) {
+    detectedRole = 'Binary Label'
+    confidence = Math.max(confidence, 0.94)
+    reason = 'Detected/flag-style columns with boolean values should be treated as binary labels.'
   }
   if (name.includes('tilt_rate')) {
     detectedRole = 'Numeric Measure'
@@ -582,6 +638,7 @@ function quartileSegments(rows: DatasetRow[]) {
 function buildInternalDrift(profiles: ColumnProfile[], roles: Record<string, GenericRole>, rows: DatasetRow[]): InternalDriftResult[] {
   const { compared_by, segments } = segmentDataset(rows, roles)
   return profiles.map((profile) => {
+    const role = roles[profile.column_name]
     const segmentSummaries = segments.map((segment) => {
       const segmentProfile = buildColumnProfile(profile.column_name, segment.rows, Object.keys(segment.rows[0] || {}).length || profile.column_count)
       return {
@@ -596,6 +653,54 @@ function buildInternalDrift(profiles: ColumnProfile[], roles: Record<string, Gen
     const meanSpread = meanValues.length ? Math.max(...meanValues) - Math.min(...meanValues) : 0
     let drift_severity: DriftSeverity = 'NONE'
     const evidence: string[] = []
+    if (role === 'Identifier') {
+      const identifierPatterns = new Set(
+        rows
+          .map((row) => inferIdentifierPattern(row[profile.column_name]))
+          .filter((value) => value !== 'empty'),
+      )
+      const uniquenessValues = segmentSummaries.map((item) => item.unique_percent)
+      const uniquenessSpread = uniquenessValues.length ? Math.max(...uniquenessValues) - Math.min(...uniquenessValues) : 0
+      const segmentMissingRatios = segments.map((segment) => {
+        const total = segment.rows.length || 1
+        const missing = segment.rows.filter((row) => {
+          const value = row[profile.column_name]
+          return value == null || String(value).trim() === ''
+        }).length
+        return missing / total
+      })
+      const missingSpread = segmentMissingRatios.length ? Math.max(...segmentMissingRatios) - Math.min(...segmentMissingRatios) : 0
+      if (identifierPatterns.size > 1) {
+        drift_severity = 'MODERATE'
+        evidence.push(`Identifier format changes across rows: ${Array.from(identifierPatterns).join(', ')}`)
+      }
+      if (uniquenessSpread > 0.35) {
+        drift_severity = drift_severity === 'NONE' ? 'LOW' : drift_severity
+        evidence.push(`Identifier uniqueness spread is ${uniquenessSpread.toFixed(2)}.`)
+      }
+      if (missingSpread > 0.2) {
+        drift_severity = 'MODERATE'
+        evidence.push(`Identifier missingness varies by ${formatPct(missingSpread)} across segments.`)
+      }
+      if (!evidence.length) {
+        evidence.push('Identifier pattern, missingness, and uniqueness stay consistent across segments.')
+      }
+      return {
+        column_name: profile.column_name,
+        compared_by: `${compared_by} (identifier consistency)`,
+        segment_summaries: segmentSummaries,
+        drift_severity,
+        evidence,
+        explanation: drift_severity === 'MODERATE'
+          ? 'Identifier behavior changes across segments and should be reviewed.'
+          : drift_severity === 'LOW'
+            ? 'Identifier behavior shows small consistency shifts only.'
+            : 'Identifier pattern and coverage are stable across the dataset.',
+        recommended_action: drift_severity === 'MODERATE'
+          ? 'Review identifier format and completeness before release.'
+          : 'No action needed.',
+      }
+    }
     if (scaleSet.size > 1 && !scaleSet.has('unknown')) {
       drift_severity = 'HIGH'
       evidence.push(`Segments show multiple scale patterns: ${Array.from(scaleSet).join(', ')}`)
@@ -628,6 +733,28 @@ function buildInternalDrift(profiles: ColumnProfile[], roles: Record<string, Gen
           : 'No action needed.',
     }
   })
+}
+
+function findSuggestedRole(profile: ColumnProfile, assignedRole: GenericRole): MappingReviewFinding | null {
+  const name = profile.column_name.toLowerCase()
+  const hasBinaryKeyword = keywordMatch(name, BINARY_KEYWORDS)
+  if (assignedRole === 'Timestamp' && (profile.inferred_type === 'boolean' || profile.binary_like_percent >= 0.8 || hasBinaryKeyword)) {
+    return {
+      column_name: profile.column_name,
+      current_role: assignedRole,
+      suggested_role: 'Binary Label',
+      reason: `${profile.column_name} looks binary and should not be treated as a timestamp.`,
+    }
+  }
+  if (assignedRole === 'Timestamp' && (profile.inferred_type === 'numeric' || profile.inferred_type === 'mixed')) {
+    return {
+      column_name: profile.column_name,
+      current_role: assignedRole,
+      suggested_role: 'Numeric Measure',
+      reason: `${profile.column_name} is numeric and should be treated as a measured value, not a timestamp.`,
+    }
+  }
+  return null
 }
 
 function buildExternalDrift(currentSemantics: SemanticProfile[], baselineVersion: StoredVersion | null, currentVersionLabel: string): ExternalDriftResult[] {
@@ -1009,6 +1136,7 @@ export default function FeatureOpsWorkflowPanel() {
   const [expandedWorkflowStepKey, setExpandedWorkflowStepKey] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const pendingVersionFamilyIdRef = useRef<string | null>(null)
+  const mappingDetailsRef = useRef<HTMLDetailsElement | null>(null)
 
   const datasetRows = uploadedRows ?? []
   const hasUpload = datasetRows.length > 0
@@ -1030,6 +1158,12 @@ export default function FeatureOpsWorkflowPanel() {
     acc[profile.column_name] = assessRoleFit(profile, roles[profile.column_name], detections[profile.column_name])
     return acc
   }, {}), [detections, profiles, roles])
+  const mappingReviewFindings = useMemo(
+    () => profiles
+      .map((profile) => findSuggestedRole(profile, roles[profile.column_name]))
+      .filter((item): item is MappingReviewFinding => item != null),
+    [profiles, roles],
+  )
   const semanticProfiles = useMemo(() => profiles.map((profile) => buildSemanticProfile(profile, roles[profile.column_name])), [profiles, roles])
   const fingerprint = useMemo(() => buildDatasetFingerprint(profiles, semanticProfiles), [profiles, semanticProfiles])
   const allVersions = useMemo(() => Object.values(familyVersions).flat(), [familyVersions])
@@ -1819,6 +1953,34 @@ export default function FeatureOpsWorkflowPanel() {
         <div style={{ borderRadius: 8, border: '1px solid #fecaca', background: '#fef2f2', color: '#991b1b', padding: '10px 12px', fontSize: 11.5 }}>
           {datasetError}
         </div>
+      )}
+
+      {hasUpload && mappingReviewFindings.length > 0 && (
+        <article style={{ borderRadius: 10, border: '1px solid #fde68a', background: '#fffbeb', padding: 12, display: 'grid', gap: 10 }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: '#92400e' }}>Mapping review needed</div>
+          <div style={{ fontSize: 11.5, color: '#78350f', lineHeight: 1.6 }}>
+            Some columns may be incorrectly mapped. Please review mappings before approving this dataset.
+          </div>
+          <div style={{ display: 'grid', gap: 4, fontSize: 11.5, color: '#78350f' }}>
+            {mappingReviewFindings.map((item) => (
+              <div key={`mapping-review-${item.column_name}`}>
+                - {item.column_name} should be {item.suggested_role}, not {item.current_role}
+              </div>
+            ))}
+          </div>
+          <div>
+            <button
+              type="button"
+              className="df-btn secondary"
+              onClick={() => {
+                mappingDetailsRef.current?.setAttribute('open', 'true')
+                mappingDetailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }}
+            >
+              Review Mapping
+            </button>
+          </div>
+        </article>
       )}
 
       {sanityCheckResult && (
@@ -2695,7 +2857,7 @@ export default function FeatureOpsWorkflowPanel() {
         )}
       </article>
 
-      <details className="featureops-detail-panel">
+      <details ref={mappingDetailsRef} className="featureops-detail-panel">
         <summary>View Mapping Details</summary>
         <div style={{ overflowX: 'auto', marginTop: 12 }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
@@ -2712,8 +2874,9 @@ export default function FeatureOpsWorkflowPanel() {
                 const assessment = assessments[profile.column_name]
                 const tone = confidenceTone(assessment.confidence)
                 const role = roles[profile.column_name]
+                const suggestedRole = findSuggestedRole(profile, role)
                 return (
-                  <tr key={`mapping-${profile.column_name}`}>
+                  <tr key={`mapping-${profile.column_name}`} style={suggestedRole ? { background: '#fffbeb' } : undefined}>
                     <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{profile.column_name}</td>
                     <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{profile.inferred_type}</td>
                     <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{role}</td>
@@ -2723,7 +2886,11 @@ export default function FeatureOpsWorkflowPanel() {
                       </span>
                     </td>
                     <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#64748b' }}>
-                      {manualRoles[profile.column_name] ? `${assessment.reason} Manual mapping applied.` : detection.reason}
+                      {suggestedRole
+                        ? `Mapping review needed. ${suggestedRole.reason}`
+                        : manualRoles[profile.column_name]
+                          ? `${assessment.reason} Manual mapping applied.`
+                          : detection.reason}
                     </td>
                     <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
                       <select
