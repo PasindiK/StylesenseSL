@@ -25,6 +25,15 @@ class DomainScore:
 
 class SilverToDomainLoaderService:
     """Detects best-fit Data Mesh domains for Silver datasets."""
+    SYSTEM_DOMAINS = [
+        "sales_domain",
+        "users_domain",
+        "product_domain",
+        "shop_domain",
+        "interaction_domain",
+        "engagement_domain",
+        "user_preferences_domain",
+    ]
 
     def __init__(self, data_root: Path):
         self.data_root = Path(data_root)
@@ -34,6 +43,7 @@ class SilverToDomainLoaderService:
         self.audit_log_path = self.data_root / "monitoring" / "logs" / "silver_domain_loader_audit.json"
         self.review_decisions_path = self.data_root / "monitoring" / "logs" / "domain_review_decisions.json"
         self.review_tickets_path = self.data_root / "monitoring" / "logs" / "domain_review_tickets.json"
+        self.created_domain_registry_path = self.data_root / "monitoring" / "logs" / "created_domain_registry.json"
 
     def list_silver_datasets(self) -> dict:
         datasets = []
@@ -57,6 +67,32 @@ class SilverToDomainLoaderService:
 
         for csv_path in self._silver_csv_files():
             columns_detected, _row_count = self._dataset_schema(csv_path)
+            created_domain = self._match_created_domain_for_dataset(csv_path.name)
+            if created_domain is not None:
+                approved_domain = str(created_domain.get("domain_name") or "")
+                rows.append(
+                    {
+                        "run_id": run_id,
+                        "dataset_name": csv_path.name,
+                        "columns_detected": columns_detected,
+                        "best_domain": approved_domain,
+                        "confidence_score": 0.95,
+                        "second_best_domain": None,
+                        "second_best_score": None,
+                        "all_domain_scores": {approved_domain: 0.95},
+                        "action": "AUTO_ASSIGN_CREATED_DOMAIN",
+                        "review_required": False,
+                        "candidate_domain_name": approved_domain,
+                        "final_domain": approved_domain,
+                        "timestamp": timestamp,
+                        "explanation": (
+                            f"Assigned to approved created domain {approved_domain} because this dataset was previously "
+                            "validated and approved through the governance review workflow."
+                        ),
+                    }
+                )
+                continue
+
             ranked = self._rank_domains(csv_path=csv_path, dataset_columns=columns_detected, signatures=signatures)
             best = ranked[0] if ranked else None
             second_best = ranked[1] if len(ranked) > 1 else None
@@ -171,10 +207,15 @@ class SilverToDomainLoaderService:
         }
         if reviewer_action == "CREATE_DOMAIN_AFTER_APPROVAL":
             if not approved_domain:
-                raise ValueError("approved_domain is required for CREATE_DOMAIN_AFTER_APPROVAL.")
+                approved_domain = str(detection_record.get("candidate_domain_name") or "").strip()
+            if not approved_domain:
+                raise ValueError("approved_domain or candidate_domain_name is required for CREATE_DOMAIN_AFTER_APPROVAL.")
+            decision["approved_domain"] = approved_domain
             creation_result = self._create_domain_after_approval(
                 dataset_name=dataset_name,
                 approved_domain=approved_domain,
+                detection_run_id=detection_run_id,
+                detection_record=detection_record,
             )
             decision["domain_creation"] = creation_result
         self._append_review_decision(decision)
@@ -183,6 +224,39 @@ class SilverToDomainLoaderService:
     def get_review_decisions(self) -> dict:
         rows = self._read_json_rows(self.review_decisions_path)
         return {"decisions": rows, "count": len(rows)}
+
+    def list_created_domains(self) -> dict:
+        rows = self._read_json_rows(self.created_domain_registry_path)
+        return {"created_domains": rows, "count": len(rows)}
+
+    def delete_created_domain(self, domain_name: str) -> dict:
+        normalized = self._normalize_domain_name(domain_name)
+        if normalized in self.SYSTEM_DOMAINS:
+            raise ValueError("System domains cannot be deleted.")
+
+        rows = self._read_json_rows(self.created_domain_registry_path)
+        latest_idx = None
+        for idx in range(len(rows) - 1, -1, -1):
+            if self._normalize_domain_name(rows[idx].get("domain_name")) == normalized:
+                latest_idx = idx
+                break
+        if latest_idx is None:
+            raise ValueError(f"Created domain not found: {normalized}")
+
+        target = dict(rows[latest_idx])
+        if bool(target.get("is_system_domain")):
+            raise ValueError("System domains cannot be deleted.")
+        target["status"] = "DELETED"
+        target["deleted_at"] = datetime.now().isoformat(timespec="seconds")
+        rows[latest_idx] = target
+        self.created_domain_registry_path.parent.mkdir(parents=True, exist_ok=True)
+        self.created_domain_registry_path.write_text(json.dumps(rows, indent=2), encoding="utf-8")
+        return {
+            "success": True,
+            "message": f"Created domain '{normalized}' marked as DELETED.",
+            "domain_name": normalized,
+            "status": "DELETED",
+        }
 
     def upload_silver_dataset(self, filename: str, raw_bytes: bytes) -> dict:
         name = Path(str(filename or "")).name
@@ -236,6 +310,8 @@ class SilverToDomainLoaderService:
             self.review_decisions_path.unlink(missing_ok=True)
         if self.review_tickets_path.exists():
             self.review_tickets_path.unlink(missing_ok=True)
+        if self.created_domain_registry_path.exists():
+            self.created_domain_registry_path.unlink(missing_ok=True)
         return {
             "success": True,
             "message": "Silver-to-domain detection/review history cleared.",
@@ -272,6 +348,22 @@ class SilverToDomainLoaderService:
                     "optional": optional,
                     "all": set(columns),
                 }
+
+        for created in self._active_created_domains():
+            domain_name = self._normalize_domain_name(created.get("domain_name"))
+            source_columns = [
+                str(col).strip().lower()
+                for col in (created.get("source_columns") or [])
+                if str(col).strip()
+            ]
+            if not domain_name or not source_columns:
+                continue
+            required = set(source_columns[: min(4, len(source_columns))])
+            signatures[domain_name] = {
+                "required": required,
+                "optional": set(source_columns) - required,
+                "all": set(source_columns),
+            }
         return signatures
 
     def _contract_columns(self, contract_file: Path) -> list[str]:
@@ -506,10 +598,14 @@ class SilverToDomainLoaderService:
         rows.insert(0, ticket)
         self.review_tickets_path.write_text(json.dumps(rows, indent=2), encoding="utf-8")
 
-    def _create_domain_after_approval(self, dataset_name: str, approved_domain: str) -> dict:
+    def _create_domain_after_approval(
+        self,
+        dataset_name: str,
+        approved_domain: str,
+        detection_run_id: str,
+        detection_record: dict,
+    ) -> dict:
         normalized_domain = str(approved_domain or "").strip().lower()
-        if not normalized_domain.endswith("_domain"):
-            normalized_domain = f"{normalized_domain}_domain"
         source = self.silver_dir / Path(dataset_name).name
         if not source.exists():
             raise ValueError(f"Source Silver dataset not found: {dataset_name}")
@@ -518,9 +614,79 @@ class SilverToDomainLoaderService:
         target_folder.mkdir(parents=True, exist_ok=True)
         target_file = target_folder / f"{normalized_domain}.csv"
         target_file.write_bytes(source.read_bytes())
+        source_columns = list(detection_record.get("columns_detected") or [])
+        self._upsert_created_domain_registry(
+            domain_name=normalized_domain,
+            source_dataset_name=Path(dataset_name).name,
+            source_columns=source_columns,
+            created_from_candidate=str(detection_record.get("candidate_domain_name") or normalized_domain),
+            detection_run_id=detection_run_id,
+        )
         return {
             "created": True,
             "domain": normalized_domain,
             "domain_file": str(target_file),
             "source_dataset": str(source),
         }
+
+    def _upsert_created_domain_registry(
+        self,
+        domain_name: str,
+        source_dataset_name: str,
+        source_columns: list[str],
+        created_from_candidate: str,
+        detection_run_id: str,
+    ) -> None:
+        rows = self._read_json_rows(self.created_domain_registry_path)
+        normalized_domain = self._normalize_domain_name(domain_name)
+        now_iso = datetime.now().isoformat(timespec="seconds")
+
+        latest_idx = None
+        for idx in range(len(rows) - 1, -1, -1):
+            if self._normalize_domain_name(rows[idx].get("domain_name")) == normalized_domain:
+                latest_idx = idx
+                break
+
+        record = {
+            "domain_id": str(uuid.uuid4())[:10],
+            "domain_name": normalized_domain,
+            "source_dataset_name": str(source_dataset_name),
+            "source_columns": [str(col).strip().lower() for col in source_columns if str(col).strip()],
+            "created_from_candidate": str(created_from_candidate),
+            "detection_run_id": str(detection_run_id),
+            "status": "ACTIVE",
+            "created_at": now_iso,
+            "deleted_at": None,
+            "created_by": "silver_to_domain_loader",
+            "is_system_domain": False,
+        }
+
+        if latest_idx is not None:
+            existing = dict(rows[latest_idx])
+            existing.update(record)
+            existing["domain_id"] = existing.get("domain_id") or record["domain_id"]
+            existing["created_at"] = existing.get("created_at") or now_iso
+            existing["deleted_at"] = None
+            rows[latest_idx] = existing
+        else:
+            rows.insert(0, record)
+
+        self.created_domain_registry_path.parent.mkdir(parents=True, exist_ok=True)
+        self.created_domain_registry_path.write_text(json.dumps(rows, indent=2), encoding="utf-8")
+
+    def _active_created_domains(self) -> list[dict]:
+        rows = self._read_json_rows(self.created_domain_registry_path)
+        return [row for row in rows if str(row.get("status") or "").upper() == "ACTIVE"]
+
+    def _match_created_domain_for_dataset(self, dataset_name: str) -> dict | None:
+        target = str(dataset_name or "").strip().lower()
+        if not target:
+            return None
+        for row in self._active_created_domains():
+            source_name = str(row.get("source_dataset_name") or "").strip().lower()
+            if source_name == target:
+                return row
+        return None
+
+    def _normalize_domain_name(self, value: object) -> str:
+        return str(value or "").strip().lower()

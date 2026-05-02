@@ -1,0 +1,74 @@
+[
+  {
+    "decision_id": "f04a976c-d",
+    "detection_run_id": "ab9482b7-3",
+    "dataset_name": "supplier_delivery_test.csv",
+    "original_action": "NEW_DOMAIN_CANDIDATE_PENDING_REVIEW",
+    "proposed_domain": "product_domain",
+    "candidate_domain_name": "candidate_supplier",
+    "reviewer_action": "CREATE_DOMAIN_AFTER_APPROVAL",
+    "approved_domain": "candidate_supplier",
+    "ticket_required": false,
+    "ticket_status": "NONE",
+    "ticket_id": null,
+    "reviewer_note": "tst",
+    "timestamp": "2026-05-02T22:09:19",
+    "domain_creation": {
+      "created": true,
+      "domain": "candidate_supplier",
+      "domain_file": "/Users/nandunmadawa/Desktop/DATAMESHSTYLESENSESL/backend/src/services/data_mesh/data/Data_Mesh_Domains/candidate_supplier/candidate_supplier.csv",
+      "source_dataset": "/Users/nandunmadawa/Desktop/DATAMESHSTYLESENSESL/backend/src/services/data_mesh/data/Data/Silver-data/supplier_delivery_test.csv"
+    }
+  },
+  {
+    "decision_id": "9a837609-b",
+    "detection_run_id": "74cfd07e-e",
+    "dataset_name": "supplier_delivery_test.csv",
+    "original_action": "NEW_DOMAIN_CANDIDATE_PENDING_REVIEW",
+    "proposed_domain": "product_domain",
+    "candidate_domain_name": "candidate_supplier",
+    "reviewer_action": "RAISE_TICKET",
+    "approved_domain": null,
+    "ticket_required": true,
+    "ticket_status": "OPEN",
+    "ticket_id": "TKT-A01922CB",
+    "reviewer_note": "mm",
+    "timestamp": "2026-05-02T21:54:31"
+  },
+  {
+    "decision_id": "823b1d31-9",
+    "detection_run_id": "94fab506-5",
+    "dataset_name": "supplier_delivery_test.csv",
+    "original_action": "NEW_DOMAIN_CANDIDATE_PENDING_REVIEW",
+    "proposed_domain": "product_domain",
+    "candidate_domain_name": "candidate_supplier",
+    "reviewer_action": "CREATE_DOMAIN_AFTER_APPROVAL",
+    "approved_domain": "tst_domain",
+    "ticket_required": false,
+    "ticket_status": "NONE",
+    "ticket_id": null,
+    "reviewer_note": "nn",
+    "timestamp": "2026-05-02T21:51:18",
+    "domain_creation": {
+      "created": true,
+      "domain": "tst_domain",
+      "domain_file": "/Users/nandunmadawa/Desktop/DATAMESHSTYLESENSESL/backend/src/services/data_mesh/data/Data_Mesh_Domains/tst_domain/tst_domain.csv",
+      "source_dataset": "/Users/nandunmadawa/Desktop/DATAMESHSTYLESENSESL/backend/src/services/data_mesh/data/Data/Silver-data/supplier_delivery_test.csv"
+    }
+  },
+  {
+    "decision_id": "4f398887-f",
+    "detection_run_id": "94fab506-5",
+    "dataset_name": "supplier_delivery_test.csv",
+    "original_action": "NEW_DOMAIN_CANDIDATE_PENDING_REVIEW",
+    "proposed_domain": "product_domain",
+    "candidate_domain_name": "candidate_supplier",
+    "reviewer_action": "REJECT",
+    "approved_domain": null,
+    "ticket_required": false,
+    "ticket_status": "NONE",
+    "ticket_id": null,
+    "reviewer_note": null,
+    "timestamp": "2026-05-02T21:51:06"
+  }
+]

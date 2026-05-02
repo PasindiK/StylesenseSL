@@ -12,22 +12,32 @@ function formatTime(value) {
   return parsed.toLocaleString();
 }
 
+function formatTimeShort(value) {
+  if (!value) return "-";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return String(value);
+  const date = parsed.toISOString().slice(0, 10);
+  const time = parsed.toTimeString().slice(0, 5);
+  return `${date} ${time}`;
+}
+
 function actionColor(action) {
   if (action === "AUTO_ASSIGN") return "green";
   if (action === "PROVISIONAL_ASSIGN") return "orange";
-  if (action === "NEW_DOMAIN_CANDIDATE_PENDING_REVIEW") return "purple";
-  return "magenta";
+  if (String(action || "").includes("NEW_DOMAIN_CANDIDATE")) return "magenta";
+  return "red";
 }
 
 function confidenceText(value) {
   const num = Number(value || 0);
-  return `${num.toFixed(4)} (${(num * 100).toFixed(1)}%)`;
+  return `${(num * 100).toFixed(1)}%`;
 }
 
 export default function SilverToDomainLoader() {
   const [datasetRows, setDatasetRows] = useState([]);
   const [resultRows, setResultRows] = useState([]);
   const [decisions, setDecisions] = useState([]);
+  const [createdDomains, setCreatedDomains] = useState([]);
   const [historyRows, setHistoryRows] = useState([]);
   const [latestRunId, setLatestRunId] = useState("");
   const [showHistory, setShowHistory] = useState(false);
@@ -38,6 +48,7 @@ export default function SilverToDomainLoader() {
   const [resettingDemo, setResettingDemo] = useState(false);
   const [selectedUploadFile, setSelectedUploadFile] = useState(null);
   const [reviewSubmitting, setReviewSubmitting] = useState("");
+  const [deletingDomain, setDeletingDomain] = useState("");
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -72,6 +83,15 @@ export default function SilverToDomainLoader() {
       setDecisions(Array.isArray(res?.data?.decisions) ? res.data.decisions : []);
     } catch (_err) {
       setDecisions([]);
+    }
+  };
+
+  const loadCreatedDomains = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/api/datamesh/created-domains`);
+      setCreatedDomains(Array.isArray(res?.data?.created_domains) ? res.data.created_domains : []);
+    } catch (_err) {
+      setCreatedDomains([]);
     }
   };
 
@@ -111,7 +131,7 @@ export default function SilverToDomainLoader() {
       setSuccessMessage(`Detection completed successfully. Run ID: ${runId}. Processed datasets: ${count}.`);
       const latestRows = Array.isArray(res?.data?.results) ? res.data.results : [];
       applyLatestRunRows(latestRows);
-      await Promise.all([loadDatasets(), loadReviewDecisions()]);
+      await Promise.all([loadDatasets(), loadReviewDecisions(), loadCreatedDomains()]);
     } catch (_err) {
       setError("Failed to run auto domain detection.");
     } finally {
@@ -157,6 +177,7 @@ export default function SilverToDomainLoader() {
       setHistoryRows([]);
       setLatestRunId("");
       setDecisions([]);
+      setCreatedDomains([]);
       await loadDatasets();
     } catch (err) {
       setError(err?.response?.data?.detail || "Failed to reset demo state.");
@@ -172,8 +193,11 @@ export default function SilverToDomainLoader() {
     setSuccessMessage("");
     try {
       let approvedDomain = "";
-      if (reviewerAction === "CHANGE_DOMAIN" || reviewerAction === "CREATE_DOMAIN_AFTER_APPROVAL") {
+      if (reviewerAction === "CHANGE_DOMAIN") {
         approvedDomain = window.prompt("Enter approved domain (e.g. sales_domain):", record.best_domain || "") || "";
+      }
+      if (reviewerAction === "CREATE_DOMAIN_AFTER_APPROVAL") {
+        approvedDomain = record.candidate_domain_name || "";
       }
       const reviewerNote = window.prompt("Reviewer note (optional):", "") || "";
       await axios.post(`${API_BASE}/api/datamesh/domain-review/decision`, {
@@ -183,12 +207,35 @@ export default function SilverToDomainLoader() {
         approved_domain: approvedDomain,
         reviewer_note: reviewerNote,
       });
-      setSuccessMessage(`Review decision submitted: ${reviewerAction} for ${record.dataset_name}.`);
-      await loadReviewDecisions();
+      if (reviewerAction === "CREATE_DOMAIN_AFTER_APPROVAL") {
+        setSuccessMessage("Domain candidate approved and created. Rerun detection to auto-route this dataset.");
+      } else {
+        setSuccessMessage(`Review decision submitted: ${reviewerAction} for ${record.dataset_name}.`);
+      }
+      await Promise.all([loadReviewDecisions(), loadCreatedDomains()]);
     } catch (err) {
       setError(err?.response?.data?.detail || "Failed to submit review decision.");
     } finally {
       setReviewSubmitting("");
+    }
+  };
+
+  const deleteCreatedDomain = async (domainName) => {
+    const normalized = String(domainName || "");
+    if (!normalized) return;
+    const confirmed = window.confirm(`Delete created domain '${normalized}'?`);
+    if (!confirmed) return;
+    setDeletingDomain(normalized);
+    setError("");
+    setSuccessMessage("");
+    try {
+      await axios.delete(`${API_BASE}/api/datamesh/created-domains/${encodeURIComponent(normalized)}`);
+      setSuccessMessage(`Created domain '${normalized}' marked as deleted.`);
+      await loadCreatedDomains();
+    } catch (err) {
+      setError(err?.response?.data?.detail || "Failed to delete created domain.");
+    } finally {
+      setDeletingDomain("");
     }
   };
 
@@ -198,20 +245,20 @@ export default function SilverToDomainLoader() {
 
     if (isProvisional) {
       return (
-        <Space wrap>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, minWidth: 260 }}>
           <Button
             size="small"
             loading={reviewSubmitting === `${record.dataset_name}-APPROVE_ASSIGNMENT`}
             onClick={() => submitReviewAction(record, "APPROVE_ASSIGNMENT")}
           >
-            Approve Assignment
+            Approve
           </Button>
           <Button
             size="small"
             loading={reviewSubmitting === `${record.dataset_name}-CHANGE_DOMAIN`}
             onClick={() => submitReviewAction(record, "CHANGE_DOMAIN")}
           >
-            Change Domain
+            Change
           </Button>
           <Button
             size="small"
@@ -221,33 +268,33 @@ export default function SilverToDomainLoader() {
           >
             Reject
           </Button>
-        </Space>
+        </div>
       );
     }
 
     if (isCandidate) {
       return (
-        <Space wrap>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, minWidth: 260 }}>
           <Button
             size="small"
             loading={reviewSubmitting === `${record.dataset_name}-VALIDATE_CANDIDATE`}
             onClick={() => submitReviewAction(record, "VALIDATE_CANDIDATE")}
           >
-            Validate Candidate
+            Validate
           </Button>
           <Button
             size="small"
             loading={reviewSubmitting === `${record.dataset_name}-CREATE_DOMAIN_AFTER_APPROVAL`}
             onClick={() => submitReviewAction(record, "CREATE_DOMAIN_AFTER_APPROVAL")}
           >
-            Create Domain After Approval
+            Create Domain
           </Button>
           <Button
             size="small"
             loading={reviewSubmitting === `${record.dataset_name}-RAISE_TICKET`}
             onClick={() => submitReviewAction(record, "RAISE_TICKET")}
           >
-            Raise Governance Ticket
+            Raise Ticket
           </Button>
           <Button
             size="small"
@@ -255,9 +302,9 @@ export default function SilverToDomainLoader() {
             loading={reviewSubmitting === `${record.dataset_name}-REJECT`}
             onClick={() => submitReviewAction(record, "REJECT")}
           >
-            Reject Candidate
+            Reject
           </Button>
-        </Space>
+        </div>
       );
     }
 
@@ -266,7 +313,7 @@ export default function SilverToDomainLoader() {
 
   useEffect(() => {
     setError("");
-    Promise.all([loadDatasets(), loadResults(), loadReviewDecisions()]);
+    Promise.all([loadDatasets(), loadResults(), loadReviewDecisions(), loadCreatedDomains()]);
   }, []);
 
   const datasetTableData = useMemo(
@@ -296,26 +343,39 @@ export default function SilverToDomainLoader() {
   );
 
   const detectionColumns = [
-    { title: "Dataset name", dataIndex: "dataset_name", key: "dataset_name" },
-    { title: "Best domain", dataIndex: "best_domain", key: "best_domain", render: (v) => v || "-" },
-    { title: "Confidence score", dataIndex: "confidence_score", key: "confidence_score", render: confidenceText },
-    { title: "Second best domain", dataIndex: "second_best_domain", key: "second_best_domain", render: (v) => v || "-" },
+    { title: "Dataset name", dataIndex: "dataset_name", key: "dataset_name", width: 200 },
+    { title: "Best domain", dataIndex: "best_domain", key: "best_domain", width: 150, render: (v) => v || "-" },
+    { title: "Confidence", dataIndex: "confidence_score", key: "confidence_score", width: 110, render: confidenceText },
+    { title: "Second best domain", dataIndex: "second_best_domain", key: "second_best_domain", width: 170, render: (v) => v || "-" },
     {
       title: "Action",
       dataIndex: "action",
       key: "action",
+      width: 220,
       render: (value) => <Tag color={actionColor(value)}>{String(value || "-")}</Tag>,
     },
     {
       title: "Review required",
       dataIndex: "review_required",
       key: "review_required",
+      width: 130,
       render: (value) => <Tag color={value ? "red" : "green"}>{value ? "YES" : "NO"}</Tag>,
     },
-    { title: "Candidate domain name", dataIndex: "candidate_domain_name", key: "candidate_domain_name", render: (v) => v || "-" },
-    { title: "Final domain", dataIndex: "final_domain", key: "final_domain", render: (v) => v || "-" },
-    { title: "Timestamp", dataIndex: "timestamp", key: "timestamp", render: formatTime },
-    { title: "Review Actions", key: "review_actions", render: (_, record) => renderReviewActions(record) },
+    { title: "Candidate domain", dataIndex: "candidate_domain_name", key: "candidate_domain_name", width: 180, render: (v) => v || "-" },
+    { title: "Final domain", dataIndex: "final_domain", key: "final_domain", width: 140, render: (v) => v || "-" },
+    { title: "Timestamp", dataIndex: "timestamp", key: "timestamp", width: 150, render: formatTimeShort },
+    { title: "Review actions", key: "review_actions", width: 320, render: (_, record) => renderReviewActions(record) },
+  ];
+
+  const reviewQueueColumns = [
+    { title: "Dataset name", dataIndex: "dataset_name", key: "dataset_name", width: 200 },
+    { title: "Best domain", dataIndex: "best_domain", key: "best_domain", width: 150, render: (v) => v || "-" },
+    { title: "Confidence", dataIndex: "confidence_score", key: "confidence_score", width: 110, render: confidenceText },
+    { title: "Action", dataIndex: "action", key: "action", width: 220, render: (value) => <Tag color={actionColor(value)}>{String(value || "-")}</Tag> },
+    { title: "Candidate domain", dataIndex: "candidate_domain_name", key: "candidate_domain_name", width: 180, render: (v) => v || "-" },
+    { title: "Final domain", dataIndex: "final_domain", key: "final_domain", width: 140, render: (v) => v || "-" },
+    { title: "Timestamp", dataIndex: "timestamp", key: "timestamp", width: 150, render: formatTimeShort },
+    { title: "Review actions", key: "review_actions", width: 320, render: (_, record) => renderReviewActions(record) },
   ];
 
   return (
@@ -389,48 +449,58 @@ export default function SilverToDomainLoader() {
         }
         style={{ marginBottom: 16 }}
       >
-        <Table
-          dataSource={datasetTableData}
-          loading={loadingDatasets}
-          pagination={{ pageSize: 8 }}
-          columns={[
-            { title: "Dataset name", dataIndex: "dataset_name", key: "dataset_name" },
-            { title: "Row count", dataIndex: "row_count", key: "row_count" },
-            { title: "Column count", dataIndex: "column_count", key: "column_count" },
-            { title: "Last modified / timestamp", dataIndex: "timestamp", key: "timestamp", render: formatTime },
-          ]}
-        />
+        <div style={{ width: "100%", overflowX: "auto" }}>
+          <Table
+            dataSource={datasetTableData}
+            loading={loadingDatasets}
+            pagination={{ pageSize: 8 }}
+            scroll={{ x: 760 }}
+            size="middle"
+            columns={[
+              { title: "Dataset name", dataIndex: "dataset_name", key: "dataset_name", width: 260 },
+              { title: "Row count", dataIndex: "row_count", key: "row_count", width: 120 },
+              { title: "Column count", dataIndex: "column_count", key: "column_count", width: 130 },
+              { title: "Last modified / timestamp", dataIndex: "timestamp", key: "timestamp", width: 210, render: formatTimeShort },
+            ]}
+          />
+        </div>
       </Card>
 
       <Card title="Detection Results" style={{ marginBottom: 16 }}>
         <div style={{ marginBottom: 10, color: "#64748b" }}>
           Showing latest run only: <strong>{latestRunId || "-"}</strong>
         </div>
-        <Table
-          dataSource={detectionTableData}
-          loading={loadingResults}
-          pagination={{ pageSize: 10 }}
-          columns={detectionColumns}
-          expandable={{
-            expandedRowRender: (record) => (
-              <Space direction="vertical" size={8} style={{ width: "100%" }}>
-                <div>
-                  <Text strong>all_domain_scores:</Text>
-                  <pre style={{ margin: "6px 0 0", background: "#f8fafc", padding: 10, borderRadius: 8, border: "1px solid #e2e8f0" }}>
-                    {JSON.stringify(record.all_domain_scores || {}, null, 2)}
-                  </pre>
+        <div style={{ width: "100%", overflowX: "auto" }}>
+          <Table
+            dataSource={detectionTableData}
+            loading={loadingResults}
+            pagination={{ pageSize: 10 }}
+            columns={detectionColumns}
+            scroll={{ x: 1800 }}
+            size="middle"
+            expandable={{
+              expandedRowRender: (record) => (
+                <div style={{ border: "1px solid #e2e8f0", borderRadius: 10, padding: 12, background: "#fafcff" }}>
+                  <Space direction="vertical" size={8} style={{ width: "100%" }}>
+                    <div>
+                      <Text strong>Matched columns:</Text>{" "}
+                      <Text>{Array.isArray(record.columns_detected) ? record.columns_detected.join(", ") : "-"}</Text>
+                    </div>
+                    <div>
+                      <Text strong>All domain scores:</Text>
+                      <pre style={{ margin: "6px 0 0", background: "#f8fafc", padding: 10, borderRadius: 8, border: "1px solid #e2e8f0" }}>
+                        {JSON.stringify(record.all_domain_scores || {}, null, 2)}
+                      </pre>
+                    </div>
+                    <div>
+                      <Text strong>Explanation:</Text> <Text>{record.explanation || "-"}</Text>
+                    </div>
+                  </Space>
                 </div>
-                <div>
-                  <Text strong>columns_detected:</Text>{" "}
-                  <Text>{Array.isArray(record.columns_detected) ? record.columns_detected.join(", ") : "-"}</Text>
-                </div>
-                <div>
-                  <Text strong>explanation:</Text> <Text>{record.explanation || "-"}</Text>
-                </div>
-              </Space>
-            ),
-          }}
-        />
+              ),
+            }}
+          />
+        </div>
         <div style={{ marginTop: 12 }}>
           <Button onClick={() => setShowHistory((prev) => !prev)}>
             {showHistory ? "Hide History" : "View History"}
@@ -439,44 +509,95 @@ export default function SilverToDomainLoader() {
       </Card>
 
       <Card title={`Review Queue (${reviewQueueData.length})`}>
-        <Table
-          dataSource={reviewQueueData}
-          loading={loadingResults}
-          pagination={{ pageSize: 10 }}
-          columns={detectionColumns}
-        />
+        <div style={{ width: "100%", overflowX: "auto" }}>
+          <Table
+            dataSource={reviewQueueData}
+            loading={loadingResults}
+            pagination={{ pageSize: 10 }}
+            columns={reviewQueueColumns}
+            scroll={{ x: 1500 }}
+            size="middle"
+            locale={{ emptyText: "No datasets currently require review." }}
+          />
+        </div>
       </Card>
 
       <Card title={`Review Decisions (${decisions.length})`} style={{ marginTop: 16 }}>
+        <div style={{ width: "100%", overflowX: "auto" }}>
+          <Table
+            dataSource={decisions.map((item, index) => ({ ...item, key: `${item.decision_id || "decision"}-${index}` }))}
+            pagination={{ pageSize: 8 }}
+            scroll={{ x: 1200 }}
+            size="middle"
+            columns={[
+              { title: "Decision ID", dataIndex: "decision_id", key: "decision_id", width: 140 },
+              { title: "Run ID", dataIndex: "detection_run_id", key: "detection_run_id", width: 140 },
+              { title: "Dataset", dataIndex: "dataset_name", key: "dataset_name", width: 210 },
+              { title: "Original Action", dataIndex: "original_action", key: "original_action", width: 230 },
+              { title: "Reviewer Action", dataIndex: "reviewer_action", key: "reviewer_action", width: 220 },
+              { title: "Approved Domain", dataIndex: "approved_domain", key: "approved_domain", width: 170, render: (v) => v || "-" },
+              { title: "Ticket", dataIndex: "ticket_status", key: "ticket_status", width: 110 },
+              { title: "Timestamp", dataIndex: "timestamp", key: "timestamp", width: 180, render: formatTimeShort },
+            ]}
+          />
+        </div>
+      </Card>
+
+      <Card title={`Created Domains (${createdDomains.length})`} style={{ marginTop: 16 }}>
         <Table
-          dataSource={decisions.map((item, index) => ({ ...item, key: `${item.decision_id || "decision"}-${index}` }))}
+          dataSource={createdDomains.map((item, index) => ({ ...item, key: `${item.domain_id || item.domain_name || "domain"}-${index}` }))}
           pagination={{ pageSize: 8 }}
           columns={[
-            { title: "Decision ID", dataIndex: "decision_id", key: "decision_id" },
-            { title: "Run ID", dataIndex: "detection_run_id", key: "detection_run_id" },
-            { title: "Dataset", dataIndex: "dataset_name", key: "dataset_name" },
-            { title: "Original Action", dataIndex: "original_action", key: "original_action" },
-            { title: "Reviewer Action", dataIndex: "reviewer_action", key: "reviewer_action" },
-            { title: "Approved Domain", dataIndex: "approved_domain", key: "approved_domain", render: (v) => v || "-" },
-            { title: "Ticket", dataIndex: "ticket_status", key: "ticket_status" },
-            { title: "Timestamp", dataIndex: "timestamp", key: "timestamp", render: formatTime },
+            { title: "Domain name", dataIndex: "domain_name", key: "domain_name" },
+            { title: "Source dataset", dataIndex: "source_dataset_name", key: "source_dataset_name", render: (v) => v || "-" },
+            {
+              title: "Status",
+              dataIndex: "status",
+              key: "status",
+              render: (value) => <Tag color={String(value || "").toUpperCase() === "ACTIVE" ? "green" : "default"}>{String(value || "-")}</Tag>,
+            },
+            { title: "Created at", dataIndex: "created_at", key: "created_at", render: formatTimeShort },
+            {
+              title: "Actions",
+              key: "actions",
+              render: (_, record) => (
+                record?.is_system_domain ? (
+                  <Text type="secondary">System domain</Text>
+                ) : String(record?.status || "").toUpperCase() === "ACTIVE" ? (
+                  <Button
+                    size="small"
+                    danger
+                    loading={deletingDomain === record.domain_name}
+                    onClick={() => deleteCreatedDomain(record.domain_name)}
+                  >
+                    Delete Created Domain
+                  </Button>
+                ) : (
+                  <Text type="secondary">-</Text>
+                )
+              ),
+            },
           ]}
         />
       </Card>
 
       {showHistory ? (
         <Card title="Detection History (Past Runs)" style={{ marginTop: 16 }}>
-          <Table
-            dataSource={historyRows.map((item, index) => ({ ...item, key: `history-${item.run_id || "run"}-${index}` }))}
-            pagination={{ pageSize: 10 }}
-            columns={[
-              { title: "Run ID", dataIndex: "run_id", key: "run_id" },
-              { title: "Dataset name", dataIndex: "dataset_name", key: "dataset_name" },
-              { title: "Best domain", dataIndex: "best_domain", key: "best_domain", render: (v) => v || "-" },
-              { title: "Action", dataIndex: "action", key: "action", render: (value) => <Tag color={actionColor(value)}>{String(value || "-")}</Tag> },
-              { title: "Timestamp", dataIndex: "timestamp", key: "timestamp", render: formatTime },
-            ]}
-          />
+          <div style={{ width: "100%", overflowX: "auto" }}>
+            <Table
+              dataSource={historyRows.map((item, index) => ({ ...item, key: `history-${item.run_id || "run"}-${index}` }))}
+              pagination={{ pageSize: 10 }}
+              scroll={{ x: 900 }}
+              size="middle"
+              columns={[
+                { title: "Run ID", dataIndex: "run_id", key: "run_id", width: 150 },
+                { title: "Dataset name", dataIndex: "dataset_name", key: "dataset_name", width: 240 },
+                { title: "Best domain", dataIndex: "best_domain", key: "best_domain", width: 170, render: (v) => v || "-" },
+                { title: "Action", dataIndex: "action", key: "action", width: 250, render: (value) => <Tag color={actionColor(value)}>{String(value || "-")}</Tag> },
+                { title: "Timestamp", dataIndex: "timestamp", key: "timestamp", width: 180, render: formatTimeShort },
+              ]}
+            />
+          </div>
         </Card>
       ) : null}
     </div>

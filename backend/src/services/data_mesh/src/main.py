@@ -1646,6 +1646,21 @@ def get_domain_review_decisions():
     return silver_domain_loader_service.get_review_decisions()
 
 
+@app.get("/api/datamesh/created-domains")
+def get_created_domains():
+    return silver_domain_loader_service.list_created_domains()
+
+
+@app.delete("/api/datamesh/created-domains/{domain_name}")
+def delete_created_domain(domain_name: str):
+    try:
+        return silver_domain_loader_service.delete_created_domain(domain_name)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to delete created domain: {exc}")
+
+
 @app.get("/api/datamesh/domain-detect/results")
 def get_domain_detect_results(limit: int = 50):
     """Get recent Silver-to-domain detection results from audit log."""
