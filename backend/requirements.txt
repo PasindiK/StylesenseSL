@@ -2,8 +2,8 @@ pytest
 pandas
 fastapi
 python-multipart
+python-dotenv
 uvicorn
-python-multipart
 rapidfuzz
 google-auth
 requests
@@ -20,3 +20,4 @@ pydantic
 lxml
 PyYAML
 xgboost
+neo4j
