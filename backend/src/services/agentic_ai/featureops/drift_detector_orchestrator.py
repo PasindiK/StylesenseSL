@@ -34,6 +34,16 @@ from src.services.agentic_ai.featureops.agents.baseline_agent import BaselineAge
 from src.services.agentic_ai.featureops.agents.learned_scoring_agent import LearnedScoringAgent
 from src.services.agentic_ai.featureops.agents.profiler_agent import ProfilerAgent
 from src.services.agentic_ai.featureops.agents.relational_anchor_agent import RelationalAnchorAgent
+from src.services.agentic_ai.featureops.predefined_baselines import (
+    get_predefined_baseline,
+    list_predefined_baselines,
+    predefined_baseline_to_rows,
+)
+from src.services.agentic_ai.featureops.semantic_modules import (
+    create_baseline_creation_module,
+    create_column_matching_module,
+    create_new_dataset_profiling_module,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +94,11 @@ class DriftAnalysis:
     dataset_name: str
     profile: Dict[str, Any]
     baselines: Dict[str, Any]
+    available_predefined_baselines: List[Dict[str, Any]]
+    selected_predefined_baseline: Optional[Dict[str, Any]]
+    baseline_creation: List[Dict[str, Any]]
+    new_dataset_profiling: List[Dict[str, Any]]
+    column_matching: List[Dict[str, Any]]
     anchors: List[Dict[str, Any]]
     triage_matrix: Dict[str, Any]
     drifts_per_column: List[Dict[str, Any]]
@@ -129,7 +144,12 @@ class DriftDetectorOrchestrator:
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
-    def detect_drift(self, current_data: pd.DataFrame, dataset_name: str) -> DriftAnalysis:
+    def detect_drift(
+        self,
+        current_data: pd.DataFrame,
+        dataset_name: str,
+        predefined_baseline_key: Optional[str] = None,
+    ) -> DriftAnalysis:
         run_id = str(uuid.uuid4())
         timestamp = datetime.utcnow().isoformat()
 
@@ -145,6 +165,29 @@ class DriftDetectorOrchestrator:
             self.baseline_agent.save_internal_baseline(current_profile)
         if self.baseline_agent.load_external_baseline() is None:
             self.baseline_agent.save_external_baseline(current_profile)
+
+        available_predefined_baselines = list_predefined_baselines()
+        suggested_predefined_baseline_key = predefined_baseline_key or self._suggest_predefined_baseline_key(
+            dataset_name,
+            current_profile,
+            available_predefined_baselines,
+        )
+        selected_predefined_baseline = (
+            get_predefined_baseline(suggested_predefined_baseline_key)
+            if suggested_predefined_baseline_key
+            else None
+        )
+
+        baseline_creation = (
+            predefined_baseline_to_rows(selected_predefined_baseline)
+            if selected_predefined_baseline
+            else create_baseline_creation_module(
+                internal_baseline,
+                baseline_version=str(internal_baseline.get("baseline_version") or "v1"),
+            )
+        )
+        new_dataset_profiling = create_new_dataset_profiling_module(current_profile)
+        column_matching = create_column_matching_module(baseline_creation, new_dataset_profiling)
 
         sample_rows = current_data.head(min(len(current_data), 50))
         discovered_anchors = self.anchor_agent.discover_anchors(internal_baseline, sample_rows)
@@ -217,6 +260,11 @@ class DriftDetectorOrchestrator:
                 "internal": internal_baseline,
                 "external": external_baseline,
             },
+            available_predefined_baselines=available_predefined_baselines,
+            selected_predefined_baseline=selected_predefined_baseline,
+            baseline_creation=baseline_creation,
+            new_dataset_profiling=new_dataset_profiling,
+            column_matching=column_matching,
             anchors=normalized_anchors,
             triage_matrix=triage_matrix,
             drifts_per_column=drifts_per_column,
@@ -352,6 +400,40 @@ class DriftDetectorOrchestrator:
             "description": description,
             "violation_reason": anchor.get("violation_reason"),
         }
+
+    def _suggest_predefined_baseline_key(
+        self,
+        dataset_name: str,
+        current_profile: Dict[str, Any],
+        available_predefined_baselines: List[Dict[str, Any]],
+    ) -> Optional[str]:
+        dataset_name_normalized = str(dataset_name or "").lower()
+        current_columns = {
+            str(column.get("column_name", "")).strip().lower()
+            for column in current_profile.get("column_profiles", [])
+            if column.get("column_name")
+        }
+        best_key: Optional[str] = None
+        best_score = 0.0
+        for baseline in available_predefined_baselines:
+            baseline_key = str(baseline.get("baseline_key") or "")
+            baseline_name = str(baseline.get("dataset_name") or "").lower()
+            baseline_columns = {str(name).strip().lower() for name in (baseline.get("columns") or {}).keys()}
+            overlap_score = (
+                len(current_columns & baseline_columns) / max(len(baseline_columns), 1)
+                if baseline_columns
+                else 0.0
+            )
+            name_score = 0.0
+            if baseline_key and baseline_key in dataset_name_normalized:
+                name_score = 0.45
+            elif baseline_name and baseline_name in dataset_name_normalized:
+                name_score = 0.4
+            score = overlap_score + name_score
+            if score > best_score:
+                best_score = score
+                best_key = baseline_key
+        return best_key if best_score >= 0.25 else None
 
     # ------------------------------------------------------------------
     # Feature engineering

@@ -57,6 +57,10 @@ from src.services.agentic_ai.agents.order_agent import OrderAgent
 from src.services.agentic_ai.agents.link_order_assistant_agent import LinkOrderAssistantAgent
 from src.services.agentic_ai.featureops.registry import FeatureOpsDatasetRegistry
 from src.services.agentic_ai.featureops.drift_detector_orchestrator import DriftDetectorOrchestrator
+from src.services.agentic_ai.featureops.predefined_baselines import (
+    get_predefined_baseline,
+    list_predefined_baselines,
+)
 
 app = FastAPI(title="CatalogAgent API")
 
@@ -2486,7 +2490,10 @@ def label_drift_result(run_id: str, label: str):
 # =====================================================================
 
 @app.post("/api/featureops/drift/detect-full")
-async def detect_drift_full(file: UploadFile = File(...)):
+async def detect_drift_full(
+    file: UploadFile = File(...),
+    baseline_key: Optional[str] = Form(None),
+):
     """
     NEW: Full drift detection using learned ML model.
     
@@ -2513,7 +2520,11 @@ async def detect_drift_full(file: UploadFile = File(...)):
             raise ValueError(f"Unsupported file format: {file.filename}")
         
         # Run orchestrator
-        analysis = drift_orchestrator.detect_drift(df, dataset_name=file.filename)
+        analysis = drift_orchestrator.detect_drift(
+            df,
+            dataset_name=file.filename,
+            predefined_baseline_key=baseline_key,
+        )
         
         # Return complete result
         return {
@@ -2524,6 +2535,39 @@ async def detect_drift_full(file: UploadFile = File(...)):
     except Exception as e:
         logger.exception(f"Full drift detection failed: {e}")
         raise HTTPException(status_code=500, detail=f"Drift detection error: {str(e)}")
+
+
+@app.get("/api/featureops/drift/predefined-baselines")
+def get_predefined_featureops_baselines():
+    """Return the five approved data-architecture baseline templates."""
+    try:
+        baselines = list_predefined_baselines()
+        return {
+            "status": "ok",
+            "count": len(baselines),
+            "baselines": baselines,
+        }
+    except Exception as e:
+        logger.exception(f"Failed to load predefined baselines: {e}")
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+
+@app.get("/api/featureops/drift/predefined-baselines/{baseline_key}")
+def get_predefined_featureops_baseline_detail(baseline_key: str):
+    """Return a single approved data-architecture baseline template."""
+    try:
+        baseline = get_predefined_baseline(baseline_key)
+        if not baseline:
+            raise HTTPException(status_code=404, detail="Predefined baseline not found.")
+        return {
+            "status": "ok",
+            "baseline": baseline,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Failed to load predefined baseline {baseline_key}: {e}")
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 
 @app.post("/api/featureops/drift/orchestrator/baselines/internal")

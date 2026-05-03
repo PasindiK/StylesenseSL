@@ -183,10 +183,14 @@ export function mapBackendSignalsToUIResults(
  */
 export async function detectDriftFull(
   apiBase: string,
-  file: File
+  file: File,
+  baselineKey?: string
 ): Promise<any> {
   const formData = new FormData()
   formData.append('file', file)
+  if (baselineKey) {
+    formData.append('baseline_key', baselineKey)
+  }
 
   const response = await fetch(`${apiBase}/featureops/drift/detect-full`, {
     method: 'POST',
@@ -195,6 +199,16 @@ export async function detectDriftFull(
 
   if (!response.ok) {
     throw new Error(`Full drift detection failed: ${response.statusText}`)
+  }
+
+  return response.json()
+}
+
+export async function getPredefinedBaselines(apiBase: string): Promise<any> {
+  const response = await fetch(`${apiBase}/featureops/drift/predefined-baselines`)
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch predefined baselines: ${response.statusText}`)
   }
 
   return response.json()

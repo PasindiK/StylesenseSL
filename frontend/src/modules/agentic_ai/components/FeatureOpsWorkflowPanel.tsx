@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import '../../data_fabric/components/DataFabricTestingPage.css'
 import './FeatureOpsWorkflowPanel.css'
-import { detectInternalDrift, detectExternalDrift, mapBackendSignalsToUIResults, detectDriftFull, getOrchestratorStats, setOrchestratorBaseline } from '../../../services/driftApi'
+import { detectInternalDrift, detectExternalDrift, mapBackendSignalsToUIResults, detectDriftFull, getOrchestratorStats, getPredefinedBaselines, setOrchestratorBaseline } from '../../../services/driftApi'
 import {
   ProfilerResults,
   DriftExplanation,
@@ -247,6 +247,26 @@ type SemanticProfileOverride = Partial<Pick<SemanticProfile, 'approved_or_detect
 
 type HumanReviewDecision = 'Pending Review' | 'Accept' | 'Accept with warning' | 'Reject / Quarantine'
 
+type PredefinedBaselineColumn = {
+  business_meaning: string
+  role: string
+  domain: string
+  unit: string
+  scale: string
+  data_type: string
+  value_direction: string
+}
+
+type PredefinedBaseline = {
+  baseline_key: string
+  dataset_name: string
+  baseline_version: string
+  description: string
+  source_table: string
+  column_count: number
+  columns: Record<string, PredefinedBaselineColumn>
+}
+
 const ROLE_OPTIONS: GenericRole[] = [
   'Identifier',
   'Timestamp',
@@ -386,6 +406,36 @@ function inferDirection(columnName: string, role: GenericRole) {
   if (role === 'Count / Activity') return 'higher means more activity'
   if (role === 'Rate / Percentage') return 'higher means larger share'
   return 'neutral'
+}
+
+function suggestPredefinedBaselineKey(
+  name: string,
+  rows: DatasetRow[],
+  options: PredefinedBaseline[],
+) {
+  const normalizedName = name.toLowerCase()
+  const columns = rows.length ? Object.keys(rows[0] || {}).map((column) => column.toLowerCase()) : []
+  let bestKey = ''
+  let bestScore = 0
+
+  options.forEach((option) => {
+    const baselineColumns = Object.keys(option.columns || {}).map((column) => column.toLowerCase())
+    const overlap = baselineColumns.length
+      ? baselineColumns.filter((column) => columns.includes(column)).length / baselineColumns.length
+      : 0
+    const nameScore = normalizedName.includes(option.baseline_key)
+      || normalizedName.includes(option.dataset_name.toLowerCase())
+      || normalizedName.includes(option.source_table.toLowerCase())
+      ? 0.45
+      : 0
+    const score = overlap + nameScore
+    if (score > bestScore) {
+      bestScore = score
+      bestKey = option.baseline_key
+    }
+  })
+
+  return bestScore >= 0.25 ? bestKey : ''
 }
 
 function buildColumnProfile(columnName: string, rows: DatasetRow[], columnCount: number): ColumnProfile {
@@ -1518,6 +1568,8 @@ export default function FeatureOpsWorkflowPanel() {
   const [activeAnalysisTab, setActiveAnalysisTab] = useState<'upload' | 'profiler' | 'drift-explanation' | 'row-level' | 'release' | 'baseline' | 'matrix' | 'anchors' | 'scores'>('upload')
   const [driftDetectionError, setDriftDetectionError] = useState<string | null>(null)
   const [orchestratorStats, setOrchestratorStats] = useState<any>(null)
+  const [predefinedBaselines, setPredefinedBaselines] = useState<PredefinedBaseline[]>([])
+  const [selectedPredefinedBaselineKey, setSelectedPredefinedBaselineKey] = useState('')
   const [reviewWorkspaceTab, setReviewWorkspaceTab] = useState<'mapping' | 'drift'>('drift')
   const [crossModalHumanDecisions, setCrossModalHumanDecisions] = useState<Record<string, HumanReviewDecision>>({})
   
@@ -1791,6 +1843,22 @@ export default function FeatureOpsWorkflowPanel() {
       review_status: crossModalHumanDecisions[String(item.row_id)] || item.review_status || 'Pending Review',
     }))
   }, [crossModalHumanDecisions, driftAnalysis])
+  const approvedBaselineColumns = useMemo(
+    () => (Array.isArray(driftAnalysis?.baseline_creation) ? driftAnalysis.baseline_creation : []),
+    [driftAnalysis],
+  )
+  const newDatasetProfilingRows = useMemo(
+    () => (Array.isArray(driftAnalysis?.new_dataset_profiling) ? driftAnalysis.new_dataset_profiling : []),
+    [driftAnalysis],
+  )
+  const columnMatchingRows = useMemo(
+    () => (Array.isArray(driftAnalysis?.column_matching) ? driftAnalysis.column_matching : []),
+    [driftAnalysis],
+  )
+  const selectedPredefinedBaseline = useMemo(
+    () => predefinedBaselines.find((item) => item.baseline_key === selectedPredefinedBaselineKey) || null,
+    [predefinedBaselines, selectedPredefinedBaselineKey],
+  )
 
   function buildStoredVersionSignature(version: StoredVersion) {
     return buildDatasetContentSignature(version.dataset_rows || [], {
@@ -1884,16 +1952,19 @@ export default function FeatureOpsWorkflowPanel() {
     })
   }
 
-  async function runLearnedDriftAnalysis(file: File) {
+  async function runLearnedDriftAnalysis(file: File, baselineKey?: string) {
     try {
       setDriftAnalysisLoading(true)
       setDriftDetectionError(null)
       setCrossModalHumanDecisions({})
       const [analysis, stats] = await Promise.all([
-        detectDriftFull(apiBase, file),
+        detectDriftFull(apiBase, file, baselineKey),
         getOrchestratorStats(apiBase).catch(() => null),
       ])
       setDriftAnalysis(analysis)
+      if (analysis?.selected_predefined_baseline?.baseline_key) {
+        setSelectedPredefinedBaselineKey(analysis.selected_predefined_baseline.baseline_key)
+      }
       setOrchestratorStats(stats?.stats || null)
       setActiveAnalysisTab('release')
       setReviewWorkspaceTab('drift')
@@ -1910,8 +1981,8 @@ export default function FeatureOpsWorkflowPanel() {
     }
   }
 
-  async function runLearnedDriftAnalysisFromRows(name: string, rows: DatasetRow[]) {
-    return runLearnedDriftAnalysis(rowsToJsonFile(rows, name))
+  async function runLearnedDriftAnalysisFromRows(name: string, rows: DatasetRow[], baselineKey?: string) {
+    return runLearnedDriftAnalysis(rowsToJsonFile(rows, name), baselineKey)
   }
 
   async function syncLearnedInternalBaseline(name: string, rows: DatasetRow[]) {
@@ -1921,6 +1992,18 @@ export default function FeatureOpsWorkflowPanel() {
       const errorMsg = error instanceof Error ? error.message : 'Unable to update internal learned baseline'
       pushMessage(errorMsg, 'warning')
     }
+  }
+
+  async function applyPredefinedBaselineToCurrentUpload(nextBaselineKey: string) {
+    setSelectedPredefinedBaselineKey(nextBaselineKey)
+    if (!uploadedRows?.length || !datasetName) return
+    await runLearnedDriftAnalysisFromRows(datasetName, uploadedRows, nextBaselineKey || undefined)
+    pushMessage(
+      nextBaselineKey
+        ? `Applied ${nextBaselineKey} baseline template to the current upload.`
+        : 'Cleared the predefined baseline template for the current upload.',
+      'info',
+    )
   }
 
   function resetWorkflowState() {
@@ -2047,6 +2130,24 @@ export default function FeatureOpsWorkflowPanel() {
   }, [])
 
   useEffect(() => {
+    let cancelled = false
+    async function loadPredefinedBaselineOptions() {
+      try {
+        const payload = await getPredefinedBaselines(apiBase)
+        if (cancelled) return
+        setPredefinedBaselines(Array.isArray(payload?.baselines) ? payload.baselines : [])
+      } catch (error) {
+        if (cancelled) return
+        pushMessage('Unable to load predefined data architecture baselines.', 'warning')
+      }
+    }
+    void loadPredefinedBaselineOptions()
+    return () => {
+      cancelled = true
+    }
+  }, [apiBase])
+
+  useEffect(() => {
     if (!hasUpload) return
     if (matchedBaseline) {
       pushMessage(`Baseline match found: ${matchedBaseline.family_name}, ${Math.round(matchedBaseline.match_score * 100)}%.`, matchedBaseline.match_score >= 0.75 ? 'success' : 'warning')
@@ -2118,6 +2219,10 @@ export default function FeatureOpsWorkflowPanel() {
       })
 
       if (targetFamilyId) {
+        const suggestedBaselineKey = suggestPredefinedBaselineKey(file.name, parsed, predefinedBaselines)
+        if (suggestedBaselineKey) {
+          setSelectedPredefinedBaselineKey(suggestedBaselineKey)
+        }
         const duplicateVersion = findDuplicateVersionInFamily(targetFamilyId, uploadedSignature)
         if (duplicateVersion) {
           const familyName = families.find((item) => item.family_id === targetFamilyId)?.family_name || targetFamilyId
@@ -2152,7 +2257,7 @@ export default function FeatureOpsWorkflowPanel() {
         if (baselineForSanity?.dataset_rows?.length) {
           await syncLearnedInternalBaseline(baselineForSanity.file_name || baselineForSanity.dataset_name || 'baseline.json', baselineForSanity.dataset_rows)
         }
-        void runLearnedDriftAnalysis(file)
+        void runLearnedDriftAnalysis(file, suggestedBaselineKey || undefined)
         if (!sanity.passed) {
           setSanityCheckResult(sanity)
           setPendingSaveAction(null)
@@ -2165,6 +2270,7 @@ export default function FeatureOpsWorkflowPanel() {
           pushMessage(`External drift checked against registry v${baselineForSanity?.version_number ?? baselineNum ?? 'Ã¢â‚¬â€'}.`, 'info')
         }
       } else {
+        const suggestedBaselineKey = suggestPredefinedBaselineKey(file.name, parsed, predefinedBaselines)
         resetWorkflowState()
         setUploadedRows(parsed)
         setDatasetName(file.name)
@@ -2174,7 +2280,10 @@ export default function FeatureOpsWorkflowPanel() {
         setShowUploadModal(false)
         setUploadChoiceMode('select')
         setPendingSaveAction({ mode: 'baseline' })
-        void runLearnedDriftAnalysis(file)
+        if (suggestedBaselineKey) {
+          setSelectedPredefinedBaselineKey(suggestedBaselineKey)
+        }
+        void runLearnedDriftAnalysis(file, suggestedBaselineKey || undefined)
         pushMessage('Dataset uploaded successfully.', 'success')
         pushMessage('Dataset profiled successfully.', 'success')
         pushMessage('Internal semantic consistency check completed.', 'success')
@@ -2188,13 +2297,17 @@ export default function FeatureOpsWorkflowPanel() {
   }
 
   function loadDemoDataset() {
+    const suggestedBaselineKey = suggestPredefinedBaselineKey(DEMO_NAME, demoDataset, predefinedBaselines)
     resetWorkflowState()
     setUploadedRows(demoDataset)
     setDatasetName(DEMO_NAME)
     setUploadTime(new Date().toISOString())
     setDatasetError(null)
     setMessages([])
-    void runLearnedDriftAnalysisFromRows(DEMO_NAME, demoDataset)
+    if (suggestedBaselineKey) {
+      setSelectedPredefinedBaselineKey(suggestedBaselineKey)
+    }
+    void runLearnedDriftAnalysisFromRows(DEMO_NAME, demoDataset, suggestedBaselineKey || undefined)
     pushMessage('Dataset uploaded successfully.', 'success')
     pushMessage('Dataset profiled successfully.', 'success')
     pushMessage('Internal semantic consistency check completed.', 'success')
@@ -3456,6 +3569,165 @@ export default function FeatureOpsWorkflowPanel() {
                     </tbody>
                   </table>
                 </div>
+              </div>
+
+              <div className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', padding: 12, display: 'grid', gap: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'grid', gap: 4 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Data Architecture Baselines</div>
+                    <div className="muted-text" style={{ fontSize: 11 }}>
+                      Choose one of the five approved baseline templates from data architecture so the upload can be reviewed against a known table meaning.
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gap: 8, minWidth: 260 }}>
+                    <select
+                      value={selectedPredefinedBaselineKey}
+                      onChange={(event) => { void applyPredefinedBaselineToCurrentUpload(event.target.value) }}
+                      style={{ minWidth: 260 }}
+                    >
+                      <option value="">Select baseline template</option>
+                      {predefinedBaselines.map((baseline) => (
+                        <option key={baseline.baseline_key} value={baseline.baseline_key}>
+                          {baseline.baseline_key} ({baseline.column_count} columns)
+                        </option>
+                      ))}
+                    </select>
+                    <div className="muted-text" style={{ fontSize: 10.5 }}>
+                      Available options: {predefinedBaselines.map((baseline) => baseline.baseline_key).join(', ') || 'Loading...'}
+                    </div>
+                  </div>
+                </div>
+
+                {selectedPredefinedBaseline && (
+                  <div style={{ display: 'grid', gap: 8 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#0f172a' }}>
+                      Selected baseline: {selectedPredefinedBaseline.dataset_name} ({selectedPredefinedBaseline.source_table})
+                    </div>
+                    <div className="muted-text" style={{ fontSize: 10.5 }}>
+                      {selectedPredefinedBaseline.description}
+                    </div>
+                    <pre style={{ margin: 0, padding: 12, borderRadius: 10, background: '#eaf1f8', color: '#0f172a', fontSize: 10.5, overflowX: 'auto', whiteSpace: 'pre-wrap' }}>
+{JSON.stringify(selectedPredefinedBaseline, null, 2)}
+                    </pre>
+                  </div>
+                )}
+
+                {!selectedPredefinedBaseline && (
+                  <div className="featureops-empty-state">
+                    Upload a dataset and select one of these baseline templates: products, users, transactions, shops, or trends.
+                  </div>
+                )}
+              </div>
+
+              <div className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', padding: 12, display: 'grid', gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Baseline Creation Module</div>
+                  <div className="muted-text" style={{ fontSize: 11 }}>Approved semantic baseline fields and stored business meaning for each baseline column.</div>
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
+                    <thead>
+                      <tr style={{ background: '#eef4fb' }}>
+                        {['Column', 'Business meaning', 'Role', 'Domain', 'Unit', 'Scale', 'Data type', 'Value direction', 'Baseline version'].map((header) => (
+                          <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #dbe5f0', color: '#334155' }}>{header}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {approvedBaselineColumns.map((row: any) => (
+                        <tr key={`baseline-module-${row.column_name}`}>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{row.column_name}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.business_meaning}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.role}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.domain}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.unit}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.scale}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.data_type}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.value_direction}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.baseline_version}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {!approvedBaselineColumns.length && (
+                  <div className="featureops-empty-state">
+                    Baseline creation results will appear here after the baseline profile is available.
+                  </div>
+                )}
+              </div>
+
+              <div className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', padding: 12, display: 'grid', gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>New Dataset Profiling Module</div>
+                  <div className="muted-text" style={{ fontSize: 11 }}>Profiles the newly uploaded dataset using names, data types, sample values, nearby columns, and value patterns.</div>
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
+                    <thead>
+                      <tr style={{ background: '#eef4fb' }}>
+                        {['Column', 'Detected data type', 'Sample values', 'Nearby columns', 'Value pattern', 'Possible meaning', 'Possible domain', 'Possible role'].map((header) => (
+                          <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #dbe5f0', color: '#334155' }}>{header}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {newDatasetProfilingRows.map((row: any) => (
+                        <tr key={`profiling-module-${row.column_name}`}>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{row.column_name}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.detected_data_type}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{Array.isArray(row.sample_values) ? row.sample_values.join(', ') : '-'}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{Array.isArray(row.nearby_columns) ? row.nearby_columns.join(', ') : '-'}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.value_pattern}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.possible_business_meaning}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.possible_domain}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.possible_role}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {!newDatasetProfilingRows.length && (
+                  <div className="featureops-empty-state">
+                    New dataset profiling results will appear here after upload analysis finishes.
+                  </div>
+                )}
+              </div>
+
+              <div className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', padding: 12, display: 'grid', gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Column Matching Module</div>
+                  <div className="muted-text" style={{ fontSize: 11 }}>Matches uploaded columns with baseline columns using exact, normalized, synonym, and semantic similarity checks.</div>
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
+                    <thead>
+                      <tr style={{ background: '#eef4fb' }}>
+                        {['Incoming column', 'Baseline column', 'Match method', 'Match score', 'Incoming role', 'Baseline role', 'Reason'].map((header) => (
+                          <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #dbe5f0', color: '#334155' }}>{header}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {columnMatchingRows.map((row: any) => (
+                        <tr key={`matching-module-${row.incoming_column}`}>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{row.incoming_column}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.baseline_column || 'No baseline match'}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.match_method}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{Math.round(Number(row.match_score || 0) * 100)}%</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.incoming_role || '-'}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.baseline_role || '-'}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.reason}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {!columnMatchingRows.length && (
+                  <div className="featureops-empty-state">
+                    Column matching results will appear here after baseline and profiling data are ready.
+                  </div>
+                )}
               </div>
             </div>
           ) : (
