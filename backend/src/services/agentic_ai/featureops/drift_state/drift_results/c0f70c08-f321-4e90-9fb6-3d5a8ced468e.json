@@ -1,0 +1,46 @@
+{
+  "drift_run_id": "c0f70c08-f321-4e90-9fb6-3d5a8ced468e",
+  "timestamp": "2026-05-02T15:50:38.861050",
+  "dataset_version_a": "test4_early",
+  "dataset_version_b": "test4_late",
+  "is_internal_drift": true,
+  "statistical_signals": [
+    {
+      "ks_statistic": 0.042,
+      "ks_pvalue": 0.7704365372945415,
+      "mean_delta": 0.0033092791590139115,
+      "std_delta": 0.057835796499492886,
+      "chi2_statistic": null,
+      "chi2_pvalue": null,
+      "new_categories": null,
+      "missing_categories": null,
+      "missing_rate_baseline": 0.0,
+      "missing_rate_current": 0.0
+    },
+    {
+      "ks_statistic": null,
+      "ks_pvalue": null,
+      "mean_delta": null,
+      "std_delta": null,
+      "chi2_statistic": 4.785087719298246,
+      "chi2_pvalue": 0.09139688704879649,
+      "new_categories": [],
+      "missing_categories": [],
+      "missing_rate_baseline": 0.0,
+      "missing_rate_current": 0.0
+    }
+  ],
+  "semantic_signals": [],
+  "behavioral_signals": null,
+  "statistical_drift_score": 0.027540350877192983,
+  "semantic_drift_score": 0.0,
+  "behavioral_drift_score": 0.0,
+  "internal_drift_score": 0.027540350877192983,
+  "external_drift_score": 0.0,
+  "overall_drift_score": 0.027540350877192983,
+  "severity": "low",
+  "drift_detected": false,
+  "reasons": [],
+  "human_reviewed": false,
+  "human_label": null
+}

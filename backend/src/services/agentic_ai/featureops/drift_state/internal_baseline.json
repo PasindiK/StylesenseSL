@@ -1,0 +1,163 @@
+{
+  "dataset_name": "internal_demo",
+  "row_count": 200,
+  "column_count": 4,
+  "column_profiles": [
+    {
+      "column_name": "row_id",
+      "kind": "categorical",
+      "row_count": 200,
+      "non_null_count": 200,
+      "missing_rate": 0.0,
+      "unique_count": 200,
+      "sample_values": [
+        "R0",
+        "R1",
+        "R2",
+        "R3",
+        "R4",
+        "R5",
+        "R6",
+        "R7",
+        "R8",
+        "R9"
+      ],
+      "semantic_signature": "9c4f140ea7f5aaf703872a5b22e898d1bc9fae5a6bedd64d9555480f4ec19939",
+      "topic_summary": "Top terms: r0, r1, r2, r3, r4, r5",
+      "summary_text": "row_id is categorical. Top terms: r0, r1, r2, r3, r4, r5",
+      "top_values": [
+        "R0",
+        "R1",
+        "R2",
+        "R3",
+        "R4",
+        "R5",
+        "R6",
+        "R7",
+        "R8",
+        "R9"
+      ],
+      "new_values": [
+        "R0",
+        "R1",
+        "R2",
+        "R3",
+        "R4"
+      ],
+      "missing_values": []
+    },
+    {
+      "column_name": "price",
+      "kind": "numeric",
+      "row_count": 200,
+      "non_null_count": 200,
+      "missing_rate": 0.0,
+      "unique_count": 200,
+      "sample_values": [
+        "116.90525703800355",
+        "95.34062629459167",
+        "100.32820163678585",
+        "104.07516282996508",
+        "92.11076971374261",
+        "100.02065572905948",
+        "99.99109614142068",
+        "82.4527569365458",
+        "110.17658005663493",
+        "106.0049851591955"
+      ],
+      "semantic_signature": "92caaaa687963ce0eb530cbdac272b4403108dc4e5c8c92e967ae21d1a167407",
+      "mean": 99.72035331525623,
+      "std": 9.904213153070787,
+      "min": 77.11684898028278,
+      "max": 122.59946986626261,
+      "median": 99.71185891766456,
+      "p10": 85.56122638784498,
+      "p90": 112.27075514844432,
+      "topic_summary": "Numeric feature with mean 99.720 and std 9.904",
+      "summary_text": "price is numeric. mean=99.720, std=9.904, min=77.117, max=122.599."
+    },
+    {
+      "column_name": "category",
+      "kind": "categorical",
+      "row_count": 200,
+      "non_null_count": 200,
+      "missing_rate": 0.0,
+      "unique_count": 2,
+      "sample_values": [
+        "A",
+        "B"
+      ],
+      "semantic_signature": "d0273c06452f1aee5a344d39529df293227ff1770ccd0b079aa32f412cbda690",
+      "topic_summary": "Top terms: a, b",
+      "summary_text": "category is categorical. Top terms: a, b",
+      "top_values": [
+        "A",
+        "B"
+      ],
+      "new_values": [
+        "A",
+        "B"
+      ],
+      "missing_values": []
+    },
+    {
+      "column_name": "description",
+      "kind": "text",
+      "row_count": 200,
+      "non_null_count": 200,
+      "missing_rate": 0.0,
+      "unique_count": 1,
+      "sample_values": [
+        "classic cotton shirt"
+      ],
+      "semantic_signature": "3abe7fe2e7ad5c0e01cce7371be24cf643698fdb4bec64fc6d5194be32b83453",
+      "topic_summary": "Top terms: classic, cotton, shirt",
+      "summary_text": "description is text. Top terms: classic, cotton, shirt",
+      "top_values": [
+        "classic cotton shirt"
+      ],
+      "new_values": [
+        "classic cotton shirt"
+      ],
+      "missing_values": []
+    }
+  ],
+  "semantic_anchor": "No strong relational anchor detected.",
+  "summary_text": "Dataset internal_demo has 4 columns. row_id (categorical): Top terms: r0, r1, r2, r3, r4, r5 price (numeric): Numeric feature with mean 99.720 and std 9.904 category (categorical): Top terms: a, b description (text): Top terms: classic, cotton, shirt Anchor: No strong relational anchor detected.",
+  "summary_embedding": [
+    0.08838834764831843,
+    0.0,
+    0.08838834764831843,
+    0.08838834764831843,
+    0.17677669529663687,
+    0.0,
+    0.0,
+    0.17677669529663687,
+    0.08838834764831843,
+    0.08838834764831843,
+    0.2651650429449553,
+    0.08838834764831843,
+    0.08838834764831843,
+    0.35355339059327373,
+    0.08838834764831843,
+    0.17677669529663687,
+    0.0,
+    0.08838834764831843,
+    0.17677669529663687,
+    0.0,
+    0.08838834764831843,
+    0.35355339059327373,
+    0.35355339059327373,
+    0.2651650429449553,
+    0.08838834764831843,
+    0.44194173824159216,
+    0.08838834764831843,
+    0.17677669529663687,
+    0.0,
+    0.17677669529663687,
+    0.08838834764831843,
+    0.0
+  ],
+  "profile_signature": "eac1c32e58b6a183d325380cd78e18fa7b9923e53cf339aab465dc0fa8f7fc96",
+  "built_at": "2026-05-03T01:43:21.530890"
+}

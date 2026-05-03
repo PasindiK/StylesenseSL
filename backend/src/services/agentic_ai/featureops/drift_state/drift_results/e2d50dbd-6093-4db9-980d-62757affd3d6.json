@@ -1,0 +1,51 @@
+{
+  "drift_run_id": "e2d50dbd-6093-4db9-980d-62757affd3d6",
+  "timestamp": "2026-05-02T15:50:38.826323",
+  "dataset_version_a": "test3_early",
+  "dataset_version_b": "test3_late",
+  "is_internal_drift": true,
+  "statistical_signals": [
+    {
+      "ks_statistic": 0.876,
+      "ks_pvalue": 3.4094347317573873e-200,
+      "mean_delta": 2.9966987388192514,
+      "std_delta": 0.06360697344338462,
+      "chi2_statistic": null,
+      "chi2_pvalue": null,
+      "new_categories": null,
+      "missing_categories": null,
+      "missing_rate_baseline": 0.0,
+      "missing_rate_current": 0.0
+    },
+    {
+      "ks_statistic": null,
+      "ks_pvalue": null,
+      "mean_delta": null,
+      "std_delta": null,
+      "chi2_statistic": null,
+      "chi2_pvalue": 0.0,
+      "new_categories": [
+        "R"
+      ],
+      "missing_categories": [],
+      "missing_rate_baseline": 0.0,
+      "missing_rate_current": 0.0
+    }
+  ],
+  "semantic_signals": [],
+  "behavioral_signals": null,
+  "statistical_drift_score": 0.7752,
+  "semantic_drift_score": 0.0,
+  "behavioral_drift_score": 0.0,
+  "internal_drift_score": 0.7752,
+  "external_drift_score": 0.0,
+  "overall_drift_score": 0.7752,
+  "severity": "high",
+  "drift_detected": true,
+  "reasons": [
+    "Column 'x' shows significant distribution shift (p=0.0000)",
+    "Column 'y' has new categories: ['R']"
+  ],
+  "human_reviewed": false,
+  "human_label": null
+}
