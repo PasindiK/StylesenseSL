@@ -16,7 +16,8 @@ React + TypeScript + Vite frontend for the fashion-aware search and chat experie
 2) Frontend:
    - `cd frontend`
    - `npm install`
-   - `npm run dev` (default at http://localhost:5173, proxied to backend `/api`).
+   - **Local:** `cp .env.example .env.local` and run `npm run dev`.
+   - **Vercel (HTTPS):** do **not** point `VITE_*` at `http://` Azure IPs (browsers block mixed content). Use **`frontend/vercel.json`** rewrites + env values from **`.env.vercel.example`** (same-origin `/re/...` paths). Set those `VITE_*` variables in the Vercel project, commit `vercel.json`, and **Redeploy**. When Azure IPs change, edit **`frontend/vercel.json`** and redeploy.
 
 ## Quick API reference (used by this UI)
 - POST /api/answer – main chat + search (fashion model, intent classifier, conversation memory).

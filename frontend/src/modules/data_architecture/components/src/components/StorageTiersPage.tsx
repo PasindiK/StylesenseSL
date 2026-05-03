@@ -106,7 +106,9 @@ export function StorageTiersPage({ architecture }: StorageTiersPageProps) {
   const [syncing, setSyncing] = useState(false);
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
 
-  const API_BASE_URL = 'http://localhost:8003/api';
+  const API_BASE_URL =
+    (typeof import.meta !== 'undefined' && (import.meta.env.VITE_DATA_ARCH_API_URL as string)) ||
+    'http://localhost:8003/api';
 
   useEffect(() => {
     const fetchTierData = async () => {
