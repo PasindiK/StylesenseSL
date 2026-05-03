@@ -848,6 +848,88 @@ Global dashboard UI/UX improvements for enterprise style:
   font-weight: 600;
 }
 
+.dm-pm-admin-box {
+  margin-top: 12px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 10px;
+}
+
+.dm-pm-admin-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.dm-pm-admin-note {
+  font-size: 12px;
+  color: #475569;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.dm-pm-admin-controls {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.dm-pm-admin-controls input {
+  height: 34px;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.dm-pm-admin-controls select {
+  height: 34px;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  padding: 0 10px;
+  font-size: 12px;
+  background: #fff;
+}
+
+.dm-pm-admin-controls button {
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid #2f6fec;
+  background: #2f6fec;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dm-pm-admin-error {
+  margin-top: 6px;
+  color: #b91c1c;
+  font-size: 12px;
+}
+
+.dm-pm-admin-summary {
+  margin-top: 8px;
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: #334155;
+}
+
+.dm-pm-admin-files {
+  max-height: 90px;
+  overflow: auto;
+  border: 1px solid #d9dee7;
+  background: #fff;
+  border-radius: 8px;
+  padding: 6px;
+  font-size: 11px;
+}
+
 .dm-pm-inline-auth {
   border: 1px solid #d9dee7;
   border-radius: 12px;

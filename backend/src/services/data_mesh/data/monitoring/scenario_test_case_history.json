@@ -1,0 +1,28 @@
+[
+  {
+    "cycle_id": "4af68d06-d",
+    "selected_domain": "sales_domain",
+    "status": "restored",
+    "baseline_score": 84.0826,
+    "scenario_score": 38.3929,
+    "restored_score": 86.2461,
+    "scenario_delta": -45.6897,
+    "restore_delta": 2.1635,
+    "recovery_from_scenario": 47.8532,
+    "created_at": "2026-03-10T07:44:17",
+    "updated_at": "2026-03-10T09:13:31"
+  },
+  {
+    "cycle_id": "4817bc02-b",
+    "selected_domain": "sales_domain",
+    "status": "restored",
+    "baseline_score": 38.3929,
+    "scenario_score": 38.3929,
+    "restored_score": 86.2462,
+    "scenario_delta": 0.0,
+    "restore_delta": 47.8533,
+    "recovery_from_scenario": 47.8533,
+    "created_at": "2026-03-10T07:44:25",
+    "updated_at": "2026-03-10T07:45:03"
+  }
+]

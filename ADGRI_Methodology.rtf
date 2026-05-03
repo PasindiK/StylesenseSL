@@ -1,0 +1,46 @@
+{\rtf1\ansi\deff0
+{\fonttbl{\f0 Calibri;}}
+\fs24
+\b Methodology: Adaptive Data Mesh Governance Using ADGRI\b0\par
+\par
+This study implements an adaptive governance-scoring framework for Data Mesh domains using ADGRI (Adaptive Domain Governance Reliability Index). Governance is evaluated per domain across volume, freshness, and distribution instability under batch governance cycles.\par
+\par
+\b 1) Domain Dataset Construction\b0\par
+Silver-layer datasets are mapped to domain-specific datasets through a reload pipeline. Each pipeline cycle copies Silver CSV inputs into domain output locations and records execution metadata (run_id, per-domain row count, status, timing). Domain outputs are persisted as per-domain CSV files and serve as the primary state for governance evaluation.\par
+\par
+\b 2) Governance Data Inputs\b0\par
+For each domain, governance computation uses domain output datasets (latest domain CSV), monitoring history time series (domain_health_history.csv), pipeline execution logs (pipeline_log.json), and file metadata fallback when temporal signals are sparse. Extracted fields include domain_name, row_count, timestamp, freshness_hours, rows_processed, status, and domain-specific date/numeric columns.\par
+\par
+\b 3) Volume Stability Modeling\b0\par
+Volume deviation is computed from latest row count against rolling baseline: z_v = |x_latest - mu_v| / sigma_v, with a safe denominator fallback when sigma_v is approximately zero. Higher z_v indicates stronger volume irregularity.\par
+\par
+\b 4) Freshness Stability Modeling\b0\par
+Freshness lag is primarily computed from business-date recency: L_f = max(0, (t_eval - t_latest_business)/3600). If business-date context is insufficient, refresh-interval behavior is used; if timestamps are sparse, file-age heuristics are applied.\par
+\par
+\b 5) Distribution Stability Modeling\b0\par
+Date-qualified numeric non-ID columns are used. Daily feature vectors are built from per-feature mean and variance. Drift is measured via per-feature z-scores and aggregated as z_d = sqrt((1/k) * sum(z_i^2)), where k is the number of valid feature statistics.\par
+\par
+\b 6) Deviation-to-Risk Transformation\b0\par
+For each factor i in {v, f, d}, risk is derived as r_i = erf(max(0, z_i)/sqrt(2)), yielding bounded instability risk in [0,1].\par
+\par
+\b 7) Confidence Estimation\b0\par
+Confidence is computed per factor using sample sufficiency and variability attenuation: c_i = clip_[0,1]((log(1+n_i)/log(1+W)) * (1/(1+variability_i))), where n_i is baseline sample size and W is rolling window size.\par
+\par
+\b 8) Dynamic Confidence-Aware Weighting\b0\par
+Weights are confidence-normalized: w_i = c_i / (c_v + c_f + c_d), with numerical flooring for stable normalization.\par
+\par
+\b 9) ADGRI Formulation\b0\par
+Weighted governance risk: R_adgri = w_v*r_v + w_f*r_f + w_d*r_d. Final score: ADGRI = 100 * (1 - R_adgri). Output range is [0,100], where higher values indicate stronger governance reliability.\par
+\par
+\b 10) Trend and Explanation Layer\b0\par
+The system computes governance trend over recent refresh cycles, classifies trend direction (improving/stable/deteriorating), and provides contribution-based explanation of dominant instability factors.\par
+\par
+\b 11) Operational Integration and Triggers\b0\par
+Governance is recomputed after pipeline refresh operations and in controlled admin workflows (scenario execution, baseline restoration, correction-and-rerun). Computation fuses latest domain state, historical monitoring context, and pipeline logs.\par
+\par
+\b 12) System Outputs\b0\par
+Outputs include per-domain ADGRI, weighted risk, confidence score/level, trend direction/slope, contribution breakdown, cross-domain rankings, prioritization recommendations, and pipeline health alerts.\par
+\par
+\b 13) Control and Experimental Validation\b0\par
+Controlled validation injects prepared or uploaded test datasets into mapped Silver targets, triggers rerun, recomputes governance, and compares before/after ADGRI and factor-level risk deltas (freshness, volume, distribution), including reason-label and business-date shifts.\par
+}
