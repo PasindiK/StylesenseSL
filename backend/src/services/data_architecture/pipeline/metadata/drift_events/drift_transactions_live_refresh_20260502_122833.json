@@ -1,0 +1,68 @@
+{
+  "timestamp": "2026-05-02T12:28:33.387713Z",
+  "table": "transactions_live_refresh",
+  "source_file": "extreme_drift_products.csv",
+  "baseline_dataset": "medallions/bronze/raw/transactions_live_refresh_live_20260502_105045_raw.csv",
+  "decision": "REQUIRES_APPROVAL",
+  "requires_approval": true,
+  "auto_approved": false,
+  "risk_level": "high",
+  "rl_action": "require_human_approval",
+  "counts": {
+    "new": 3,
+    "missing": 2,
+    "dtype": 0,
+    "renames": 4
+  },
+  "diff": {
+    "new_columns": [
+      "rating",
+      "discount_percent",
+      "warehouse_location"
+    ],
+    "missing_columns": [
+      "seasonal_score",
+      "material_grade"
+    ],
+    "dtype_changes": [],
+    "renames": [
+      {
+        "old_name": "name",
+        "new_name": "product_name",
+        "similarity": 0.5,
+        "type_match": true,
+        "match_type": "synonym"
+      },
+      {
+        "old_name": "fabric",
+        "new_name": "material",
+        "similarity": 0.429,
+        "type_match": true,
+        "match_type": "synonym"
+      },
+      {
+        "old_name": "price_LKR",
+        "new_name": "price",
+        "similarity": 0.714,
+        "type_match": true,
+        "match_type": "synonym"
+      },
+      {
+        "old_name": "category_name",
+        "new_name": "category",
+        "similarity": 0.762,
+        "type_match": true,
+        "match_type": "synonym"
+      }
+    ]
+  },
+  "approved": false,
+  "rejected": false,
+  "approval_timestamp": null,
+  "ingestion": {
+    "saved": true,
+    "local_path": "medallions/bronze/raw/transactions_live_refresh_live_20260502_122830_raw.csv",
+    "size_bytes": 109631,
+    "azure_blob_path": "bronze/raw/transactions_live_refresh_live_20260502_122830_raw.csv"
+  }
+}

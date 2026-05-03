@@ -68,13 +68,19 @@ export function PipelineFlowDiagram({ stages }: PipelineFlowDiagramProps) {
                     <div className="pipeline-node-title-wrapper">
                       <div 
                         className={`pipeline-status-dot ${isPerfect ? 'status-perfect' : hasFailures ? 'status-poor' : 'status-good'}`}
-                        title={isPerfect ? 'All records processed successfully' : hasFailures ? `${stage.failed_records} failed records` : 'In progress'}
+                        title={
+                          isPerfect
+                            ? 'Carryover matches prior layer totals'
+                            : hasFailures
+                              ? `${stage.failed_records.toLocaleString()} row gap vs prior layer (estimated)`
+                              : 'In progress'
+                        }
                       />
                       <h3 className="pipeline-node-title">{stage.stage}</h3>
                     </div>
                     {hasFailures && (
                       <div className="pipeline-status-badge">
-                        ⚠ {stage.failed_records} Failed
+                        ⚠ {stage.failed_records.toLocaleString()} row Δ
                       </div>
                     )}
                   </div>
@@ -97,14 +103,14 @@ export function PipelineFlowDiagram({ stages }: PipelineFlowDiagramProps) {
                         >
                           {stage.success_rate.toFixed(1)}%
                         </div>
-                        <div className="pipeline-node-metric-label">Success Rate</div>
+                        <div className="pipeline-node-metric-label">Carryover %</div>
                       </div>
                       
                       <div className="pipeline-node-metric">
                         <div className="pipeline-node-metric-value">
                           {stage.failed_records.toLocaleString()}
                         </div>
-                        <div className="pipeline-node-metric-label">Failures</div>
+                        <div className="pipeline-node-metric-label">Row gap</div>
                       </div>
                     </div>
                   </div>
@@ -180,19 +186,19 @@ export function PipelineFlowDiagram({ stages }: PipelineFlowDiagramProps) {
             <div className="pipeline-kpi-unit">transformation</div>
           </div>
 
-          <div className="pipeline-kpi-card">
-            <div className="pipeline-kpi-label">Overall Success</div>
+            <div className="pipeline-kpi-card">
+            <div className="pipeline-kpi-label">Avg carryover</div>
             <div className="pipeline-kpi-value" style={{ color: getStatusColor(overallSuccessRate) }}>
               {overallSuccessRate.toFixed(1)}%
             </div>
-            <div className="pipeline-kpi-unit">health</div>
+            <div className="pipeline-kpi-unit">across stages</div>
           </div>
         </div>
       </div>
 
       {/* Optional: Pipeline Health Indicator Bar */}
       <div className="pipeline-health-bar">
-        <div className="pipeline-health-label">Pipeline Health:</div>
+        <div className="pipeline-health-label">Carryover index:</div>
         <div className="pipeline-health-indicator-wrapper">
           <div 
             className="pipeline-health-fill" 

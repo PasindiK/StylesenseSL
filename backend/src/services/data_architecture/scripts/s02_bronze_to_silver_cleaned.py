@@ -3,14 +3,33 @@ import os
 import pandas as pd
 from datetime import datetime
 
-BRONZE_DIR = "bronze/raw"
-SILVER_CLEANED_DIR = "silver/cleaned"
+BRONZE_DIR = "medallions/bronze/raw"
+SILVER_CLEANED_DIR = "medallions/silver/cleaned"
 os.makedirs(SILVER_CLEANED_DIR, exist_ok=True)
 
-def clean_file(input_path: str, output_path: str):
+# Map dataset/table names to their unique identifier columns
+UNIQUE_ID_COLUMNS = {
+    'users': 'user_id',
+    'products': 'product_id',
+    'transactions': 'item_id',
+    'shops': 'shop_id',
+    'trends': 'trend_id',
+    'interactions': 'interaction_id',
+    'user_preferences': 'preference_id',
+}
+
+def _extract_table_type_from_name(table_name: str) -> str:
+    """Extract the table type from table name for ID column lookup."""
+    table_lower = table_name.lower()
+    for key in UNIQUE_ID_COLUMNS.keys():
+        if key in table_lower:
+            return key
+    return None
+
+def clean_file(input_path: str, output_path: str, table_name: str = None):
     """
     Clean a CSV file:
-    - Remove duplicates
+    - Remove duplicates based on unique ID column
     - Handle nulls
     - Standardize string columns
     - Add quality score
@@ -21,11 +40,27 @@ def clean_file(input_path: str, output_path: str):
     
     print(f"\n{'='*60}")
     print(f"CLEANING: {os.path.basename(input_path)} | {original_count} records")
+    print(f"Table: {table_name}")
     print(f"{'='*60}")
     
-    # 1. Remove duplicates
-    df = df.drop_duplicates(keep='first')
-    duplicates_removed = original_count - len(df)
+    # 1. Remove duplicates based on unique ID column
+    unique_id_col = None
+    if table_name:
+        table_type = _extract_table_type_from_name(table_name)
+        if table_type and table_type in UNIQUE_ID_COLUMNS:
+            unique_id_col = UNIQUE_ID_COLUMNS[table_type]
+    
+    # Check if the unique ID column exists in the dataframe
+    if unique_id_col and unique_id_col in df.columns:
+        df = df.drop_duplicates(subset=[unique_id_col], keep='first')
+        duplicates_removed = original_count - len(df)
+        print(f"✓ Deduplicated by '{unique_id_col}': removed {duplicates_removed} duplicate records")
+    else:
+        if unique_id_col:
+            print(f"⚠ Expected unique ID column '{unique_id_col}' not found. Available columns: {list(df.columns)}")
+        # Fallback: no deduplication if ID column not found
+        duplicates_removed = 0
+        print(f"⚠ No deduplication performed - cannot identify unique ID column")
     
     # 2. Count nulls
     null_counts = df.isnull().sum()
@@ -71,7 +106,7 @@ if __name__ == "__main__":
         raise FileNotFoundError(f"INPUT_FILE not found: {INPUT_FILE}")
     
     silver_path = os.path.join(SILVER_CLEANED_DIR, os.path.basename(INPUT_FILE).replace('_raw.csv', '_cleaned.csv'))
-    summary = clean_file(INPUT_FILE, silver_path)
+    summary = clean_file(INPUT_FILE, silver_path, table_name=TABLE_NAME)
     
     print(f"\n{'='*60}")
     print(f"SILVER CLEANING COMPLETE | Table: {TABLE_NAME}")
