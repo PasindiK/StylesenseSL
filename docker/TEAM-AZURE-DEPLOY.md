@@ -220,8 +220,8 @@ In Vercel → **Settings** → **Environment Variables** (Production), set value
 
 | Variable | Value (example) |
 |----------|-----------------|
-| `VITE_API_URL` | `/re/agentic` |
-| `VITE_AGENTIC_API_URL` | `/re/agentic` |
+| `VITE_AGENTIC_API_URL` | `/re/agentic` (**required** for cart / chat / dashboard — do not point at mesh) |
+| `VITE_API_URL` | `/re/agentic` (alias; optional if `VITE_AGENTIC_API_URL` is set) |
 | `VITE_DATA_MESH_API_URL` | `/re/mesh` |
 | `VITE_DATA_FABRIC_API_URL` | `/re/fabric` |
 | `VITE_DATA_ARCH_API_URL` | `/re/arch` |

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Pencil, RefreshCw, UserRound } from 'lucide-react'
+import { getAgenticApiBase } from '../../../lib/agenticApiBase'
 import type { KGPreferenceSignal } from '../services/kgSignals'
 import FeatureOpsWorkflowPanel from '../components/FeatureOpsWorkflowPanel'
 import OrderAssistantPage from './OrderAssistantPage'
@@ -307,12 +308,7 @@ export default function AgenticAIDashboard({
     setActiveSection('order_assistant')
   }, [orderAssistantCheckoutRequest?.id])
 
-  const apiBase = useMemo(() => {
-    if (typeof window !== 'undefined' && (window as any).VITE_API_URL) {
-      return (window as any).VITE_API_URL
-    }
-    return (typeof import.meta !== 'undefined' && (import.meta.env.VITE_API_URL as string)) || '/api'
-  }, [])
+  const apiBase = useMemo(() => getAgenticApiBase(), [])
 
   useEffect(() => {
     let isMounted = true

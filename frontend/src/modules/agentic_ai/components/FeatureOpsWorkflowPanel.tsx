@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { getAgenticApiBase } from '../../../lib/agenticApiBase'
 import '../../data_fabric/components/DataFabricTestingPage.css'
 import './FeatureOpsWorkflowPanel.css'
 
@@ -845,7 +846,7 @@ function buildWorkflowSteps(mode: 'baseline' | 'version', stage: number, failed 
 }
 
 export default function FeatureOpsWorkflowPanel() {
-  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_AGENTIC_API_URL || '/api'
+  const apiBase = getAgenticApiBase()
   const [uploadedRows, setUploadedRows] = useState<DatasetRow[] | null>(null)
   const [datasetName, setDatasetName] = useState('')
   const [datasetError, setDatasetError] = useState<string | null>(null)
