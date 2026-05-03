@@ -1,0 +1,166 @@
+{
+  "metadata": {
+    "dataset_name": "demo_product_for_anchors",
+    "row_count": 5,
+    "column_count": 5,
+    "built_at": "2026-05-03T02:19:52.578425",
+    "profiler_version": "1.0"
+  },
+  "column_profiles": [
+    {
+      "column_name": "product_id",
+      "kind": "categorical",
+      "statistics": {
+        "row_count": 5,
+        "non_null_count": 5,
+        "missing_rate": 0.0,
+        "unique_count": 5
+      },
+      "samples": [
+        "P001",
+        "P002",
+        "P003",
+        "P004",
+        "P005"
+      ],
+      "categorical_stats": {
+        "top_values": [
+          "P001",
+          "P002",
+          "P003",
+          "P004",
+          "P005"
+        ],
+        "cardinality": 5
+      },
+      "topic_summary": "Top terms: p001, p002, p003, p004, p005",
+      "summary_text": "product_id is categorical. Top terms: p001, p002, p003, p004, p005"
+    },
+    {
+      "column_name": "price",
+      "kind": "numeric",
+      "statistics": {
+        "row_count": 5,
+        "non_null_count": 5,
+        "missing_rate": 0.0,
+        "unique_count": 5
+      },
+      "samples": [
+        "8500",
+        "1200",
+        "5500",
+        "2800",
+        "9200"
+      ],
+      "numeric_stats": {
+        "mean": 5440.0,
+        "std": 3112.940731848263,
+        "min": 1200.0,
+        "max": 9200.0,
+        "median": 5500.0,
+        "p10": 1840.0,
+        "p90": 8920.0
+      },
+      "scale_pattern": "currency",
+      "topic_summary": "Numeric feature with mean 5440.000 and std 3112.941",
+      "summary_text": "price is numeric. Numeric feature with mean 5440.000 and std 3112.941"
+    },
+    {
+      "column_name": "description",
+      "kind": "categorical",
+      "statistics": {
+        "row_count": 5,
+        "non_null_count": 5,
+        "missing_rate": 0.0,
+        "unique_count": 5
+      },
+      "samples": [
+        "Premium silk dress",
+        "Budget cotton top",
+        "Luxury evening gown",
+        "Casual summer shirt",
+        "Designer handbag"
+      ],
+      "categorical_stats": {
+        "top_values": [
+          "Premium silk dress",
+          "Budget cotton top",
+          "Luxury evening gown",
+          "Casual summer shirt",
+          "Designer handbag"
+        ],
+        "cardinality": 5
+      },
+      "topic_summary": "Top terms: budget, casual, cotton, designer, dress, evening",
+      "summary_text": "description is categorical. Top terms: budget, casual, cotton, designer, dress, evening"
+    },
+    {
+      "column_name": "rating",
+      "kind": "numeric",
+      "statistics": {
+        "row_count": 5,
+        "non_null_count": 5,
+        "missing_rate": 0.0,
+        "unique_count": 5
+      },
+      "samples": [
+        "4.8",
+        "3.9",
+        "4.7",
+        "3.2",
+        "4.9"
+      ],
+      "numeric_stats": {
+        "mean": 4.3,
+        "std": 0.6542170893518451,
+        "min": 3.2,
+        "max": 4.9,
+        "median": 4.7,
+        "p10": 3.48,
+        "p90": 4.86
+      },
+      "scale_pattern": "percentage",
+      "topic_summary": "Numeric feature with mean 4.300 and std 0.654",
+      "summary_text": "rating is numeric. Numeric feature with mean 4.300 and std 0.654"
+    },
+    {
+      "column_name": "status",
+      "kind": "categorical",
+      "statistics": {
+        "row_count": 5,
+        "non_null_count": 5,
+        "missing_rate": 0.0,
+        "unique_count": 2
+      },
+      "samples": [
+        "luxury",
+        "affordable"
+      ],
+      "categorical_stats": {
+        "top_values": [
+          "luxury",
+          "affordable"
+        ],
+        "cardinality": 2
+      },
+      "topic_summary": "Top terms: affordable, luxury",
+      "summary_text": "status is categorical. Top terms: affordable, luxury"
+    }
+  ],
+  "relational_anchors": [
+    {
+      "anchor_id": "price_rating_correlation",
+      "type": "numeric_correlation",
+      "left_column": "price",
+      "right_column": "rating",
+      "correlation_strength": 0.826,
+      "baseline_rule": "High values in price correlate with high values in rating (r=0.83).",
+      "status": "discovered"
+    }
+  ],
+  "summary": {
+    "text": "Dataset 'demo_product_for_anchors' contains 5 columns. Numeric columns: price, rating. Text/categorical columns: product_id, description, status. Discovered relationships: price\u2194rating (r=0.826).",
+    "embedding": null,
+    "signature": "f7d429403c3ad08d"
+  }
+}

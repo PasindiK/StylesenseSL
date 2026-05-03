@@ -369,13 +369,18 @@ class LakehouseMetricsService:
         return files_by_layer
 
     def _list_layer_files(self, layer: str) -> Tuple[List[Dict[str, Any]], str, Optional[str]]:
+        # Try local files first for development/testing, then Azure
+        local_files = list(self._iter_local_layer_files(layer))
+        if local_files:
+            return local_files, "local_filesystem", None
+
+        # Fallback to Azure if local files not found
         azure_files, azure_status, azure_error = self._list_azure_layer_blobs(layer)
         if azure_status == "success":
             return azure_files, "azure_blob", None
 
-        local_files = list(self._iter_local_layer_files(layer))
-        source = "local_filesystem" if azure_status == "unavailable" else "local_filesystem_fallback"
-        return local_files, source, azure_error
+        # Return empty list if both fail
+        return [], "unavailable", azure_error
 
     def _list_azure_layer_blobs(
         self,

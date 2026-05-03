@@ -1,0 +1,1 @@
+["internal_mean_distance", "external_mean_distance", "text_embedding_distance", "anchor_violation_score", "scale_mismatch_score", "numeric_std_ratio", "categorical_entropy_ratio", "minority_scale_ratio", "text_similarity_to_internal", "text_similarity_to_external", "semantic_coherence_score", "column_count_diff", "new_column_ratio", "missing_column_ratio", "max_column_drift"]

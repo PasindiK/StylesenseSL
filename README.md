@@ -77,9 +77,6 @@ npm run dev
 
 The Vite dev server runs on `http://localhost:5173` and proxies `/api` to `http://localhost:8000`.
 
-## Environment Configuration
-
-Create `backend/.env` and set values like:
 ## Workspace Customization (Current Project)
 
 - Runtime baseline validated on macOS in this workspace:
@@ -98,18 +95,34 @@ Run it with:
 
 This executes Silver-only business-date rebasing, reruns the Silver→Mesh pipeline, refreshes governance outputs, and prints a concise summary.
 
-## Run Commands
+## Environment Configuration
+
+Create [backend/.env](/C:/Test/backend/.env) and set at least:
 
 ```dotenv
 GEMINI_API_KEY=your_key_here
 GEMINI_MOCK=1
-OPENAI_API_KEY=your_key_here
+GROQ_API_KEY=your_groq_api_key_here
+PYTHONUNBUFFERED=1
+KG_ENABLED=false
+CORS_ORIGINS=http://localhost:5173,https://your-app.vercel.app
+
+# Only required when KG_ENABLED=true
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=your_neo4j_password
+NEO4J_DB=neo4j
 ```
 
 Notes:
-- `GEMINI_MOCK=1` enables local mock behavior.
-- Do **not** commit real API keys.
-- If any key was previously committed, rotate it immediately.
+- `GEMINI_API_KEY`: your Gemini API key.
+- `GEMINI_MOCK=1`: avoids real Gemini-style LLM calls for local development.
+- `GROQ_API_KEY`: optional, only needed when you want live Groq-backed responses.
+- `PYTHONUNBUFFERED=1`: keeps Python logs flushed immediately.
+- `KG_ENABLED=false`: leave disabled unless you are running Neo4j.
+- `NEO4J_*`: only required when `KG_ENABLED=true` (for example when using Neo4j Aura or a local Neo4j instance).
+- `CORS_ORIGINS`: comma-separated frontend origins such as your local Vite URL and deployed Vercel URL.
+- Do **not** commit real API keys. If any key was previously committed, rotate it immediately.
 
 ## Run with Docker
 

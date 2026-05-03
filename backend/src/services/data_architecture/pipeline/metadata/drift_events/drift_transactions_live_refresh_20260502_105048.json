@@ -1,0 +1,35 @@
+{
+  "timestamp": "2026-05-02T10:50:48.796231Z",
+  "table": "transactions_live_refresh",
+  "source_file": "datatype_drift_products.csv",
+  "baseline_dataset": "medallions/bronze/raw/transactions_live_refresh_live_20260502_103153_raw.csv",
+  "decision": "AUTO_APPROVED",
+  "requires_approval": false,
+  "auto_approved": true,
+  "risk_level": "low",
+  "rl_action": null,
+  "counts": {
+    "new": 2,
+    "missing": 0,
+    "dtype": 0,
+    "renames": 0
+  },
+  "diff": {
+    "new_columns": [
+      "seasonal_score",
+      "material_grade"
+    ],
+    "missing_columns": [],
+    "dtype_changes": [],
+    "renames": []
+  },
+  "approved": false,
+  "rejected": false,
+  "approval_timestamp": null,
+  "ingestion": {
+    "saved": true,
+    "local_path": "medallions/bronze/raw/transactions_live_refresh_live_20260502_105045_raw.csv",
+    "size_bytes": 103553,
+    "azure_blob_path": "bronze/raw/transactions_live_refresh_live_20260502_105045_raw.csv"
+  }
+}

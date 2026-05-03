@@ -110,7 +110,11 @@ export interface OverviewPayload {
     data_quality_score: number;
   };
   pipeline_flow: PipelineStageMetric[];
+  /** How pipeline stage percentages are derived (API hint for honest labeling). */
+  pipeline_flow_basis?: string;
   freshness: FreshnessPoint[];
+  /** How per-day freshness is computed from file mtimes. */
+  freshness_basis?: string;
   ingestion_metrics: {
     records_per_minute: IngestionPoint[];
     records_per_hour: IngestionPoint[];
@@ -119,7 +123,49 @@ export interface OverviewPayload {
     consumer_lag: ConsumerLagPoint[];
   };
   data_volume_distribution: Array<{ layer: string; size_bytes: number }>;
+  /** How layer byte totals for the volume chart are filtered (deduped outputs vs full layer scan). */
+  data_volume_basis?: string;
   storage_tier_usage: TierUsageItem[];
+}
+
+/** Live validation / baseline auto-detection API (data architecture only). */
+export interface BaselineDetectionAnalysis {
+  primary_key_found: boolean;
+  characteristic_columns_matched: number;
+  column_count_similarity: number;
+  row_count_plausible: boolean;
+  filename_similarity: number;
+}
+
+export interface BaselineRecommendation {
+  action: 'AUTO_SELECT' | 'CONFIRM_SELECTION' | 'MANUAL_SELECT';
+  user_action_required: boolean;
+  message: string;
+  allow_override: boolean;
+}
+
+export interface BaselineAlternative {
+  baseline: string;
+  confidence: number;
+}
+
+export interface BaselineDetectionResult {
+  detected_baseline: 'users' | 'products' | 'transactions' | 'shops' | 'trends';
+  confidence: number;
+  alternatives: BaselineAlternative[];
+  matched_columns: string[];
+  analysis: BaselineDetectionAnalysis;
+  reasoning: string;
+  recommendation: BaselineRecommendation;
+}
+
+export interface AutoDetectionResponse {
+  generated_at: string;
+  file: string;
+  file_rows: number;
+  file_columns: number;
+  detection: BaselineDetectionResult;
+  next_step: string;
 }
 
 export interface GovernanceAnalytics {
@@ -468,6 +514,10 @@ export interface LiveValidationMetricsSnapshot {
 export interface LiveValidationResult {
   generated_at: string;
   status_message: string;
+  model_decision: string;
+  /** True when this upload created a drift event that appears in the Approvals queue */
+  queued_for_manual_approval?: boolean;
+  decision_reason?: string;
   drift_detected: boolean;
   risk_level: string;
   drift_counts: DriftCounts;
@@ -491,6 +541,17 @@ export interface LiveValidationResult {
   };
   before_metrics: LiveValidationMetricsSnapshot;
   after_metrics: LiveValidationMetricsSnapshot;
+  /** Per-arm LinUCB scores and tie-break metadata when drift is evaluated with the bandit policy */
+  rl_bandit?: {
+    selected_rl_action: string;
+    action_scores?: Record<string, number>;
+    top_score?: number;
+    score_tie?: boolean;
+    tied_actions?: string[];
+    tie_break_applied?: boolean;
+    tie_break_severity?: string;
+    tie_break_rule?: string;
+  } | null;
 }
 
 export interface SchemaVersion {

@@ -28,13 +28,15 @@ const PIE_COLORS = ['#0f766e', '#0284c7', '#f59e0b', '#94a3b8'];
 export function OverviewPage({ summary }: OverviewPageProps) {
   const metrics = summary.overview.metrics;
   const freshness = summary.overview.freshness;
-  const ingestion = summary.overview.ingestion_metrics;
   const volumeDistribution = summary.overview.data_volume_distribution;
   const storageTiers = summary.overview.storage_tier_usage;
+  const pipelineFlowBasis = summary.overview.pipeline_flow_basis;
+  const freshnessBasis = summary.overview.freshness_basis;
+  const dataVolumeBasis = summary.overview.data_volume_basis;
 
   const latestPipeline = summary.overview.pipeline_flow;
 
-  const overallSuccess = latestPipeline.length
+  const avgCarryover = latestPipeline.length
     ? latestPipeline.reduce((sum, item) => sum + item.success_rate, 0) / latestPipeline.length
     : 0;
 
@@ -60,13 +62,25 @@ export function OverviewPage({ summary }: OverviewPageProps) {
       </div>
 
       <div className="span-12">
-        <Panel title="Data Pipeline Flow" subtitle="Bronze -> Silver -> Gold Medallion Architecture">
+        <Panel
+          title="Data Pipeline Flow"
+          subtitle={
+            pipelineFlowBasis ??
+            'Bronze → Silver → Gold: stage metrics from live medallion file row estimates (not job logs).'
+          }
+        >
           <PipelineFlowDiagram stages={latestPipeline} />
         </Panel>
       </div>
 
       <div className="span-8">
-        <Panel title="Data Freshness" subtitle="Freshness in hours since the last layer update">
+        <Panel
+          title="Data Freshness"
+          subtitle={
+            freshnessBasis ??
+            'Hours from the latest file modification in each layer (end of each day; today = now).'
+          }
+        >
           <div className="chart-box large">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={freshness}>
@@ -85,11 +99,11 @@ export function OverviewPage({ summary }: OverviewPageProps) {
       </div>
 
       <div className="span-4">
-        <Panel title="Pipeline Runtime" subtitle="Current execution posture">
+        <Panel title="Pipeline Runtime" subtitle="Derived from current medallion row totals">
           <div className="stat-stack">
             <div className="stat-item">
-              <span>Overall Success</span>
-              <strong>{pct(overallSuccess)}</strong>
+              <span>Avg layer carryover</span>
+              <strong>{pct(avgCarryover)}</strong>
             </div>
             <div className="stat-item">
               <span>Bronze Files</span>
@@ -108,7 +122,10 @@ export function OverviewPage({ summary }: OverviewPageProps) {
       </div>
 
       <div className="span-6">
-        <Panel title="Storage Tier Usage" subtitle="Hot, Warm, Cold split">
+        <Panel
+          title="Storage Tier Usage"
+          subtitle="Byte totals by access tier from the same medallion scan (Azure blob tier or local age heuristic)"
+        >
           <div className="chart-box medium">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -126,7 +143,13 @@ export function OverviewPage({ summary }: OverviewPageProps) {
       </div>
 
       <div className="span-12">
-        <Panel title="Data Volume Distribution" subtitle="Volume split by medallion layer">
+        <Panel
+          title="Data Volume Distribution"
+          subtitle={
+            dataVolumeBasis ??
+            'Byte totals per layer from medallion scans (Bronze = raw; Silver = cleaned + enriched; Gold = curated where applicable).'
+          }
+        >
           <div className="chart-box medium">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={volumeDistribution}>

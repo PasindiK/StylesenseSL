@@ -1,5 +1,15 @@
 .featureops-shell {
   font-family: "Manrope", "Segoe UI", sans-serif;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  align-self: stretch !important;
+  justify-self: stretch !important;
+}
+
+.featureops-shell.df-dashboard-shell {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
 }
 
 .featureops-shell article {
@@ -29,7 +39,7 @@
 .featureops-shell .muted-text,
 .featureops-shell article p,
 .featureops-shell small {
-  color: #98abc8 !important;
+  color: #c2d3e8 !important;
 }
 
 .featureops-shell table {
@@ -75,8 +85,31 @@
   border: 1px solid;
   border-radius: 10px;
   padding: 0.65rem 0.8rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.featureops-top-detail-grid {
   display: grid;
-  gap: 0.15rem;
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
+}
+
+.featureops-expand-card {
+  appearance: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.featureops-truncate-single {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .featureops-metric-card {
@@ -112,4 +145,416 @@
   padding: 0.2rem 0.55rem;
   font-size: 0.72rem;
   font-weight: 700;
+}
+
+.featureops-overview-grid,
+.featureops-release-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.featureops-summary-card,
+.featureops-status-card,
+.featureops-visual-card,
+.featureops-detail-panel {
+  border-radius: 14px;
+  border: 1px solid rgba(124, 152, 188, 0.2);
+  background: rgba(18, 32, 50, 0.7);
+  padding: 0.9rem;
+}
+
+.featureops-summary-card span,
+.featureops-status-card span,
+.featureops-summary-inline span,
+.featureops-visual-title,
+.featureops-gauge-copy,
+.featureops-gauge-meta span,
+.featureops-role-row span,
+.featureops-bar-row > span {
+  color: #e6f0fb !important;
+  font-size: 0.72rem;
+}
+
+.featureops-summary-card strong,
+.featureops-status-card strong,
+.featureops-summary-inline strong,
+.featureops-donut-center strong,
+.featureops-gauge-meta strong,
+.featureops-role-row strong,
+.featureops-bar-stack strong,
+.featureops-progress-card strong,
+.featureops-progress-title {
+  color: #ffffff !important;
+}
+
+.featureops-summary-card strong,
+.featureops-status-card strong {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.92rem;
+}
+
+.featureops-summary-inline {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.featureops-summary-inline strong {
+  margin-left: auto;
+  text-align: right;
+}
+
+.featureops-progress-grid,
+.featureops-visual-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.85rem;
+}
+
+.featureops-progress-card {
+  border-radius: 14px;
+  border: 1px solid rgba(124, 152, 188, 0.18);
+  background: rgba(11, 20, 34, 0.78);
+  padding: 0.9rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.featureops-progress-card.is-completed {
+  border-color: rgba(16, 185, 129, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.14);
+}
+
+.featureops-progress-card.is-running {
+  border-color: rgba(59, 130, 246, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.16);
+}
+
+.featureops-progress-card.is-skipped {
+  border-color: rgba(245, 158, 11, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.12);
+}
+
+.featureops-progress-card.is-failed {
+  border-color: rgba(239, 68, 68, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.14);
+}
+
+.featureops-progress-topline,
+.featureops-gauge-meta,
+.featureops-role-row,
+.featureops-bar-row,
+.featureops-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.featureops-progress-copy,
+.featureops-progress-status,
+.featureops-donut-center span,
+.featureops-legend-list span {
+  color: #c2d3e8 !important;
+  font-size: 0.72rem;
+}
+
+.featureops-donut-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem 0 0.25rem;
+}
+
+.featureops-donut {
+  width: 140px;
+  height: 140px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+}
+
+.featureops-donut-center {
+  width: 88px;
+  height: 88px;
+  border-radius: 999px;
+  background: rgba(10, 18, 30, 0.92);
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.featureops-legend-list,
+.featureops-role-list,
+.featureops-bar-group {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.featureops-bar-stack {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 110px;
+}
+
+.featureops-bar-track,
+.featureops-gauge-track {
+  flex: 1;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(53, 74, 102, 0.7);
+  overflow: hidden;
+}
+
+.featureops-bar-fill,
+.featureops-gauge-fill {
+  height: 100%;
+  border-radius: inherit;
+}
+
+.featureops-bar-fill.internal {
+  background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+}
+
+.featureops-bar-fill.external {
+  background: linear-gradient(90deg, #f59e0b, #f97316);
+}
+
+.featureops-bar-fill.role,
+.featureops-gauge-fill,
+.featureops-bar-fill.ready {
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+}
+
+.featureops-bar-fill.conditional {
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+}
+
+.featureops-bar-fill.quarantined {
+  background: linear-gradient(90deg, #f87171, #ef4444);
+}
+
+.featureops-filter-pill {
+  border: 1px solid rgba(124, 152, 188, 0.24);
+  background: rgba(17, 29, 46, 0.72);
+  color: #cfe0f4;
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.featureops-filter-pill.active {
+  background: #d9f0ff;
+  color: #12365f;
+  border-color: #d9f0ff;
+}
+
+.featureops-tab-strip {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 6px;
+  border-radius: 14px;
+  background: #e2e8f0;
+  border: 1px solid #cbd5e1;
+}
+
+.featureops-workspace-tab {
+  border: 1px solid transparent;
+  background: transparent;
+  color: #334155;
+  border-radius: 10px;
+  padding: 0.6rem 0.95rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.featureops-workspace-tab.active {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #94a3b8;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.featureops-detail-panel summary {
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #edf7ff;
+}
+
+.featureops-trust-card {
+  grid-column: span 2;
+}
+
+.featureops-history-compare-card {
+  border-radius: 14px;
+  border: 1px solid rgba(191, 219, 254, 0.9);
+  background: #ffffff;
+  padding: 0.9rem;
+  color: #0f172a !important;
+}
+
+.featureops-history-compare-card table,
+.featureops-history-compare-card td,
+.featureops-history-compare-card th,
+.featureops-history-compare-card div,
+.featureops-history-compare-card span,
+.featureops-history-compare-card strong {
+  color: inherit !important;
+}
+
+.featureops-history-modal table,
+.featureops-history-modal td,
+.featureops-history-modal th,
+.featureops-history-modal div,
+.featureops-history-modal span,
+.featureops-history-modal strong {
+  color: inherit !important;
+}
+
+.featureops-history-modal {
+  color: #0f172a !important;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.featureops-history-modal th {
+  color: #1e293b !important;
+  font-weight: 800 !important;
+}
+
+.featureops-history-modal td {
+  color: #0f172a !important;
+}
+
+.featureops-history-modal .featureops-history-muted {
+  color: #475569 !important;
+}
+
+.featureops-history-section-title {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+
+.featureops-release-grid .featureops-status-card,
+.featureops-release-grid .featureops-status-card span,
+.featureops-release-grid .featureops-status-card strong {
+  color: #0f172a !important;
+}
+
+.featureops-history-subtle {
+  color: #1f2937 !important;
+  font-weight: 600 !important;
+}
+
+.featureops-light-panel,
+.featureops-light-panel table,
+.featureops-light-panel td,
+.featureops-light-panel th,
+.featureops-light-panel div,
+.featureops-light-panel span,
+.featureops-light-panel p,
+.featureops-light-panel strong,
+.featureops-light-panel label {
+  color: #0f172a !important;
+}
+
+.featureops-light-panel .muted-text,
+.featureops-light-panel small {
+  color: #334155 !important;
+}
+
+.featureops-light-panel th {
+  color: #334155 !important;
+  font-weight: 800 !important;
+}
+
+.featureops-light-panel td {
+  color: #0f172a !important;
+}
+
+.featureops-light-panel input,
+.featureops-light-panel select {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.featureops-light-panel .featureops-empty-state {
+  background: #f8fafc;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+.featureops-light-panel .featureops-summary-card,
+.featureops-light-panel .featureops-status-card,
+.featureops-light-panel .featureops-visual-card,
+.featureops-light-panel .featureops-detail-panel,
+.featureops-light-panel .featureops-metric-card,
+.featureops-light-panel .featureops-progress-card,
+.featureops-light-panel .featureops-filter-pill {
+  color: #eaf4ff !important;
+}
+
+.featureops-light-panel .featureops-summary-card span,
+.featureops-light-panel .featureops-status-card span,
+.featureops-light-panel .featureops-summary-inline span,
+.featureops-light-panel .featureops-visual-title,
+.featureops-light-panel .featureops-gauge-copy,
+.featureops-light-panel .featureops-gauge-meta span,
+.featureops-light-panel .featureops-role-row span,
+.featureops-light-panel .featureops-bar-row > span,
+.featureops-light-panel .featureops-progress-copy,
+.featureops-light-panel .featureops-progress-status,
+.featureops-light-panel .featureops-donut-center span,
+.featureops-light-panel .featureops-legend-list span,
+.featureops-light-panel .featureops-metric-card span {
+  color: #d0def0 !important;
+}
+
+.featureops-light-panel .featureops-summary-card strong,
+.featureops-light-panel .featureops-status-card strong,
+.featureops-light-panel .featureops-summary-inline strong,
+.featureops-light-panel .featureops-donut-center strong,
+.featureops-light-panel .featureops-gauge-meta strong,
+.featureops-light-panel .featureops-role-row strong,
+.featureops-light-panel .featureops-bar-stack strong,
+.featureops-light-panel .featureops-progress-card strong,
+.featureops-light-panel .featureops-progress-title,
+.featureops-light-panel .featureops-metric-card strong {
+  color: #edf7ff !important;
+}
+
+.featureops-light-panel .featureops-filter-pill {
+  background: rgba(17, 29, 46, 0.72);
+  color: #cfe0f4 !important;
+  border-color: rgba(124, 152, 188, 0.24);
+}
+
+.featureops-light-panel .featureops-filter-pill.active {
+  background: #d9f0ff;
+  color: #12365f !important;
+  border-color: #d9f0ff;
+}
+
+@media (max-width: 900px) {
+  .featureops-top-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .featureops-trust-card {
+    grid-column: span 1;
+  }
 }

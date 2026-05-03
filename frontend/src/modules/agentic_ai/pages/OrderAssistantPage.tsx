@@ -1397,20 +1397,20 @@ export default function OrderAssistantPage({
     <section
       style={{
         borderRadius: 12,
-        border: '1px solid rgba(148,163,184,0.25)',
-        background: 'rgba(15,23,42,0.55)',
+        border: '1px solid #d7e3f4',
+        background: 'linear-gradient(180deg, #ffffff, #f8fbff)',
         display: 'flex',
         flexDirection: 'column',
         minHeight: 0,
         height: '100%',
       }}
     >
-      <header style={{ padding: '12px 14px 8px', borderBottom: '1px solid rgba(148,163,184,0.2)' }}>
-        <h3 style={{ margin: 0, color: '#e2e8f0', fontSize: 18 }}>Order Assistant Chat Interface</h3>
+      <header style={{ padding: '12px 14px 8px', borderBottom: '1px solid #dbe5f0' }}>
+        <h3 style={{ margin: 0, color: '#1e293b', fontSize: 18 }}>Order Assistant Chat Interface</h3>
       </header>
 
-      <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(148,163,184,0.2)', display: 'grid', gap: 8 }}>
-        <div style={{ color: '#94a3b8', fontSize: 12 }}>Quick actions:</div>
+      <div style={{ padding: '10px 14px', borderBottom: '1px solid #dbe5f0', display: 'grid', gap: 8 }}>
+        <div style={{ color: '#475569', fontSize: 12, fontWeight: 700 }}>Quick actions:</div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button
             type="button"
@@ -1418,11 +1418,12 @@ export default function OrderAssistantPage({
             disabled={loading}
             style={{
               borderRadius: 999,
-              border: '1px solid rgba(96,165,250,0.55)',
-              background: 'rgba(37,99,235,0.28)',
-              color: '#eff6ff',
+              border: '1px solid #60a5fa',
+              background: '#4f7fd9',
+              color: '#ffffff',
               padding: '7px 12px',
               fontSize: 12,
+              fontWeight: 700,
               cursor: loading ? 'not-allowed' : 'pointer',
             }}
           >
@@ -1434,11 +1435,12 @@ export default function OrderAssistantPage({
             disabled={loading}
             style={{
               borderRadius: 999,
-              border: '1px solid rgba(96,165,250,0.55)',
-              background: 'rgba(37,99,235,0.28)',
-              color: '#eff6ff',
+              border: '1px solid #60a5fa',
+              background: '#4f7fd9',
+              color: '#ffffff',
               padding: '7px 12px',
               fontSize: 12,
+              fontWeight: 700,
               cursor: loading ? 'not-allowed' : 'pointer',
             }}
           >
@@ -1450,14 +1452,14 @@ export default function OrderAssistantPage({
             style={{
               marginTop: 2,
               borderRadius: 10,
-              border: '1px solid rgba(148,163,184,0.3)',
-              background: 'rgba(2,6,23,0.35)',
+              border: '1px solid #dbe5f0',
+              background: '#eef5ff',
               padding: '8px 10px',
               display: 'grid',
               gap: 6,
             }}
           >
-            <div style={{ fontSize: 12, color: '#cbd5e1' }}>
+            <div style={{ fontSize: 12, color: '#334155', fontWeight: 600 }}>
               {satisfactionMessage || 'Rate your recent action'}
             </div>
             {pendingSatisfactionAction && (
@@ -1496,9 +1498,9 @@ export default function OrderAssistantPage({
         )}
       </div>
 
-      <div style={{ display: 'flex', gap: 12, padding: 14, flex: 1, minHeight: 0 }}>
+      <div style={{ display: 'flex', gap: 12, padding: 14, flex: 1, minHeight: 0, background: '#f8fbff' }}>
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
-          <div ref={messageListRef} style={{ overflowY: 'auto', display: 'grid', gap: 10, flex: 1, minHeight: 0 }}>
+          <div ref={messageListRef} style={{ overflowY: 'auto', display: 'grid', gap: 10, flex: 1, minHeight: 0, paddingRight: 2 }}>
             {messages.map((m) => (
               <div
                 key={m.id}
@@ -1507,21 +1509,21 @@ export default function OrderAssistantPage({
                   maxWidth: '88%',
                   padding: '10px 12px',
                   borderRadius: 10,
-                  color: '#e2e8f0',
-                  background: m.sender === 'user' ? 'rgba(37,99,235,0.35)' : 'rgba(2,6,23,0.52)',
-                  border: '1px solid rgba(148,163,184,0.24)',
+                  color: '#0f172a',
+                  background: m.sender === 'user' ? '#dbeafe' : '#ffffff',
+                  border: '1px solid #dbe5f0',
                   whiteSpace: 'pre-line',
                   fontSize: 13,
                   lineHeight: 1.45,
                 }}
               >
                 {m.sender === 'user' && (
-                  <div style={{ fontSize: 11, color: '#93c5fd', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  <div style={{ fontSize: 11, color: '#2563eb', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 700 }}>
                     You
                   </div>
                 )}
                 {m.sender === 'assistant' ? (m.text.trim() ? renderTextWithLinks(m.text) : null) : m.text}
-                <div style={{ marginTop: 6, fontSize: 11, color: '#94a3b8', textAlign: 'right' }}>{m.at}</div>
+                <div style={{ marginTop: 6, fontSize: 11, color: '#64748b', textAlign: 'right' }}>{m.at}</div>
                 {m.sender === 'assistant' && m.pendingLink && pendingReplacementLink === m.pendingLink && (
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
                     <button
@@ -1896,10 +1898,10 @@ export default function OrderAssistantPage({
             )}
           </div>
 
-          <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 8, paddingTop: 12, borderTop: '1px solid rgba(148,163,184,0.2)' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 8, paddingTop: 12, borderTop: '1px solid #dbe5f0' }}>
             {showCombinedSelector && (
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <label style={{ color: '#cbd5e1', fontSize: 12, minWidth: 96 }}>Quantity:</label>
+                <label style={{ color: '#334155', fontSize: 12, minWidth: 96, fontWeight: 700 }}>Quantity:</label>
                 <button
                   type="button"
                   onClick={() => adjustQuantity(-1)}
@@ -1907,8 +1909,8 @@ export default function OrderAssistantPage({
                   style={{
                     borderRadius: 8,
                     border: '1px solid rgba(148,163,184,0.3)',
-                    background: 'rgba(2,6,23,0.45)',
-                    color: '#e2e8f0',
+                    background: '#ffffff',
+                    color: '#0f172a',
                     padding: '8px 12px',
                     fontSize: 14,
                     cursor: loading ? 'not-allowed' : 'pointer',
@@ -1933,8 +1935,8 @@ export default function OrderAssistantPage({
                     textAlign: 'center',
                     borderRadius: 8,
                     border: '1px solid rgba(148,163,184,0.3)',
-                    background: 'rgba(2,6,23,0.45)',
-                    color: '#e2e8f0',
+                    background: '#ffffff',
+                    color: '#0f172a',
                     padding: '8px 10px',
                     fontSize: 13,
                   }}
@@ -1946,8 +1948,8 @@ export default function OrderAssistantPage({
                   style={{
                     borderRadius: 8,
                     border: '1px solid rgba(148,163,184,0.3)',
-                    background: 'rgba(2,6,23,0.45)',
-                    color: '#e2e8f0',
+                    background: '#ffffff',
+                    color: '#0f172a',
                     padding: '8px 12px',
                     fontSize: 14,
                     cursor: loading ? 'not-allowed' : 'pointer',
@@ -1957,7 +1959,7 @@ export default function OrderAssistantPage({
                 </button>
                 {availableSizes.length > 0 && (
                   <>
-                    <label style={{ color: '#cbd5e1', fontSize: 12 }}>Size:</label>
+                    <label style={{ color: '#334155', fontSize: 12, fontWeight: 700 }}>Size:</label>
                     <select
                       value={selectionDraft.size || ''}
                       onChange={(e) => setSelectionDraft((prev) => ({ ...prev, size: e.target.value || undefined }))}
@@ -1965,8 +1967,8 @@ export default function OrderAssistantPage({
                       style={{
                         borderRadius: 8,
                         border: '1px solid rgba(148,163,184,0.3)',
-                        background: 'rgba(2,6,23,0.45)',
-                        color: '#e2e8f0',
+                        background: '#ffffff',
+                        color: '#0f172a',
                         padding: '8px 10px',
                         fontSize: 13,
                       }}
@@ -1983,7 +1985,7 @@ export default function OrderAssistantPage({
 
                 {availableColors.length > 0 && (
                   <>
-                    <label style={{ color: '#cbd5e1', fontSize: 12 }}>Color:</label>
+                    <label style={{ color: '#334155', fontSize: 12, fontWeight: 700 }}>Color:</label>
                     <select
                       value={selectionDraft.color || ''}
                       onChange={(e) => setSelectionDraft((prev) => ({ ...prev, color: e.target.value || undefined }))}
@@ -1991,8 +1993,8 @@ export default function OrderAssistantPage({
                       style={{
                         borderRadius: 8,
                         border: '1px solid rgba(148,163,184,0.3)',
-                        background: 'rgba(2,6,23,0.45)',
-                        color: '#e2e8f0',
+                        background: '#ffffff',
+                        color: '#0f172a',
                         padding: '8px 10px',
                         fontSize: 13,
                       }}
@@ -2018,8 +2020,8 @@ export default function OrderAssistantPage({
                   flex: 1,
                   borderRadius: 8,
                   border: '1px solid rgba(148,163,184,0.3)',
-                  background: 'rgba(2,6,23,0.45)',
-                  color: '#e2e8f0',
+                  background: '#ffffff',
+                  color: '#0f172a',
                   padding: '10px 12px',
                   fontSize: 13,
                 }}
@@ -2031,10 +2033,11 @@ export default function OrderAssistantPage({
                 style={{
                   borderRadius: 8,
                   border: '1px solid rgba(96,165,250,0.55)',
-                  background: 'rgba(37,99,235,0.5)',
-                  color: '#eff6ff',
+                  background: '#4f7fd9',
+                  color: '#ffffff',
                   padding: '10px 14px',
                   fontSize: 13,
+                  fontWeight: 700,
                   cursor: loading ? 'not-allowed' : 'pointer',
                 }}
               >

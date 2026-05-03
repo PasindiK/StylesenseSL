@@ -11,7 +11,7 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict, Optional
 import pandas as pd
 import os
 from dotenv import load_dotenv
@@ -88,7 +88,12 @@ def save_batch_locally(batch_df: pd.DataFrame, batch_id: int) -> Path:
         raise
 
 
-def upload_to_azure(local_path: Path, container: str, blob_name: str) -> bool:
+def upload_to_azure(
+    local_path: Path,
+    container: str,
+    blob_name: str,
+    record_count: Optional[int] = None,
+) -> bool:
     """
     Upload parquet to Azure Blob Storage
     
@@ -96,14 +101,25 @@ def upload_to_azure(local_path: Path, container: str, blob_name: str) -> bool:
         local_path: Local file path
         container: Azure container name
         blob_name: Blob name inside container
+        record_count: Optional exact row count for dashboard KPIs (blob metadata)
     
     Returns:
         True if successful
     """
     try:
         from storage.azure_blob import upload_file_to_azure_blob
-        
-        success = upload_file_to_azure_blob(str(local_path), container, blob_name)
+        from storage.medallion_blob_layout import blob_metadata_for_medallion_upload
+
+        c = str(container or "bronze").lower()
+        tier = "COOL" if c == "silver" else "HOT"
+        meta = blob_metadata_for_medallion_upload(
+            c,
+            blob_name,
+            local_path.name,
+            tier,
+            record_count=record_count,
+        )
+        success = upload_file_to_azure_blob(str(local_path), container, blob_name, metadata=meta)
         return success
     
     except Exception as e:
@@ -157,8 +173,8 @@ def run_pipeline(csv_path: str, batch_size: int = 100, azure_container: str = 'b
             
             # Upload to Azure if enabled
             if upload_enabled:
-                blob_name = f"raw/{local_path.name}"
-                if upload_to_azure(local_path, azure_container, blob_name):
+                blob_name = f"raw/ingestion/{local_path.name}"
+                if upload_to_azure(local_path, azure_container, blob_name, record_count=len(batch_df)):
                     stats['batches_uploaded_azure'] += 1
                     logger.info(f"  ↳ Uploaded to Azure: {azure_container}/{blob_name}\n")
             

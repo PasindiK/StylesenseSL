@@ -2,7 +2,7 @@ import abc
 import numpy as np
 import os
 import json
-from typing import Tuple
+from typing import Dict, Tuple
 
 POLICY_ACTIONS = [
     "auto_merge_schema",
@@ -55,33 +55,83 @@ class LinUCBPolicy(PolicyBase):
                 self.A[a] = np.eye(self.d)
                 self.b[a] = np.zeros((self.d,))
 
-    def choose_action(self, x: np.ndarray) -> Tuple[str, float]:
+    def score_actions(self, x: np.ndarray) -> Dict[str, float]:
+        """UCB score p_a(x) = θ_a^T x + α sqrt(x^T A_a^{-1} x) for every arm.
+
+        When the policy is untrained (all b_a == 0), returns domain-aware proxy scores
+        so arms still differentiate (same logic as previous choose_action).
+        """
         x = np.asarray(x, dtype=float)
         self._ensure_dim(x)
 
-        best_action = None
-        best_score = -np.inf
-        scores = {}  # Track all scores
-        
+        scores: Dict[str, float] = {}
         for a in self.actions:
-            A_inv = np.linalg.inv(self.A[a])
-            theta = A_inv.dot(self.b[a])
-            p = theta.dot(x) + self.alpha * np.sqrt(x.dot(A_inv).dot(x))
-            scores[a] = float(p)  # Store score
-            if p > best_score:
-                best_score = float(p)
-                best_action = a
+            try:
+                A_inv = np.linalg.inv(self.A[a])
+                theta = A_inv.dot(self.b[a])
+                p = theta.dot(x) + self.alpha * np.sqrt(x.dot(A_inv).dot(x))
+                scores[a] = float(p)
+            except np.linalg.LinAlgError:
+                scores[a] = 0.0
+
+        is_untrained = all(np.allclose(self.b[a], 0) for a in self.actions)
+        if is_untrained:
+            scores = self._domain_aware_fallback(x)
+
+        return scores
+
+    def choose_action(self, x: np.ndarray) -> Tuple[str, float]:
+        """Pick the arm with highest UCB score; ties break by first arm in ``self.actions`` order."""
+        scores = self.score_actions(x)
+        best_action = max(self.actions, key=lambda a: scores[a])
+        best_score = float(scores[best_action])
+        return best_action, best_score
+    
+    def _domain_aware_fallback(self, x: np.ndarray) -> dict:
+        """Use domain knowledge to score actions when untrained.
         
-        # Print UCB scores for visibility
-        print("\n" + "="*60)
-        print("UCB SCORES (LinUCB Policy Decision)")
-        print("="*60)
-        for action, score in sorted(scores.items(), key=lambda x: -x[1]):
-            marker = "[SELECTED]" if action == best_action else "          "
-            print(f"{marker} {action}: {score:.3f}")
-        print("="*60)
+        Maps drift characteristics to appropriate actions:
+        - Low risk, low changes → auto_merge_schema
+        - Medium risk → create_new_schema_version  
+        - High risk → quarantine_data / require_human_approval
+        """
+        # Extract features (assuming: new_cols, missing_cols, dtype_changes, renames, ...)
+        num_new = int(x[0]) if len(x) > 0 else 0
+        num_missing = int(x[1]) if len(x) > 1 else 0
+        num_dtype = int(x[2]) if len(x) > 2 else 0
+        num_renames = int(x[3]) if len(x) > 3 else 0
         
-        return best_action, float(best_score)
+        total_changes = num_new + num_missing + num_dtype + num_renames
+        risk_score = (num_missing * 5) + (num_dtype * 3) + (num_new * 1) + (num_renames * 2)
+        
+        scores = {}
+        
+        # Domain-based scoring logic
+        if num_missing > 0 or num_dtype > 2 or risk_score > 10:
+            # High risk - needs review or quarantine
+            scores["require_human_approval"] = 10.0 + risk_score
+            scores["quarantine_data"] = 9.0 + risk_score
+            scores["rollback_previous_schema"] = 8.0 + risk_score
+            scores["create_new_schema_version"] = 3.0
+            scores["auto_merge_schema"] = 1.0
+            
+        elif num_dtype > 0 or total_changes > 3:
+            # Medium risk - create new version or get approval
+            scores["create_new_schema_version"] = 8.0 + (num_dtype * 2)
+            scores["require_human_approval"] = 7.0 + (num_dtype * 1.5)
+            scores["auto_merge_schema"] = 3.0
+            scores["quarantine_data"] = 2.0
+            scores["rollback_previous_schema"] = 1.5
+            
+        else:
+            # Low risk - can auto-merge
+            scores["auto_merge_schema"] = 9.0 + (10 - total_changes)
+            scores["create_new_schema_version"] = 5.0
+            scores["require_human_approval"] = 2.0
+            scores["quarantine_data"] = 1.0
+            scores["rollback_previous_schema"] = 0.5
+        
+        return scores
 
     def update(self, action: str, x: np.ndarray, reward: float):
         x = np.asarray(x, dtype=float)

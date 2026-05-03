@@ -1,0 +1,109 @@
+[
+  {
+    "dataset_family_id": "semantic_internal_drift_1000_records",
+    "version_id": "semantic_internal_drift_1000_records_v1",
+    "version_number": 1,
+    "dataset_name": "semantic_internal_drift_1000_records.csv",
+    "created_at": "2026-05-03T05:55:51.398Z",
+    "release_results": [
+      {
+        "column_name": "record_id",
+        "role": "Identifier",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "timestamp",
+        "role": "Timestamp",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "product_id",
+        "role": "Identifier",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "category",
+        "role": "Categorical Attribute",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "quality_score",
+        "role": "Score / Rating",
+        "validation_status": "PASS",
+        "internal_drift_severity": "LOW",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "score_source",
+        "role": "Categorical Attribute",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "label",
+        "role": "Target Column",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      }
+    ]
+  }
+]
