@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Pencil, RefreshCw, UserRound } from 'lucide-react'
 import type { KGPreferenceSignal } from '../services/kgSignals'
-import FeatureOpsWorkflowPanel from '../components/FeatureOpsWorkflowPanel'
+import FeatureOpsWorkflowPanel from '../components/FeatureOpsWorkflowPanel.tsx'
 import OrderAssistantPage from './OrderAssistantPage'
 
 type DashboardSection =
