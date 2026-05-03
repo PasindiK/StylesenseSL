@@ -130,7 +130,9 @@ Optional Mesh / Fabric / Architecture APIs:
 docker compose -f docker/docker-compose.yml --profile microservices up --build
 ```
 
-Dockerfiles live under `docker/backend/` (`Dockerfile.agentic`, `Dockerfile.data-mesh`, `Dockerfile.data-fabric`, `Dockerfile.data-architecture`).
+Main agentic API image: `docker/Dockerfile.backend`. Optional microservice images (Mesh / Fabric / Architecture) live under `docker/backend/` if you use `--profile microservices`.
+
+**Four separate images (Docker Hub + separate Azure VMs):** build all from repo root with `docker/scripts/build-microservice-images.sh` (set `DOCKERHUB_USER`, optional `PUSH=1` to push). On Vercel set `VITE_API_URL`, `VITE_DATA_MESH_API_URL`, `VITE_DATA_FABRIC_API_URL`, and `VITE_DATA_ARCH_API_URL` to each deployed API base URL, then redeploy.
 
 ## Main API Endpoints
 

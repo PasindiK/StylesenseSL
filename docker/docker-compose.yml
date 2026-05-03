@@ -25,7 +25,7 @@ services:
   backend:
     build:
       context: ..
-      dockerfile: docker/backend/Dockerfile.agentic
+      dockerfile: docker/Dockerfile.backend
     ports:
       - "8000:8000"
     environment:
