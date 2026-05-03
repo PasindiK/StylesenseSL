@@ -357,6 +357,8 @@ export default function OrderAssistantPage({
   const [satisfactionMessage, setSatisfactionMessage] = useState<string | null>(null)
   const messageListRef = useRef<HTMLDivElement | null>(null)
 
+  const apiBase = useMemo(() => getAgenticApiBase(), [])
+
   const effectiveAutomation = useMemo(
     () => ({
       auto_fill_checkout: automationSettings?.auto_fill_checkout !== false,
@@ -565,8 +567,6 @@ export default function OrderAssistantPage({
       setLoading(false)
     }
   }
-
-  const apiBase = useMemo(() => getAgenticApiBase(), [])
 
   useEffect(() => {
     let active = true

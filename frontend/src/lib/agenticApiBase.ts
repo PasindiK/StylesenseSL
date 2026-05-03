@@ -3,17 +3,25 @@ function stripTrailingSlash(url: string) {
   return url.replace(/\/$/, '')
 }
 
-/** True when VITE_API_URL was pointed at the data-mesh proxy — must not drive cart/chat/dashboard. */
-function looksLikeMeshApiBase(url: string) {
-  return /(^|\/)re\/mesh(\/|$)/.test(url) || /\/mesh\/?$/.test(url)
+/**
+ * Vercel same-origin proxies for *other* services. If these are pasted into
+ * VITE_AGENTIC_API_URL or VITE_API_URL, cart/chat/dashboard would hit the wrong VM.
+ */
+const NON_AGENTIC_RE_PREFIXES = ['/re/mesh', '/re/fabric', '/re/arch'] as const
+
+function isNonAgenticVercelProxy(url: string): boolean {
+  const u = stripTrailingSlash(url.trim())
+  return NON_AGENTIC_RE_PREFIXES.some((p) => u === p || u.startsWith(`${p}/`))
 }
 
 export function getAgenticApiBase(): string {
-  const explicit = import.meta.env.VITE_AGENTIC_API_URL as string | undefined
-  if (explicit) return stripTrailingSlash(explicit)
+  const explicit = (import.meta.env.VITE_AGENTIC_API_URL as string | undefined)?.trim()
+  if (explicit && !isNonAgenticVercelProxy(explicit)) {
+    return stripTrailingSlash(explicit)
+  }
 
-  const generic = import.meta.env.VITE_API_URL as string | undefined
-  if (generic && !looksLikeMeshApiBase(generic)) {
+  const generic = (import.meta.env.VITE_API_URL as string | undefined)?.trim()
+  if (generic && !isNonAgenticVercelProxy(generic)) {
     return stripTrailingSlash(generic)
   }
 
