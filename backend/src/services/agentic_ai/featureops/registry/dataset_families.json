@@ -1,0 +1,16 @@
+[
+  {
+    "family_id": "semantic_internal_drift_1000_records",
+    "family_name": "semantic internal drift 1000 records",
+    "created_at": "2026-05-03T05:55:51.398Z",
+    "updated_at": "2026-05-03T05:55:51.398Z",
+    "description": "Semantic monitoring baseline",
+    "versions": [
+      1
+    ],
+    "latest_version": 1,
+    "approved_baseline_version": 1,
+    "version_count": 1,
+    "baseline_status": "ACTIVE"
+  }
+]

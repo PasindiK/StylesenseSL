@@ -57,15 +57,35 @@ def upload_to_medallion_layer(layer: str, batch_df: pd.DataFrame, batch_id: int,
         parquet_bytes.seek(0)
         
         # Set up Azure paths (add timestamp to avoid collisions with archived blobs)
-        from datetime import datetime
         timestamp = datetime.utcnow().strftime('%H%M%S')
-        container = f"{layer.lower()}"
-        blob_name = f"{layer}/{batch_id:05d}_{batch_date}_{timestamp}.parquet"
-        
+        container = layer.lower()
+        from storage.medallion_blob_layout import (
+            blob_metadata_for_medallion_upload,
+            parquet_stream_blob_path,
+        )
+
+        blob_name = parquet_stream_blob_path(layer, batch_id, batch_date, timestamp)
+        tier_policy = "COOL" if container == "silver" else "HOT"
+        upload_metadata = blob_metadata_for_medallion_upload(
+            container,
+            blob_name,
+            f"stream_batch_{batch_id}",
+            tier_policy,
+            record_count=int(len(batch_df)),
+        )
+
         # Upload
         client = BlobServiceClient.from_connection_string(conn_str)
         blob_client = client.get_blob_client(container, blob_name)
-        blob_client.upload_blob(parquet_bytes.getvalue(), overwrite=True)
+        blob_client.upload_blob(parquet_bytes.getvalue(), overwrite=True, metadata=upload_metadata)
+
+        try:
+            tier_enum = (
+                StandardBlobTier.Cool if tier_policy == "COOL" else StandardBlobTier.Hot
+            )
+            blob_client.set_standard_blob_tier(standard_blob_tier=tier_enum)
+        except Exception as tier_exc:
+            logger.debug("Could not set standard blob tier after stream upload: %s", tier_exc)
         
         file_size = len(parquet_bytes.getvalue())
         logger.info(f"✓ Uploaded batch {batch_id} to {layer} ({file_size:,} bytes)")

@@ -13,6 +13,7 @@ from kafka.errors import KafkaError
 
 from pipeline.ingestion.kafka_config import KafkaConfig, DataCategorizationConfig
 from storage.azure_blob import upload_file_to_azure_blob, get_azure_connection_string
+from storage.medallion_blob_layout import blob_metadata_for_medallion_upload
 
 
 logger = logging.getLogger(__name__)
@@ -190,8 +191,21 @@ class LakehouseConsumer:
             try:
                 if get_azure_connection_string():
                     container = 'bronze'  # Your Azure container name
-                    blob_name = f"raw/{stored_path.name}"
-                    uploaded = upload_file_to_azure_blob(str(stored_path), container, blob_name)
+                    blob_name = f"raw/ingestion/{stored_path.name}"
+                    n_rows = int(len(df))
+                    upload_meta = blob_metadata_for_medallion_upload(
+                        container,
+                        blob_name,
+                        stored_path.name,
+                        "HOT",
+                        record_count=n_rows,
+                    )
+                    uploaded = upload_file_to_azure_blob(
+                        str(stored_path),
+                        container,
+                        blob_name,
+                        metadata=upload_meta,
+                    )
                     if uploaded:
                         logger.info(f"Batch {batch_id} uploaded to Azure Blob: {container}/{blob_name}")
                         self.stats['batches_uploaded_to_cloud'] = self.stats.get('batches_uploaded_to_cloud', 0) + 1

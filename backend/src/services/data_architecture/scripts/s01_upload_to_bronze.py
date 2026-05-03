@@ -34,10 +34,10 @@ class BronzeUploader:
         os.makedirs(self.bronze_path, exist_ok=True)
 
         # Spark session — only attempt to start if explicitly enabled (avoid Windows/Java hangs)
-        enable_spark = os.environ.get("ENABLE_SPARK", "false").lower() in ("1", "true", "yes")
+        enable_spark = os.environ.get("ENABLE_SPARK", "true").lower() in ("1", "true", "yes")
         if not enable_spark:
             self.spark = None
-            logger.info("PySpark disabled by default. Set ENABLE_SPARK=1 to enable Spark startup.")
+            logger.info("PySpark disabled. Set ENABLE_SPARK=1 to enable Spark startup.")
         else:
             # Quick Java availability check
             java_ok = False

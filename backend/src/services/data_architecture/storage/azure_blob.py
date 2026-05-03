@@ -5,7 +5,7 @@ Handles uploading parquet batches to Azure Blob Storage
 import os
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Dict, Optional
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -14,8 +14,13 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 
-def upload_file_to_azure_blob(local_path: str, container: str, blob_name: str,
-                             connection_string: Optional[str] = None) -> bool:
+def upload_file_to_azure_blob(
+    local_path: str,
+    container: str,
+    blob_name: str,
+    connection_string: Optional[str] = None,
+    metadata: Optional[Dict[str, str]] = None,
+) -> bool:
     """
     Upload a file to Azure Blob Storage.
     
@@ -24,12 +29,13 @@ def upload_file_to_azure_blob(local_path: str, container: str, blob_name: str,
         container: Azure container name (e.g., 'bronze')
         blob_name: Blob name/path inside container (e.g., 'raw/batch_00001.parquet')
         connection_string: Azure Storage connection string (default: env var AZURE_STORAGE_CONNECTION_STRING)
+        metadata: Optional blob metadata (medallion_layer, substage, tier_policy, …)
     
     Returns:
         True on success, False otherwise
     
     Example:
-        >>> upload_file_to_azure_blob('bronze/raw/batch_00001.parquet', 'bronze', 'raw/batch_00001.parquet')
+        >>> upload_file_to_azure_blob('path/to/batch.parquet', 'bronze', 'raw/ingestion/batch_00001.parquet')
     """
     try:
         from azure.storage.blob import BlobServiceClient
@@ -62,7 +68,7 @@ def upload_file_to_azure_blob(local_path: str, container: str, blob_name: str,
         
         # Upload file
         with open(path, 'rb') as data:
-            blob_client.upload_blob(data, overwrite=True)
+            blob_client.upload_blob(data, overwrite=True, metadata=metadata or {})
         
         file_size = path.stat().st_size
         logger.info(f"✓ Uploaded {local_path} ({file_size:,} bytes) to Azure Blob: {container}/{blob_name}")

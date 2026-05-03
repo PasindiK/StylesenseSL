@@ -1,0 +1,42 @@
+{
+  "drift_run_id": "6891a073-4311-4fd1-a6f3-e668286f279d",
+  "timestamp": "2026-05-02T15:50:38.797902",
+  "dataset_version_a": "test2_early",
+  "dataset_version_b": "test2_late",
+  "is_internal_drift": true,
+  "statistical_signals": [
+    {
+      "ks_statistic": null,
+      "ks_pvalue": null,
+      "mean_delta": null,
+      "std_delta": null,
+      "chi2_statistic": null,
+      "chi2_pvalue": 0.0,
+      "new_categories": [
+        "E",
+        "D"
+      ],
+      "missing_categories": [
+        "A"
+      ],
+      "missing_rate_baseline": 0.0,
+      "missing_rate_current": 0.0
+    }
+  ],
+  "semantic_signals": [],
+  "behavioral_signals": null,
+  "statistical_drift_score": 0.6,
+  "semantic_drift_score": 0.0,
+  "behavioral_drift_score": 0.0,
+  "internal_drift_score": 0.6,
+  "external_drift_score": 0.0,
+  "overall_drift_score": 0.6,
+  "severity": "moderate",
+  "drift_detected": true,
+  "reasons": [
+    "Column 'cat' has new categories: ['E', 'D']",
+    "Column 'cat' missing categories: ['A']"
+  ],
+  "human_reviewed": false,
+  "human_label": null
+}
