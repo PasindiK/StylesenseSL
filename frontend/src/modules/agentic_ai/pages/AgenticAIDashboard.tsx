@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react'
+﻿import React, { useEffect, useMemo, useState } from 'react'
 import { Pencil, RefreshCw, UserRound } from 'lucide-react'
+import shoppingAssistantAvatar from '../../../assets/shopping-assistant-avatar.svg'
 import type { KGPreferenceSignal } from '../services/kgSignals'
 import FeatureOpsWorkflowPanel from '../components/FeatureOpsWorkflowPanel.tsx'
 import OrderAssistantPage from './OrderAssistantPage'
@@ -222,6 +223,7 @@ export default function AgenticAIDashboard({
   const [dashboardData, setDashboardData] = useState<any>(null)
   const [metricsError, setMetricsError] = useState<string | null>(null)
   const [lastRefreshTime, setLastRefreshTime] = useState<string>('')
+  const [showOrderAssistantBubble, setShowOrderAssistantBubble] = useState(false)
   const [metricsRefreshTick, setMetricsRefreshTick] = useState(0)
   const [userProfileData, setUserProfileData] = useState<DashboardUserProfile | null>(null)
   const [userProfileLoading, setUserProfileLoading] = useState(false)
@@ -293,6 +295,11 @@ export default function AgenticAIDashboard({
       setActiveSection('system_overview')
       return
     }
+    if (initialSection === 'order_assistant') {
+      setActiveSection('chat')
+      setShowOrderAssistantBubble(true)
+      return
+    }
     setActiveSection(initialSection)
   }, [initialSection])
 
@@ -304,8 +311,19 @@ export default function AgenticAIDashboard({
 
   useEffect(() => {
     if (!orderAssistantCheckoutRequest?.id) return
-    setActiveSection('order_assistant')
+    setActiveSection('chat')
+    setShowOrderAssistantBubble(true)
   }, [orderAssistantCheckoutRequest?.id])
+
+  useEffect(() => {
+    const handleOpenOrderingAssistant = () => {
+      setActiveSection('chat')
+      setShowOrderAssistantBubble(true)
+    }
+
+    window.addEventListener('open-ordering-assistant', handleOpenOrderingAssistant)
+    return () => window.removeEventListener('open-ordering-assistant', handleOpenOrderingAssistant)
+  }, [])
 
   const apiBase = useMemo(() => {
     if (typeof window !== 'undefined' && (window as any).VITE_API_URL) {
@@ -392,7 +410,7 @@ export default function AgenticAIDashboard({
   }
 
   useEffect(() => {
-    if (!userId || (activeSection !== 'user_profile' && activeSection !== 'order_assistant')) return
+    if (!userId || (activeSection !== 'user_profile' && !showOrderAssistantBubble)) return
     let mounted = true
 
     void (async () => {
@@ -403,7 +421,7 @@ export default function AgenticAIDashboard({
     return () => {
       mounted = false
     }
-  }, [apiBase, userId, activeSection])
+  }, [apiBase, userId, activeSection, showOrderAssistantBubble])
 
   useEffect(() => {
     if (!kgPhysicsEnabled || activeSection !== 'knowledge_graph') return
@@ -416,7 +434,6 @@ export default function AgenticAIDashboard({
   const navItems = useMemo(
     () => [
       { key: 'chat' as DashboardSection, label: 'AI Stylist' },
-      { key: 'order_assistant' as DashboardSection, label: 'Order Assistant' },
       { key: 'featureops_workflow' as DashboardSection, label: 'DE Workflow' },
       { key: 'system_overview' as DashboardSection, label: 'System Overview' },
       { key: 'feedback_center' as DashboardSection, label: 'Recommendation Feedback' },
@@ -1355,7 +1372,7 @@ export default function AgenticAIDashboard({
   }, [strategyBreakdown, totalRequestsToday])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: '100%', minHeight: 0 }}>
+    <div data-dashboard-section={activeSection} style={{ display: 'flex', flexDirection: 'column', gap: 12, height: '100%', minHeight: 0 }}>
       <section style={{ padding: '2px 2px 0 2px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
           <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 2 }}>
@@ -1384,7 +1401,7 @@ export default function AgenticAIDashboard({
               )
             })}
           </div>
-          {(activeSection === 'chat' || activeSection === 'order_assistant' || activeSection === 'user_profile') && (
+          {(activeSection === 'chat' || activeSection === 'user_profile') && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
               <button
                 type="button"
@@ -1470,21 +1487,91 @@ export default function AgenticAIDashboard({
         {activeSection === 'chat' && (
           <section style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {chatContent}
-          </section>
-        )}
-
-        {activeSection === 'order_assistant' && (
-          <section style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <OrderAssistantPage
-              userId={userId}
-              onOpenShoppingCart={onOpenShoppingCart}
-              checkoutRequest={orderAssistantCheckoutRequest || undefined}
-              onCheckoutRequestConsumed={onOrderAssistantCheckoutRequestConsumed}
-              automationSettings={automationDraft}
-              onCartUpdated={() => {
-                void refreshUserProfile(true)
-              }}
-            />
+            {showOrderAssistantBubble && (
+              <div
+                style={{
+                  position: 'fixed',
+                  right: 24,
+                  bottom: 104,
+                  width: 'min(460px, calc(100vw - 32px))',
+                  height: 'min(760px, calc(100vh - 140px))',
+                  zIndex: 60,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  borderRadius: 24,
+                  overflow: 'hidden',
+                  border: '1px solid rgba(148, 163, 184, 0.28)',
+                  boxShadow: '0 28px 70px rgba(15, 23, 42, 0.35)',
+                  background: 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.98))',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '14px 16px',
+                    background: 'linear-gradient(135deg, #eff6ff 0%, #e0e7ff 52%, #ecfeff 100%)',
+                    borderBottom: '1px solid rgba(148, 163, 184, 0.2)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                    <img
+                      src={shoppingAssistantAvatar}
+                      alt="Ordering Assistant profile"
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: '50%',
+                        border: '2px solid rgba(255,255,255,0.95)',
+                        boxShadow: '0 10px 20px rgba(37, 99, 235, 0.16)',
+                        flexShrink: 0,
+                        background: '#dbeafe',
+                      }}
+                    />
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 16, fontWeight: 900, color: '#0f172a' }}>Ordering Assistant</div>
+                      <div style={{ fontSize: 11.5, color: '#475569' }}>Cart, checkout, and shopping help.</div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowOrderAssistantBubble(false)}
+                    style={{
+                      border: 'none',
+                      background: 'rgba(255,255,255,0.88)',
+                      color: '#334155',
+                      width: 34,
+                      height: 34,
+                      borderRadius: 999,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      lineHeight: 1,
+                      cursor: 'pointer',
+                      fontSize: 18,
+                      fontWeight: 700,
+                      boxShadow: '0 6px 16px rgba(15, 23, 42, 0.1)',
+                    }}
+                  >
+                    x
+                  </button>
+                </div>
+                <div style={{ flex: 1, minHeight: 0, padding: 10, background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(248,250,252,0.92))' }}>
+                  <OrderAssistantPage
+                    userId={userId}
+                    onOpenShoppingCart={onOpenShoppingCart}
+                    checkoutRequest={orderAssistantCheckoutRequest || undefined}
+                    onCheckoutRequestConsumed={onOrderAssistantCheckoutRequestConsumed}
+                    automationSettings={automationDraft}
+                    onCartUpdated={() => {
+                      void refreshUserProfile(true)
+                    }}
+                  />
+                </div>
+              </div>
+            )}
           </section>
         )}
 
@@ -1720,7 +1807,7 @@ export default function AgenticAIDashboard({
                                   cursor: 'pointer',
                                 }}
                               >
-                                {active ? '✓ ' : ''}{item}
+                                {active ? 'OK ' : ''}{item}
                               </button>
                             )
                           })}
@@ -2668,3 +2755,5 @@ export default function AgenticAIDashboard({
     </div>
   )
 }
+
+
