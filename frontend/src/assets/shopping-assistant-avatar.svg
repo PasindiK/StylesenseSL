@@ -1,0 +1,33 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="28" y1="24" x2="224" y2="236" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E0EAFF"/>
+      <stop offset="0.48" stop-color="#C7D2FE"/>
+      <stop offset="1" stop-color="#99F6E4"/>
+    </linearGradient>
+    <linearGradient id="hair" x1="96" y1="56" x2="170" y2="150" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#172554"/>
+      <stop offset="1" stop-color="#312E81"/>
+    </linearGradient>
+    <linearGradient id="coat" x1="80" y1="162" x2="178" y2="224" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F172A"/>
+      <stop offset="1" stop-color="#1D4ED8"/>
+    </linearGradient>
+  </defs>
+  <circle cx="128" cy="128" r="112" fill="url(#bg)"/>
+  <circle cx="128" cy="128" r="106" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="4"/>
+  <path d="M83 111C83 79.5198 104.968 58 132.5 58C160.032 58 178 80.9677 178 112.448V139H83V111Z" fill="url(#hair)"/>
+  <path d="M127.5 173C154.286 173 176 151.286 176 124.5C176 97.7142 154.286 76 127.5 76C100.714 76 79 97.7142 79 124.5C79 151.286 100.714 173 127.5 173Z" fill="#F7D5BF"/>
+  <path d="M91 119C91 96.3563 107.58 80 128 80C148.42 80 164 97.1177 164 119V127H91V119Z" fill="url(#hair)"/>
+  <path d="M110 153C114.314 157.421 120.057 160 126.198 160H130.802C136.943 160 142.686 157.421 147 153" stroke="#7C3E2C" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="109" cy="127" r="4.5" fill="#1E293B"/>
+  <circle cx="146" cy="127" r="4.5" fill="#1E293B"/>
+  <path d="M121 140C123.667 141.667 129.333 141.667 132 140" stroke="#C08467" stroke-width="4" stroke-linecap="round"/>
+  <path d="M88 220C88 188.52 105.909 163 128 163C150.091 163 168 188.52 168 220H88Z" fill="url(#coat)"/>
+  <path d="M113 166H143L150 220H106L113 166Z" fill="#F8FAFC"/>
+  <path d="M120 166L128 182L136 166" stroke="#94A3B8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="171" y="63" width="40" height="40" rx="20" fill="#0F172A" fill-opacity="0.08"/>
+  <path d="M185 76L191 70L197 76" stroke="#F59E0B" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M197 76V88C197 90.2091 195.209 92 193 92H189C186.791 92 185 90.2091 185 88V76" stroke="#F59E0B" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="189" cy="84" r="1.5" fill="#F59E0B"/>
+</svg>
