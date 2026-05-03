@@ -1,0 +1,835 @@
+{
+  "version_id": "transactions_live_refresh_live_20260501_120306_raw_v1",
+  "dataset_family_id": "transactions_live_refresh_live_20260501_120306_raw",
+  "version_number": 1,
+  "dataset_name": "transactions_live_refresh_live_20260501_120306_raw.csv",
+  "file_name": "transactions_live_refresh_live_20260501_120306_raw.csv",
+  "family_name": "transactions live refresh live 20260501 120306 raw",
+  "family_id": null,
+  "description": "Semantic monitoring baseline",
+  "version_note": "v1 baseline",
+  "created_at": "2026-05-03T11:06:42.552Z",
+  "row_count": 5,
+  "column_count": 8,
+  "column_names": [
+    "order_id",
+    "customer_id",
+    "product_id",
+    "order_date",
+    "quantity",
+    "price",
+    "country",
+    "discount"
+  ],
+  "dataset_rows": [
+    {
+      "order_id": "1001",
+      "customer_id": "C001",
+      "product_id": "P10",
+      "order_date": "2024-01-01",
+      "quantity": "2",
+      "price": "19.99",
+      "country": "US",
+      "discount": "0.1"
+    },
+    {
+      "order_id": "1002",
+      "customer_id": "C002",
+      "product_id": "P11",
+      "order_date": "2024-01-02",
+      "quantity": "1",
+      "price": "29.99",
+      "country": "UK",
+      "discount": "0.0"
+    },
+    {
+      "order_id": "1003",
+      "customer_id": "C003",
+      "product_id": "P12",
+      "order_date": "2024-01-03",
+      "quantity": "5",
+      "price": "9.99",
+      "country": "CA",
+      "discount": "0.2"
+    },
+    {
+      "order_id": "1004",
+      "customer_id": "C004",
+      "product_id": "P13",
+      "order_date": "2024-01-04",
+      "quantity": "3",
+      "price": "14.99",
+      "country": "US",
+      "discount": "0.05"
+    },
+    {
+      "order_id": "1005",
+      "customer_id": "C005",
+      "product_id": "P14",
+      "order_date": "2024-01-05",
+      "quantity": "4",
+      "price": "49.99",
+      "country": "AU",
+      "discount": "0.15"
+    }
+  ],
+  "dataset_fingerprint": {
+    "column_names": [
+      "order_id",
+      "customer_id",
+      "product_id",
+      "order_date",
+      "quantity",
+      "price",
+      "country",
+      "discount"
+    ],
+    "roles": [
+      "Identifier",
+      "Identifier",
+      "Identifier",
+      "Timestamp",
+      "Numeric Measure",
+      "Numeric Measure",
+      "Unknown / Unmapped",
+      "Count / Activity"
+    ],
+    "types": [
+      "numeric",
+      "text",
+      "text",
+      "datetime",
+      "numeric",
+      "numeric",
+      "text",
+      "numeric"
+    ],
+    "scale_patterns": [
+      "count",
+      "unknown",
+      "unknown",
+      "unknown",
+      "0-100",
+      "0-100",
+      "unknown",
+      "0-1"
+    ],
+    "important_columns": [
+      "order_id",
+      "customer_id",
+      "product_id",
+      "order_date",
+      "discount"
+    ]
+  },
+  "column_profiles": [
+    {
+      "column_name": "order_id",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": 1001,
+      "max": 1005,
+      "mean": 1003,
+      "std": 1.4142135623730951,
+      "sample_values": [
+        "1001",
+        "1002",
+        "1003",
+        "1004"
+      ],
+      "row_count": 5,
+      "column_count": 8,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0,
+      "avg_string_length": 4,
+      "outlier_percent": 0,
+      "scale_pattern": "count",
+      "value_pattern": "count",
+      "nullable": false,
+      "detected_unit": "count",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "customer_id",
+      "inferred_type": "text",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "C001",
+        "C002",
+        "C003",
+        "C004"
+      ],
+      "row_count": 5,
+      "column_count": 8,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 4,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "product_id",
+      "inferred_type": "text",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "P10",
+        "P11",
+        "P12",
+        "P13"
+      ],
+      "row_count": 5,
+      "column_count": 8,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 3,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "order_date",
+      "inferred_type": "datetime",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "2024-01-01",
+        "2024-01-02",
+        "2024-01-03",
+        "2024-01-04"
+      ],
+      "row_count": 5,
+      "column_count": 8,
+      "valid_date_percent": 1,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 10,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "unknown",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "quantity",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": 1,
+      "max": 5,
+      "mean": 3,
+      "std": 1.4142135623730951,
+      "sample_values": [
+        "2",
+        "1",
+        "5",
+        "3"
+      ],
+      "row_count": 5,
+      "column_count": 8,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0.2,
+      "avg_string_length": 1,
+      "outlier_percent": 0,
+      "scale_pattern": "0-100",
+      "value_pattern": "0-100",
+      "nullable": false,
+      "detected_unit": "percentage",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "price",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": 9.99,
+      "max": 49.99,
+      "mean": 24.99,
+      "std": 14.142135623730951,
+      "sample_values": [
+        "19.99",
+        "29.99",
+        "9.99",
+        "14.99"
+      ],
+      "row_count": 5,
+      "column_count": 8,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 4.8,
+      "outlier_percent": 0,
+      "scale_pattern": "0-100",
+      "value_pattern": "0-100",
+      "nullable": false,
+      "detected_unit": "percentage",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "country",
+      "inferred_type": "text",
+      "missing_percent": 0,
+      "unique_percent": 0.8,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "US",
+        "UK",
+        "CA",
+        "US"
+      ],
+      "row_count": 5,
+      "column_count": 8,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 2,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "discount",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": 0,
+      "max": 0.2,
+      "mean": 0.1,
+      "std": 0.07071067811865477,
+      "sample_values": [
+        "0.1",
+        "0.0",
+        "0.2",
+        "0.05"
+      ],
+      "row_count": 5,
+      "column_count": 8,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0.2,
+      "binary_like_percent": 0.2,
+      "avg_string_length": 3.4,
+      "outlier_percent": 0,
+      "scale_pattern": "0-1",
+      "value_pattern": "0-1",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    }
+  ],
+  "semantic_profiles": [
+    {
+      "column_name": "order_id",
+      "approved_or_detected_meaning": "order_id record identifier",
+      "generic_role": "Identifier",
+      "expected_scale": "count",
+      "detected_scale": "count",
+      "expected_unit": "count",
+      "detected_unit": "count",
+      "value_direction": "neutral",
+      "source_columns": [
+        "order_id"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "identifier|count|count"
+    },
+    {
+      "column_name": "customer_id",
+      "approved_or_detected_meaning": "customer_id record identifier",
+      "generic_role": "Identifier",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "customer_id"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "identifier|unknown|unitless"
+    },
+    {
+      "column_name": "product_id",
+      "approved_or_detected_meaning": "product_id record identifier",
+      "generic_role": "Identifier",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "product_id"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "identifier|unknown|unitless"
+    },
+    {
+      "column_name": "order_date",
+      "approved_or_detected_meaning": "order_date event timestamp",
+      "generic_role": "Timestamp",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "order_date"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "timestamp|unknown|unitless"
+    },
+    {
+      "column_name": "quantity",
+      "approved_or_detected_meaning": "quantity numeric measure",
+      "generic_role": "Numeric Measure",
+      "expected_scale": "0-100",
+      "detected_scale": "0-100",
+      "expected_unit": "percentage",
+      "detected_unit": "percentage",
+      "value_direction": "neutral",
+      "source_columns": [
+        "quantity"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "numeric_measure|0-100|percentage"
+    },
+    {
+      "column_name": "price",
+      "approved_or_detected_meaning": "price numeric measure",
+      "generic_role": "Numeric Measure",
+      "expected_scale": "0-100",
+      "detected_scale": "0-100",
+      "expected_unit": "percentage",
+      "detected_unit": "percentage",
+      "value_direction": "neutral",
+      "source_columns": [
+        "price"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "numeric_measure|0-100|percentage"
+    },
+    {
+      "column_name": "country",
+      "approved_or_detected_meaning": "country numeric measure",
+      "generic_role": "Unknown / Unmapped",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "country"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "unknown_/_unmapped|unknown|unitless"
+    },
+    {
+      "column_name": "discount",
+      "approved_or_detected_meaning": "discount activity count",
+      "generic_role": "Count / Activity",
+      "expected_scale": "0-1",
+      "detected_scale": "0-1",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "higher means more activity",
+      "source_columns": [
+        "discount"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "count_/_activity|0-1|unitless"
+    }
+  ],
+  "internal_drift_results": [
+    {
+      "column_name": "order_id",
+      "compared_by": "time_window (identifier consistency)",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "count",
+          "mean": 1001.5,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "count",
+          "mean": 1003.5,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-5",
+          "scale": "count",
+          "mean": 1005,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Identifier pattern, missingness, and uniqueness stay consistent across segments."
+      ],
+      "explanation": "Identifier pattern and coverage are stable across the dataset.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "customer_id",
+      "compared_by": "time_window (identifier consistency)",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-5",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Identifier pattern, missingness, and uniqueness stay consistent across segments."
+      ],
+      "explanation": "Identifier pattern and coverage are stable across the dataset.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "product_id",
+      "compared_by": "time_window (identifier consistency)",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-5",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Identifier pattern, missingness, and uniqueness stay consistent across segments."
+      ],
+      "explanation": "Identifier pattern and coverage are stable across the dataset.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "order_date",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-5",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "quantity",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "0-100",
+          "mean": 1.5,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "0-100",
+          "mean": 4,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-5",
+          "scale": "0-100",
+          "mean": 4,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "MODERATE",
+      "evidence": [
+        "Segment mean spread is 2.50."
+      ],
+      "explanation": "The column shows noticeable internal movement, but likely keeps the same meaning.",
+      "recommended_action": "Review the column before release."
+    },
+    {
+      "column_name": "price",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "0-100",
+          "mean": 24.99,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "0-100",
+          "mean": 12.49,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-5",
+          "scale": "0-100",
+          "mean": 49.99,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "MODERATE",
+      "evidence": [
+        "Segment mean spread is 37.50."
+      ],
+      "explanation": "The column shows noticeable internal movement, but likely keeps the same meaning.",
+      "recommended_action": "Review the column before release."
+    },
+    {
+      "column_name": "country",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-5",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "discount",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "0-1",
+          "mean": 0.05,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "0-1",
+          "mean": 0.125,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-5",
+          "scale": "0-1",
+          "mean": 0.15,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    }
+  ],
+  "external_drift_results": [],
+  "statistical_drift_results": [],
+  "behavioral_drift_results": [],
+  "release_results": [
+    {
+      "column_name": "order_id",
+      "role": "Identifier",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "customer_id",
+      "role": "Identifier",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "product_id",
+      "role": "Identifier",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "order_date",
+      "role": "Timestamp",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "quantity",
+      "role": "Numeric Measure",
+      "validation_status": "PASS",
+      "internal_drift_severity": "MODERATE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Segment mean spread is 2.50., admin review recommended.",
+      "recommended_action": "Review before promotion."
+    },
+    {
+      "column_name": "price",
+      "role": "Numeric Measure",
+      "validation_status": "PASS",
+      "internal_drift_severity": "MODERATE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Segment mean spread is 37.50., admin review recommended.",
+      "recommended_action": "Review before promotion."
+    },
+    {
+      "column_name": "country",
+      "role": "Unknown / Unmapped",
+      "validation_status": "WARN",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [
+        "Weak role confidence",
+        "Unknown columns should stay in profiling-only mode"
+      ],
+      "explanation": "Weak role confidence, admin review recommended.",
+      "recommended_action": "Review before promotion."
+    },
+    {
+      "column_name": "discount",
+      "role": "Count / Activity",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    }
+  ]
+}

@@ -1,13 +1,13 @@
 [
   {
-    "dataset_family_id": "semantic_internal_drift_1000_records",
-    "version_id": "semantic_internal_drift_1000_records_v1",
+    "dataset_family_id": "fashion_trends",
+    "version_id": "fashion_trends_v1",
     "version_number": 1,
-    "dataset_name": "semantic_internal_drift_1000_records.csv",
-    "created_at": "2026-05-03T05:55:51.398Z",
+    "dataset_name": "05_fashion_trends_baseline.csv",
+    "created_at": "2026-05-03T19:59:35.130Z",
     "release_results": [
       {
-        "column_name": "record_id",
+        "column_name": "trend_id",
         "role": "Identifier",
         "validation_status": "PASS",
         "internal_drift_severity": "NONE",
@@ -21,8 +21,648 @@
         "recommended_action": "Approve for governed use."
       },
       {
-        "column_name": "timestamp",
+        "column_name": "trend_name",
+        "role": "Text Attribute",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "trend_category",
+        "role": "Unknown / Unmapped",
+        "validation_status": "WARN",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [
+          "Weak role confidence",
+          "Unknown columns should stay in profiling-only mode"
+        ],
+        "explanation": "Weak role confidence, admin review recommended.",
+        "recommended_action": "Review before promotion."
+      },
+      {
+        "column_name": "trend_score",
+        "role": "Score / Rating",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "week",
+        "role": "Numeric Measure",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "year",
+        "role": "Numeric Measure",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "emerging_designers",
+        "role": "Text Attribute",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "trend_tags",
+        "role": "Text Attribute",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      }
+    ]
+  },
+  {
+    "dataset_family_id": "fashion_trends",
+    "version_id": "fashion_trends_v2",
+    "version_number": 2,
+    "dataset_name": "trend_semantic_drift_test_dataset.csv",
+    "created_at": "2026-05-03T20:52:43.514Z",
+    "release_results": [
+      {
+        "column_name": "trend_id",
+        "role": "Identifier",
+        "validation_status": "FAIL",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "HIGH",
+        "behavioral_drift_severity": "HIGH",
+        "release_status": "QUARANTINED",
+        "critical_failures": [
+          "High statistical drift",
+          "High behavioral drift"
+        ],
+        "warnings": [],
+        "explanation": "High statistical drift.",
+        "recommended_action": "Quarantine until the semantic issue is resolved."
+      },
+      {
+        "column_name": "trend_name",
+        "role": "Text Attribute",
+        "validation_status": "FAIL",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "HIGH",
+        "behavioral_drift_severity": "HIGH",
+        "release_status": "QUARANTINED",
+        "critical_failures": [
+          "High statistical drift",
+          "High behavioral drift"
+        ],
+        "warnings": [],
+        "explanation": "High statistical drift.",
+        "recommended_action": "Quarantine until the semantic issue is resolved."
+      },
+      {
+        "column_name": "trend_category",
+        "role": "Text Attribute",
+        "validation_status": "FAIL",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "HIGH",
+        "statistical_drift_severity": "HIGH",
+        "behavioral_drift_severity": "MODERATE",
+        "release_status": "QUARANTINED",
+        "critical_failures": [
+          "High statistical drift"
+        ],
+        "warnings": [
+          "Moderate behavioral drift"
+        ],
+        "explanation": "High statistical drift.",
+        "recommended_action": "Quarantine until the semantic issue is resolved."
+      },
+      {
+        "column_name": "trend_score",
+        "role": "Score / Rating",
+        "validation_status": "FAIL",
+        "internal_drift_severity": "MODERATE",
+        "external_drift_severity": "HIGH",
+        "statistical_drift_severity": "HIGH",
+        "behavioral_drift_severity": "HIGH",
+        "release_status": "QUARANTINED",
+        "critical_failures": [
+          "High statistical drift",
+          "High behavioral drift"
+        ],
+        "warnings": [],
+        "explanation": "High statistical drift.",
+        "recommended_action": "Quarantine until the semantic issue is resolved."
+      },
+      {
+        "column_name": "week",
+        "role": "Numeric Measure",
+        "validation_status": "FAIL",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "HIGH",
+        "behavioral_drift_severity": "HIGH",
+        "release_status": "QUARANTINED",
+        "critical_failures": [
+          "High statistical drift",
+          "High behavioral drift"
+        ],
+        "warnings": [],
+        "explanation": "High statistical drift.",
+        "recommended_action": "Quarantine until the semantic issue is resolved."
+      },
+      {
+        "column_name": "year",
+        "role": "Numeric Measure",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "emerging_designers",
+        "role": "Unknown / Unmapped",
+        "validation_status": "FAIL",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "HIGH",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "HIGH",
+        "release_status": "QUARANTINED",
+        "critical_failures": [
+          "High behavioral drift"
+        ],
+        "warnings": [
+          "Weak role confidence",
+          "Unknown columns should stay in profiling-only mode"
+        ],
+        "explanation": "High behavioral drift.",
+        "recommended_action": "Quarantine until the semantic issue is resolved."
+      },
+      {
+        "column_name": "trend_tags",
+        "role": "Text Attribute",
+        "validation_status": "FAIL",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "HIGH",
+        "behavioral_drift_severity": "HIGH",
+        "release_status": "QUARANTINED",
+        "critical_failures": [
+          "High statistical drift",
+          "High behavioral drift"
+        ],
+        "warnings": [],
+        "explanation": "High statistical drift.",
+        "recommended_action": "Quarantine until the semantic issue is resolved."
+      }
+    ]
+  },
+  {
+    "dataset_family_id": "product_catalog",
+    "version_id": "product_catalog_v1",
+    "version_number": 1,
+    "dataset_name": "01_product_catalog_baseline.csv",
+    "created_at": "2026-05-03T21:14:13.086Z",
+    "release_results": [
+      {
+        "column_name": "product_id",
+        "role": "Identifier",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "shop_id",
+        "role": "Identifier",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "name",
+        "role": "Text Attribute",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "category",
+        "role": "Unknown / Unmapped",
+        "validation_status": "WARN",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [
+          "Weak role confidence",
+          "Unknown columns should stay in profiling-only mode"
+        ],
+        "explanation": "Weak role confidence, admin review recommended.",
+        "recommended_action": "Review before promotion."
+      },
+      {
+        "column_name": "color",
+        "role": "Unknown / Unmapped",
+        "validation_status": "WARN",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [
+          "Weak role confidence",
+          "Unknown columns should stay in profiling-only mode"
+        ],
+        "explanation": "Weak role confidence, admin review recommended.",
+        "recommended_action": "Review before promotion."
+      },
+      {
+        "column_name": "fabric",
+        "role": "Unknown / Unmapped",
+        "validation_status": "WARN",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [
+          "Weak role confidence",
+          "Unknown columns should stay in profiling-only mode"
+        ],
+        "explanation": "Weak role confidence, admin review recommended.",
+        "recommended_action": "Review before promotion."
+      },
+      {
+        "column_name": "size_range",
+        "role": "Unknown / Unmapped",
+        "validation_status": "WARN",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [
+          "Weak role confidence",
+          "Unknown columns should stay in profiling-only mode"
+        ],
+        "explanation": "Weak role confidence, admin review recommended.",
+        "recommended_action": "Review before promotion."
+      },
+      {
+        "column_name": "price_LKR",
+        "role": "Numeric Measure",
+        "validation_status": "PASS",
+        "internal_drift_severity": "MODERATE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Segment mean spread is 5500.00., admin review recommended.",
+        "recommended_action": "Review before promotion."
+      },
+      {
+        "column_name": "style_tags",
+        "role": "Text Attribute",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "product_url",
+        "role": "Text Attribute",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "created_ts",
         "role": "Timestamp",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "popularity_score",
+        "role": "Score / Rating",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "stock_count",
+        "role": "Count / Activity",
+        "validation_status": "PASS",
+        "internal_drift_severity": "MODERATE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Segment mean spread is 10.50., admin review recommended.",
+        "recommended_action": "Review before promotion."
+      },
+      {
+        "column_name": "created_timestamp",
+        "role": "Timestamp",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      }
+    ]
+  },
+  {
+    "dataset_family_id": "fashion_trends",
+    "version_id": "fashion_trends_v3",
+    "version_number": 3,
+    "dataset_name": "05_fashion_trends_drift.csv",
+    "created_at": "2026-05-03T21:14:55.390Z",
+    "release_results": [
+      {
+        "column_name": "trend_id",
+        "role": "Identifier",
+        "validation_status": "FAIL",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "HIGH",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "QUARANTINED",
+        "critical_failures": [
+          "High statistical drift"
+        ],
+        "warnings": [],
+        "explanation": "High statistical drift.",
+        "recommended_action": "Quarantine until the semantic issue is resolved."
+      },
+      {
+        "column_name": "label",
+        "role": "Unknown / Unmapped",
+        "validation_status": "WARN",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [
+          "Weak role confidence",
+          "Unknown columns should stay in profiling-only mode"
+        ],
+        "explanation": "Weak role confidence, admin review recommended.",
+        "recommended_action": "Review before promotion."
+      },
+      {
+        "column_name": "trend_category",
+        "role": "Unknown / Unmapped",
+        "validation_status": "WARN",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "HIGH",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "LOW",
+        "release_status": "QUARANTINED",
+        "critical_failures": [],
+        "warnings": [
+          "Weak role confidence",
+          "Unknown columns should stay in profiling-only mode",
+          "Low behavioral drift"
+        ],
+        "explanation": "Segments follow a consistent scale and interpretation..",
+        "recommended_action": "Quarantine until the semantic issue is resolved."
+      },
+      {
+        "column_name": "momentum_idx",
+        "role": "Numeric Measure",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "week",
+        "role": "Numeric Measure",
+        "validation_status": "FAIL",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "HIGH",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "QUARANTINED",
+        "critical_failures": [
+          "High statistical drift"
+        ],
+        "warnings": [],
+        "explanation": "High statistical drift.",
+        "recommended_action": "Quarantine until the semantic issue is resolved."
+      },
+      {
+        "column_name": "year",
+        "role": "Numeric Measure",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "emerging_designers",
+        "role": "Unknown / Unmapped",
+        "validation_status": "WARN",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "MODERATE",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [
+          "Weak role confidence",
+          "Unknown columns should stay in profiling-only mode",
+          "Moderate behavioral drift"
+        ],
+        "explanation": "Weak role confidence, admin review recommended.",
+        "recommended_action": "Review before promotion."
+      },
+      {
+        "column_name": "trend_tags",
+        "role": "Unknown / Unmapped",
+        "validation_status": "WARN",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "HIGH",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "MODERATE",
+        "release_status": "QUARANTINED",
+        "critical_failures": [],
+        "warnings": [
+          "Weak role confidence",
+          "Unknown columns should stay in profiling-only mode",
+          "Moderate behavioral drift"
+        ],
+        "explanation": "Segments follow a consistent scale and interpretation..",
+        "recommended_action": "Quarantine until the semantic issue is resolved."
+      },
+      {
+        "column_name": "tiktok_mention_count",
+        "role": "Count / Activity",
+        "validation_status": "PASS",
+        "internal_drift_severity": "MODERATE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Segment mean spread is 6700.00., admin review recommended.",
+        "recommended_action": "Review before promotion."
+      }
+    ]
+  },
+  {
+    "dataset_family_id": "sales_transactions",
+    "version_id": "sales_transactions_v1",
+    "version_number": 1,
+    "dataset_name": "03_sales_transactions_baseline.csv",
+    "created_at": "2026-05-03T22:02:08.421Z",
+    "release_results": [
+      {
+        "column_name": "transaction_id",
+        "role": "Identifier",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "user_id",
+        "role": "Identifier",
         "validation_status": "PASS",
         "internal_drift_severity": "NONE",
         "external_drift_severity": "NONE",
@@ -49,7 +689,133 @@
         "recommended_action": "Approve for governed use."
       },
       {
-        "column_name": "category",
+        "column_name": "shop_id",
+        "role": "Identifier",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "quantity",
+        "role": "Numeric Measure",
+        "validation_status": "PASS",
+        "internal_drift_severity": "HIGH",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "QUARANTINED",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Segments show multiple scale patterns: 0-100, 0-1.",
+        "recommended_action": "Quarantine until the semantic issue is resolved."
+      },
+      {
+        "column_name": "unit_price",
+        "role": "Numeric Measure",
+        "validation_status": "PASS",
+        "internal_drift_severity": "MODERATE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Segment mean spread is 4650.00., admin review recommended.",
+        "recommended_action": "Review before promotion."
+      },
+      {
+        "column_name": "total_amount",
+        "role": "Numeric Measure",
+        "validation_status": "PASS",
+        "internal_drift_severity": "MODERATE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Segment mean spread is 11550.00., admin review recommended.",
+        "recommended_action": "Review before promotion."
+      },
+      {
+        "column_name": "discount_percent",
+        "role": "Count / Activity",
+        "validation_status": "PASS",
+        "internal_drift_severity": "MODERATE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Segment mean spread is 2.50., admin review recommended.",
+        "recommended_action": "Review before promotion."
+      },
+      {
+        "column_name": "discount_amount",
+        "role": "Count / Activity",
+        "validation_status": "PASS",
+        "internal_drift_severity": "MODERATE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Segment mean spread is 519.00., admin review recommended.",
+        "recommended_action": "Review before promotion."
+      },
+      {
+        "column_name": "tax_percent",
+        "role": "Rate / Percentage",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "tax_amount",
+        "role": "Numeric Measure",
+        "validation_status": "PASS",
+        "internal_drift_severity": "MODERATE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Segment mean spread is 330.93., admin review recommended.",
+        "recommended_action": "Review before promotion."
+      },
+      {
+        "column_name": "final_amount",
+        "role": "Numeric Measure",
+        "validation_status": "PASS",
+        "internal_drift_severity": "MODERATE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Segment mean spread is 10445.07., admin review recommended.",
+        "recommended_action": "Review before promotion."
+      },
+      {
+        "column_name": "payment_method",
         "role": "Categorical Attribute",
         "validation_status": "PASS",
         "internal_drift_severity": "NONE",
@@ -63,22 +829,343 @@
         "recommended_action": "Approve for governed use."
       },
       {
-        "column_name": "quality_score",
-        "role": "Score / Rating",
+        "column_name": "transaction_status",
+        "role": "Categorical Attribute",
         "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "transaction_date",
+        "role": "Timestamp",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "transaction_ts",
+        "role": "Timestamp",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "delivery_date",
+        "role": "Timestamp",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "delivery_address",
+        "role": "Text Attribute",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "notes",
+        "role": "Text Attribute",
+        "validation_status": "WARN",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [
+          "Higher-than-normal missingness"
+        ],
+        "explanation": "Higher-than-normal missingness, admin review recommended.",
+        "recommended_action": "Review before promotion."
+      }
+    ]
+  },
+  {
+    "dataset_family_id": "sales_transactions",
+    "version_id": "sales_transactions_v2",
+    "version_number": 2,
+    "dataset_name": "transaction_semantic_drift_self_heal_60_rows.csv",
+    "created_at": "2026-05-03T22:12:01.295Z",
+    "release_results": [
+      {
+        "column_name": "transaction_id",
+        "role": "Identifier",
+        "validation_status": "FAIL",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "HIGH",
+        "behavioral_drift_severity": "HIGH",
+        "release_status": "QUARANTINED",
+        "critical_failures": [
+          "High statistical drift",
+          "High behavioral drift"
+        ],
+        "warnings": [],
+        "explanation": "High statistical drift.",
+        "recommended_action": "Quarantine until the semantic issue is resolved."
+      },
+      {
+        "column_name": "user_id",
+        "role": "Identifier",
+        "validation_status": "FAIL",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "HIGH",
+        "behavioral_drift_severity": "HIGH",
+        "release_status": "QUARANTINED",
+        "critical_failures": [
+          "High statistical drift",
+          "High behavioral drift"
+        ],
+        "warnings": [],
+        "explanation": "High statistical drift.",
+        "recommended_action": "Quarantine until the semantic issue is resolved."
+      },
+      {
+        "column_name": "product_id",
+        "role": "Identifier",
+        "validation_status": "WARN",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "MODERATE",
+        "behavioral_drift_severity": "MODERATE",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [
+          "Moderate statistical drift",
+          "Moderate behavioral drift"
+        ],
+        "explanation": "Moderate statistical drift, admin review recommended.",
+        "recommended_action": "Review before promotion."
+      },
+      {
+        "column_name": "shop_id",
+        "role": "Identifier",
+        "validation_status": "WARN",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "MODERATE",
+        "behavioral_drift_severity": "MODERATE",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [
+          "Moderate statistical drift",
+          "Moderate behavioral drift"
+        ],
+        "explanation": "Moderate statistical drift, admin review recommended.",
+        "recommended_action": "Review before promotion."
+      },
+      {
+        "column_name": "quantity",
+        "role": "Numeric Measure",
+        "validation_status": "WARN",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "LOW",
+        "behavioral_drift_severity": "MODERATE",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [
+          "Moderate behavioral drift",
+          "Low statistical drift"
+        ],
+        "explanation": "Moderate behavioral drift, admin review recommended.",
+        "recommended_action": "Review before promotion."
+      },
+      {
+        "column_name": "unit_price",
+        "role": "Numeric Measure",
+        "validation_status": "WARN",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "MODERATE",
+        "behavioral_drift_severity": "LOW",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [
+          "Moderate statistical drift",
+          "Low behavioral drift"
+        ],
+        "explanation": "Moderate statistical drift, admin review recommended.",
+        "recommended_action": "Review before promotion."
+      },
+      {
+        "column_name": "total_amount",
+        "role": "Numeric Measure",
+        "validation_status": "WARN",
         "internal_drift_severity": "LOW",
         "external_drift_severity": "NONE",
-        "statistical_drift_severity": "NONE",
-        "behavioral_drift_severity": "NONE",
-        "release_status": "READY",
+        "statistical_drift_severity": "MODERATE",
+        "behavioral_drift_severity": "LOW",
+        "release_status": "CONDITIONAL",
         "critical_failures": [],
-        "warnings": [],
-        "explanation": "Column meaning is stable and validation checks passed.",
-        "recommended_action": "Approve for governed use."
+        "warnings": [
+          "Moderate statistical drift",
+          "Low behavioral drift"
+        ],
+        "explanation": "Moderate statistical drift, admin review recommended.",
+        "recommended_action": "Review before promotion."
       },
       {
-        "column_name": "score_source",
+        "column_name": "discount_percent",
+        "role": "Count / Activity",
+        "validation_status": "FAIL",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "HIGH",
+        "statistical_drift_severity": "HIGH",
+        "behavioral_drift_severity": "MODERATE",
+        "release_status": "QUARANTINED",
+        "critical_failures": [
+          "High statistical drift"
+        ],
+        "warnings": [
+          "Moderate behavioral drift"
+        ],
+        "explanation": "High statistical drift.",
+        "recommended_action": "Quarantine until the semantic issue is resolved."
+      },
+      {
+        "column_name": "discount_amount",
+        "role": "Count / Activity",
+        "validation_status": "FAIL",
+        "internal_drift_severity": "LOW",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "HIGH",
+        "behavioral_drift_severity": "MODERATE",
+        "release_status": "QUARANTINED",
+        "critical_failures": [
+          "High statistical drift"
+        ],
+        "warnings": [
+          "Moderate behavioral drift"
+        ],
+        "explanation": "High statistical drift.",
+        "recommended_action": "Quarantine until the semantic issue is resolved."
+      },
+      {
+        "column_name": "tax_percent",
+        "role": "Rate / Percentage",
+        "validation_status": "FAIL",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "HIGH",
+        "statistical_drift_severity": "HIGH",
+        "behavioral_drift_severity": "HIGH",
+        "release_status": "QUARANTINED",
+        "critical_failures": [
+          "High statistical drift",
+          "High behavioral drift"
+        ],
+        "warnings": [],
+        "explanation": "High statistical drift.",
+        "recommended_action": "Quarantine until the semantic issue is resolved."
+      },
+      {
+        "column_name": "tax_amount",
+        "role": "Numeric Measure",
+        "validation_status": "WARN",
+        "internal_drift_severity": "HIGH",
+        "external_drift_severity": "HIGH",
+        "statistical_drift_severity": "MODERATE",
+        "behavioral_drift_severity": "MODERATE",
+        "release_status": "QUARANTINED",
+        "critical_failures": [],
+        "warnings": [
+          "Moderate statistical drift",
+          "Moderate behavioral drift"
+        ],
+        "explanation": "Segments show multiple scale patterns: count, raw_sensor_adc, continuous.",
+        "recommended_action": "Quarantine until the semantic issue is resolved."
+      },
+      {
+        "column_name": "final_amount",
+        "role": "Numeric Measure",
+        "validation_status": "WARN",
+        "internal_drift_severity": "HIGH",
+        "external_drift_severity": "HIGH",
+        "statistical_drift_severity": "MODERATE",
+        "behavioral_drift_severity": "MODERATE",
+        "release_status": "QUARANTINED",
+        "critical_failures": [],
+        "warnings": [
+          "Moderate statistical drift",
+          "Moderate behavioral drift"
+        ],
+        "explanation": "Segments show multiple scale patterns: count, raw_sensor_adc.",
+        "recommended_action": "Quarantine until the semantic issue is resolved."
+      },
+      {
+        "column_name": "payment_method",
         "role": "Categorical Attribute",
+        "validation_status": "WARN",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "MODERATE",
+        "behavioral_drift_severity": "MODERATE",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [
+          "Moderate statistical drift",
+          "Moderate behavioral drift"
+        ],
+        "explanation": "Moderate statistical drift, admin review recommended.",
+        "recommended_action": "Review before promotion."
+      },
+      {
+        "column_name": "transaction_status",
+        "role": "Categorical Attribute",
+        "validation_status": "WARN",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "LOW",
+        "behavioral_drift_severity": "MODERATE",
+        "release_status": "CONDITIONAL",
+        "critical_failures": [],
+        "warnings": [
+          "Moderate behavioral drift",
+          "Low statistical drift"
+        ],
+        "explanation": "Moderate behavioral drift, admin review recommended.",
+        "recommended_action": "Review before promotion."
+      },
+      {
+        "column_name": "transaction_date",
+        "role": "Timestamp",
         "validation_status": "PASS",
         "internal_drift_severity": "NONE",
         "external_drift_severity": "NONE",
@@ -91,8 +1178,8 @@
         "recommended_action": "Approve for governed use."
       },
       {
-        "column_name": "label",
-        "role": "Target Column",
+        "column_name": "transaction_ts",
+        "role": "Timestamp",
         "validation_status": "PASS",
         "internal_drift_severity": "NONE",
         "external_drift_severity": "NONE",
@@ -103,6 +1190,55 @@
         "warnings": [],
         "explanation": "Column meaning is stable and validation checks passed.",
         "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "delivery_date",
+        "role": "Timestamp",
+        "validation_status": "PASS",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "NONE",
+        "statistical_drift_severity": "NONE",
+        "behavioral_drift_severity": "NONE",
+        "release_status": "READY",
+        "critical_failures": [],
+        "warnings": [],
+        "explanation": "Column meaning is stable and validation checks passed.",
+        "recommended_action": "Approve for governed use."
+      },
+      {
+        "column_name": "delivery_address",
+        "role": "Categorical Attribute",
+        "validation_status": "FAIL",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "HIGH",
+        "statistical_drift_severity": "HIGH",
+        "behavioral_drift_severity": "HIGH",
+        "release_status": "QUARANTINED",
+        "critical_failures": [
+          "High statistical drift",
+          "High behavioral drift"
+        ],
+        "warnings": [],
+        "explanation": "High statistical drift.",
+        "recommended_action": "Quarantine until the semantic issue is resolved."
+      },
+      {
+        "column_name": "notes",
+        "role": "Categorical Attribute",
+        "validation_status": "FAIL",
+        "internal_drift_severity": "NONE",
+        "external_drift_severity": "HIGH",
+        "statistical_drift_severity": "HIGH",
+        "behavioral_drift_severity": "MODERATE",
+        "release_status": "QUARANTINED",
+        "critical_failures": [
+          "High statistical drift"
+        ],
+        "warnings": [
+          "Moderate behavioral drift"
+        ],
+        "explanation": "High statistical drift.",
+        "recommended_action": "Quarantine until the semantic issue is resolved."
       }
     ]
   }

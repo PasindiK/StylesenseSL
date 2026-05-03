@@ -1,0 +1,3317 @@
+{
+  "drift_run_id": "8ba982f9-a9b9-42c7-8b54-75bfc9c611ca",
+  "timestamp": "2026-05-03T21:14:13.168534",
+  "dataset_name": "01_product_catalog_baseline.csv",
+  "profile": {
+    "dataset_name": "01_product_catalog_baseline.csv",
+    "created_at": "2026-05-03T21:14:13.368420",
+    "row_count": 8,
+    "column_count": 14,
+    "column_profiles": [
+      {
+        "column_name": "product_id",
+        "inferred_type": "numeric",
+        "kind": "numeric",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": 11001.0,
+        "max": 11008.0,
+        "mean": 11004.5,
+        "std": 2.29128784747792,
+        "sample_values": [
+          "11001",
+          "11002",
+          "11003",
+          "11004",
+          "11005",
+          "11006",
+          "11007",
+          "11008"
+        ],
+        "row_count": 8,
+        "column_count": 0,
+        "scale_pattern": "count",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Numeric feature with mean 11004.500 and std 2.291",
+        "summary_text": "product_id is numeric. Numeric feature with mean 11004.500 and std 2.291",
+        "top_values": []
+      },
+      {
+        "column_name": "shop_id",
+        "inferred_type": "numeric",
+        "kind": "numeric",
+        "missing_percent": 0.0,
+        "unique_percent": 0.5,
+        "min": 501.0,
+        "max": 504.0,
+        "mean": 502.5,
+        "std": 1.118033988749895,
+        "sample_values": [
+          "501",
+          "502",
+          "503",
+          "504"
+        ],
+        "row_count": 8,
+        "column_count": 0,
+        "scale_pattern": "count",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Numeric feature with mean 502.500 and std 1.118",
+        "summary_text": "shop_id is numeric. Numeric feature with mean 502.500 and std 1.118",
+        "top_values": []
+      },
+      {
+        "column_name": "name",
+        "inferred_type": "categorical",
+        "kind": "categorical",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "std": null,
+        "sample_values": [
+          "Linen Resort Shirt",
+          "Cotton Midi Skirt",
+          "Silk Evening Wrap",
+          "Denim Slim Jean",
+          "Batik Panel Dress",
+          "Knit Travel Hoodie",
+          "Leather Crossbody",
+          "Performance Sneaker"
+        ],
+        "row_count": 8,
+        "column_count": 0,
+        "scale_pattern": "unknown",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Top terms: batik, cotton, crossbody, denim, dress, evening",
+        "summary_text": "name is categorical. Top terms: batik, cotton, crossbody, denim, dress, evening",
+        "top_values": [
+          "Linen Resort Shirt",
+          "Cotton Midi Skirt",
+          "Silk Evening Wrap",
+          "Denim Slim Jean",
+          "Batik Panel Dress",
+          "Knit Travel Hoodie",
+          "Leather Crossbody",
+          "Performance Sneaker"
+        ]
+      },
+      {
+        "column_name": "category",
+        "inferred_type": "categorical",
+        "kind": "categorical",
+        "missing_percent": 0.0,
+        "unique_percent": 0.625,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "std": null,
+        "sample_values": [
+          "Menswear",
+          "Womenswear",
+          "Unisex",
+          "Accessories",
+          "Footwear"
+        ],
+        "row_count": 8,
+        "column_count": 0,
+        "scale_pattern": "unknown",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Top terms: accessories, footwear, menswear, unisex, womenswear",
+        "summary_text": "category is categorical. Top terms: accessories, footwear, menswear, unisex, womenswear",
+        "top_values": [
+          "Womenswear",
+          "Menswear",
+          "Unisex",
+          "Accessories",
+          "Footwear"
+        ]
+      },
+      {
+        "column_name": "color",
+        "inferred_type": "categorical",
+        "kind": "categorical",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "std": null,
+        "sample_values": [
+          "natural",
+          "ivory",
+          "emerald",
+          "indigo",
+          "teal",
+          "heather",
+          "cognac",
+          "white"
+        ],
+        "row_count": 8,
+        "column_count": 0,
+        "scale_pattern": "unknown",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Top terms: cognac, emerald, heather, indigo, ivory, natural",
+        "summary_text": "color is categorical. Top terms: cognac, emerald, heather, indigo, ivory, natural",
+        "top_values": [
+          "natural",
+          "ivory",
+          "emerald",
+          "indigo",
+          "teal",
+          "heather",
+          "cognac",
+          "white"
+        ]
+      },
+      {
+        "column_name": "fabric",
+        "inferred_type": "categorical",
+        "kind": "categorical",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "std": null,
+        "sample_values": [
+          "linen",
+          "cotton",
+          "silk",
+          "denim",
+          "batik",
+          "wool blend",
+          "leather",
+          "mesh"
+        ],
+        "row_count": 8,
+        "column_count": 0,
+        "scale_pattern": "unknown",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Top terms: batik, blend, cotton, denim, leather, linen",
+        "summary_text": "fabric is categorical. Top terms: batik, blend, cotton, denim, leather, linen",
+        "top_values": [
+          "linen",
+          "cotton",
+          "silk",
+          "denim",
+          "batik",
+          "wool blend",
+          "leather",
+          "mesh"
+        ]
+      },
+      {
+        "column_name": "size_range",
+        "inferred_type": "categorical",
+        "kind": "categorical",
+        "missing_percent": 0.0,
+        "unique_percent": 0.875,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "std": null,
+        "sample_values": [
+          "S-XL",
+          "XS-L",
+          "One",
+          "28-36",
+          "S-M",
+          "M-XL",
+          "6-11"
+        ],
+        "row_count": 8,
+        "column_count": 0,
+        "scale_pattern": "unknown",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Top terms: m, s, xl, 11, 28, 36",
+        "summary_text": "size_range is categorical. Top terms: m, s, xl, 11, 28, 36",
+        "top_values": [
+          "One",
+          "S-XL",
+          "XS-L",
+          "28-36",
+          "S-M",
+          "M-XL",
+          "6-11"
+        ]
+      },
+      {
+        "column_name": "price_LKR",
+        "inferred_type": "numeric",
+        "kind": "numeric",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": 4500.0,
+        "max": 12800.0,
+        "mean": 8312.5,
+        "std": 2704.827859587371,
+        "sample_values": [
+          "4500.0",
+          "6200.0",
+          "12800.0",
+          "8900.0",
+          "7400.0",
+          "5600.0",
+          "9900.0",
+          "11200.0"
+        ],
+        "row_count": 8,
+        "column_count": 0,
+        "scale_pattern": "currency",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Numeric feature with mean 8312.500 and std 2704.828",
+        "summary_text": "price_LKR is numeric. Numeric feature with mean 8312.500 and std 2704.828",
+        "top_values": []
+      },
+      {
+        "column_name": "style_tags",
+        "inferred_type": "text",
+        "kind": "text",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "std": null,
+        "sample_values": [
+          "minimal,beach",
+          "classic,office",
+          "evening,luxe",
+          "street,casual",
+          "heritage,artisan",
+          "travel,layering",
+          "bags,minimal",
+          "sport,urban"
+        ],
+        "row_count": 8,
+        "column_count": 0,
+        "scale_pattern": "unknown",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Top terms: minimal, artisan, bags, beach, casual, classic",
+        "summary_text": "style_tags is text. Top terms: minimal, artisan, bags, beach, casual, classic",
+        "top_values": [
+          "minimal,beach",
+          "classic,office",
+          "evening,luxe",
+          "street,casual",
+          "heritage,artisan",
+          "travel,layering",
+          "bags,minimal",
+          "sport,urban"
+        ]
+      },
+      {
+        "column_name": "product_url",
+        "inferred_type": "text",
+        "kind": "text",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "std": null,
+        "sample_values": [
+          "https://stylesense.demo/p/11001",
+          "https://stylesense.demo/p/11002",
+          "https://stylesense.demo/p/11003",
+          "https://stylesense.demo/p/11004",
+          "https://stylesense.demo/p/11005",
+          "https://stylesense.demo/p/11006",
+          "https://stylesense.demo/p/11007",
+          "https://stylesense.demo/p/11008"
+        ],
+        "row_count": 8,
+        "column_count": 0,
+        "scale_pattern": "unknown",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Top terms: demo, https, p, stylesense, 11001, 11002",
+        "summary_text": "product_url is text. Top terms: demo, https, p, stylesense, 11001, 11002",
+        "top_values": [
+          "https://stylesense.demo/p/11001",
+          "https://stylesense.demo/p/11002",
+          "https://stylesense.demo/p/11003",
+          "https://stylesense.demo/p/11004",
+          "https://stylesense.demo/p/11005",
+          "https://stylesense.demo/p/11006",
+          "https://stylesense.demo/p/11007",
+          "https://stylesense.demo/p/11008"
+        ]
+      },
+      {
+        "column_name": "created_ts",
+        "inferred_type": "categorical",
+        "kind": "categorical",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "std": null,
+        "sample_values": [
+          "2026-01-08",
+          "2026-01-09",
+          "2026-01-10",
+          "2026-01-11",
+          "2026-01-12",
+          "2026-01-13",
+          "2026-01-14",
+          "2026-01-15"
+        ],
+        "row_count": 8,
+        "column_count": 0,
+        "scale_pattern": "unknown",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Top terms: 01, 2026, 08, 09, 10, 11",
+        "summary_text": "created_ts is categorical. Top terms: 01, 2026, 08, 09, 10, 11",
+        "top_values": [
+          "2026-01-08",
+          "2026-01-09",
+          "2026-01-10",
+          "2026-01-11",
+          "2026-01-12",
+          "2026-01-13",
+          "2026-01-14",
+          "2026-01-15"
+        ]
+      },
+      {
+        "column_name": "popularity_score",
+        "inferred_type": "numeric",
+        "kind": "numeric",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": 0.59,
+        "max": 0.88,
+        "mean": 0.74,
+        "std": 0.09354143466934854,
+        "sample_values": [
+          "0.72",
+          "0.68",
+          "0.81",
+          "0.77",
+          "0.64",
+          "0.59",
+          "0.83",
+          "0.88"
+        ],
+        "row_count": 8,
+        "column_count": 0,
+        "scale_pattern": "percentage",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Numeric feature with mean 0.740 and std 0.094",
+        "summary_text": "popularity_score is numeric. Numeric feature with mean 0.740 and std 0.094",
+        "top_values": []
+      },
+      {
+        "column_name": "stock_count",
+        "inferred_type": "numeric",
+        "kind": "numeric",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": 6.0,
+        "max": 40.0,
+        "mean": 18.5,
+        "std": 10.908712114635714,
+        "sample_values": [
+          "18",
+          "12",
+          "6",
+          "30",
+          "9",
+          "22",
+          "11",
+          "40"
+        ],
+        "row_count": 8,
+        "column_count": 0,
+        "scale_pattern": "percentage",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Numeric feature with mean 18.500 and std 10.909",
+        "summary_text": "stock_count is numeric. Numeric feature with mean 18.500 and std 10.909",
+        "top_values": []
+      },
+      {
+        "column_name": "created_timestamp",
+        "inferred_type": "datetime",
+        "kind": "datetime",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "std": null,
+        "sample_values": [
+          "2026-01-08T09:15:00",
+          "2026-01-09T11:20:00",
+          "2026-01-10T14:05:00",
+          "2026-01-11T08:40:00",
+          "2026-01-12T16:30:00",
+          "2026-01-13T10:12:00",
+          "2026-01-14T12:45:00",
+          "2026-01-15T09:00:00"
+        ],
+        "row_count": 8,
+        "column_count": 0,
+        "scale_pattern": "unknown",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Top terms: 00, 01, 2026, 05, 08t09, 09t11",
+        "summary_text": "created_timestamp is datetime. Top terms: 00, 01, 2026, 05, 08t09, 09t11",
+        "top_values": [
+          "2026-01-08T09:15:00",
+          "2026-01-09T11:20:00",
+          "2026-01-10T14:05:00",
+          "2026-01-11T08:40:00",
+          "2026-01-12T16:30:00",
+          "2026-01-13T10:12:00",
+          "2026-01-14T12:45:00",
+          "2026-01-15T09:00:00"
+        ]
+      }
+    ],
+    "relational_anchors": [
+      {
+        "anchor_id": "product_id_shop_id_correlation",
+        "type": "numeric_correlation",
+        "left_column": "product_id",
+        "right_column": "shop_id",
+        "correlation_strength": 0.976,
+        "baseline_rule": "High values in product_id correlate with high values in shop_id (r=0.98).",
+        "status": "discovered"
+      },
+      {
+        "anchor_id": "price_LKR_popularity_score_correlation",
+        "type": "numeric_correlation",
+        "left_column": "price_LKR",
+        "right_column": "popularity_score",
+        "correlation_strength": 0.781,
+        "baseline_rule": "High values in price_LKR correlate with high values in popularity_score (r=0.78).",
+        "status": "discovered"
+      }
+    ],
+    "summary_text": "Dataset '01_product_catalog_baseline.csv' contains 14 columns. Numeric columns: product_id, shop_id, price_LKR, popularity_score, stock_count. Text/categorical columns: name, category, color, fabric, size_range, style_tags, product_url, created_ts. Discovered relationships: product_id\u2194shop_id (r=0.976), price_LKR\u2194popularity_score (r=0.781).",
+    "summary_embedding": []
+  },
+  "baselines": {
+    "internal": {
+      "dataset_name": "05_fashion_trends_baseline.csv",
+      "created_at": "2026-05-03T21:14:13.378455",
+      "row_count": 8,
+      "column_count": 8,
+      "column_profiles": [
+        {
+          "column_name": "trend_id",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 1.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "301",
+            "302",
+            "303",
+            "304",
+            "305",
+            "306",
+            "307",
+            "308"
+          ],
+          "row_count": 8,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 301, 302, 303, 304, 305, 306",
+          "summary_text": "trend_id is categorical. Top terms: 301, 302, 303, 304, 305, 306",
+          "top_values": [
+            "301",
+            "302",
+            "303",
+            "304",
+            "305",
+            "306",
+            "307",
+            "308"
+          ]
+        },
+        {
+          "column_name": "trend_name",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 1.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "Linen ease",
+            "Neo batik",
+            "Minimal carry",
+            "Athleisure blur",
+            "Pastel suiting",
+            "Coastal stripes",
+            "Upcycled denim",
+            "Monsoon brights"
+          ],
+          "row_count": 8,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: athleisure, batik, blur, brights, carry, coastal",
+          "summary_text": "trend_name is categorical. Top terms: athleisure, batik, blur, brights, carry, coastal",
+          "top_values": [
+            "Linen ease",
+            "Neo batik",
+            "Minimal carry",
+            "Athleisure blur",
+            "Pastel suiting",
+            "Coastal stripes",
+            "Upcycled denim",
+            "Monsoon brights"
+          ]
+        },
+        {
+          "column_name": "trend_category",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 0.625,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "seasonal",
+            "heritage",
+            "bags",
+            "category",
+            "sustainability"
+          ],
+          "row_count": 8,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: bags, category, heritage, seasonal, sustainability",
+          "summary_text": "trend_category is categorical. Top terms: bags, category, heritage, seasonal, sustainability",
+          "top_values": [
+            "seasonal",
+            "heritage",
+            "bags",
+            "category",
+            "sustainability"
+          ]
+        },
+        {
+          "column_name": "trend_score",
+          "inferred_type": "text",
+          "kind": "text",
+          "missing_percent": 0.0,
+          "unique_percent": 1.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "0.78",
+            "0.65",
+            "0.71",
+            "0.82",
+            "0.69",
+            "0.74",
+            "0.77",
+            "0.61"
+          ],
+          "row_count": 8,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 0, 61, 65, 69, 71, 74",
+          "summary_text": "trend_score is text. Top terms: 0, 61, 65, 69, 71, 74",
+          "top_values": [
+            "0.78",
+            "0.65",
+            "0.71",
+            "0.82",
+            "0.69",
+            "0.74",
+            "0.77",
+            "0.61"
+          ]
+        },
+        {
+          "column_name": "week",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 0.625,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "14",
+            "15",
+            "16",
+            "17",
+            "18"
+          ],
+          "row_count": 8,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 14, 15, 16, 17, 18",
+          "summary_text": "week is categorical. Top terms: 14, 15, 16, 17, 18",
+          "top_values": [
+            "15",
+            "16",
+            "17",
+            "14",
+            "18"
+          ]
+        },
+        {
+          "column_name": "year",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 0.125,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "2026"
+          ],
+          "row_count": 8,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 2026",
+          "summary_text": "year is categorical. Top terms: 2026",
+          "top_values": [
+            "2026"
+          ]
+        },
+        {
+          "column_name": "emerging_designers",
+          "inferred_type": "text",
+          "kind": "text",
+          "missing_percent": 0.0,
+          "unique_percent": 1.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "Perera Atelier;Coast Line",
+            "Batik House SL",
+            "Leather Lab CMB",
+            "Track Studio",
+            "Atelier North",
+            "Wave Knitworks",
+            "Loop Denim",
+            "Rainbow Row"
+          ],
+          "row_count": 8,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: atelier, batik, cmb, coast, denim, house",
+          "summary_text": "emerging_designers is text. Top terms: atelier, batik, cmb, coast, denim, house",
+          "top_values": [
+            "Perera Atelier;Coast Line",
+            "Batik House SL",
+            "Leather Lab CMB",
+            "Track Studio",
+            "Atelier North",
+            "Wave Knitworks",
+            "Loop Denim",
+            "Rainbow Row"
+          ]
+        },
+        {
+          "column_name": "trend_tags",
+          "inferred_type": "text",
+          "kind": "text",
+          "missing_percent": 0.0,
+          "unique_percent": 1.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "linen,neutral,resort",
+            "batik,artisan,colorblock",
+            "leather,compact,utility",
+            "mesh,performance,street",
+            "pastel,tailoring,office",
+            "stripe,knit,holiday",
+            "upcycle,denim,repair",
+            "monsoon,color,safety"
+          ],
+          "row_count": 8,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: artisan, batik, color, colorblock, compact, denim",
+          "summary_text": "trend_tags is text. Top terms: artisan, batik, color, colorblock, compact, denim",
+          "top_values": [
+            "linen,neutral,resort",
+            "batik,artisan,colorblock",
+            "leather,compact,utility",
+            "mesh,performance,street",
+            "pastel,tailoring,office",
+            "stripe,knit,holiday",
+            "upcycle,denim,repair",
+            "monsoon,color,safety"
+          ]
+        }
+      ],
+      "relational_anchors": [],
+      "summary_text": "Dataset '05_fashion_trends_baseline.csv' contains 8 columns. Text/categorical columns: trend_id, trend_name, trend_category, trend_score, week, year, emerging_designers, trend_tags.",
+      "summary_embedding": []
+    },
+    "external": {
+      "dataset_name": "external_demo",
+      "created_at": "2026-05-03T01:43:21.545808",
+      "row_count": 200,
+      "column_count": 4,
+      "column_profiles": [
+        {
+          "column_name": "row_id",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 0.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "E0",
+            "E1",
+            "E2",
+            "E3",
+            "E4",
+            "E5",
+            "E6",
+            "E7",
+            "E8",
+            "E9"
+          ],
+          "row_count": 200,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: e0, e1, e2, e3, e4, e5",
+          "summary_text": "row_id is categorical. Top terms: e0, e1, e2, e3, e4, e5",
+          "top_values": [
+            "E0",
+            "E1",
+            "E2",
+            "E3",
+            "E4",
+            "E5",
+            "E6",
+            "E7",
+            "E8",
+            "E9"
+          ]
+        },
+        {
+          "column_name": "price",
+          "inferred_type": "numeric",
+          "kind": "numeric",
+          "missing_percent": 0.0,
+          "unique_percent": 0.0,
+          "min": 74.09244757710573,
+          "max": 139.47173909795035,
+          "mean": 107.20643336921923,
+          "std": 10.811017729388103,
+          "sample_values": [
+            "89.48263471998102",
+            "119.1651642900698",
+            "92.14301911697689",
+            "93.22008578620486",
+            "104.02164856068536",
+            "116.67355031528697",
+            "111.30125296303873",
+            "116.91845114366271",
+            "103.11991786398252",
+            "106.10598384788445"
+          ],
+          "row_count": 200,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Numeric feature with mean 107.206 and std 10.811",
+          "summary_text": "price is numeric. mean=107.206, std=10.811, min=74.092, max=139.472.",
+          "top_values": []
+        },
+        {
+          "column_name": "category",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 0.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "A",
+            "B",
+            "C"
+          ],
+          "row_count": 200,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: a, b, c",
+          "summary_text": "category is categorical. Top terms: a, b, c",
+          "top_values": [
+            "A",
+            "B",
+            "C"
+          ]
+        },
+        {
+          "column_name": "description",
+          "inferred_type": "text",
+          "kind": "text",
+          "missing_percent": 0.0,
+          "unique_percent": 0.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "modern performance apparel"
+          ],
+          "row_count": 200,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: apparel, modern, performance",
+          "summary_text": "description is text. Top terms: apparel, modern, performance",
+          "top_values": [
+            "modern performance apparel"
+          ]
+        }
+      ],
+      "relational_anchors": [],
+      "summary_text": "Dataset external_demo has 4 columns. row_id (categorical): Top terms: e0, e1, e2, e3, e4, e5 price (numeric): Numeric feature with mean 107.206 and std 10.811 category (categorical): Top terms: a, b, c description (text): Top terms: apparel, modern, performance Anchor: No strong relational anchor detected.",
+      "summary_embedding": [
+        0.16963778593599418,
+        0.0,
+        0.0,
+        0.0,
+        0.08481889296799709,
+        0.0,
+        0.16963778593599418,
+        0.08481889296799709,
+        0.0,
+        0.0,
+        0.2544566789039913,
+        0.16963778593599418,
+        0.16963778593599418,
+        0.4240944648399855,
+        0.08481889296799709,
+        0.08481889296799709,
+        0.0,
+        0.16963778593599418,
+        0.16963778593599418,
+        0.08481889296799709,
+        0.08481889296799709,
+        0.2544566789039913,
+        0.33927557187198837,
+        0.33927557187198837,
+        0.08481889296799709,
+        0.4240944648399855,
+        0.08481889296799709,
+        0.08481889296799709,
+        0.08481889296799709,
+        0.16963778593599418,
+        0.08481889296799709,
+        0.0
+      ]
+    }
+  },
+  "available_predefined_baselines": [
+    {
+      "baseline_key": "products",
+      "dataset_name": "product_catalog",
+      "baseline_version": "v1",
+      "description": "Approved semantic baseline for the products table defined in data architecture.",
+      "source_table": "final_products.csv",
+      "column_count": 14,
+      "columns": {
+        "product_id": {
+          "business_meaning": "Unique identifier for a product listing",
+          "role": "identifier",
+          "domain": "Commerce",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "shop_id": {
+          "business_meaning": "Identifier of the shop that owns the product listing",
+          "role": "identifier",
+          "domain": "Commerce",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "name": {
+          "business_meaning": "Customer-facing product name",
+          "role": "text_attribute",
+          "domain": "Commerce",
+          "unit": "text",
+          "scale": "free_text",
+          "data_type": "string",
+          "value_direction": "neutral description"
+        },
+        "category": {
+          "business_meaning": "Merchandise category assigned to the product",
+          "role": "dimension",
+          "domain": "Commerce",
+          "unit": "category",
+          "scale": "nominal",
+          "data_type": "string",
+          "value_direction": "neutral grouping"
+        },
+        "color": {
+          "business_meaning": "Primary product color descriptor",
+          "role": "dimension",
+          "domain": "Commerce",
+          "unit": "color",
+          "scale": "nominal",
+          "data_type": "string",
+          "value_direction": "neutral attribute"
+        },
+        "fabric": {
+          "business_meaning": "Main material or fabric used in the product",
+          "role": "dimension",
+          "domain": "Commerce",
+          "unit": "material",
+          "scale": "nominal",
+          "data_type": "string",
+          "value_direction": "neutral attribute"
+        },
+        "size_range": {
+          "business_meaning": "Size range supported by the product listing",
+          "role": "dimension",
+          "domain": "Commerce",
+          "unit": "size",
+          "scale": "ordinal",
+          "data_type": "string",
+          "value_direction": "neutral attribute"
+        },
+        "price_LKR": {
+          "business_meaning": "Displayed selling price of the product in Sri Lankan Rupees",
+          "role": "measure",
+          "domain": "Commerce",
+          "unit": "LKR",
+          "scale": "currency",
+          "data_type": "decimal",
+          "value_direction": "higher means higher selling price"
+        },
+        "style_tags": {
+          "business_meaning": "Tag bundle describing product style, fit, and audience cues",
+          "role": "text_attribute",
+          "domain": "Commerce",
+          "unit": "tags",
+          "scale": "multi_label_text",
+          "data_type": "string",
+          "value_direction": "neutral descriptive tags"
+        },
+        "product_url": {
+          "business_meaning": "Canonical product page URL",
+          "role": "identifier",
+          "domain": "Commerce",
+          "unit": "url",
+          "scale": "reference",
+          "data_type": "string",
+          "value_direction": "neutral reference link"
+        },
+        "created_ts": {
+          "business_meaning": "Original source time fragment captured when the product record was created",
+          "role": "timestamp",
+          "domain": "Commerce",
+          "unit": "time",
+          "scale": "time_string",
+          "data_type": "string",
+          "value_direction": "later means more recent source capture"
+        },
+        "popularity_score": {
+          "business_meaning": "Popularity score assigned to the product listing",
+          "role": "score",
+          "domain": "Commerce",
+          "unit": "score",
+          "scale": "normalized_score",
+          "data_type": "decimal",
+          "value_direction": "higher means more popular"
+        },
+        "stock_count": {
+          "business_meaning": "Available stock quantity for the product listing",
+          "role": "measure",
+          "domain": "Inventory",
+          "unit": "count",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "higher means more items in stock"
+        },
+        "created_timestamp": {
+          "business_meaning": "Full timestamp when the product record was created",
+          "role": "timestamp",
+          "domain": "Commerce",
+          "unit": "datetime",
+          "scale": "timestamp",
+          "data_type": "datetime",
+          "value_direction": "later means more recent record creation"
+        }
+      }
+    },
+    {
+      "baseline_key": "users",
+      "dataset_name": "user_profiles",
+      "baseline_version": "v1",
+      "description": "Approved semantic baseline for the users table defined in data architecture.",
+      "source_table": "users_dataset.csv",
+      "column_count": 7,
+      "columns": {
+        "user_id": {
+          "business_meaning": "Unique identifier for a customer account",
+          "role": "identifier",
+          "domain": "Customer",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "name": {
+          "business_meaning": "Customer full name",
+          "role": "text_attribute",
+          "domain": "Customer",
+          "unit": "text",
+          "scale": "free_text",
+          "data_type": "string",
+          "value_direction": "neutral profile text"
+        },
+        "email": {
+          "business_meaning": "Customer email address used for communication and login",
+          "role": "identifier",
+          "domain": "Customer",
+          "unit": "email",
+          "scale": "reference",
+          "data_type": "string",
+          "value_direction": "neutral contact identifier"
+        },
+        "phone": {
+          "business_meaning": "Customer phone number for delivery or support contact",
+          "role": "identifier",
+          "domain": "Customer",
+          "unit": "phone",
+          "scale": "reference",
+          "data_type": "string",
+          "value_direction": "neutral contact identifier"
+        },
+        "shipping_address": {
+          "business_meaning": "Primary shipping address for the customer",
+          "role": "text_attribute",
+          "domain": "Customer",
+          "unit": "address",
+          "scale": "free_text",
+          "data_type": "string",
+          "value_direction": "neutral address detail"
+        },
+        "signup_ts": {
+          "business_meaning": "Date when the customer account was created",
+          "role": "timestamp",
+          "domain": "Customer",
+          "unit": "date",
+          "scale": "date",
+          "data_type": "date",
+          "value_direction": "later means more recently signed up"
+        },
+        "is_active": {
+          "business_meaning": "Whether the customer account is currently active",
+          "role": "binary_label",
+          "domain": "Customer",
+          "unit": "boolean",
+          "scale": "binary",
+          "data_type": "boolean",
+          "value_direction": "true means active account"
+        }
+      }
+    },
+    {
+      "baseline_key": "transactions",
+      "dataset_name": "sales_transactions",
+      "baseline_version": "v1",
+      "description": "Approved semantic baseline for the transactions table defined in data architecture.",
+      "source_table": "transactions_dataset.csv",
+      "column_count": 19,
+      "columns": {
+        "transaction_id": {
+          "business_meaning": "Unique identifier for a transaction",
+          "role": "identifier",
+          "domain": "Sales",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "user_id": {
+          "business_meaning": "Identifier of the customer who placed the order",
+          "role": "identifier",
+          "domain": "Sales",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "product_id": {
+          "business_meaning": "Identifier of the product sold in the transaction",
+          "role": "identifier",
+          "domain": "Sales",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "shop_id": {
+          "business_meaning": "Identifier of the shop fulfilling the order",
+          "role": "identifier",
+          "domain": "Sales",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "quantity": {
+          "business_meaning": "Number of product units sold in the transaction",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "count",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "higher means more items sold"
+        },
+        "unit_price": {
+          "business_meaning": "Selling price per unit before taxes and discounts",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "LKR",
+          "scale": "currency",
+          "data_type": "decimal",
+          "value_direction": "higher means higher per-item selling price"
+        },
+        "total_amount": {
+          "business_meaning": "Gross transaction amount before discounts and taxes",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "LKR",
+          "scale": "currency",
+          "data_type": "decimal",
+          "value_direction": "higher means more gross revenue"
+        },
+        "discount_percent": {
+          "business_meaning": "Discount percentage applied to the transaction",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "percent",
+          "scale": "percentage",
+          "data_type": "decimal",
+          "value_direction": "higher means larger discount share"
+        },
+        "discount_amount": {
+          "business_meaning": "Discount amount deducted from the gross transaction total",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "LKR",
+          "scale": "currency",
+          "data_type": "decimal",
+          "value_direction": "higher means larger discount value"
+        },
+        "tax_percent": {
+          "business_meaning": "Tax percentage applied to the transaction",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "percent",
+          "scale": "percentage",
+          "data_type": "decimal",
+          "value_direction": "higher means larger tax share"
+        },
+        "tax_amount": {
+          "business_meaning": "Tax amount added to the transaction",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "LKR",
+          "scale": "currency",
+          "data_type": "decimal",
+          "value_direction": "higher means larger tax value"
+        },
+        "final_amount": {
+          "business_meaning": "Final sales revenue after applying discounts and taxes",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "LKR",
+          "scale": "currency",
+          "data_type": "decimal",
+          "value_direction": "higher means more final revenue"
+        },
+        "payment_method": {
+          "business_meaning": "Payment method selected by the customer",
+          "role": "dimension",
+          "domain": "Sales",
+          "unit": "method",
+          "scale": "nominal",
+          "data_type": "string",
+          "value_direction": "neutral payment category"
+        },
+        "transaction_status": {
+          "business_meaning": "Operational status of the transaction lifecycle",
+          "role": "dimension",
+          "domain": "Sales",
+          "unit": "status",
+          "scale": "ordinal",
+          "data_type": "string",
+          "value_direction": "later statuses mean more progressed fulfillment"
+        },
+        "transaction_date": {
+          "business_meaning": "Calendar date when the transaction was recorded",
+          "role": "timestamp",
+          "domain": "Sales",
+          "unit": "date",
+          "scale": "date",
+          "data_type": "date",
+          "value_direction": "later means more recent sale date"
+        },
+        "transaction_ts": {
+          "business_meaning": "Exact timestamp when the transaction was created",
+          "role": "timestamp",
+          "domain": "Sales",
+          "unit": "datetime",
+          "scale": "timestamp",
+          "data_type": "datetime",
+          "value_direction": "later means more recent transaction event"
+        },
+        "delivery_date": {
+          "business_meaning": "Expected or actual delivery date for the order",
+          "role": "timestamp",
+          "domain": "Sales",
+          "unit": "datetime",
+          "scale": "timestamp",
+          "data_type": "datetime",
+          "value_direction": "later means later delivery timing"
+        },
+        "delivery_address": {
+          "business_meaning": "Delivery destination for the order",
+          "role": "text_attribute",
+          "domain": "Sales",
+          "unit": "address",
+          "scale": "free_text",
+          "data_type": "string",
+          "value_direction": "neutral delivery detail"
+        },
+        "notes": {
+          "business_meaning": "Free-text note describing the order context",
+          "role": "text_attribute",
+          "domain": "Sales",
+          "unit": "text",
+          "scale": "free_text",
+          "data_type": "string",
+          "value_direction": "neutral supporting detail"
+        }
+      }
+    },
+    {
+      "baseline_key": "shops",
+      "dataset_name": "shop_directory",
+      "baseline_version": "v1",
+      "description": "Approved semantic baseline for the shops table defined in data architecture.",
+      "source_table": "shops_dataset.csv",
+      "column_count": 9,
+      "columns": {
+        "shop_id": {
+          "business_meaning": "Unique identifier for a shop",
+          "role": "identifier",
+          "domain": "Retail",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "shop_name": {
+          "business_meaning": "Official shop name",
+          "role": "text_attribute",
+          "domain": "Retail",
+          "unit": "text",
+          "scale": "free_text",
+          "data_type": "string",
+          "value_direction": "neutral descriptive text"
+        },
+        "location": {
+          "business_meaning": "City or locality where the shop is located",
+          "role": "dimension",
+          "domain": "Retail",
+          "unit": "location",
+          "scale": "nominal",
+          "data_type": "string",
+          "value_direction": "neutral geographic grouping"
+        },
+        "district": {
+          "business_meaning": "Administrative district for the shop",
+          "role": "dimension",
+          "domain": "Retail",
+          "unit": "district",
+          "scale": "nominal",
+          "data_type": "string",
+          "value_direction": "neutral geographic grouping"
+        },
+        "postal_code": {
+          "business_meaning": "Postal code assigned to the shop location",
+          "role": "identifier",
+          "domain": "Retail",
+          "unit": "postal_code",
+          "scale": "reference",
+          "data_type": "string",
+          "value_direction": "neutral location identifier"
+        },
+        "phone_number": {
+          "business_meaning": "Shop contact phone number",
+          "role": "identifier",
+          "domain": "Retail",
+          "unit": "phone",
+          "scale": "reference",
+          "data_type": "string",
+          "value_direction": "neutral contact identifier"
+        },
+        "is_active": {
+          "business_meaning": "Whether the shop is currently active in the retail network",
+          "role": "binary_label",
+          "domain": "Retail",
+          "unit": "boolean",
+          "scale": "binary",
+          "data_type": "boolean",
+          "value_direction": "true means active shop"
+        },
+        "operating_hours_open": {
+          "business_meaning": "Daily opening time for the shop",
+          "role": "timestamp",
+          "domain": "Retail",
+          "unit": "time",
+          "scale": "time_of_day",
+          "data_type": "string",
+          "value_direction": "later means later opening time"
+        },
+        "operating_hours_close": {
+          "business_meaning": "Daily closing time for the shop",
+          "role": "timestamp",
+          "domain": "Retail",
+          "unit": "time",
+          "scale": "time_of_day",
+          "data_type": "string",
+          "value_direction": "later means later closing time"
+        }
+      }
+    },
+    {
+      "baseline_key": "trends",
+      "dataset_name": "fashion_trends",
+      "baseline_version": "v1",
+      "description": "Approved semantic baseline for the trends table defined in data architecture.",
+      "source_table": "trends_dataset.csv",
+      "column_count": 8,
+      "columns": {
+        "trend_id": {
+          "business_meaning": "Unique identifier for a tracked fashion trend",
+          "role": "identifier",
+          "domain": "Fashion Trends",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "trend_name": {
+          "business_meaning": "Label of the trend being tracked",
+          "role": "text_attribute",
+          "domain": "Fashion Trends",
+          "unit": "text",
+          "scale": "free_text",
+          "data_type": "string",
+          "value_direction": "neutral descriptive text"
+        },
+        "trend_category": {
+          "business_meaning": "Trend classification such as seasonal or category trend",
+          "role": "dimension",
+          "domain": "Fashion Trends",
+          "unit": "category",
+          "scale": "nominal",
+          "data_type": "string",
+          "value_direction": "neutral grouping"
+        },
+        "trend_score": {
+          "business_meaning": "Trend strength or momentum score for the week",
+          "role": "score",
+          "domain": "Fashion Trends",
+          "unit": "score",
+          "scale": "normalized_score",
+          "data_type": "decimal",
+          "value_direction": "higher means stronger trend momentum"
+        },
+        "week": {
+          "business_meaning": "Calendar week number used for trend tracking",
+          "role": "dimension",
+          "domain": "Fashion Trends",
+          "unit": "week",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "higher means later week in the year"
+        },
+        "year": {
+          "business_meaning": "Calendar year used for trend tracking",
+          "role": "dimension",
+          "domain": "Fashion Trends",
+          "unit": "year",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "higher means more recent year"
+        },
+        "emerging_designers": {
+          "business_meaning": "Designers associated with the observed trend",
+          "role": "text_attribute",
+          "domain": "Fashion Trends",
+          "unit": "designer_names",
+          "scale": "multi_label_text",
+          "data_type": "string",
+          "value_direction": "neutral descriptive association"
+        },
+        "trend_tags": {
+          "business_meaning": "Tag bundle describing fabrics, aesthetics, and motifs linked to the trend",
+          "role": "text_attribute",
+          "domain": "Fashion Trends",
+          "unit": "tags",
+          "scale": "multi_label_text",
+          "data_type": "string",
+          "value_direction": "neutral descriptive tags"
+        }
+      }
+    }
+  ],
+  "selected_predefined_baseline": {
+    "baseline_key": "products",
+    "dataset_name": "product_catalog",
+    "baseline_version": "v1",
+    "description": "Approved semantic baseline for the products table defined in data architecture.",
+    "source_table": "final_products.csv",
+    "columns": {
+      "product_id": {
+        "business_meaning": "Unique identifier for a product listing",
+        "role": "identifier",
+        "domain": "Commerce",
+        "unit": "id",
+        "scale": "integer",
+        "data_type": "integer",
+        "value_direction": "neutral reference key"
+      },
+      "shop_id": {
+        "business_meaning": "Identifier of the shop that owns the product listing",
+        "role": "identifier",
+        "domain": "Commerce",
+        "unit": "id",
+        "scale": "integer",
+        "data_type": "integer",
+        "value_direction": "neutral reference key"
+      },
+      "name": {
+        "business_meaning": "Customer-facing product name",
+        "role": "text_attribute",
+        "domain": "Commerce",
+        "unit": "text",
+        "scale": "free_text",
+        "data_type": "string",
+        "value_direction": "neutral description"
+      },
+      "category": {
+        "business_meaning": "Merchandise category assigned to the product",
+        "role": "dimension",
+        "domain": "Commerce",
+        "unit": "category",
+        "scale": "nominal",
+        "data_type": "string",
+        "value_direction": "neutral grouping"
+      },
+      "color": {
+        "business_meaning": "Primary product color descriptor",
+        "role": "dimension",
+        "domain": "Commerce",
+        "unit": "color",
+        "scale": "nominal",
+        "data_type": "string",
+        "value_direction": "neutral attribute"
+      },
+      "fabric": {
+        "business_meaning": "Main material or fabric used in the product",
+        "role": "dimension",
+        "domain": "Commerce",
+        "unit": "material",
+        "scale": "nominal",
+        "data_type": "string",
+        "value_direction": "neutral attribute"
+      },
+      "size_range": {
+        "business_meaning": "Size range supported by the product listing",
+        "role": "dimension",
+        "domain": "Commerce",
+        "unit": "size",
+        "scale": "ordinal",
+        "data_type": "string",
+        "value_direction": "neutral attribute"
+      },
+      "price_LKR": {
+        "business_meaning": "Displayed selling price of the product in Sri Lankan Rupees",
+        "role": "measure",
+        "domain": "Commerce",
+        "unit": "LKR",
+        "scale": "currency",
+        "data_type": "decimal",
+        "value_direction": "higher means higher selling price"
+      },
+      "style_tags": {
+        "business_meaning": "Tag bundle describing product style, fit, and audience cues",
+        "role": "text_attribute",
+        "domain": "Commerce",
+        "unit": "tags",
+        "scale": "multi_label_text",
+        "data_type": "string",
+        "value_direction": "neutral descriptive tags"
+      },
+      "product_url": {
+        "business_meaning": "Canonical product page URL",
+        "role": "identifier",
+        "domain": "Commerce",
+        "unit": "url",
+        "scale": "reference",
+        "data_type": "string",
+        "value_direction": "neutral reference link"
+      },
+      "created_ts": {
+        "business_meaning": "Original source time fragment captured when the product record was created",
+        "role": "timestamp",
+        "domain": "Commerce",
+        "unit": "time",
+        "scale": "time_string",
+        "data_type": "string",
+        "value_direction": "later means more recent source capture"
+      },
+      "popularity_score": {
+        "business_meaning": "Popularity score assigned to the product listing",
+        "role": "score",
+        "domain": "Commerce",
+        "unit": "score",
+        "scale": "normalized_score",
+        "data_type": "decimal",
+        "value_direction": "higher means more popular"
+      },
+      "stock_count": {
+        "business_meaning": "Available stock quantity for the product listing",
+        "role": "measure",
+        "domain": "Inventory",
+        "unit": "count",
+        "scale": "integer",
+        "data_type": "integer",
+        "value_direction": "higher means more items in stock"
+      },
+      "created_timestamp": {
+        "business_meaning": "Full timestamp when the product record was created",
+        "role": "timestamp",
+        "domain": "Commerce",
+        "unit": "datetime",
+        "scale": "timestamp",
+        "data_type": "datetime",
+        "value_direction": "later means more recent record creation"
+      }
+    }
+  },
+  "baseline_creation": [
+    {
+      "column_name": "product_id",
+      "business_meaning": "Unique identifier for a product listing",
+      "role": "identifier",
+      "domain": "Commerce",
+      "unit": "id",
+      "scale": "integer",
+      "data_type": "integer",
+      "value_direction": "neutral reference key",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "shop_id",
+      "business_meaning": "Identifier of the shop that owns the product listing",
+      "role": "identifier",
+      "domain": "Commerce",
+      "unit": "id",
+      "scale": "integer",
+      "data_type": "integer",
+      "value_direction": "neutral reference key",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "name",
+      "business_meaning": "Customer-facing product name",
+      "role": "text_attribute",
+      "domain": "Commerce",
+      "unit": "text",
+      "scale": "free_text",
+      "data_type": "string",
+      "value_direction": "neutral description",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "category",
+      "business_meaning": "Merchandise category assigned to the product",
+      "role": "dimension",
+      "domain": "Commerce",
+      "unit": "category",
+      "scale": "nominal",
+      "data_type": "string",
+      "value_direction": "neutral grouping",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "color",
+      "business_meaning": "Primary product color descriptor",
+      "role": "dimension",
+      "domain": "Commerce",
+      "unit": "color",
+      "scale": "nominal",
+      "data_type": "string",
+      "value_direction": "neutral attribute",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "fabric",
+      "business_meaning": "Main material or fabric used in the product",
+      "role": "dimension",
+      "domain": "Commerce",
+      "unit": "material",
+      "scale": "nominal",
+      "data_type": "string",
+      "value_direction": "neutral attribute",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "size_range",
+      "business_meaning": "Size range supported by the product listing",
+      "role": "dimension",
+      "domain": "Commerce",
+      "unit": "size",
+      "scale": "ordinal",
+      "data_type": "string",
+      "value_direction": "neutral attribute",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "price_LKR",
+      "business_meaning": "Displayed selling price of the product in Sri Lankan Rupees",
+      "role": "measure",
+      "domain": "Commerce",
+      "unit": "LKR",
+      "scale": "currency",
+      "data_type": "decimal",
+      "value_direction": "higher means higher selling price",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "style_tags",
+      "business_meaning": "Tag bundle describing product style, fit, and audience cues",
+      "role": "text_attribute",
+      "domain": "Commerce",
+      "unit": "tags",
+      "scale": "multi_label_text",
+      "data_type": "string",
+      "value_direction": "neutral descriptive tags",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "product_url",
+      "business_meaning": "Canonical product page URL",
+      "role": "identifier",
+      "domain": "Commerce",
+      "unit": "url",
+      "scale": "reference",
+      "data_type": "string",
+      "value_direction": "neutral reference link",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "created_ts",
+      "business_meaning": "Original source time fragment captured when the product record was created",
+      "role": "timestamp",
+      "domain": "Commerce",
+      "unit": "time",
+      "scale": "time_string",
+      "data_type": "string",
+      "value_direction": "later means more recent source capture",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "popularity_score",
+      "business_meaning": "Popularity score assigned to the product listing",
+      "role": "score",
+      "domain": "Commerce",
+      "unit": "score",
+      "scale": "normalized_score",
+      "data_type": "decimal",
+      "value_direction": "higher means more popular",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "stock_count",
+      "business_meaning": "Available stock quantity for the product listing",
+      "role": "measure",
+      "domain": "Inventory",
+      "unit": "count",
+      "scale": "integer",
+      "data_type": "integer",
+      "value_direction": "higher means more items in stock",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "created_timestamp",
+      "business_meaning": "Full timestamp when the product record was created",
+      "role": "timestamp",
+      "domain": "Commerce",
+      "unit": "datetime",
+      "scale": "timestamp",
+      "data_type": "datetime",
+      "value_direction": "later means more recent record creation",
+      "baseline_version": "v1"
+    }
+  ],
+  "new_dataset_profiling": [
+    {
+      "column_name": "product_id",
+      "detected_data_type": "numeric",
+      "sample_values": [
+        "11001",
+        "11002",
+        "11003",
+        "11004"
+      ],
+      "nearby_columns": [
+        "shop_id"
+      ],
+      "value_pattern": "count",
+      "possible_business_meaning": "product id unique identifier",
+      "possible_domain": "Commerce",
+      "possible_role": "Identifier"
+    },
+    {
+      "column_name": "shop_id",
+      "detected_data_type": "numeric",
+      "sample_values": [
+        "501",
+        "502",
+        "503",
+        "504"
+      ],
+      "nearby_columns": [
+        "product_id",
+        "name"
+      ],
+      "value_pattern": "count",
+      "possible_business_meaning": "shop id unique identifier",
+      "possible_domain": "Commerce",
+      "possible_role": "Identifier"
+    },
+    {
+      "column_name": "name",
+      "detected_data_type": "categorical",
+      "sample_values": [
+        "Linen Resort Shirt",
+        "Cotton Midi Skirt",
+        "Silk Evening Wrap",
+        "Denim Slim Jean"
+      ],
+      "nearby_columns": [
+        "shop_id",
+        "category"
+      ],
+      "value_pattern": "unknown",
+      "possible_business_meaning": "name business category in the Commerce domain",
+      "possible_domain": "Commerce",
+      "possible_role": "Dimension"
+    },
+    {
+      "column_name": "category",
+      "detected_data_type": "categorical",
+      "sample_values": [
+        "Menswear",
+        "Womenswear",
+        "Unisex",
+        "Accessories"
+      ],
+      "nearby_columns": [
+        "name",
+        "color"
+      ],
+      "value_pattern": "unknown",
+      "possible_business_meaning": "category business category in the Commerce domain",
+      "possible_domain": "Commerce",
+      "possible_role": "Dimension"
+    },
+    {
+      "column_name": "color",
+      "detected_data_type": "categorical",
+      "sample_values": [
+        "natural",
+        "ivory",
+        "emerald",
+        "indigo"
+      ],
+      "nearby_columns": [
+        "category",
+        "fabric"
+      ],
+      "value_pattern": "unknown",
+      "possible_business_meaning": "color business category in the Commerce domain",
+      "possible_domain": "Commerce",
+      "possible_role": "Dimension"
+    },
+    {
+      "column_name": "fabric",
+      "detected_data_type": "categorical",
+      "sample_values": [
+        "linen",
+        "cotton",
+        "silk",
+        "denim"
+      ],
+      "nearby_columns": [
+        "color",
+        "size_range"
+      ],
+      "value_pattern": "unknown",
+      "possible_business_meaning": "fabric business category in the Commerce domain",
+      "possible_domain": "Commerce",
+      "possible_role": "Dimension"
+    },
+    {
+      "column_name": "size_range",
+      "detected_data_type": "categorical",
+      "sample_values": [
+        "S-XL",
+        "XS-L",
+        "One",
+        "28-36"
+      ],
+      "nearby_columns": [
+        "fabric",
+        "price_LKR"
+      ],
+      "value_pattern": "unknown",
+      "possible_business_meaning": "size range business category in the Commerce domain",
+      "possible_domain": "Commerce",
+      "possible_role": "Dimension"
+    },
+    {
+      "column_name": "price_LKR",
+      "detected_data_type": "numeric",
+      "sample_values": [
+        "4500.0",
+        "6200.0",
+        "12800.0",
+        "8900.0"
+      ],
+      "nearby_columns": [
+        "size_range",
+        "style_tags"
+      ],
+      "value_pattern": "currency",
+      "possible_business_meaning": "price lkr measured business value in the Commerce domain",
+      "possible_domain": "Commerce",
+      "possible_role": "Measure"
+    },
+    {
+      "column_name": "style_tags",
+      "detected_data_type": "text",
+      "sample_values": [
+        "minimal,beach",
+        "classic,office",
+        "evening,luxe",
+        "street,casual"
+      ],
+      "nearby_columns": [
+        "price_LKR",
+        "product_url"
+      ],
+      "value_pattern": "unknown",
+      "possible_business_meaning": "style tags descriptive text in the Commerce domain",
+      "possible_domain": "Commerce",
+      "possible_role": "Description"
+    },
+    {
+      "column_name": "product_url",
+      "detected_data_type": "text",
+      "sample_values": [
+        "https://stylesense.demo/p/11001",
+        "https://stylesense.demo/p/11002",
+        "https://stylesense.demo/p/11003",
+        "https://stylesense.demo/p/11004"
+      ],
+      "nearby_columns": [
+        "style_tags",
+        "created_ts"
+      ],
+      "value_pattern": "unknown",
+      "possible_business_meaning": "product url descriptive text in the Commerce domain",
+      "possible_domain": "Commerce",
+      "possible_role": "Description"
+    },
+    {
+      "column_name": "created_ts",
+      "detected_data_type": "categorical",
+      "sample_values": [
+        "2026-01-08",
+        "2026-01-09",
+        "2026-01-10",
+        "2026-01-11"
+      ],
+      "nearby_columns": [
+        "product_url",
+        "popularity_score"
+      ],
+      "value_pattern": "unknown",
+      "possible_business_meaning": "created ts event timestamp",
+      "possible_domain": "Commerce",
+      "possible_role": "Timestamp"
+    },
+    {
+      "column_name": "popularity_score",
+      "detected_data_type": "numeric",
+      "sample_values": [
+        "0.72",
+        "0.68",
+        "0.81",
+        "0.77"
+      ],
+      "nearby_columns": [
+        "created_ts",
+        "stock_count"
+      ],
+      "value_pattern": "percentage",
+      "possible_business_meaning": "popularity score measured business value in the Commerce domain",
+      "possible_domain": "Commerce",
+      "possible_role": "Measure"
+    },
+    {
+      "column_name": "stock_count",
+      "detected_data_type": "numeric",
+      "sample_values": [
+        "18",
+        "12",
+        "6",
+        "30"
+      ],
+      "nearby_columns": [
+        "popularity_score",
+        "created_timestamp"
+      ],
+      "value_pattern": "percentage",
+      "possible_business_meaning": "stock count measured business value in the Inventory domain",
+      "possible_domain": "Inventory",
+      "possible_role": "Measure"
+    },
+    {
+      "column_name": "created_timestamp",
+      "detected_data_type": "datetime",
+      "sample_values": [
+        "2026-01-08T09:15:00",
+        "2026-01-09T11:20:00",
+        "2026-01-10T14:05:00",
+        "2026-01-11T08:40:00"
+      ],
+      "nearby_columns": [
+        "stock_count"
+      ],
+      "value_pattern": "unknown",
+      "possible_business_meaning": "created timestamp event timestamp",
+      "possible_domain": "Commerce",
+      "possible_role": "Timestamp"
+    }
+  ],
+  "column_matching": [
+    {
+      "incoming_column": "product_id",
+      "baseline_column": "product_id",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "identifier",
+      "incoming_role": "Identifier",
+      "baseline_domain": "Commerce",
+      "incoming_domain": "Commerce",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "shop_id",
+      "baseline_column": "shop_id",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "identifier",
+      "incoming_role": "Identifier",
+      "baseline_domain": "Commerce",
+      "incoming_domain": "Commerce",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "name",
+      "baseline_column": "name",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "text_attribute",
+      "incoming_role": "Dimension",
+      "baseline_domain": "Commerce",
+      "incoming_domain": "Commerce",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "category",
+      "baseline_column": "category",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "dimension",
+      "incoming_role": "Dimension",
+      "baseline_domain": "Commerce",
+      "incoming_domain": "Commerce",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "color",
+      "baseline_column": "color",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "dimension",
+      "incoming_role": "Dimension",
+      "baseline_domain": "Commerce",
+      "incoming_domain": "Commerce",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "fabric",
+      "baseline_column": "fabric",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "dimension",
+      "incoming_role": "Dimension",
+      "baseline_domain": "Commerce",
+      "incoming_domain": "Commerce",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "size_range",
+      "baseline_column": "size_range",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "dimension",
+      "incoming_role": "Dimension",
+      "baseline_domain": "Commerce",
+      "incoming_domain": "Commerce",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "price_LKR",
+      "baseline_column": "price_LKR",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "measure",
+      "incoming_role": "Measure",
+      "baseline_domain": "Commerce",
+      "incoming_domain": "Commerce",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "style_tags",
+      "baseline_column": "style_tags",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "text_attribute",
+      "incoming_role": "Description",
+      "baseline_domain": "Commerce",
+      "incoming_domain": "Commerce",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "product_url",
+      "baseline_column": "product_url",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "identifier",
+      "incoming_role": "Description",
+      "baseline_domain": "Commerce",
+      "incoming_domain": "Commerce",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "created_ts",
+      "baseline_column": "created_ts",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "timestamp",
+      "incoming_role": "Timestamp",
+      "baseline_domain": "Commerce",
+      "incoming_domain": "Commerce",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "popularity_score",
+      "baseline_column": "popularity_score",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "score",
+      "incoming_role": "Measure",
+      "baseline_domain": "Commerce",
+      "incoming_domain": "Commerce",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "stock_count",
+      "baseline_column": "stock_count",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "measure",
+      "incoming_role": "Measure",
+      "baseline_domain": "Inventory",
+      "incoming_domain": "Inventory",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "created_timestamp",
+      "baseline_column": "created_timestamp",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "timestamp",
+      "incoming_role": "Timestamp",
+      "baseline_domain": "Commerce",
+      "incoming_domain": "Commerce",
+      "reason": "Column name matches exactly."
+    }
+  ],
+  "anchors": [],
+  "triage_matrix": {
+    "cells": [
+      {
+        "internal": "Aligned",
+        "external": "Aligned",
+        "decision": "SAFE",
+        "row_count": 0,
+        "percentage": 0.0,
+        "description": "Stable internally and externally.",
+        "reasoning": []
+      },
+      {
+        "internal": "Aligned",
+        "external": "Outlier",
+        "decision": "CONDITIONAL",
+        "row_count": 0,
+        "percentage": 0.0,
+        "description": "Internally stable but externally out of market range.",
+        "reasoning": []
+      },
+      {
+        "internal": "Drifted",
+        "external": "Aligned",
+        "decision": "CONDITIONAL",
+        "row_count": 8,
+        "percentage": 100.0,
+        "description": "Internal history shifted, but market still supports it.",
+        "reasoning": [
+          "Row semantics do not match the external benchmark profile."
+        ]
+      },
+      {
+        "internal": "Drifted",
+        "external": "Outlier",
+        "decision": "QUARANTINED",
+        "row_count": 0,
+        "percentage": 0.0,
+        "description": "Neither baseline supports the new behavior.",
+        "reasoning": []
+      }
+    ]
+  },
+  "drifts_per_column": [
+    {
+      "column_name": "product_id",
+      "drift_type": "numeric",
+      "severity": "high",
+      "reason": "Numeric scale moved away from both the internal and external baselines.",
+      "baseline_stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "scale": null
+      },
+      "current_stats": {
+        "mean": 11004.5,
+        "std": 2.29128784747792,
+        "scale": "count"
+      },
+      "impact": "High risk of semantic drift.",
+      "recommendation": "Quarantine until the scoring semantics are reviewed."
+    },
+    {
+      "column_name": "shop_id",
+      "drift_type": "numeric",
+      "severity": "high",
+      "reason": "Numeric scale moved away from both the internal and external baselines.",
+      "baseline_stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "scale": null
+      },
+      "current_stats": {
+        "mean": 502.5,
+        "std": 1.118033988749895,
+        "scale": "count"
+      },
+      "impact": "High risk of semantic drift.",
+      "recommendation": "Quarantine until the scoring semantics are reviewed."
+    },
+    {
+      "column_name": "name",
+      "drift_type": "text",
+      "severity": "high",
+      "reason": "Text semantics no longer match either baseline profile.",
+      "baseline_stats": {
+        "internal_similarity": 0.0,
+        "external_similarity": 0.0,
+        "baseline_terms": []
+      },
+      "current_stats": {
+        "current_terms": [
+          "Linen Resort Shirt",
+          "Cotton Midi Skirt",
+          "Silk Evening Wrap",
+          "Denim Slim Jean",
+          "Batik Panel Dress"
+        ]
+      },
+      "impact": "Meaning changed enough to affect downstream recommendations.",
+      "recommendation": "Review mappings and quarantine until corrected."
+    },
+    {
+      "column_name": "category",
+      "drift_type": "text",
+      "severity": "high",
+      "reason": "Text semantics no longer match either baseline profile.",
+      "baseline_stats": {
+        "internal_similarity": 0.0,
+        "external_similarity": 0.0,
+        "baseline_terms": []
+      },
+      "current_stats": {
+        "current_terms": [
+          "Womenswear",
+          "Menswear",
+          "Unisex",
+          "Accessories",
+          "Footwear"
+        ]
+      },
+      "impact": "Meaning changed enough to affect downstream recommendations.",
+      "recommendation": "Review mappings and quarantine until corrected."
+    },
+    {
+      "column_name": "color",
+      "drift_type": "text",
+      "severity": "high",
+      "reason": "Text semantics no longer match either baseline profile.",
+      "baseline_stats": {
+        "internal_similarity": 0.0,
+        "external_similarity": 0.0,
+        "baseline_terms": []
+      },
+      "current_stats": {
+        "current_terms": [
+          "natural",
+          "ivory",
+          "emerald",
+          "indigo",
+          "teal"
+        ]
+      },
+      "impact": "Meaning changed enough to affect downstream recommendations.",
+      "recommendation": "Review mappings and quarantine until corrected."
+    },
+    {
+      "column_name": "fabric",
+      "drift_type": "text",
+      "severity": "high",
+      "reason": "Text semantics no longer match either baseline profile.",
+      "baseline_stats": {
+        "internal_similarity": 0.0,
+        "external_similarity": 0.0,
+        "baseline_terms": []
+      },
+      "current_stats": {
+        "current_terms": [
+          "linen",
+          "cotton",
+          "silk",
+          "denim",
+          "batik"
+        ]
+      },
+      "impact": "Meaning changed enough to affect downstream recommendations.",
+      "recommendation": "Review mappings and quarantine until corrected."
+    },
+    {
+      "column_name": "size_range",
+      "drift_type": "text",
+      "severity": "high",
+      "reason": "Text semantics no longer match either baseline profile.",
+      "baseline_stats": {
+        "internal_similarity": 0.0,
+        "external_similarity": 0.0,
+        "baseline_terms": []
+      },
+      "current_stats": {
+        "current_terms": [
+          "One",
+          "S-XL",
+          "XS-L",
+          "28-36",
+          "S-M"
+        ]
+      },
+      "impact": "Meaning changed enough to affect downstream recommendations.",
+      "recommendation": "Review mappings and quarantine until corrected."
+    },
+    {
+      "column_name": "price_LKR",
+      "drift_type": "numeric",
+      "severity": "high",
+      "reason": "Numeric scale moved away from both the internal and external baselines.",
+      "baseline_stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "scale": null
+      },
+      "current_stats": {
+        "mean": 8312.5,
+        "std": 2704.827859587371,
+        "scale": "currency"
+      },
+      "impact": "High risk of semantic drift.",
+      "recommendation": "Quarantine until the scoring semantics are reviewed."
+    },
+    {
+      "column_name": "style_tags",
+      "drift_type": "text",
+      "severity": "high",
+      "reason": "Text semantics no longer match either baseline profile.",
+      "baseline_stats": {
+        "internal_similarity": 0.0,
+        "external_similarity": 0.0,
+        "baseline_terms": []
+      },
+      "current_stats": {
+        "current_terms": [
+          "minimal,beach",
+          "classic,office",
+          "evening,luxe",
+          "street,casual",
+          "heritage,artisan"
+        ]
+      },
+      "impact": "Meaning changed enough to affect downstream recommendations.",
+      "recommendation": "Review mappings and quarantine until corrected."
+    },
+    {
+      "column_name": "product_url",
+      "drift_type": "text",
+      "severity": "high",
+      "reason": "Text semantics no longer match either baseline profile.",
+      "baseline_stats": {
+        "internal_similarity": 0.0,
+        "external_similarity": 0.0,
+        "baseline_terms": []
+      },
+      "current_stats": {
+        "current_terms": [
+          "https://stylesense.demo/p/11001",
+          "https://stylesense.demo/p/11002",
+          "https://stylesense.demo/p/11003",
+          "https://stylesense.demo/p/11004",
+          "https://stylesense.demo/p/11005"
+        ]
+      },
+      "impact": "Meaning changed enough to affect downstream recommendations.",
+      "recommendation": "Review mappings and quarantine until corrected."
+    },
+    {
+      "column_name": "created_ts",
+      "drift_type": "text",
+      "severity": "high",
+      "reason": "Text semantics no longer match either baseline profile.",
+      "baseline_stats": {
+        "internal_similarity": 0.0,
+        "external_similarity": 0.0,
+        "baseline_terms": []
+      },
+      "current_stats": {
+        "current_terms": [
+          "2026-01-08",
+          "2026-01-09",
+          "2026-01-10",
+          "2026-01-11",
+          "2026-01-12"
+        ]
+      },
+      "impact": "Meaning changed enough to affect downstream recommendations.",
+      "recommendation": "Review mappings and quarantine until corrected."
+    },
+    {
+      "column_name": "popularity_score",
+      "drift_type": "numeric",
+      "severity": "none",
+      "reason": "Column remains aligned with learned baselines.",
+      "baseline_stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "scale": null
+      },
+      "current_stats": {
+        "mean": 0.74,
+        "std": 0.09354143466934854,
+        "scale": "percentage"
+      },
+      "impact": "Low release risk.",
+      "recommendation": "No action needed."
+    },
+    {
+      "column_name": "stock_count",
+      "drift_type": "numeric",
+      "severity": "high",
+      "reason": "Numeric scale moved away from both the internal and external baselines.",
+      "baseline_stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "scale": null
+      },
+      "current_stats": {
+        "mean": 18.5,
+        "std": 10.908712114635714,
+        "scale": "percentage"
+      },
+      "impact": "High risk of semantic drift.",
+      "recommendation": "Quarantine until the scoring semantics are reviewed."
+    },
+    {
+      "column_name": "created_timestamp",
+      "drift_type": "text",
+      "severity": "high",
+      "reason": "Text semantics no longer match either baseline profile.",
+      "baseline_stats": {
+        "internal_similarity": 0.0,
+        "external_similarity": 0.0,
+        "baseline_terms": []
+      },
+      "current_stats": {
+        "current_terms": [
+          "2026-01-08T09:15:00",
+          "2026-01-09T11:20:00",
+          "2026-01-10T14:05:00",
+          "2026-01-11T08:40:00",
+          "2026-01-12T16:30:00"
+        ]
+      },
+      "impact": "Meaning changed enough to affect downstream recommendations.",
+      "recommendation": "Review mappings and quarantine until corrected."
+    }
+  ],
+  "row_classifications": [
+    {
+      "row_id": 0,
+      "row_index": 0,
+      "status": "CONDITIONAL",
+      "confidence": 0.5869333937487796,
+      "affected_columns": [],
+      "reasons": [
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 1.0,
+      "external_similarity": 0.0,
+      "internal_status": "Aligned",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 1,
+      "row_index": 1,
+      "status": "CONDITIONAL",
+      "confidence": 0.5869333937487796,
+      "affected_columns": [],
+      "reasons": [
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 1.0,
+      "external_similarity": 0.0,
+      "internal_status": "Aligned",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 2,
+      "row_index": 2,
+      "status": "CONDITIONAL",
+      "confidence": 0.5869333937487796,
+      "affected_columns": [],
+      "reasons": [
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 1.0,
+      "external_similarity": 0.0,
+      "internal_status": "Aligned",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 3,
+      "row_index": 3,
+      "status": "CONDITIONAL",
+      "confidence": 0.5869333937487796,
+      "affected_columns": [],
+      "reasons": [
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 1.0,
+      "external_similarity": 0.0,
+      "internal_status": "Aligned",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 4,
+      "row_index": 4,
+      "status": "CONDITIONAL",
+      "confidence": 0.5869333937487796,
+      "affected_columns": [],
+      "reasons": [
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 1.0,
+      "external_similarity": 0.0,
+      "internal_status": "Aligned",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 5,
+      "row_index": 5,
+      "status": "CONDITIONAL",
+      "confidence": 0.5869333937487796,
+      "affected_columns": [],
+      "reasons": [
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 1.0,
+      "external_similarity": 0.0,
+      "internal_status": "Aligned",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 6,
+      "row_index": 6,
+      "status": "CONDITIONAL",
+      "confidence": 0.5869333937487796,
+      "affected_columns": [],
+      "reasons": [
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 1.0,
+      "external_similarity": 0.0,
+      "internal_status": "Aligned",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 7,
+      "row_index": 7,
+      "status": "CONDITIONAL",
+      "confidence": 0.5869333937487796,
+      "affected_columns": [],
+      "reasons": [
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 1.0,
+      "external_similarity": 0.0,
+      "internal_status": "Aligned",
+      "external_status": "Outlier"
+    }
+  ],
+  "cross_modal": {
+    "enabled": true,
+    "explanation": "Cross-modal integrity checks whether numeric, text, and categorical fields still make sense together. A row can look valid column by column, but still be risky if the relationship between fields is broken.",
+    "baseline_examples": [
+      {
+        "row_id": 0,
+        "values": {
+          "product_id": "11001",
+          "shop_id": "501",
+          "name": "Linen Resort Shirt",
+          "category": "Menswear",
+          "color": "natural",
+          "fabric": "linen"
+        }
+      },
+      {
+        "row_id": 1,
+        "values": {
+          "product_id": "11002",
+          "shop_id": "501",
+          "name": "Cotton Midi Skirt",
+          "category": "Womenswear",
+          "color": "ivory",
+          "fabric": "cotton"
+        }
+      },
+      {
+        "row_id": 2,
+        "values": {
+          "product_id": "11003",
+          "shop_id": "502",
+          "name": "Silk Evening Wrap",
+          "category": "Womenswear",
+          "color": "emerald",
+          "fabric": "silk"
+        }
+      },
+      {
+        "row_id": 3,
+        "values": {
+          "product_id": "11004",
+          "shop_id": "502",
+          "name": "Denim Slim Jean",
+          "category": "Menswear",
+          "color": "indigo",
+          "fabric": "denim"
+        }
+      },
+      {
+        "row_id": 4,
+        "values": {
+          "product_id": "11005",
+          "shop_id": "503",
+          "name": "Batik Panel Dress",
+          "category": "Womenswear",
+          "color": "teal",
+          "fabric": "batik"
+        }
+      }
+    ],
+    "baseline_rules": [],
+    "rows": [
+      {
+        "row_id": 0,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "product_id": "11001",
+          "shop_id": "501",
+          "name": "Linen Resort Shirt",
+          "category": "Menswear",
+          "color": "natural",
+          "fabric": "linen"
+        }
+      },
+      {
+        "row_id": 1,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "product_id": "11002",
+          "shop_id": "501",
+          "name": "Cotton Midi Skirt",
+          "category": "Womenswear",
+          "color": "ivory",
+          "fabric": "cotton"
+        }
+      },
+      {
+        "row_id": 2,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "product_id": "11003",
+          "shop_id": "502",
+          "name": "Silk Evening Wrap",
+          "category": "Womenswear",
+          "color": "emerald",
+          "fabric": "silk"
+        }
+      },
+      {
+        "row_id": 3,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "product_id": "11004",
+          "shop_id": "502",
+          "name": "Denim Slim Jean",
+          "category": "Menswear",
+          "color": "indigo",
+          "fabric": "denim"
+        }
+      },
+      {
+        "row_id": 4,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "product_id": "11005",
+          "shop_id": "503",
+          "name": "Batik Panel Dress",
+          "category": "Womenswear",
+          "color": "teal",
+          "fabric": "batik"
+        }
+      },
+      {
+        "row_id": 5,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "product_id": "11006",
+          "shop_id": "503",
+          "name": "Knit Travel Hoodie",
+          "category": "Unisex",
+          "color": "heather",
+          "fabric": "wool blend"
+        }
+      },
+      {
+        "row_id": 6,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "product_id": "11007",
+          "shop_id": "504",
+          "name": "Leather Crossbody",
+          "category": "Accessories",
+          "color": "cognac",
+          "fabric": "leather"
+        }
+      },
+      {
+        "row_id": 7,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "product_id": "11008",
+          "shop_id": "504",
+          "name": "Performance Sneaker",
+          "category": "Footwear",
+          "color": "white",
+          "fabric": "mesh"
+        }
+      }
+    ],
+    "summary": {
+      "SAFE": 0,
+      "CONDITIONAL": 8,
+      "QUARANTINED": 0,
+      "pending_review": 8
+    },
+    "human_loop_policy": {
+      "safe": "Auto-pass",
+      "conditional": "Ask human to confirm whether the unusual relationship still makes business sense.",
+      "quarantined": "Block by default and require human override to continue."
+    },
+    "human_review_queue": [
+      {
+        "row_id": 0,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "product_id": "11001",
+          "shop_id": "501",
+          "name": "Linen Resort Shirt",
+          "category": "Menswear",
+          "color": "natural",
+          "fabric": "linen"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      },
+      {
+        "row_id": 1,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "product_id": "11002",
+          "shop_id": "501",
+          "name": "Cotton Midi Skirt",
+          "category": "Womenswear",
+          "color": "ivory",
+          "fabric": "cotton"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      },
+      {
+        "row_id": 2,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "product_id": "11003",
+          "shop_id": "502",
+          "name": "Silk Evening Wrap",
+          "category": "Womenswear",
+          "color": "emerald",
+          "fabric": "silk"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      },
+      {
+        "row_id": 3,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "product_id": "11004",
+          "shop_id": "502",
+          "name": "Denim Slim Jean",
+          "category": "Menswear",
+          "color": "indigo",
+          "fabric": "denim"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      },
+      {
+        "row_id": 4,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "product_id": "11005",
+          "shop_id": "503",
+          "name": "Batik Panel Dress",
+          "category": "Womenswear",
+          "color": "teal",
+          "fabric": "batik"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      },
+      {
+        "row_id": 5,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "product_id": "11006",
+          "shop_id": "503",
+          "name": "Knit Travel Hoodie",
+          "category": "Unisex",
+          "color": "heather",
+          "fabric": "wool blend"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      },
+      {
+        "row_id": 6,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "product_id": "11007",
+          "shop_id": "504",
+          "name": "Leather Crossbody",
+          "category": "Accessories",
+          "color": "cognac",
+          "fabric": "leather"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      },
+      {
+        "row_id": 7,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "product_id": "11008",
+          "shop_id": "504",
+          "name": "Performance Sneaker",
+          "category": "Footwear",
+          "color": "white",
+          "fabric": "mesh"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      }
+    ]
+  },
+  "human_review_queue": [
+    {
+      "row_id": 0,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "product_id": "11001",
+        "shop_id": "501",
+        "name": "Linen Resort Shirt",
+        "category": "Menswear",
+        "color": "natural",
+        "fabric": "linen"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    },
+    {
+      "row_id": 1,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "product_id": "11002",
+        "shop_id": "501",
+        "name": "Cotton Midi Skirt",
+        "category": "Womenswear",
+        "color": "ivory",
+        "fabric": "cotton"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    },
+    {
+      "row_id": 2,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "product_id": "11003",
+        "shop_id": "502",
+        "name": "Silk Evening Wrap",
+        "category": "Womenswear",
+        "color": "emerald",
+        "fabric": "silk"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    },
+    {
+      "row_id": 3,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "product_id": "11004",
+        "shop_id": "502",
+        "name": "Denim Slim Jean",
+        "category": "Menswear",
+        "color": "indigo",
+        "fabric": "denim"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    },
+    {
+      "row_id": 4,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "product_id": "11005",
+        "shop_id": "503",
+        "name": "Batik Panel Dress",
+        "category": "Womenswear",
+        "color": "teal",
+        "fabric": "batik"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    },
+    {
+      "row_id": 5,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "product_id": "11006",
+        "shop_id": "503",
+        "name": "Knit Travel Hoodie",
+        "category": "Unisex",
+        "color": "heather",
+        "fabric": "wool blend"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    },
+    {
+      "row_id": 6,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "product_id": "11007",
+        "shop_id": "504",
+        "name": "Leather Crossbody",
+        "category": "Accessories",
+        "color": "cognac",
+        "fabric": "leather"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    },
+    {
+      "row_id": 7,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "product_id": "11008",
+        "shop_id": "504",
+        "name": "Performance Sneaker",
+        "category": "Footwear",
+        "color": "white",
+        "fabric": "mesh"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    }
+  ],
+  "learned_scores": {
+    "features": {
+      "internal_mean_distance": 0.0,
+      "external_mean_distance": 0.0,
+      "text_embedding_distance": 1.0,
+      "anchor_violation_score": 0.0,
+      "scale_mismatch_score": 0.0,
+      "numeric_std_ratio": 0.0,
+      "categorical_entropy_ratio": 1.0,
+      "minority_scale_ratio": 0.0,
+      "text_similarity_to_internal": 0.0,
+      "text_similarity_to_external": 0.0,
+      "semantic_coherence_score": 1.0,
+      "column_count_diff": 6,
+      "new_column_ratio": 1.0,
+      "missing_column_ratio": 1.0,
+      "max_column_drift": 0.0
+    },
+    "probabilities": {
+      "CONDITIONAL": 0.005732815634615691,
+      "QUARANTINED": 0.967768775001641,
+      "SAFE": 0.026498409363743328
+    },
+    "confidence": 0.967768775001641,
+    "feature_importance": {
+      "internal_mean_distance": 0.9304989712046242,
+      "external_mean_distance": 0.7084129858522581,
+      "text_embedding_distance": 0.31572494683739366,
+      "anchor_violation_score": 0.19707282347572402,
+      "scale_mismatch_score": 0.06839583124922696,
+      "numeric_std_ratio": 0.2077928853333762,
+      "categorical_entropy_ratio": 0.026183834211265324,
+      "minority_scale_ratio": 0.1011210403286203,
+      "text_similarity_to_internal": 0.38398488604032344,
+      "text_similarity_to_external": 0.4980296231171589,
+      "semantic_coherence_score": 0.14916284492190654,
+      "column_count_diff": 0.0,
+      "new_column_ratio": 0.006043824470973655,
+      "missing_column_ratio": 0.06857228913456773,
+      "max_column_drift": 0.5523481851702939
+    },
+    "model_info": {
+      "status": "trained",
+      "classes": [
+        "CONDITIONAL",
+        "QUARANTINED",
+        "SAFE"
+      ],
+      "feature_count": 15,
+      "features": [
+        "internal_mean_distance",
+        "external_mean_distance",
+        "text_embedding_distance",
+        "anchor_violation_score",
+        "scale_mismatch_score",
+        "numeric_std_ratio",
+        "categorical_entropy_ratio",
+        "minority_scale_ratio",
+        "text_similarity_to_internal",
+        "text_similarity_to_external",
+        "semantic_coherence_score",
+        "column_count_diff",
+        "new_column_ratio",
+        "missing_column_ratio",
+        "max_column_drift"
+      ],
+      "model_type": "LogisticRegression",
+      "model_path": "C:\\Users\\file\\Documents\\GitHub\\StylesenseSL\\backend\\src\\services\\agentic_ai\\featureops\\models\\drift_triage_model.joblib",
+      "coefficients": {
+        "internal_mean_distance": 0.9304989712046242,
+        "external_mean_distance": -0.7084129858522581,
+        "text_embedding_distance": 0.31572494683739366,
+        "anchor_violation_score": -0.19707282347572402,
+        "scale_mismatch_score": -0.06839583124922696,
+        "numeric_std_ratio": 0.2077928853333762,
+        "categorical_entropy_ratio": 0.026183834211265324,
+        "minority_scale_ratio": -0.1011210403286203,
+        "text_similarity_to_internal": -0.38398488604032344,
+        "text_similarity_to_external": 0.4980296231171589,
+        "semantic_coherence_score": -0.14916284492190654,
+        "column_count_diff": 0.0,
+        "new_column_ratio": -0.006043824470973655,
+        "missing_column_ratio": -0.06857228913456773,
+        "max_column_drift": 0.5523481851702939
+      }
+    }
+  },
+  "release_summary": {
+    "SAFE": 1,
+    "CONDITIONAL": 0,
+    "QUARANTINED": 13
+  },
+  "final_label": "QUARANTINED",
+  "overall_drift_score": 0.9706351828189489,
+  "confidence": 0.967768775001641,
+  "severity": "high",
+  "reasons": [
+    "Internal alignment score: 100.0%",
+    "External alignment score: 0.0%",
+    "Relational integrity: 100.0%",
+    "0 of 8 rows are learned as high-risk drift."
+  ],
+  "affected_columns": [
+    "category",
+    "color",
+    "created_timestamp",
+    "created_ts",
+    "fabric",
+    "name",
+    "price_LKR",
+    "product_id",
+    "product_url",
+    "shop_id",
+    "size_range",
+    "stock_count",
+    "style_tags"
+  ]
+}

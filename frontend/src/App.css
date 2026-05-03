@@ -784,10 +784,13 @@ body {
   min-width: 0;
 }
 
-/* DE Workflow (FeatureOps): use horizontal space — sidebar stays; content pad tighter */
-.chat-main > div:has([data-dashboard-section='featureops_workflow']) {
-  padding-left: 4px;
-  padding-right: 4px;
+/* Agentic AI dashboard: use full width of main column (no side gutters). */
+.agentic-dashboard-scroll {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .chat-main.cart-open {
@@ -808,7 +811,7 @@ body {
 }
 
 .chat-header {
-  padding: 1.5rem;
+  padding: 1.25rem 0.5rem;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
   backdrop-filter: blur(10px);

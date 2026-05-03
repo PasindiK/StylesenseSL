@@ -1,0 +1,6006 @@
+{
+  "drift_run_id": "d44bf5ec-ade6-4527-b290-9ae324a8d8be",
+  "timestamp": "2026-05-03T22:12:02.543390",
+  "dataset_name": "transaction_semantic_drift_self_heal_60_rows.csv",
+  "profile": {
+    "dataset_name": "transaction_semantic_drift_self_heal_60_rows.csv",
+    "created_at": "2026-05-03T22:12:03.003803",
+    "row_count": 60,
+    "column_count": 19,
+    "column_profiles": [
+      {
+        "column_name": "transaction_id",
+        "inferred_type": "numeric",
+        "kind": "numeric",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": 91001.0,
+        "max": 91060.0,
+        "mean": 91030.5,
+        "std": 17.318102282486574,
+        "sample_values": [
+          "91001",
+          "91002",
+          "91003",
+          "91004",
+          "91005",
+          "91006",
+          "91007",
+          "91008",
+          "91009",
+          "91010"
+        ],
+        "row_count": 60,
+        "column_count": 0,
+        "scale_pattern": "count",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Numeric feature with mean 91030.500 and std 17.318",
+        "summary_text": "transaction_id is numeric. Numeric feature with mean 91030.500 and std 17.318",
+        "top_values": []
+      },
+      {
+        "column_name": "user_id",
+        "inferred_type": "numeric",
+        "kind": "numeric",
+        "missing_percent": 0.0,
+        "unique_percent": 0.5833333333333334,
+        "min": 20101.0,
+        "max": 20135.0,
+        "mean": 20115.916666666668,
+        "std": 9.340399111149136,
+        "sample_values": [
+          "20101",
+          "20102",
+          "20103",
+          "20104",
+          "20105",
+          "20106",
+          "20107",
+          "20108",
+          "20109",
+          "20110"
+        ],
+        "row_count": 60,
+        "column_count": 0,
+        "scale_pattern": "count",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Numeric feature with mean 20115.917 and std 9.340",
+        "summary_text": "user_id is numeric. Numeric feature with mean 20115.917 and std 9.340",
+        "top_values": []
+      },
+      {
+        "column_name": "product_id",
+        "inferred_type": "numeric",
+        "kind": "numeric",
+        "missing_percent": 0.0,
+        "unique_percent": 0.2,
+        "min": 11001.0,
+        "max": 11012.0,
+        "mean": 11006.5,
+        "std": 3.452052529534663,
+        "sample_values": [
+          "11001",
+          "11002",
+          "11003",
+          "11004",
+          "11005",
+          "11006",
+          "11007",
+          "11008",
+          "11009",
+          "11010"
+        ],
+        "row_count": 60,
+        "column_count": 0,
+        "scale_pattern": "count",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Numeric feature with mean 11006.500 and std 3.452",
+        "summary_text": "product_id is numeric. Numeric feature with mean 11006.500 and std 3.452",
+        "top_values": []
+      },
+      {
+        "column_name": "shop_id",
+        "inferred_type": "numeric",
+        "kind": "numeric",
+        "missing_percent": 0.0,
+        "unique_percent": 0.08333333333333333,
+        "min": 501.0,
+        "max": 505.0,
+        "mean": 503.0,
+        "std": 1.4142135623730951,
+        "sample_values": [
+          "501",
+          "502",
+          "503",
+          "504",
+          "505"
+        ],
+        "row_count": 60,
+        "column_count": 0,
+        "scale_pattern": "count",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Numeric feature with mean 503.000 and std 1.414",
+        "summary_text": "shop_id is numeric. Numeric feature with mean 503.000 and std 1.414",
+        "top_values": []
+      },
+      {
+        "column_name": "quantity",
+        "inferred_type": "numeric",
+        "kind": "numeric",
+        "missing_percent": 0.0,
+        "unique_percent": 0.06666666666666667,
+        "min": 1.0,
+        "max": 4.0,
+        "mean": 2.0,
+        "std": 1.0,
+        "sample_values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "row_count": 60,
+        "column_count": 0,
+        "scale_pattern": "percentage",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Numeric feature with mean 2.000 and std 1.000",
+        "summary_text": "quantity is numeric. Numeric feature with mean 2.000 and std 1.000",
+        "top_values": []
+      },
+      {
+        "column_name": "unit_price",
+        "inferred_type": "numeric",
+        "kind": "numeric",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": 3850.0,
+        "max": 21550.0,
+        "mean": 9781.666666666666,
+        "std": 4644.898336406897,
+        "sample_values": [
+          "4500.0",
+          "8950.0",
+          "12900.0",
+          "10050.0",
+          "6200.0",
+          "11250.0",
+          "7700.0",
+          "5550.0",
+          "15750.0",
+          "3900.0"
+        ],
+        "row_count": 60,
+        "column_count": 0,
+        "scale_pattern": "currency",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Numeric feature with mean 9781.667 and std 4644.898",
+        "summary_text": "unit_price is numeric. Numeric feature with mean 9781.667 and std 4644.898",
+        "top_values": []
+      },
+      {
+        "column_name": "total_amount",
+        "inferred_type": "numeric",
+        "kind": "numeric",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": 4500.0,
+        "max": 47700.0,
+        "mean": 18588.333333333332,
+        "std": 11096.926626573482,
+        "sample_values": [
+          "4500.0",
+          "17900.0",
+          "12900.0",
+          "30150.0",
+          "12400.0",
+          "11250.0",
+          "30800.0",
+          "11100.0",
+          "15750.0",
+          "11700.0"
+        ],
+        "row_count": 60,
+        "column_count": 0,
+        "scale_pattern": "currency",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Numeric feature with mean 18588.333 and std 11096.927",
+        "summary_text": "total_amount is numeric. Numeric feature with mean 18588.333 and std 11096.927",
+        "top_values": []
+      },
+      {
+        "column_name": "discount_percent",
+        "inferred_type": "numeric",
+        "kind": "numeric",
+        "missing_percent": 0.0,
+        "unique_percent": 0.11666666666666667,
+        "min": 0.0,
+        "max": 0.15,
+        "mean": 0.07333333333333333,
+        "std": 0.04843093593515983,
+        "sample_values": [
+          "0.0",
+          "0.03",
+          "0.05",
+          "0.08",
+          "0.1",
+          "0.12",
+          "0.15"
+        ],
+        "row_count": 60,
+        "column_count": 0,
+        "scale_pattern": "percentage",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Numeric feature with mean 0.073 and std 0.048",
+        "summary_text": "discount_percent is numeric. Numeric feature with mean 0.073 and std 0.048",
+        "top_values": []
+      },
+      {
+        "column_name": "discount_amount",
+        "inferred_type": "numeric",
+        "kind": "numeric",
+        "missing_percent": 0.0,
+        "unique_percent": 0.85,
+        "min": 0.0,
+        "max": 4740.0,
+        "mean": 1398.55,
+        "std": 1230.8215098732499,
+        "sample_values": [
+          "0.0",
+          "537.0",
+          "645.0",
+          "2412.0",
+          "1240.0",
+          "1350.0",
+          "4620.0",
+          "472.5",
+          "585.0",
+          "1720.0"
+        ],
+        "row_count": 60,
+        "column_count": 0,
+        "scale_pattern": "currency",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Numeric feature with mean 1398.550 and std 1230.822",
+        "summary_text": "discount_amount is numeric. Numeric feature with mean 1398.550 and std 1230.822",
+        "top_values": []
+      },
+      {
+        "column_name": "tax_percent",
+        "inferred_type": "numeric",
+        "kind": "numeric",
+        "missing_percent": 0.0,
+        "unique_percent": 0.016666666666666666,
+        "min": 0.03,
+        "max": 0.03,
+        "mean": 0.030000000000000002,
+        "std": 3.469446951953614e-18,
+        "sample_values": [
+          "0.03"
+        ],
+        "row_count": 60,
+        "column_count": 0,
+        "scale_pattern": "percentage",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Numeric feature with mean 0.030 and std 0.000",
+        "summary_text": "tax_percent is numeric. Numeric feature with mean 0.030 and std 0.000",
+        "top_values": []
+      },
+      {
+        "column_name": "tax_amount",
+        "inferred_type": "numeric",
+        "kind": "numeric",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": 125.58,
+        "max": 1359.45,
+        "mean": 515.694,
+        "std": 310.4437936470948,
+        "sample_values": [
+          "135.0",
+          "520.89",
+          "367.65",
+          "832.14",
+          "334.8",
+          "297.0",
+          "785.4",
+          "333.0",
+          "458.33",
+          "333.45"
+        ],
+        "row_count": 60,
+        "column_count": 0,
+        "scale_pattern": "currency",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Numeric feature with mean 515.694 and std 310.444",
+        "summary_text": "tax_amount is numeric. Numeric feature with mean 515.694 and std 310.444",
+        "top_values": []
+      },
+      {
+        "column_name": "final_amount",
+        "inferred_type": "numeric",
+        "kind": "numeric",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": 4311.58,
+        "max": 46674.45,
+        "mean": 17705.477333333336,
+        "std": 10658.56613434172,
+        "sample_values": [
+          "4635.0",
+          "17883.89",
+          "12622.65",
+          "28570.14",
+          "11494.8",
+          "10197.0",
+          "26965.4",
+          "11433.0",
+          "15735.83",
+          "11448.45"
+        ],
+        "row_count": 60,
+        "column_count": 0,
+        "scale_pattern": "currency",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Numeric feature with mean 17705.477 and std 10658.566",
+        "summary_text": "final_amount is numeric. Numeric feature with mean 17705.477 and std 10658.566",
+        "top_values": []
+      },
+      {
+        "column_name": "payment_method",
+        "inferred_type": "categorical",
+        "kind": "categorical",
+        "missing_percent": 0.0,
+        "unique_percent": 0.05,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "std": null,
+        "sample_values": [
+          "card",
+          "cash",
+          "bank_transfer"
+        ],
+        "row_count": 60,
+        "column_count": 0,
+        "scale_pattern": "unknown",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Top terms: bank, card, cash, transfer",
+        "summary_text": "payment_method is categorical. Top terms: bank, card, cash, transfer",
+        "top_values": [
+          "card",
+          "cash",
+          "bank_transfer"
+        ]
+      },
+      {
+        "column_name": "transaction_status",
+        "inferred_type": "categorical",
+        "kind": "categorical",
+        "missing_percent": 0.0,
+        "unique_percent": 0.08333333333333333,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "std": null,
+        "sample_values": [
+          "completed",
+          "shipped",
+          "paid",
+          "pickup_ready",
+          "processing"
+        ],
+        "row_count": 60,
+        "column_count": 0,
+        "scale_pattern": "unknown",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Top terms: completed, paid, pickup, processing, ready, shipped",
+        "summary_text": "transaction_status is categorical. Top terms: completed, paid, pickup, processing, ready, shipped",
+        "top_values": [
+          "completed",
+          "shipped",
+          "paid",
+          "pickup_ready",
+          "processing"
+        ]
+      },
+      {
+        "column_name": "transaction_date",
+        "inferred_type": "datetime",
+        "kind": "datetime",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "std": null,
+        "sample_values": [
+          "2026-04-07",
+          "2026-04-08",
+          "2026-04-09",
+          "2026-04-10",
+          "2026-04-11",
+          "2026-04-12",
+          "2026-04-13",
+          "2026-04-14",
+          "2026-04-15",
+          "2026-04-16"
+        ],
+        "row_count": 60,
+        "column_count": 0,
+        "scale_pattern": "unknown",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Top terms: 04, 2026, 07, 08, 09, 10",
+        "summary_text": "transaction_date is datetime. Top terms: 04, 2026, 07, 08, 09, 10",
+        "top_values": [
+          "2026-04-07",
+          "2026-04-08",
+          "2026-05-09",
+          "2026-05-10",
+          "2026-05-11",
+          "2026-05-12",
+          "2026-05-13",
+          "2026-05-14",
+          "2026-05-15",
+          "2026-05-16"
+        ]
+      },
+      {
+        "column_name": "transaction_ts",
+        "inferred_type": "categorical",
+        "kind": "categorical",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "std": null,
+        "sample_values": [
+          "2026-04-07T09:15:00",
+          "2026-04-08T11:22:00",
+          "2026-04-09T13:29:00",
+          "2026-04-10T15:36:00",
+          "2026-04-11T17:43:00",
+          "2026-04-12T10:50:00",
+          "2026-04-13T12:57:00",
+          "2026-04-14T15:04:00",
+          "2026-04-15T16:21:00",
+          "2026-04-16T09:28:00"
+        ],
+        "row_count": 60,
+        "column_count": 0,
+        "scale_pattern": "unknown",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Top terms: 04, 00, 2026, 07t09, 08t11, 09t13",
+        "summary_text": "transaction_ts is categorical. Top terms: 04, 00, 2026, 07t09, 08t11, 09t13",
+        "top_values": [
+          "2026-04-07T09:15:00",
+          "2026-04-08T11:22:00",
+          "2026-05-09T10:39:00",
+          "2026-05-10T12:46:00",
+          "2026-05-11T14:53:00",
+          "2026-05-12T17:00:00",
+          "2026-05-13T09:17:00",
+          "2026-05-14T11:24:00",
+          "2026-05-15T13:31:00",
+          "2026-05-16T15:38:00"
+        ]
+      },
+      {
+        "column_name": "delivery_date",
+        "inferred_type": "datetime",
+        "kind": "datetime",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "std": null,
+        "sample_values": [
+          "2026-04-08T11:15:00",
+          "2026-04-10T15:22:00",
+          "2026-04-12T19:29:00",
+          "2026-04-14T23:36:00",
+          "2026-04-12T19:43:00",
+          "2026-04-14T14:50:00",
+          "2026-04-16T18:57:00",
+          "2026-04-18T23:04:00",
+          "2026-04-16T18:21:00",
+          "2026-04-18T13:28:00"
+        ],
+        "row_count": 60,
+        "column_count": 0,
+        "scale_pattern": "unknown",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Top terms: 04, 00, 2026, 12t19, 16t18, 08t11",
+        "summary_text": "delivery_date is datetime. Top terms: 04, 00, 2026, 12t19, 16t18, 08t11",
+        "top_values": [
+          "2026-04-08T11:15:00",
+          "2026-04-10T15:22:00",
+          "2026-05-10T12:39:00",
+          "2026-05-12T16:46:00",
+          "2026-05-14T20:53:00",
+          "2026-05-17T01:00:00",
+          "2026-05-14T11:17:00",
+          "2026-05-16T15:24:00",
+          "2026-05-18T19:31:00",
+          "2026-05-20T23:38:00"
+        ]
+      },
+      {
+        "column_name": "delivery_address",
+        "inferred_type": "text",
+        "kind": "text",
+        "missing_percent": 0.0,
+        "unique_percent": 0.25,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "std": null,
+        "sample_values": [
+          "42 Flower Rd, Colombo 07",
+          "18 Beach Rd, Negombo",
+          "9 Hill St, Kandy",
+          "3 Lake Rd, Batticaloa",
+          "55 Galle Rd, Matara",
+          "7 Temple Rd, Anuradhapura",
+          "21 Main St, Jaffna",
+          "14 Fort Rd, Galle",
+          "88 Green Ave, Kurunegala",
+          "31 Station Rd, Nuwara Eliya"
+        ],
+        "row_count": 60,
+        "column_count": 0,
+        "scale_pattern": "unknown",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Top terms: rd, galle, st, 07, 14, 18",
+        "summary_text": "delivery_address is text. Top terms: rd, galle, st, 07, 14, 18",
+        "top_values": [
+          "42 Flower Rd, Colombo 07",
+          "18 Beach Rd, Negombo",
+          "9 Hill St, Kandy",
+          "3 Lake Rd, Batticaloa",
+          "55 Galle Rd, Matara",
+          "7 Temple Rd, Anuradhapura",
+          "21 Main St, Jaffna",
+          "14 Fort Rd, Galle",
+          "88 Green Ave, Kurunegala",
+          "31 Station Rd, Nuwara Eliya"
+        ]
+      },
+      {
+        "column_name": "notes",
+        "inferred_type": "text",
+        "kind": "text",
+        "missing_percent": 0.1,
+        "unique_percent": 0.16666666666666666,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "std": null,
+        "sample_values": [
+          "Gift wrap requested",
+          "VIP discount applied",
+          "Pickup at counter",
+          "Split shipment",
+          "Customer requested evening delivery",
+          "Size exchange note added",
+          "Promo campaign order",
+          "Loyalty member purchase",
+          "Deliver before weekend"
+        ],
+        "row_count": 60,
+        "column_count": 0,
+        "scale_pattern": "unknown",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Top terms: requested, added, applied, at, before, campaign",
+        "summary_text": "notes is text. Top terms: requested, added, applied, at, before, campaign",
+        "top_values": [
+          "Gift wrap requested",
+          "VIP discount applied",
+          "Pickup at counter",
+          "Split shipment",
+          "Customer requested evening delivery",
+          "Size exchange note added",
+          "Promo campaign order",
+          "Loyalty member purchase",
+          "Deliver before weekend"
+        ]
+      }
+    ],
+    "relational_anchors": [
+      {
+        "anchor_id": "quantity_total_amount_correlation",
+        "type": "numeric_correlation",
+        "left_column": "quantity",
+        "right_column": "total_amount",
+        "correlation_strength": 0.69,
+        "baseline_rule": "High values in quantity correlate with high values in total_amount (r=0.69).",
+        "status": "discovered"
+      },
+      {
+        "anchor_id": "quantity_tax_amount_correlation",
+        "type": "numeric_correlation",
+        "left_column": "quantity",
+        "right_column": "tax_amount",
+        "correlation_strength": 0.687,
+        "baseline_rule": "High values in quantity correlate with high values in tax_amount (r=0.69).",
+        "status": "discovered"
+      },
+      {
+        "anchor_id": "quantity_final_amount_correlation",
+        "type": "numeric_correlation",
+        "left_column": "quantity",
+        "right_column": "final_amount",
+        "correlation_strength": 0.687,
+        "baseline_rule": "High values in quantity correlate with high values in final_amount (r=0.69).",
+        "status": "discovered"
+      },
+      {
+        "anchor_id": "total_amount_discount_amount_correlation",
+        "type": "numeric_correlation",
+        "left_column": "total_amount",
+        "right_column": "discount_amount",
+        "correlation_strength": 0.643,
+        "baseline_rule": "High values in total_amount correlate with high values in discount_amount (r=0.64).",
+        "status": "discovered"
+      },
+      {
+        "anchor_id": "total_amount_tax_amount_correlation",
+        "type": "numeric_correlation",
+        "left_column": "total_amount",
+        "right_column": "tax_amount",
+        "correlation_strength": 0.996,
+        "baseline_rule": "High values in total_amount correlate with high values in tax_amount (r=1.00).",
+        "status": "discovered"
+      },
+      {
+        "anchor_id": "total_amount_final_amount_correlation",
+        "type": "numeric_correlation",
+        "left_column": "total_amount",
+        "right_column": "final_amount",
+        "correlation_strength": 0.996,
+        "baseline_rule": "High values in total_amount correlate with high values in final_amount (r=1.00).",
+        "status": "discovered"
+      },
+      {
+        "anchor_id": "discount_percent_discount_amount_correlation",
+        "type": "numeric_correlation",
+        "left_column": "discount_percent",
+        "right_column": "discount_amount",
+        "correlation_strength": 0.723,
+        "baseline_rule": "High values in discount_percent correlate with high values in discount_amount (r=0.72).",
+        "status": "discovered"
+      },
+      {
+        "anchor_id": "discount_amount_tax_amount_correlation",
+        "type": "numeric_correlation",
+        "left_column": "discount_amount",
+        "right_column": "tax_amount",
+        "correlation_strength": 0.571,
+        "baseline_rule": "High values in discount_amount correlate with high values in tax_amount (r=0.57).",
+        "status": "discovered"
+      },
+      {
+        "anchor_id": "discount_amount_final_amount_correlation",
+        "type": "numeric_correlation",
+        "left_column": "discount_amount",
+        "right_column": "final_amount",
+        "correlation_strength": 0.571,
+        "baseline_rule": "High values in discount_amount correlate with high values in final_amount (r=0.57).",
+        "status": "discovered"
+      },
+      {
+        "anchor_id": "tax_amount_final_amount_correlation",
+        "type": "numeric_correlation",
+        "left_column": "tax_amount",
+        "right_column": "final_amount",
+        "correlation_strength": 1.0,
+        "baseline_rule": "High values in tax_amount correlate with high values in final_amount (r=1.00).",
+        "status": "discovered"
+      }
+    ],
+    "summary_text": "Dataset 'transaction_semantic_drift_self_heal_60_rows.csv' contains 19 columns. Numeric columns: transaction_id, user_id, product_id, shop_id, quantity, unit_price, total_amount, discount_percent, discount_amount, tax_percent, tax_amount, final_amount. Text/categorical columns: payment_method, transaction_status, transaction_ts, delivery_address, notes. Discovered relationships: quantity\u2194total_amount (r=0.69), quantity\u2194tax_amount (r=0.687), quantity\u2194final_amount (r=0.687), total_amount\u2194discount_amount (r=0.643), total_amount\u2194tax_amount (r=0.996), total_amount\u2194final_amount (r=0.996), discount_percent\u2194discount_amount (r=0.723), discount_amount\u2194tax_amount (r=0.571), discount_amount\u2194final_amount (r=0.571), tax_amount\u2194final_amount (r=1.0).",
+    "summary_embedding": []
+  },
+  "baselines": {
+    "internal": {
+      "dataset_name": "03_sales_transactions_baseline.csv",
+      "created_at": "2026-05-03T22:12:03.039468",
+      "row_count": 6,
+      "column_count": 19,
+      "column_profiles": [
+        {
+          "column_name": "transaction_id",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 1.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "90001",
+            "90002",
+            "90003",
+            "90004",
+            "90005",
+            "90006"
+          ],
+          "row_count": 6,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 90001, 90002, 90003, 90004, 90005, 90006",
+          "summary_text": "transaction_id is categorical. Top terms: 90001, 90002, 90003, 90004, 90005, 90006",
+          "top_values": [
+            "90001",
+            "90002",
+            "90003",
+            "90004",
+            "90005",
+            "90006"
+          ]
+        },
+        {
+          "column_name": "user_id",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 1.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "20001",
+            "20002",
+            "20003",
+            "20004",
+            "20005",
+            "20006"
+          ],
+          "row_count": 6,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 20001, 20002, 20003, 20004, 20005, 20006",
+          "summary_text": "user_id is categorical. Top terms: 20001, 20002, 20003, 20004, 20005, 20006",
+          "top_values": [
+            "20001",
+            "20002",
+            "20003",
+            "20004",
+            "20005",
+            "20006"
+          ]
+        },
+        {
+          "column_name": "product_id",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 1.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "11001",
+            "11004",
+            "11003",
+            "11007",
+            "11002",
+            "11008"
+          ],
+          "row_count": 6,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 11001, 11002, 11003, 11004, 11007, 11008",
+          "summary_text": "product_id is categorical. Top terms: 11001, 11002, 11003, 11004, 11007, 11008",
+          "top_values": [
+            "11001",
+            "11004",
+            "11003",
+            "11007",
+            "11002",
+            "11008"
+          ]
+        },
+        {
+          "column_name": "shop_id",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 0.5,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "501",
+            "502",
+            "504"
+          ],
+          "row_count": 6,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 501, 502, 504",
+          "summary_text": "shop_id is categorical. Top terms: 501, 502, 504",
+          "top_values": [
+            "501",
+            "502",
+            "504"
+          ]
+        },
+        {
+          "column_name": "quantity",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 0.5,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "2",
+            "1",
+            "3"
+          ],
+          "row_count": 6,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 1, 2, 3",
+          "summary_text": "quantity is categorical. Top terms: 1, 2, 3",
+          "top_values": [
+            "1",
+            "2",
+            "3"
+          ]
+        },
+        {
+          "column_name": "unit_price",
+          "inferred_type": "text",
+          "kind": "text",
+          "missing_percent": 0.0,
+          "unique_percent": 1.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "4500.00",
+            "8900.00",
+            "12800.00",
+            "9900.00",
+            "6200.00",
+            "11200.00"
+          ],
+          "row_count": 6,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 00, 11200, 12800, 4500, 6200, 8900",
+          "summary_text": "unit_price is text. Top terms: 00, 11200, 12800, 4500, 6200, 8900",
+          "top_values": [
+            "4500.00",
+            "8900.00",
+            "12800.00",
+            "9900.00",
+            "6200.00",
+            "11200.00"
+          ]
+        },
+        {
+          "column_name": "total_amount",
+          "inferred_type": "text",
+          "kind": "text",
+          "missing_percent": 0.0,
+          "unique_percent": 1.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "9000.00",
+            "8900.00",
+            "12800.00",
+            "9900.00",
+            "18600.00",
+            "22400.00"
+          ],
+          "row_count": 6,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 00, 12800, 18600, 22400, 8900, 9000",
+          "summary_text": "total_amount is text. Top terms: 00, 12800, 18600, 22400, 8900, 9000",
+          "top_values": [
+            "9000.00",
+            "8900.00",
+            "12800.00",
+            "9900.00",
+            "18600.00",
+            "22400.00"
+          ]
+        },
+        {
+          "column_name": "discount_percent",
+          "inferred_type": "text",
+          "kind": "text",
+          "missing_percent": 0.0,
+          "unique_percent": 0.6666666666666666,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "5.00",
+            "0.00",
+            "10.00",
+            "8.00"
+          ],
+          "row_count": 6,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 00, 0, 10, 5, 8",
+          "summary_text": "discount_percent is text. Top terms: 00, 0, 10, 5, 8",
+          "top_values": [
+            "0.00",
+            "5.00",
+            "10.00",
+            "8.00"
+          ]
+        },
+        {
+          "column_name": "discount_amount",
+          "inferred_type": "text",
+          "kind": "text",
+          "missing_percent": 0.0,
+          "unique_percent": 0.6666666666666666,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "450.00",
+            "0.00",
+            "1280.00",
+            "1488.00"
+          ],
+          "row_count": 6,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 00, 0, 1280, 1488, 450",
+          "summary_text": "discount_amount is text. Top terms: 00, 0, 1280, 1488, 450",
+          "top_values": [
+            "0.00",
+            "450.00",
+            "1280.00",
+            "1488.00"
+          ]
+        },
+        {
+          "column_name": "tax_percent",
+          "inferred_type": "text",
+          "kind": "text",
+          "missing_percent": 0.0,
+          "unique_percent": 0.16666666666666666,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "3.00"
+          ],
+          "row_count": 6,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 00, 3",
+          "summary_text": "tax_percent is text. Top terms: 00, 3",
+          "top_values": [
+            "3.00"
+          ]
+        },
+        {
+          "column_name": "tax_amount",
+          "inferred_type": "text",
+          "kind": "text",
+          "missing_percent": 0.0,
+          "unique_percent": 1.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "256.50",
+            "267.00",
+            "345.60",
+            "297.00",
+            "513.36",
+            "672.00"
+          ],
+          "row_count": 6,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 00, 256, 267, 297, 345, 36",
+          "summary_text": "tax_amount is text. Top terms: 00, 256, 267, 297, 345, 36",
+          "top_values": [
+            "256.50",
+            "267.00",
+            "345.60",
+            "297.00",
+            "513.36",
+            "672.00"
+          ]
+        },
+        {
+          "column_name": "final_amount",
+          "inferred_type": "text",
+          "kind": "text",
+          "missing_percent": 0.0,
+          "unique_percent": 1.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "8806.50",
+            "8633.00",
+            "11864.40",
+            "9603.00",
+            "16601.64",
+            "21728.00"
+          ],
+          "row_count": 6,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 00, 11864, 16601, 21728, 40, 50",
+          "summary_text": "final_amount is text. Top terms: 00, 11864, 16601, 21728, 40, 50",
+          "top_values": [
+            "8806.50",
+            "8633.00",
+            "11864.40",
+            "9603.00",
+            "16601.64",
+            "21728.00"
+          ]
+        },
+        {
+          "column_name": "payment_method",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 0.5,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "card",
+            "bank_transfer",
+            "cash"
+          ],
+          "row_count": 6,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: bank, card, cash, transfer",
+          "summary_text": "payment_method is categorical. Top terms: bank, card, cash, transfer",
+          "top_values": [
+            "card",
+            "bank_transfer",
+            "cash"
+          ]
+        },
+        {
+          "column_name": "transaction_status",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 0.8333333333333334,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "completed",
+            "shipped",
+            "paid",
+            "pickup_ready",
+            "processing"
+          ],
+          "row_count": 6,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: completed, paid, pickup, processing, ready, shipped",
+          "summary_text": "transaction_status is categorical. Top terms: completed, paid, pickup, processing, ready, shipped",
+          "top_values": [
+            "completed",
+            "shipped",
+            "paid",
+            "pickup_ready",
+            "processing"
+          ]
+        },
+        {
+          "column_name": "transaction_date",
+          "inferred_type": "datetime",
+          "kind": "datetime",
+          "missing_percent": 0.0,
+          "unique_percent": 1.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "2026-04-01",
+            "2026-04-02",
+            "2026-04-03",
+            "2026-04-04",
+            "2026-04-05",
+            "2026-04-06"
+          ],
+          "row_count": 6,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 04, 2026, 01, 02, 03, 05",
+          "summary_text": "transaction_date is datetime. Top terms: 04, 2026, 01, 02, 03, 05",
+          "top_values": [
+            "2026-04-01",
+            "2026-04-02",
+            "2026-04-03",
+            "2026-04-04",
+            "2026-04-05",
+            "2026-04-06"
+          ]
+        },
+        {
+          "column_name": "transaction_ts",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 1.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "2026-04-01T10:12:00",
+            "2026-04-02T14:22:00",
+            "2026-04-03T09:05:00",
+            "2026-04-04T16:40:00",
+            "2026-04-05T11:11:00",
+            "2026-04-06T08:50:00"
+          ],
+          "row_count": 6,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 00, 04, 2026, 01t10, 02t14, 03t09",
+          "summary_text": "transaction_ts is categorical. Top terms: 00, 04, 2026, 01t10, 02t14, 03t09",
+          "top_values": [
+            "2026-04-01T10:12:00",
+            "2026-04-02T14:22:00",
+            "2026-04-03T09:05:00",
+            "2026-04-04T16:40:00",
+            "2026-04-05T11:11:00",
+            "2026-04-06T08:50:00"
+          ]
+        },
+        {
+          "column_name": "delivery_date",
+          "inferred_type": "datetime",
+          "kind": "datetime",
+          "missing_percent": 0.0,
+          "unique_percent": 1.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "2026-04-03T18:00:00",
+            "2026-04-05T12:00:00",
+            "2026-04-06T16:30:00",
+            "2026-04-04T17:00:00",
+            "2026-04-07T10:00:00",
+            "2026-04-09T14:00:00"
+          ],
+          "row_count": 6,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 00, 04, 2026, 03t18, 04t17, 05t12",
+          "summary_text": "delivery_date is datetime. Top terms: 00, 04, 2026, 03t18, 04t17, 05t12",
+          "top_values": [
+            "2026-04-03T18:00:00",
+            "2026-04-05T12:00:00",
+            "2026-04-06T16:30:00",
+            "2026-04-04T17:00:00",
+            "2026-04-07T10:00:00",
+            "2026-04-09T14:00:00"
+          ]
+        },
+        {
+          "column_name": "delivery_address",
+          "inferred_type": "text",
+          "kind": "text",
+          "missing_percent": 0.0,
+          "unique_percent": 1.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "42 Flower Rd, Colombo 07",
+            "18 Beach Rd, Negombo",
+            "9 Hill St, Kandy",
+            "3 Lake Rd, Batticaloa",
+            "55 Galle Rd, Matara",
+            "7 Temple Rd, Anuradhapura"
+          ],
+          "row_count": 6,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: rd, 07, 18, 3, 42, 55",
+          "summary_text": "delivery_address is text. Top terms: rd, 07, 18, 3, 42, 55",
+          "top_values": [
+            "42 Flower Rd, Colombo 07",
+            "18 Beach Rd, Negombo",
+            "9 Hill St, Kandy",
+            "3 Lake Rd, Batticaloa",
+            "55 Galle Rd, Matara",
+            "7 Temple Rd, Anuradhapura"
+          ]
+        },
+        {
+          "column_name": "notes",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 0.8333333333333334,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "Gift wrap requested",
+            "",
+            "VIP discount applied",
+            "Pickup at counter",
+            "Split shipment"
+          ],
+          "row_count": 6,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: applied, at, counter, discount, gift, pickup",
+          "summary_text": "notes is categorical. Top terms: applied, at, counter, discount, gift, pickup",
+          "top_values": [
+            "",
+            "Gift wrap requested",
+            "VIP discount applied",
+            "Pickup at counter",
+            "Split shipment"
+          ]
+        }
+      ],
+      "relational_anchors": [],
+      "summary_text": "Dataset '03_sales_transactions_baseline.csv' contains 19 columns. Text/categorical columns: transaction_id, user_id, product_id, shop_id, quantity, unit_price, total_amount, discount_percent, discount_amount, tax_percent, tax_amount, final_amount, payment_method, transaction_status, transaction_ts, delivery_address, notes.",
+      "summary_embedding": []
+    },
+    "external": {
+      "dataset_name": "external_demo",
+      "created_at": "2026-05-03T01:43:21.545808",
+      "row_count": 200,
+      "column_count": 4,
+      "column_profiles": [
+        {
+          "column_name": "row_id",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 0.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "E0",
+            "E1",
+            "E2",
+            "E3",
+            "E4",
+            "E5",
+            "E6",
+            "E7",
+            "E8",
+            "E9"
+          ],
+          "row_count": 200,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: e0, e1, e2, e3, e4, e5",
+          "summary_text": "row_id is categorical. Top terms: e0, e1, e2, e3, e4, e5",
+          "top_values": [
+            "E0",
+            "E1",
+            "E2",
+            "E3",
+            "E4",
+            "E5",
+            "E6",
+            "E7",
+            "E8",
+            "E9"
+          ]
+        },
+        {
+          "column_name": "price",
+          "inferred_type": "numeric",
+          "kind": "numeric",
+          "missing_percent": 0.0,
+          "unique_percent": 0.0,
+          "min": 74.09244757710573,
+          "max": 139.47173909795035,
+          "mean": 107.20643336921923,
+          "std": 10.811017729388103,
+          "sample_values": [
+            "89.48263471998102",
+            "119.1651642900698",
+            "92.14301911697689",
+            "93.22008578620486",
+            "104.02164856068536",
+            "116.67355031528697",
+            "111.30125296303873",
+            "116.91845114366271",
+            "103.11991786398252",
+            "106.10598384788445"
+          ],
+          "row_count": 200,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Numeric feature with mean 107.206 and std 10.811",
+          "summary_text": "price is numeric. mean=107.206, std=10.811, min=74.092, max=139.472.",
+          "top_values": []
+        },
+        {
+          "column_name": "category",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 0.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "A",
+            "B",
+            "C"
+          ],
+          "row_count": 200,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: a, b, c",
+          "summary_text": "category is categorical. Top terms: a, b, c",
+          "top_values": [
+            "A",
+            "B",
+            "C"
+          ]
+        },
+        {
+          "column_name": "description",
+          "inferred_type": "text",
+          "kind": "text",
+          "missing_percent": 0.0,
+          "unique_percent": 0.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "modern performance apparel"
+          ],
+          "row_count": 200,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: apparel, modern, performance",
+          "summary_text": "description is text. Top terms: apparel, modern, performance",
+          "top_values": [
+            "modern performance apparel"
+          ]
+        }
+      ],
+      "relational_anchors": [],
+      "summary_text": "Dataset external_demo has 4 columns. row_id (categorical): Top terms: e0, e1, e2, e3, e4, e5 price (numeric): Numeric feature with mean 107.206 and std 10.811 category (categorical): Top terms: a, b, c description (text): Top terms: apparel, modern, performance Anchor: No strong relational anchor detected.",
+      "summary_embedding": [
+        0.16963778593599418,
+        0.0,
+        0.0,
+        0.0,
+        0.08481889296799709,
+        0.0,
+        0.16963778593599418,
+        0.08481889296799709,
+        0.0,
+        0.0,
+        0.2544566789039913,
+        0.16963778593599418,
+        0.16963778593599418,
+        0.4240944648399855,
+        0.08481889296799709,
+        0.08481889296799709,
+        0.0,
+        0.16963778593599418,
+        0.16963778593599418,
+        0.08481889296799709,
+        0.08481889296799709,
+        0.2544566789039913,
+        0.33927557187198837,
+        0.33927557187198837,
+        0.08481889296799709,
+        0.4240944648399855,
+        0.08481889296799709,
+        0.08481889296799709,
+        0.08481889296799709,
+        0.16963778593599418,
+        0.08481889296799709,
+        0.0
+      ]
+    }
+  },
+  "available_predefined_baselines": [
+    {
+      "baseline_key": "products",
+      "dataset_name": "product_catalog",
+      "baseline_version": "v1",
+      "description": "Approved semantic baseline for the products table defined in data architecture.",
+      "source_table": "final_products.csv",
+      "column_count": 14,
+      "columns": {
+        "product_id": {
+          "business_meaning": "Unique identifier for a product listing",
+          "role": "identifier",
+          "domain": "Commerce",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "shop_id": {
+          "business_meaning": "Identifier of the shop that owns the product listing",
+          "role": "identifier",
+          "domain": "Commerce",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "name": {
+          "business_meaning": "Customer-facing product name",
+          "role": "text_attribute",
+          "domain": "Commerce",
+          "unit": "text",
+          "scale": "free_text",
+          "data_type": "string",
+          "value_direction": "neutral description"
+        },
+        "category": {
+          "business_meaning": "Merchandise category assigned to the product",
+          "role": "dimension",
+          "domain": "Commerce",
+          "unit": "category",
+          "scale": "nominal",
+          "data_type": "string",
+          "value_direction": "neutral grouping"
+        },
+        "color": {
+          "business_meaning": "Primary product color descriptor",
+          "role": "dimension",
+          "domain": "Commerce",
+          "unit": "color",
+          "scale": "nominal",
+          "data_type": "string",
+          "value_direction": "neutral attribute"
+        },
+        "fabric": {
+          "business_meaning": "Main material or fabric used in the product",
+          "role": "dimension",
+          "domain": "Commerce",
+          "unit": "material",
+          "scale": "nominal",
+          "data_type": "string",
+          "value_direction": "neutral attribute"
+        },
+        "size_range": {
+          "business_meaning": "Size range supported by the product listing",
+          "role": "dimension",
+          "domain": "Commerce",
+          "unit": "size",
+          "scale": "ordinal",
+          "data_type": "string",
+          "value_direction": "neutral attribute"
+        },
+        "price_LKR": {
+          "business_meaning": "Displayed selling price of the product in Sri Lankan Rupees",
+          "role": "measure",
+          "domain": "Commerce",
+          "unit": "LKR",
+          "scale": "currency",
+          "data_type": "decimal",
+          "value_direction": "higher means higher selling price"
+        },
+        "style_tags": {
+          "business_meaning": "Tag bundle describing product style, fit, and audience cues",
+          "role": "text_attribute",
+          "domain": "Commerce",
+          "unit": "tags",
+          "scale": "multi_label_text",
+          "data_type": "string",
+          "value_direction": "neutral descriptive tags"
+        },
+        "product_url": {
+          "business_meaning": "Canonical product page URL",
+          "role": "identifier",
+          "domain": "Commerce",
+          "unit": "url",
+          "scale": "reference",
+          "data_type": "string",
+          "value_direction": "neutral reference link"
+        },
+        "created_ts": {
+          "business_meaning": "Original source time fragment captured when the product record was created",
+          "role": "timestamp",
+          "domain": "Commerce",
+          "unit": "time",
+          "scale": "time_string",
+          "data_type": "string",
+          "value_direction": "later means more recent source capture"
+        },
+        "popularity_score": {
+          "business_meaning": "Popularity score assigned to the product listing",
+          "role": "score",
+          "domain": "Commerce",
+          "unit": "score",
+          "scale": "normalized_score",
+          "data_type": "decimal",
+          "value_direction": "higher means more popular"
+        },
+        "stock_count": {
+          "business_meaning": "Available stock quantity for the product listing",
+          "role": "measure",
+          "domain": "Inventory",
+          "unit": "count",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "higher means more items in stock"
+        },
+        "created_timestamp": {
+          "business_meaning": "Full timestamp when the product record was created",
+          "role": "timestamp",
+          "domain": "Commerce",
+          "unit": "datetime",
+          "scale": "timestamp",
+          "data_type": "datetime",
+          "value_direction": "later means more recent record creation"
+        }
+      }
+    },
+    {
+      "baseline_key": "users",
+      "dataset_name": "user_profiles",
+      "baseline_version": "v1",
+      "description": "Approved semantic baseline for the users table defined in data architecture.",
+      "source_table": "users_dataset.csv",
+      "column_count": 7,
+      "columns": {
+        "user_id": {
+          "business_meaning": "Unique identifier for a customer account",
+          "role": "identifier",
+          "domain": "Customer",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "name": {
+          "business_meaning": "Customer full name",
+          "role": "text_attribute",
+          "domain": "Customer",
+          "unit": "text",
+          "scale": "free_text",
+          "data_type": "string",
+          "value_direction": "neutral profile text"
+        },
+        "email": {
+          "business_meaning": "Customer email address used for communication and login",
+          "role": "identifier",
+          "domain": "Customer",
+          "unit": "email",
+          "scale": "reference",
+          "data_type": "string",
+          "value_direction": "neutral contact identifier"
+        },
+        "phone": {
+          "business_meaning": "Customer phone number for delivery or support contact",
+          "role": "identifier",
+          "domain": "Customer",
+          "unit": "phone",
+          "scale": "reference",
+          "data_type": "string",
+          "value_direction": "neutral contact identifier"
+        },
+        "shipping_address": {
+          "business_meaning": "Primary shipping address for the customer",
+          "role": "text_attribute",
+          "domain": "Customer",
+          "unit": "address",
+          "scale": "free_text",
+          "data_type": "string",
+          "value_direction": "neutral address detail"
+        },
+        "signup_ts": {
+          "business_meaning": "Date when the customer account was created",
+          "role": "timestamp",
+          "domain": "Customer",
+          "unit": "date",
+          "scale": "date",
+          "data_type": "date",
+          "value_direction": "later means more recently signed up"
+        },
+        "is_active": {
+          "business_meaning": "Whether the customer account is currently active",
+          "role": "binary_label",
+          "domain": "Customer",
+          "unit": "boolean",
+          "scale": "binary",
+          "data_type": "boolean",
+          "value_direction": "true means active account"
+        }
+      }
+    },
+    {
+      "baseline_key": "transactions",
+      "dataset_name": "sales_transactions",
+      "baseline_version": "v1",
+      "description": "Approved semantic baseline for the transactions table defined in data architecture.",
+      "source_table": "transactions_dataset.csv",
+      "column_count": 19,
+      "columns": {
+        "transaction_id": {
+          "business_meaning": "Unique identifier for a transaction",
+          "role": "identifier",
+          "domain": "Sales",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "user_id": {
+          "business_meaning": "Identifier of the customer who placed the order",
+          "role": "identifier",
+          "domain": "Sales",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "product_id": {
+          "business_meaning": "Identifier of the product sold in the transaction",
+          "role": "identifier",
+          "domain": "Sales",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "shop_id": {
+          "business_meaning": "Identifier of the shop fulfilling the order",
+          "role": "identifier",
+          "domain": "Sales",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "quantity": {
+          "business_meaning": "Number of product units sold in the transaction",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "count",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "higher means more items sold"
+        },
+        "unit_price": {
+          "business_meaning": "Selling price per unit before taxes and discounts",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "LKR",
+          "scale": "currency",
+          "data_type": "decimal",
+          "value_direction": "higher means higher per-item selling price"
+        },
+        "total_amount": {
+          "business_meaning": "Gross transaction amount before discounts and taxes",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "LKR",
+          "scale": "currency",
+          "data_type": "decimal",
+          "value_direction": "higher means more gross revenue"
+        },
+        "discount_percent": {
+          "business_meaning": "Discount percentage applied to the transaction",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "percent",
+          "scale": "percentage",
+          "data_type": "decimal",
+          "value_direction": "higher means larger discount share"
+        },
+        "discount_amount": {
+          "business_meaning": "Discount amount deducted from the gross transaction total",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "LKR",
+          "scale": "currency",
+          "data_type": "decimal",
+          "value_direction": "higher means larger discount value"
+        },
+        "tax_percent": {
+          "business_meaning": "Tax percentage applied to the transaction",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "percent",
+          "scale": "percentage",
+          "data_type": "decimal",
+          "value_direction": "higher means larger tax share"
+        },
+        "tax_amount": {
+          "business_meaning": "Tax amount added to the transaction",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "LKR",
+          "scale": "currency",
+          "data_type": "decimal",
+          "value_direction": "higher means larger tax value"
+        },
+        "final_amount": {
+          "business_meaning": "Final sales revenue after applying discounts and taxes",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "LKR",
+          "scale": "currency",
+          "data_type": "decimal",
+          "value_direction": "higher means more final revenue"
+        },
+        "payment_method": {
+          "business_meaning": "Payment method selected by the customer",
+          "role": "dimension",
+          "domain": "Sales",
+          "unit": "method",
+          "scale": "nominal",
+          "data_type": "string",
+          "value_direction": "neutral payment category"
+        },
+        "transaction_status": {
+          "business_meaning": "Operational status of the transaction lifecycle",
+          "role": "dimension",
+          "domain": "Sales",
+          "unit": "status",
+          "scale": "ordinal",
+          "data_type": "string",
+          "value_direction": "later statuses mean more progressed fulfillment"
+        },
+        "transaction_date": {
+          "business_meaning": "Calendar date when the transaction was recorded",
+          "role": "timestamp",
+          "domain": "Sales",
+          "unit": "date",
+          "scale": "date",
+          "data_type": "date",
+          "value_direction": "later means more recent sale date"
+        },
+        "transaction_ts": {
+          "business_meaning": "Exact timestamp when the transaction was created",
+          "role": "timestamp",
+          "domain": "Sales",
+          "unit": "datetime",
+          "scale": "timestamp",
+          "data_type": "datetime",
+          "value_direction": "later means more recent transaction event"
+        },
+        "delivery_date": {
+          "business_meaning": "Expected or actual delivery date for the order",
+          "role": "timestamp",
+          "domain": "Sales",
+          "unit": "datetime",
+          "scale": "timestamp",
+          "data_type": "datetime",
+          "value_direction": "later means later delivery timing"
+        },
+        "delivery_address": {
+          "business_meaning": "Delivery destination for the order",
+          "role": "text_attribute",
+          "domain": "Sales",
+          "unit": "address",
+          "scale": "free_text",
+          "data_type": "string",
+          "value_direction": "neutral delivery detail"
+        },
+        "notes": {
+          "business_meaning": "Free-text note describing the order context",
+          "role": "text_attribute",
+          "domain": "Sales",
+          "unit": "text",
+          "scale": "free_text",
+          "data_type": "string",
+          "value_direction": "neutral supporting detail"
+        }
+      }
+    },
+    {
+      "baseline_key": "shops",
+      "dataset_name": "shop_directory",
+      "baseline_version": "v1",
+      "description": "Approved semantic baseline for the shops table defined in data architecture.",
+      "source_table": "shops_dataset.csv",
+      "column_count": 9,
+      "columns": {
+        "shop_id": {
+          "business_meaning": "Unique identifier for a shop",
+          "role": "identifier",
+          "domain": "Retail",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "shop_name": {
+          "business_meaning": "Official shop name",
+          "role": "text_attribute",
+          "domain": "Retail",
+          "unit": "text",
+          "scale": "free_text",
+          "data_type": "string",
+          "value_direction": "neutral descriptive text"
+        },
+        "location": {
+          "business_meaning": "City or locality where the shop is located",
+          "role": "dimension",
+          "domain": "Retail",
+          "unit": "location",
+          "scale": "nominal",
+          "data_type": "string",
+          "value_direction": "neutral geographic grouping"
+        },
+        "district": {
+          "business_meaning": "Administrative district for the shop",
+          "role": "dimension",
+          "domain": "Retail",
+          "unit": "district",
+          "scale": "nominal",
+          "data_type": "string",
+          "value_direction": "neutral geographic grouping"
+        },
+        "postal_code": {
+          "business_meaning": "Postal code assigned to the shop location",
+          "role": "identifier",
+          "domain": "Retail",
+          "unit": "postal_code",
+          "scale": "reference",
+          "data_type": "string",
+          "value_direction": "neutral location identifier"
+        },
+        "phone_number": {
+          "business_meaning": "Shop contact phone number",
+          "role": "identifier",
+          "domain": "Retail",
+          "unit": "phone",
+          "scale": "reference",
+          "data_type": "string",
+          "value_direction": "neutral contact identifier"
+        },
+        "is_active": {
+          "business_meaning": "Whether the shop is currently active in the retail network",
+          "role": "binary_label",
+          "domain": "Retail",
+          "unit": "boolean",
+          "scale": "binary",
+          "data_type": "boolean",
+          "value_direction": "true means active shop"
+        },
+        "operating_hours_open": {
+          "business_meaning": "Daily opening time for the shop",
+          "role": "timestamp",
+          "domain": "Retail",
+          "unit": "time",
+          "scale": "time_of_day",
+          "data_type": "string",
+          "value_direction": "later means later opening time"
+        },
+        "operating_hours_close": {
+          "business_meaning": "Daily closing time for the shop",
+          "role": "timestamp",
+          "domain": "Retail",
+          "unit": "time",
+          "scale": "time_of_day",
+          "data_type": "string",
+          "value_direction": "later means later closing time"
+        }
+      }
+    },
+    {
+      "baseline_key": "trends",
+      "dataset_name": "fashion_trends",
+      "baseline_version": "v1",
+      "description": "Approved semantic baseline for the trends table defined in data architecture.",
+      "source_table": "trends_dataset.csv",
+      "column_count": 8,
+      "columns": {
+        "trend_id": {
+          "business_meaning": "Unique identifier for a tracked fashion trend",
+          "role": "identifier",
+          "domain": "Fashion Trends",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "trend_name": {
+          "business_meaning": "Label of the trend being tracked",
+          "role": "text_attribute",
+          "domain": "Fashion Trends",
+          "unit": "text",
+          "scale": "free_text",
+          "data_type": "string",
+          "value_direction": "neutral descriptive text"
+        },
+        "trend_category": {
+          "business_meaning": "Trend classification such as seasonal or category trend",
+          "role": "dimension",
+          "domain": "Fashion Trends",
+          "unit": "category",
+          "scale": "nominal",
+          "data_type": "string",
+          "value_direction": "neutral grouping"
+        },
+        "trend_score": {
+          "business_meaning": "Trend strength or momentum score for the week",
+          "role": "score",
+          "domain": "Fashion Trends",
+          "unit": "score",
+          "scale": "normalized_score",
+          "data_type": "decimal",
+          "value_direction": "higher means stronger trend momentum"
+        },
+        "week": {
+          "business_meaning": "Calendar week number used for trend tracking",
+          "role": "dimension",
+          "domain": "Fashion Trends",
+          "unit": "week",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "higher means later week in the year"
+        },
+        "year": {
+          "business_meaning": "Calendar year used for trend tracking",
+          "role": "dimension",
+          "domain": "Fashion Trends",
+          "unit": "year",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "higher means more recent year"
+        },
+        "emerging_designers": {
+          "business_meaning": "Designers associated with the observed trend",
+          "role": "text_attribute",
+          "domain": "Fashion Trends",
+          "unit": "designer_names",
+          "scale": "multi_label_text",
+          "data_type": "string",
+          "value_direction": "neutral descriptive association"
+        },
+        "trend_tags": {
+          "business_meaning": "Tag bundle describing fabrics, aesthetics, and motifs linked to the trend",
+          "role": "text_attribute",
+          "domain": "Fashion Trends",
+          "unit": "tags",
+          "scale": "multi_label_text",
+          "data_type": "string",
+          "value_direction": "neutral descriptive tags"
+        }
+      }
+    }
+  ],
+  "selected_predefined_baseline": {
+    "baseline_key": "transactions",
+    "dataset_name": "sales_transactions",
+    "baseline_version": "v1",
+    "description": "Approved semantic baseline for the transactions table defined in data architecture.",
+    "source_table": "transactions_dataset.csv",
+    "columns": {
+      "transaction_id": {
+        "business_meaning": "Unique identifier for a transaction",
+        "role": "identifier",
+        "domain": "Sales",
+        "unit": "id",
+        "scale": "integer",
+        "data_type": "integer",
+        "value_direction": "neutral reference key"
+      },
+      "user_id": {
+        "business_meaning": "Identifier of the customer who placed the order",
+        "role": "identifier",
+        "domain": "Sales",
+        "unit": "id",
+        "scale": "integer",
+        "data_type": "integer",
+        "value_direction": "neutral reference key"
+      },
+      "product_id": {
+        "business_meaning": "Identifier of the product sold in the transaction",
+        "role": "identifier",
+        "domain": "Sales",
+        "unit": "id",
+        "scale": "integer",
+        "data_type": "integer",
+        "value_direction": "neutral reference key"
+      },
+      "shop_id": {
+        "business_meaning": "Identifier of the shop fulfilling the order",
+        "role": "identifier",
+        "domain": "Sales",
+        "unit": "id",
+        "scale": "integer",
+        "data_type": "integer",
+        "value_direction": "neutral reference key"
+      },
+      "quantity": {
+        "business_meaning": "Number of product units sold in the transaction",
+        "role": "measure",
+        "domain": "Sales",
+        "unit": "count",
+        "scale": "integer",
+        "data_type": "integer",
+        "value_direction": "higher means more items sold"
+      },
+      "unit_price": {
+        "business_meaning": "Selling price per unit before taxes and discounts",
+        "role": "measure",
+        "domain": "Sales",
+        "unit": "LKR",
+        "scale": "currency",
+        "data_type": "decimal",
+        "value_direction": "higher means higher per-item selling price"
+      },
+      "total_amount": {
+        "business_meaning": "Gross transaction amount before discounts and taxes",
+        "role": "measure",
+        "domain": "Sales",
+        "unit": "LKR",
+        "scale": "currency",
+        "data_type": "decimal",
+        "value_direction": "higher means more gross revenue"
+      },
+      "discount_percent": {
+        "business_meaning": "Discount percentage applied to the transaction",
+        "role": "measure",
+        "domain": "Sales",
+        "unit": "percent",
+        "scale": "percentage",
+        "data_type": "decimal",
+        "value_direction": "higher means larger discount share"
+      },
+      "discount_amount": {
+        "business_meaning": "Discount amount deducted from the gross transaction total",
+        "role": "measure",
+        "domain": "Sales",
+        "unit": "LKR",
+        "scale": "currency",
+        "data_type": "decimal",
+        "value_direction": "higher means larger discount value"
+      },
+      "tax_percent": {
+        "business_meaning": "Tax percentage applied to the transaction",
+        "role": "measure",
+        "domain": "Sales",
+        "unit": "percent",
+        "scale": "percentage",
+        "data_type": "decimal",
+        "value_direction": "higher means larger tax share"
+      },
+      "tax_amount": {
+        "business_meaning": "Tax amount added to the transaction",
+        "role": "measure",
+        "domain": "Sales",
+        "unit": "LKR",
+        "scale": "currency",
+        "data_type": "decimal",
+        "value_direction": "higher means larger tax value"
+      },
+      "final_amount": {
+        "business_meaning": "Final sales revenue after applying discounts and taxes",
+        "role": "measure",
+        "domain": "Sales",
+        "unit": "LKR",
+        "scale": "currency",
+        "data_type": "decimal",
+        "value_direction": "higher means more final revenue"
+      },
+      "payment_method": {
+        "business_meaning": "Payment method selected by the customer",
+        "role": "dimension",
+        "domain": "Sales",
+        "unit": "method",
+        "scale": "nominal",
+        "data_type": "string",
+        "value_direction": "neutral payment category"
+      },
+      "transaction_status": {
+        "business_meaning": "Operational status of the transaction lifecycle",
+        "role": "dimension",
+        "domain": "Sales",
+        "unit": "status",
+        "scale": "ordinal",
+        "data_type": "string",
+        "value_direction": "later statuses mean more progressed fulfillment"
+      },
+      "transaction_date": {
+        "business_meaning": "Calendar date when the transaction was recorded",
+        "role": "timestamp",
+        "domain": "Sales",
+        "unit": "date",
+        "scale": "date",
+        "data_type": "date",
+        "value_direction": "later means more recent sale date"
+      },
+      "transaction_ts": {
+        "business_meaning": "Exact timestamp when the transaction was created",
+        "role": "timestamp",
+        "domain": "Sales",
+        "unit": "datetime",
+        "scale": "timestamp",
+        "data_type": "datetime",
+        "value_direction": "later means more recent transaction event"
+      },
+      "delivery_date": {
+        "business_meaning": "Expected or actual delivery date for the order",
+        "role": "timestamp",
+        "domain": "Sales",
+        "unit": "datetime",
+        "scale": "timestamp",
+        "data_type": "datetime",
+        "value_direction": "later means later delivery timing"
+      },
+      "delivery_address": {
+        "business_meaning": "Delivery destination for the order",
+        "role": "text_attribute",
+        "domain": "Sales",
+        "unit": "address",
+        "scale": "free_text",
+        "data_type": "string",
+        "value_direction": "neutral delivery detail"
+      },
+      "notes": {
+        "business_meaning": "Free-text note describing the order context",
+        "role": "text_attribute",
+        "domain": "Sales",
+        "unit": "text",
+        "scale": "free_text",
+        "data_type": "string",
+        "value_direction": "neutral supporting detail"
+      }
+    }
+  },
+  "baseline_creation": [
+    {
+      "column_name": "transaction_id",
+      "business_meaning": "Unique identifier for a transaction",
+      "role": "identifier",
+      "domain": "Sales",
+      "unit": "id",
+      "scale": "integer",
+      "data_type": "integer",
+      "value_direction": "neutral reference key",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "user_id",
+      "business_meaning": "Identifier of the customer who placed the order",
+      "role": "identifier",
+      "domain": "Sales",
+      "unit": "id",
+      "scale": "integer",
+      "data_type": "integer",
+      "value_direction": "neutral reference key",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "product_id",
+      "business_meaning": "Identifier of the product sold in the transaction",
+      "role": "identifier",
+      "domain": "Sales",
+      "unit": "id",
+      "scale": "integer",
+      "data_type": "integer",
+      "value_direction": "neutral reference key",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "shop_id",
+      "business_meaning": "Identifier of the shop fulfilling the order",
+      "role": "identifier",
+      "domain": "Sales",
+      "unit": "id",
+      "scale": "integer",
+      "data_type": "integer",
+      "value_direction": "neutral reference key",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "quantity",
+      "business_meaning": "Number of product units sold in the transaction",
+      "role": "measure",
+      "domain": "Sales",
+      "unit": "count",
+      "scale": "integer",
+      "data_type": "integer",
+      "value_direction": "higher means more items sold",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "unit_price",
+      "business_meaning": "Selling price per unit before taxes and discounts",
+      "role": "measure",
+      "domain": "Sales",
+      "unit": "LKR",
+      "scale": "currency",
+      "data_type": "decimal",
+      "value_direction": "higher means higher per-item selling price",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "total_amount",
+      "business_meaning": "Gross transaction amount before discounts and taxes",
+      "role": "measure",
+      "domain": "Sales",
+      "unit": "LKR",
+      "scale": "currency",
+      "data_type": "decimal",
+      "value_direction": "higher means more gross revenue",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "discount_percent",
+      "business_meaning": "Discount percentage applied to the transaction",
+      "role": "measure",
+      "domain": "Sales",
+      "unit": "percent",
+      "scale": "percentage",
+      "data_type": "decimal",
+      "value_direction": "higher means larger discount share",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "discount_amount",
+      "business_meaning": "Discount amount deducted from the gross transaction total",
+      "role": "measure",
+      "domain": "Sales",
+      "unit": "LKR",
+      "scale": "currency",
+      "data_type": "decimal",
+      "value_direction": "higher means larger discount value",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "tax_percent",
+      "business_meaning": "Tax percentage applied to the transaction",
+      "role": "measure",
+      "domain": "Sales",
+      "unit": "percent",
+      "scale": "percentage",
+      "data_type": "decimal",
+      "value_direction": "higher means larger tax share",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "tax_amount",
+      "business_meaning": "Tax amount added to the transaction",
+      "role": "measure",
+      "domain": "Sales",
+      "unit": "LKR",
+      "scale": "currency",
+      "data_type": "decimal",
+      "value_direction": "higher means larger tax value",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "final_amount",
+      "business_meaning": "Final sales revenue after applying discounts and taxes",
+      "role": "measure",
+      "domain": "Sales",
+      "unit": "LKR",
+      "scale": "currency",
+      "data_type": "decimal",
+      "value_direction": "higher means more final revenue",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "payment_method",
+      "business_meaning": "Payment method selected by the customer",
+      "role": "dimension",
+      "domain": "Sales",
+      "unit": "method",
+      "scale": "nominal",
+      "data_type": "string",
+      "value_direction": "neutral payment category",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "transaction_status",
+      "business_meaning": "Operational status of the transaction lifecycle",
+      "role": "dimension",
+      "domain": "Sales",
+      "unit": "status",
+      "scale": "ordinal",
+      "data_type": "string",
+      "value_direction": "later statuses mean more progressed fulfillment",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "transaction_date",
+      "business_meaning": "Calendar date when the transaction was recorded",
+      "role": "timestamp",
+      "domain": "Sales",
+      "unit": "date",
+      "scale": "date",
+      "data_type": "date",
+      "value_direction": "later means more recent sale date",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "transaction_ts",
+      "business_meaning": "Exact timestamp when the transaction was created",
+      "role": "timestamp",
+      "domain": "Sales",
+      "unit": "datetime",
+      "scale": "timestamp",
+      "data_type": "datetime",
+      "value_direction": "later means more recent transaction event",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "delivery_date",
+      "business_meaning": "Expected or actual delivery date for the order",
+      "role": "timestamp",
+      "domain": "Sales",
+      "unit": "datetime",
+      "scale": "timestamp",
+      "data_type": "datetime",
+      "value_direction": "later means later delivery timing",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "delivery_address",
+      "business_meaning": "Delivery destination for the order",
+      "role": "text_attribute",
+      "domain": "Sales",
+      "unit": "address",
+      "scale": "free_text",
+      "data_type": "string",
+      "value_direction": "neutral delivery detail",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "notes",
+      "business_meaning": "Free-text note describing the order context",
+      "role": "text_attribute",
+      "domain": "Sales",
+      "unit": "text",
+      "scale": "free_text",
+      "data_type": "string",
+      "value_direction": "neutral supporting detail",
+      "baseline_version": "v1"
+    }
+  ],
+  "new_dataset_profiling": [
+    {
+      "column_name": "transaction_id",
+      "detected_data_type": "numeric",
+      "sample_values": [
+        "91001",
+        "91002",
+        "91003",
+        "91004"
+      ],
+      "nearby_columns": [
+        "user_id"
+      ],
+      "value_pattern": "count",
+      "possible_business_meaning": "transaction id unique identifier",
+      "possible_domain": "General",
+      "possible_role": "Identifier"
+    },
+    {
+      "column_name": "user_id",
+      "detected_data_type": "numeric",
+      "sample_values": [
+        "20101",
+        "20102",
+        "20103",
+        "20104"
+      ],
+      "nearby_columns": [
+        "transaction_id",
+        "product_id"
+      ],
+      "value_pattern": "count",
+      "possible_business_meaning": "user id unique identifier",
+      "possible_domain": "General",
+      "possible_role": "Identifier"
+    },
+    {
+      "column_name": "product_id",
+      "detected_data_type": "numeric",
+      "sample_values": [
+        "11001",
+        "11002",
+        "11003",
+        "11004"
+      ],
+      "nearby_columns": [
+        "user_id",
+        "shop_id"
+      ],
+      "value_pattern": "count",
+      "possible_business_meaning": "product id unique identifier",
+      "possible_domain": "Commerce",
+      "possible_role": "Identifier"
+    },
+    {
+      "column_name": "shop_id",
+      "detected_data_type": "numeric",
+      "sample_values": [
+        "501",
+        "502",
+        "503",
+        "504"
+      ],
+      "nearby_columns": [
+        "product_id",
+        "quantity"
+      ],
+      "value_pattern": "count",
+      "possible_business_meaning": "shop id unique identifier",
+      "possible_domain": "General",
+      "possible_role": "Identifier"
+    },
+    {
+      "column_name": "quantity",
+      "detected_data_type": "numeric",
+      "sample_values": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "nearby_columns": [
+        "shop_id",
+        "unit_price"
+      ],
+      "value_pattern": "percentage",
+      "possible_business_meaning": "quantity measured business value in the General domain",
+      "possible_domain": "General",
+      "possible_role": "Measure"
+    },
+    {
+      "column_name": "unit_price",
+      "detected_data_type": "numeric",
+      "sample_values": [
+        "4500.0",
+        "8950.0",
+        "12900.0",
+        "10050.0"
+      ],
+      "nearby_columns": [
+        "quantity",
+        "total_amount"
+      ],
+      "value_pattern": "currency",
+      "possible_business_meaning": "unit price measured business value in the General domain",
+      "possible_domain": "General",
+      "possible_role": "Measure"
+    },
+    {
+      "column_name": "total_amount",
+      "detected_data_type": "numeric",
+      "sample_values": [
+        "4500.0",
+        "17900.0",
+        "12900.0",
+        "30150.0"
+      ],
+      "nearby_columns": [
+        "unit_price",
+        "discount_percent"
+      ],
+      "value_pattern": "currency",
+      "possible_business_meaning": "total amount measured business value in the General domain",
+      "possible_domain": "General",
+      "possible_role": "Measure"
+    },
+    {
+      "column_name": "discount_percent",
+      "detected_data_type": "numeric",
+      "sample_values": [
+        "0.0",
+        "0.03",
+        "0.05",
+        "0.08"
+      ],
+      "nearby_columns": [
+        "total_amount",
+        "discount_amount"
+      ],
+      "value_pattern": "percentage",
+      "possible_business_meaning": "discount percent measured business value in the General domain",
+      "possible_domain": "General",
+      "possible_role": "Measure"
+    },
+    {
+      "column_name": "discount_amount",
+      "detected_data_type": "numeric",
+      "sample_values": [
+        "0.0",
+        "537.0",
+        "645.0",
+        "2412.0"
+      ],
+      "nearby_columns": [
+        "discount_percent",
+        "tax_percent"
+      ],
+      "value_pattern": "currency",
+      "possible_business_meaning": "discount amount measured business value in the General domain",
+      "possible_domain": "General",
+      "possible_role": "Measure"
+    },
+    {
+      "column_name": "tax_percent",
+      "detected_data_type": "numeric",
+      "sample_values": [
+        "0.03"
+      ],
+      "nearby_columns": [
+        "discount_amount",
+        "tax_amount"
+      ],
+      "value_pattern": "percentage",
+      "possible_business_meaning": "tax percent measured business value in the General domain",
+      "possible_domain": "General",
+      "possible_role": "Measure"
+    },
+    {
+      "column_name": "tax_amount",
+      "detected_data_type": "numeric",
+      "sample_values": [
+        "135.0",
+        "520.89",
+        "367.65",
+        "832.14"
+      ],
+      "nearby_columns": [
+        "tax_percent",
+        "final_amount"
+      ],
+      "value_pattern": "currency",
+      "possible_business_meaning": "tax amount measured business value in the General domain",
+      "possible_domain": "General",
+      "possible_role": "Measure"
+    },
+    {
+      "column_name": "final_amount",
+      "detected_data_type": "numeric",
+      "sample_values": [
+        "4635.0",
+        "17883.89",
+        "12622.65",
+        "28570.14"
+      ],
+      "nearby_columns": [
+        "tax_amount",
+        "payment_method"
+      ],
+      "value_pattern": "currency",
+      "possible_business_meaning": "final amount measured business value in the General domain",
+      "possible_domain": "General",
+      "possible_role": "Measure"
+    },
+    {
+      "column_name": "payment_method",
+      "detected_data_type": "categorical",
+      "sample_values": [
+        "card",
+        "cash",
+        "bank_transfer"
+      ],
+      "nearby_columns": [
+        "final_amount",
+        "transaction_status"
+      ],
+      "value_pattern": "unknown",
+      "possible_business_meaning": "payment method business category in the General domain",
+      "possible_domain": "General",
+      "possible_role": "Dimension"
+    },
+    {
+      "column_name": "transaction_status",
+      "detected_data_type": "categorical",
+      "sample_values": [
+        "completed",
+        "shipped",
+        "paid",
+        "pickup_ready"
+      ],
+      "nearby_columns": [
+        "payment_method",
+        "transaction_date"
+      ],
+      "value_pattern": "unknown",
+      "possible_business_meaning": "transaction status business category in the General domain",
+      "possible_domain": "General",
+      "possible_role": "Dimension"
+    },
+    {
+      "column_name": "transaction_date",
+      "detected_data_type": "datetime",
+      "sample_values": [
+        "2026-04-07",
+        "2026-04-08",
+        "2026-04-09",
+        "2026-04-10"
+      ],
+      "nearby_columns": [
+        "transaction_status",
+        "transaction_ts"
+      ],
+      "value_pattern": "unknown",
+      "possible_business_meaning": "transaction date event timestamp",
+      "possible_domain": "General",
+      "possible_role": "Timestamp"
+    },
+    {
+      "column_name": "transaction_ts",
+      "detected_data_type": "categorical",
+      "sample_values": [
+        "2026-04-07T09:15:00",
+        "2026-04-08T11:22:00",
+        "2026-04-09T13:29:00",
+        "2026-04-10T15:36:00"
+      ],
+      "nearby_columns": [
+        "transaction_date",
+        "delivery_date"
+      ],
+      "value_pattern": "unknown",
+      "possible_business_meaning": "transaction ts business category in the General domain",
+      "possible_domain": "General",
+      "possible_role": "Dimension"
+    },
+    {
+      "column_name": "delivery_date",
+      "detected_data_type": "datetime",
+      "sample_values": [
+        "2026-04-08T11:15:00",
+        "2026-04-10T15:22:00",
+        "2026-04-12T19:29:00",
+        "2026-04-14T23:36:00"
+      ],
+      "nearby_columns": [
+        "transaction_ts",
+        "delivery_address"
+      ],
+      "value_pattern": "unknown",
+      "possible_business_meaning": "delivery date event timestamp",
+      "possible_domain": "General",
+      "possible_role": "Timestamp"
+    },
+    {
+      "column_name": "delivery_address",
+      "detected_data_type": "text",
+      "sample_values": [
+        "42 Flower Rd, Colombo 07",
+        "18 Beach Rd, Negombo",
+        "9 Hill St, Kandy",
+        "3 Lake Rd, Batticaloa"
+      ],
+      "nearby_columns": [
+        "delivery_date",
+        "notes"
+      ],
+      "value_pattern": "unknown",
+      "possible_business_meaning": "delivery address descriptive text in the General domain",
+      "possible_domain": "General",
+      "possible_role": "Description"
+    },
+    {
+      "column_name": "notes",
+      "detected_data_type": "text",
+      "sample_values": [
+        "Gift wrap requested",
+        "VIP discount applied",
+        "Pickup at counter",
+        "Split shipment"
+      ],
+      "nearby_columns": [
+        "delivery_address"
+      ],
+      "value_pattern": "unknown",
+      "possible_business_meaning": "notes descriptive text in the General domain",
+      "possible_domain": "General",
+      "possible_role": "Description"
+    }
+  ],
+  "column_matching": [
+    {
+      "incoming_column": "transaction_id",
+      "baseline_column": "transaction_id",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "identifier",
+      "incoming_role": "Identifier",
+      "baseline_domain": "Sales",
+      "incoming_domain": "General",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "user_id",
+      "baseline_column": "user_id",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "identifier",
+      "incoming_role": "Identifier",
+      "baseline_domain": "Sales",
+      "incoming_domain": "General",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "product_id",
+      "baseline_column": "product_id",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "identifier",
+      "incoming_role": "Identifier",
+      "baseline_domain": "Sales",
+      "incoming_domain": "Commerce",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "shop_id",
+      "baseline_column": "shop_id",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "identifier",
+      "incoming_role": "Identifier",
+      "baseline_domain": "Sales",
+      "incoming_domain": "General",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "quantity",
+      "baseline_column": "quantity",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "measure",
+      "incoming_role": "Measure",
+      "baseline_domain": "Sales",
+      "incoming_domain": "General",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "unit_price",
+      "baseline_column": "unit_price",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "measure",
+      "incoming_role": "Measure",
+      "baseline_domain": "Sales",
+      "incoming_domain": "General",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "total_amount",
+      "baseline_column": "total_amount",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "measure",
+      "incoming_role": "Measure",
+      "baseline_domain": "Sales",
+      "incoming_domain": "General",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "discount_percent",
+      "baseline_column": "discount_percent",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "measure",
+      "incoming_role": "Measure",
+      "baseline_domain": "Sales",
+      "incoming_domain": "General",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "discount_amount",
+      "baseline_column": "discount_amount",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "measure",
+      "incoming_role": "Measure",
+      "baseline_domain": "Sales",
+      "incoming_domain": "General",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "tax_percent",
+      "baseline_column": "tax_percent",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "measure",
+      "incoming_role": "Measure",
+      "baseline_domain": "Sales",
+      "incoming_domain": "General",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "tax_amount",
+      "baseline_column": "tax_amount",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "measure",
+      "incoming_role": "Measure",
+      "baseline_domain": "Sales",
+      "incoming_domain": "General",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "final_amount",
+      "baseline_column": "final_amount",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "measure",
+      "incoming_role": "Measure",
+      "baseline_domain": "Sales",
+      "incoming_domain": "General",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "payment_method",
+      "baseline_column": "payment_method",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "dimension",
+      "incoming_role": "Dimension",
+      "baseline_domain": "Sales",
+      "incoming_domain": "General",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "transaction_status",
+      "baseline_column": "transaction_status",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "dimension",
+      "incoming_role": "Dimension",
+      "baseline_domain": "Sales",
+      "incoming_domain": "General",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "transaction_date",
+      "baseline_column": "transaction_date",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "timestamp",
+      "incoming_role": "Timestamp",
+      "baseline_domain": "Sales",
+      "incoming_domain": "General",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "transaction_ts",
+      "baseline_column": "transaction_ts",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "timestamp",
+      "incoming_role": "Dimension",
+      "baseline_domain": "Sales",
+      "incoming_domain": "General",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "delivery_date",
+      "baseline_column": "delivery_date",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "timestamp",
+      "incoming_role": "Timestamp",
+      "baseline_domain": "Sales",
+      "incoming_domain": "General",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "delivery_address",
+      "baseline_column": "delivery_address",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "text_attribute",
+      "incoming_role": "Description",
+      "baseline_domain": "Sales",
+      "incoming_domain": "General",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "notes",
+      "baseline_column": "notes",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "text_attribute",
+      "incoming_role": "Description",
+      "baseline_domain": "Sales",
+      "incoming_domain": "General",
+      "reason": "Column name matches exactly."
+    }
+  ],
+  "anchors": [],
+  "triage_matrix": {
+    "cells": [
+      {
+        "internal": "Aligned",
+        "external": "Aligned",
+        "decision": "SAFE",
+        "row_count": 0,
+        "percentage": 0.0,
+        "description": "Stable internally and externally.",
+        "reasoning": []
+      },
+      {
+        "internal": "Aligned",
+        "external": "Outlier",
+        "decision": "CONDITIONAL",
+        "row_count": 0,
+        "percentage": 0.0,
+        "description": "Internally stable but externally out of market range.",
+        "reasoning": []
+      },
+      {
+        "internal": "Drifted",
+        "external": "Aligned",
+        "decision": "CONDITIONAL",
+        "row_count": 60,
+        "percentage": 100.0,
+        "description": "Internal history shifted, but market still supports it.",
+        "reasoning": [
+          "Row semantics do not match the external benchmark profile.",
+          "Numeric values moved away from the internal baseline."
+        ]
+      },
+      {
+        "internal": "Drifted",
+        "external": "Outlier",
+        "decision": "QUARANTINED",
+        "row_count": 0,
+        "percentage": 0.0,
+        "description": "Neither baseline supports the new behavior.",
+        "reasoning": []
+      }
+    ]
+  },
+  "drifts_per_column": [
+    {
+      "column_name": "transaction_id",
+      "drift_type": "numeric",
+      "severity": "high",
+      "reason": "Numeric scale moved away from both the internal and external baselines.",
+      "baseline_stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "scale": "unknown"
+      },
+      "current_stats": {
+        "mean": 91030.5,
+        "std": 17.318102282486574,
+        "scale": "count"
+      },
+      "impact": "High risk of semantic drift.",
+      "recommendation": "Quarantine until the scoring semantics are reviewed."
+    },
+    {
+      "column_name": "user_id",
+      "drift_type": "numeric",
+      "severity": "high",
+      "reason": "Numeric scale moved away from both the internal and external baselines.",
+      "baseline_stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "scale": "unknown"
+      },
+      "current_stats": {
+        "mean": 20115.916666666668,
+        "std": 9.340399111149136,
+        "scale": "count"
+      },
+      "impact": "High risk of semantic drift.",
+      "recommendation": "Quarantine until the scoring semantics are reviewed."
+    },
+    {
+      "column_name": "product_id",
+      "drift_type": "numeric",
+      "severity": "high",
+      "reason": "Numeric scale moved away from both the internal and external baselines.",
+      "baseline_stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "scale": "unknown"
+      },
+      "current_stats": {
+        "mean": 11006.5,
+        "std": 3.452052529534663,
+        "scale": "count"
+      },
+      "impact": "High risk of semantic drift.",
+      "recommendation": "Quarantine until the scoring semantics are reviewed."
+    },
+    {
+      "column_name": "shop_id",
+      "drift_type": "numeric",
+      "severity": "high",
+      "reason": "Numeric scale moved away from both the internal and external baselines.",
+      "baseline_stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "scale": "unknown"
+      },
+      "current_stats": {
+        "mean": 503.0,
+        "std": 1.4142135623730951,
+        "scale": "count"
+      },
+      "impact": "High risk of semantic drift.",
+      "recommendation": "Quarantine until the scoring semantics are reviewed."
+    },
+    {
+      "column_name": "quantity",
+      "drift_type": "numeric",
+      "severity": "low",
+      "reason": "Small numeric movement detected against the internal baseline.",
+      "baseline_stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "scale": "unknown"
+      },
+      "current_stats": {
+        "mean": 2.0,
+        "std": 1.0,
+        "scale": "percentage"
+      },
+      "impact": "Low release risk.",
+      "recommendation": "Monitor in the next version."
+    },
+    {
+      "column_name": "unit_price",
+      "drift_type": "numeric",
+      "severity": "high",
+      "reason": "Numeric scale moved away from both the internal and external baselines.",
+      "baseline_stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "scale": "unknown"
+      },
+      "current_stats": {
+        "mean": 9781.666666666666,
+        "std": 4644.898336406897,
+        "scale": "currency"
+      },
+      "impact": "High risk of semantic drift.",
+      "recommendation": "Quarantine until the scoring semantics are reviewed."
+    },
+    {
+      "column_name": "total_amount",
+      "drift_type": "numeric",
+      "severity": "high",
+      "reason": "Numeric scale moved away from both the internal and external baselines.",
+      "baseline_stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "scale": "unknown"
+      },
+      "current_stats": {
+        "mean": 18588.333333333332,
+        "std": 11096.926626573482,
+        "scale": "currency"
+      },
+      "impact": "High risk of semantic drift.",
+      "recommendation": "Quarantine until the scoring semantics are reviewed."
+    },
+    {
+      "column_name": "discount_percent",
+      "drift_type": "numeric",
+      "severity": "none",
+      "reason": "Column remains aligned with learned baselines.",
+      "baseline_stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "scale": "unknown"
+      },
+      "current_stats": {
+        "mean": 0.07333333333333333,
+        "std": 0.04843093593515983,
+        "scale": "percentage"
+      },
+      "impact": "Low release risk.",
+      "recommendation": "No action needed."
+    },
+    {
+      "column_name": "discount_amount",
+      "drift_type": "numeric",
+      "severity": "high",
+      "reason": "Numeric scale moved away from both the internal and external baselines.",
+      "baseline_stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "scale": "unknown"
+      },
+      "current_stats": {
+        "mean": 1398.55,
+        "std": 1230.8215098732499,
+        "scale": "currency"
+      },
+      "impact": "High risk of semantic drift.",
+      "recommendation": "Quarantine until the scoring semantics are reviewed."
+    },
+    {
+      "column_name": "tax_percent",
+      "drift_type": "numeric",
+      "severity": "none",
+      "reason": "Column remains aligned with learned baselines.",
+      "baseline_stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "scale": "unknown"
+      },
+      "current_stats": {
+        "mean": 0.030000000000000002,
+        "std": 3.469446951953614e-18,
+        "scale": "percentage"
+      },
+      "impact": "Low release risk.",
+      "recommendation": "No action needed."
+    },
+    {
+      "column_name": "tax_amount",
+      "drift_type": "numeric",
+      "severity": "high",
+      "reason": "Numeric scale moved away from both the internal and external baselines.",
+      "baseline_stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "scale": "unknown"
+      },
+      "current_stats": {
+        "mean": 515.694,
+        "std": 310.4437936470948,
+        "scale": "currency"
+      },
+      "impact": "High risk of semantic drift.",
+      "recommendation": "Quarantine until the scoring semantics are reviewed."
+    },
+    {
+      "column_name": "final_amount",
+      "drift_type": "numeric",
+      "severity": "high",
+      "reason": "Numeric scale moved away from both the internal and external baselines.",
+      "baseline_stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "scale": "unknown"
+      },
+      "current_stats": {
+        "mean": 17705.477333333336,
+        "std": 10658.56613434172,
+        "scale": "currency"
+      },
+      "impact": "High risk of semantic drift.",
+      "recommendation": "Quarantine until the scoring semantics are reviewed."
+    },
+    {
+      "column_name": "payment_method",
+      "drift_type": "text",
+      "severity": "high",
+      "reason": "Text semantics no longer match either baseline profile.",
+      "baseline_stats": {
+        "internal_similarity": 0.0,
+        "external_similarity": 0.0,
+        "baseline_terms": [
+          "card",
+          "bank_transfer",
+          "cash"
+        ]
+      },
+      "current_stats": {
+        "current_terms": [
+          "card",
+          "cash",
+          "bank_transfer"
+        ]
+      },
+      "impact": "Meaning changed enough to affect downstream recommendations.",
+      "recommendation": "Review mappings and quarantine until corrected."
+    },
+    {
+      "column_name": "transaction_status",
+      "drift_type": "text",
+      "severity": "high",
+      "reason": "Text semantics no longer match either baseline profile.",
+      "baseline_stats": {
+        "internal_similarity": 0.0,
+        "external_similarity": 0.0,
+        "baseline_terms": [
+          "completed",
+          "shipped",
+          "paid",
+          "pickup_ready",
+          "processing"
+        ]
+      },
+      "current_stats": {
+        "current_terms": [
+          "completed",
+          "shipped",
+          "paid",
+          "pickup_ready",
+          "processing"
+        ]
+      },
+      "impact": "Meaning changed enough to affect downstream recommendations.",
+      "recommendation": "Review mappings and quarantine until corrected."
+    },
+    {
+      "column_name": "transaction_date",
+      "drift_type": "text",
+      "severity": "high",
+      "reason": "Text semantics no longer match either baseline profile.",
+      "baseline_stats": {
+        "internal_similarity": 0.0,
+        "external_similarity": 0.0,
+        "baseline_terms": [
+          "2026-04-01",
+          "2026-04-02",
+          "2026-04-03",
+          "2026-04-04",
+          "2026-04-05"
+        ]
+      },
+      "current_stats": {
+        "current_terms": [
+          "2026-04-07",
+          "2026-04-08",
+          "2026-05-09",
+          "2026-05-10",
+          "2026-05-11"
+        ]
+      },
+      "impact": "Meaning changed enough to affect downstream recommendations.",
+      "recommendation": "Review mappings and quarantine until corrected."
+    },
+    {
+      "column_name": "transaction_ts",
+      "drift_type": "text",
+      "severity": "high",
+      "reason": "Text semantics no longer match either baseline profile.",
+      "baseline_stats": {
+        "internal_similarity": 0.0,
+        "external_similarity": 0.0,
+        "baseline_terms": [
+          "2026-04-01T10:12:00",
+          "2026-04-02T14:22:00",
+          "2026-04-03T09:05:00",
+          "2026-04-04T16:40:00",
+          "2026-04-05T11:11:00"
+        ]
+      },
+      "current_stats": {
+        "current_terms": [
+          "2026-04-07T09:15:00",
+          "2026-04-08T11:22:00",
+          "2026-05-09T10:39:00",
+          "2026-05-10T12:46:00",
+          "2026-05-11T14:53:00"
+        ]
+      },
+      "impact": "Meaning changed enough to affect downstream recommendations.",
+      "recommendation": "Review mappings and quarantine until corrected."
+    },
+    {
+      "column_name": "delivery_date",
+      "drift_type": "text",
+      "severity": "high",
+      "reason": "Text semantics no longer match either baseline profile.",
+      "baseline_stats": {
+        "internal_similarity": 0.0,
+        "external_similarity": 0.0,
+        "baseline_terms": [
+          "2026-04-03T18:00:00",
+          "2026-04-05T12:00:00",
+          "2026-04-06T16:30:00",
+          "2026-04-04T17:00:00",
+          "2026-04-07T10:00:00"
+        ]
+      },
+      "current_stats": {
+        "current_terms": [
+          "2026-04-08T11:15:00",
+          "2026-04-10T15:22:00",
+          "2026-05-10T12:39:00",
+          "2026-05-12T16:46:00",
+          "2026-05-14T20:53:00"
+        ]
+      },
+      "impact": "Meaning changed enough to affect downstream recommendations.",
+      "recommendation": "Review mappings and quarantine until corrected."
+    },
+    {
+      "column_name": "delivery_address",
+      "drift_type": "text",
+      "severity": "high",
+      "reason": "Text semantics no longer match either baseline profile.",
+      "baseline_stats": {
+        "internal_similarity": 0.0,
+        "external_similarity": 0.0,
+        "baseline_terms": [
+          "42 Flower Rd, Colombo 07",
+          "18 Beach Rd, Negombo",
+          "9 Hill St, Kandy",
+          "3 Lake Rd, Batticaloa",
+          "55 Galle Rd, Matara"
+        ]
+      },
+      "current_stats": {
+        "current_terms": [
+          "42 Flower Rd, Colombo 07",
+          "18 Beach Rd, Negombo",
+          "9 Hill St, Kandy",
+          "3 Lake Rd, Batticaloa",
+          "55 Galle Rd, Matara"
+        ]
+      },
+      "impact": "Meaning changed enough to affect downstream recommendations.",
+      "recommendation": "Review mappings and quarantine until corrected."
+    },
+    {
+      "column_name": "notes",
+      "drift_type": "text",
+      "severity": "high",
+      "reason": "Text semantics no longer match either baseline profile.",
+      "baseline_stats": {
+        "internal_similarity": 0.0,
+        "external_similarity": 0.0,
+        "baseline_terms": [
+          "",
+          "Gift wrap requested",
+          "VIP discount applied",
+          "Pickup at counter",
+          "Split shipment"
+        ]
+      },
+      "current_stats": {
+        "current_terms": [
+          "Gift wrap requested",
+          "VIP discount applied",
+          "Pickup at counter",
+          "Split shipment",
+          "Customer requested evening delivery"
+        ]
+      },
+      "impact": "Meaning changed enough to affect downstream recommendations.",
+      "recommendation": "Review mappings and quarantine until corrected."
+    }
+  ],
+  "row_classifications": [
+    {
+      "row_id": 0,
+      "row_index": 0,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 1,
+      "row_index": 1,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 2,
+      "row_index": 2,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 3,
+      "row_index": 3,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "quantity",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 4,
+      "row_index": 4,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 5,
+      "row_index": 5,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 6,
+      "row_index": 6,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "quantity",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 7,
+      "row_index": 7,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 8,
+      "row_index": 8,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 9,
+      "row_index": 9,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "quantity",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 10,
+      "row_index": 10,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 11,
+      "row_index": 11,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 12,
+      "row_index": 12,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 13,
+      "row_index": 13,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "quantity",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 14,
+      "row_index": 14,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 15,
+      "row_index": 15,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 16,
+      "row_index": 16,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "quantity",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 17,
+      "row_index": 17,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 18,
+      "row_index": 18,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 19,
+      "row_index": 19,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "quantity",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 20,
+      "row_index": 20,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 21,
+      "row_index": 21,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 22,
+      "row_index": 22,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 23,
+      "row_index": 23,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "quantity",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 24,
+      "row_index": 24,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 25,
+      "row_index": 25,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 26,
+      "row_index": 26,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "quantity",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 27,
+      "row_index": 27,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 28,
+      "row_index": 28,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 29,
+      "row_index": 29,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "quantity",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 30,
+      "row_index": 30,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 31,
+      "row_index": 31,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 32,
+      "row_index": 32,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 33,
+      "row_index": 33,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "quantity",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 34,
+      "row_index": 34,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 35,
+      "row_index": 35,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 36,
+      "row_index": 36,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "quantity",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 37,
+      "row_index": 37,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 38,
+      "row_index": 38,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 39,
+      "row_index": 39,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "quantity",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 40,
+      "row_index": 40,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 41,
+      "row_index": 41,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 42,
+      "row_index": 42,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 43,
+      "row_index": 43,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "quantity",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 44,
+      "row_index": 44,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 45,
+      "row_index": 45,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 46,
+      "row_index": 46,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "quantity",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 47,
+      "row_index": 47,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 48,
+      "row_index": 48,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 49,
+      "row_index": 49,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "final_amount",
+        "product_id",
+        "quantity",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 50,
+      "row_index": 50,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 51,
+      "row_index": 51,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 52,
+      "row_index": 52,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 53,
+      "row_index": 53,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "quantity",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 54,
+      "row_index": 54,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 55,
+      "row_index": 55,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 56,
+      "row_index": 56,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "final_amount",
+        "product_id",
+        "quantity",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 57,
+      "row_index": 57,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 58,
+      "row_index": 58,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 59,
+      "row_index": 59,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "discount_amount",
+        "final_amount",
+        "product_id",
+        "quantity",
+        "shop_id",
+        "tax_amount",
+        "total_amount",
+        "transaction_id",
+        "unit_price",
+        "user_id"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    }
+  ],
+  "cross_modal": {
+    "enabled": true,
+    "explanation": "Cross-modal integrity checks whether numeric, text, and categorical fields still make sense together. A row can look valid column by column, but still be risky if the relationship between fields is broken.",
+    "baseline_examples": [
+      {
+        "row_id": 0,
+        "values": {
+          "transaction_id": "91001",
+          "user_id": "20101",
+          "product_id": "11001",
+          "shop_id": "501",
+          "quantity": "1",
+          "unit_price": "4500.0"
+        }
+      },
+      {
+        "row_id": 7,
+        "values": {
+          "transaction_id": "91008",
+          "user_id": "20108",
+          "product_id": "11008",
+          "shop_id": "503",
+          "quantity": "2",
+          "unit_price": "5550.0"
+        }
+      },
+      {
+        "row_id": 14,
+        "values": {
+          "transaction_id": "91015",
+          "user_id": "20115",
+          "product_id": "11003",
+          "shop_id": "505",
+          "quantity": "2",
+          "unit_price": "14900.0"
+        }
+      },
+      {
+        "row_id": 21,
+        "values": {
+          "transaction_id": "91022",
+          "user_id": "20122",
+          "product_id": "11010",
+          "shop_id": "502",
+          "quantity": "2",
+          "unit_price": "7650.0"
+        }
+      },
+      {
+        "row_id": 28,
+        "values": {
+          "transaction_id": "91029",
+          "user_id": "20129",
+          "product_id": "11005",
+          "shop_id": "504",
+          "quantity": "1",
+          "unit_price": "6700.0"
+        }
+      }
+    ],
+    "baseline_rules": [],
+    "rows": [
+      {
+        "row_id": 3,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91004",
+          "user_id": "20104",
+          "product_id": "11004",
+          "shop_id": "504",
+          "quantity": "3",
+          "unit_price": "10050.0"
+        }
+      },
+      {
+        "row_id": 6,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91007",
+          "user_id": "20107",
+          "product_id": "11007",
+          "shop_id": "502",
+          "quantity": "4",
+          "unit_price": "7700.0"
+        }
+      },
+      {
+        "row_id": 9,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91010",
+          "user_id": "20110",
+          "product_id": "11010",
+          "shop_id": "505",
+          "quantity": "3",
+          "unit_price": "3900.0"
+        }
+      },
+      {
+        "row_id": 13,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91014",
+          "user_id": "20114",
+          "product_id": "11002",
+          "shop_id": "504",
+          "quantity": "3",
+          "unit_price": "6750.0"
+        }
+      },
+      {
+        "row_id": 16,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91017",
+          "user_id": "20117",
+          "product_id": "11005",
+          "shop_id": "502",
+          "quantity": "4",
+          "unit_price": "8900.0"
+        }
+      },
+      {
+        "row_id": 19,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91020",
+          "user_id": "20120",
+          "product_id": "11008",
+          "shop_id": "505",
+          "quantity": "3",
+          "unit_price": "6350.0"
+        }
+      },
+      {
+        "row_id": 23,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91024",
+          "user_id": "20124",
+          "product_id": "11012",
+          "shop_id": "504",
+          "quantity": "3",
+          "unit_price": "15900.0"
+        }
+      },
+      {
+        "row_id": 26,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91027",
+          "user_id": "20127",
+          "product_id": "11003",
+          "shop_id": "502",
+          "quantity": "4",
+          "unit_price": "7350.0"
+        }
+      },
+      {
+        "row_id": 29,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91030",
+          "user_id": "20130",
+          "product_id": "11006",
+          "shop_id": "505",
+          "quantity": "3",
+          "unit_price": "14850.0"
+        }
+      },
+      {
+        "row_id": 33,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91034",
+          "user_id": "20134",
+          "product_id": "11010",
+          "shop_id": "504",
+          "quantity": "3",
+          "unit_price": "9950.0"
+        }
+      },
+      {
+        "row_id": 36,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91037",
+          "user_id": "20102",
+          "product_id": "11001",
+          "shop_id": "502",
+          "quantity": "4",
+          "unit_price": "7600.0"
+        }
+      },
+      {
+        "row_id": 39,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91040",
+          "user_id": "20105",
+          "product_id": "11004",
+          "shop_id": "505",
+          "quantity": "3",
+          "unit_price": "4000.0"
+        }
+      },
+      {
+        "row_id": 43,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91044",
+          "user_id": "20109",
+          "product_id": "11008",
+          "shop_id": "504",
+          "quantity": "3",
+          "unit_price": "6850.0"
+        }
+      },
+      {
+        "row_id": 46,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91047",
+          "user_id": "20112",
+          "product_id": "11011",
+          "shop_id": "502",
+          "quantity": "4",
+          "unit_price": "9000.0"
+        }
+      },
+      {
+        "row_id": 53,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91054",
+          "user_id": "20119",
+          "product_id": "11006",
+          "shop_id": "504",
+          "quantity": "3",
+          "unit_price": "15800.0"
+        }
+      }
+    ],
+    "summary": {
+      "SAFE": 0,
+      "CONDITIONAL": 15,
+      "QUARANTINED": 0,
+      "pending_review": 15
+    },
+    "human_loop_policy": {
+      "safe": "Auto-pass",
+      "conditional": "Ask human to confirm whether the unusual relationship still makes business sense.",
+      "quarantined": "Block by default and require human override to continue."
+    },
+    "human_review_queue": [
+      {
+        "row_id": 3,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91004",
+          "user_id": "20104",
+          "product_id": "11004",
+          "shop_id": "504",
+          "quantity": "3",
+          "unit_price": "10050.0"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      },
+      {
+        "row_id": 6,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91007",
+          "user_id": "20107",
+          "product_id": "11007",
+          "shop_id": "502",
+          "quantity": "4",
+          "unit_price": "7700.0"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      },
+      {
+        "row_id": 9,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91010",
+          "user_id": "20110",
+          "product_id": "11010",
+          "shop_id": "505",
+          "quantity": "3",
+          "unit_price": "3900.0"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      },
+      {
+        "row_id": 13,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91014",
+          "user_id": "20114",
+          "product_id": "11002",
+          "shop_id": "504",
+          "quantity": "3",
+          "unit_price": "6750.0"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      },
+      {
+        "row_id": 16,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91017",
+          "user_id": "20117",
+          "product_id": "11005",
+          "shop_id": "502",
+          "quantity": "4",
+          "unit_price": "8900.0"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      },
+      {
+        "row_id": 19,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91020",
+          "user_id": "20120",
+          "product_id": "11008",
+          "shop_id": "505",
+          "quantity": "3",
+          "unit_price": "6350.0"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      },
+      {
+        "row_id": 23,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91024",
+          "user_id": "20124",
+          "product_id": "11012",
+          "shop_id": "504",
+          "quantity": "3",
+          "unit_price": "15900.0"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      },
+      {
+        "row_id": 26,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91027",
+          "user_id": "20127",
+          "product_id": "11003",
+          "shop_id": "502",
+          "quantity": "4",
+          "unit_price": "7350.0"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      },
+      {
+        "row_id": 29,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91030",
+          "user_id": "20130",
+          "product_id": "11006",
+          "shop_id": "505",
+          "quantity": "3",
+          "unit_price": "14850.0"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      },
+      {
+        "row_id": 33,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91034",
+          "user_id": "20134",
+          "product_id": "11010",
+          "shop_id": "504",
+          "quantity": "3",
+          "unit_price": "9950.0"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      },
+      {
+        "row_id": 36,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91037",
+          "user_id": "20102",
+          "product_id": "11001",
+          "shop_id": "502",
+          "quantity": "4",
+          "unit_price": "7600.0"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      },
+      {
+        "row_id": 39,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91040",
+          "user_id": "20105",
+          "product_id": "11004",
+          "shop_id": "505",
+          "quantity": "3",
+          "unit_price": "4000.0"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      },
+      {
+        "row_id": 43,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91044",
+          "user_id": "20109",
+          "product_id": "11008",
+          "shop_id": "504",
+          "quantity": "3",
+          "unit_price": "6850.0"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      },
+      {
+        "row_id": 46,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91047",
+          "user_id": "20112",
+          "product_id": "11011",
+          "shop_id": "502",
+          "quantity": "4",
+          "unit_price": "9000.0"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      },
+      {
+        "row_id": 53,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "transaction_id": "91054",
+          "user_id": "20119",
+          "product_id": "11006",
+          "shop_id": "504",
+          "quantity": "3",
+          "unit_price": "15800.0"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      }
+    ]
+  },
+  "human_review_queue": [
+    {
+      "row_id": 3,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "transaction_id": "91004",
+        "user_id": "20104",
+        "product_id": "11004",
+        "shop_id": "504",
+        "quantity": "3",
+        "unit_price": "10050.0"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    },
+    {
+      "row_id": 6,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "transaction_id": "91007",
+        "user_id": "20107",
+        "product_id": "11007",
+        "shop_id": "502",
+        "quantity": "4",
+        "unit_price": "7700.0"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    },
+    {
+      "row_id": 9,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "transaction_id": "91010",
+        "user_id": "20110",
+        "product_id": "11010",
+        "shop_id": "505",
+        "quantity": "3",
+        "unit_price": "3900.0"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    },
+    {
+      "row_id": 13,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "transaction_id": "91014",
+        "user_id": "20114",
+        "product_id": "11002",
+        "shop_id": "504",
+        "quantity": "3",
+        "unit_price": "6750.0"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    },
+    {
+      "row_id": 16,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "transaction_id": "91017",
+        "user_id": "20117",
+        "product_id": "11005",
+        "shop_id": "502",
+        "quantity": "4",
+        "unit_price": "8900.0"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    },
+    {
+      "row_id": 19,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "transaction_id": "91020",
+        "user_id": "20120",
+        "product_id": "11008",
+        "shop_id": "505",
+        "quantity": "3",
+        "unit_price": "6350.0"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    },
+    {
+      "row_id": 23,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "transaction_id": "91024",
+        "user_id": "20124",
+        "product_id": "11012",
+        "shop_id": "504",
+        "quantity": "3",
+        "unit_price": "15900.0"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    },
+    {
+      "row_id": 26,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "transaction_id": "91027",
+        "user_id": "20127",
+        "product_id": "11003",
+        "shop_id": "502",
+        "quantity": "4",
+        "unit_price": "7350.0"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    },
+    {
+      "row_id": 29,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "transaction_id": "91030",
+        "user_id": "20130",
+        "product_id": "11006",
+        "shop_id": "505",
+        "quantity": "3",
+        "unit_price": "14850.0"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    },
+    {
+      "row_id": 33,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "transaction_id": "91034",
+        "user_id": "20134",
+        "product_id": "11010",
+        "shop_id": "504",
+        "quantity": "3",
+        "unit_price": "9950.0"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    },
+    {
+      "row_id": 36,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "transaction_id": "91037",
+        "user_id": "20102",
+        "product_id": "11001",
+        "shop_id": "502",
+        "quantity": "4",
+        "unit_price": "7600.0"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    },
+    {
+      "row_id": 39,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "transaction_id": "91040",
+        "user_id": "20105",
+        "product_id": "11004",
+        "shop_id": "505",
+        "quantity": "3",
+        "unit_price": "4000.0"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    },
+    {
+      "row_id": 43,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "transaction_id": "91044",
+        "user_id": "20109",
+        "product_id": "11008",
+        "shop_id": "504",
+        "quantity": "3",
+        "unit_price": "6850.0"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    },
+    {
+      "row_id": 46,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "transaction_id": "91047",
+        "user_id": "20112",
+        "product_id": "11011",
+        "shop_id": "502",
+        "quantity": "4",
+        "unit_price": "9000.0"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    },
+    {
+      "row_id": 53,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "transaction_id": "91054",
+        "user_id": "20119",
+        "product_id": "11006",
+        "shop_id": "504",
+        "quantity": "3",
+        "unit_price": "15800.0"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    }
+  ],
+  "learned_scores": {
+    "features": {
+      "internal_mean_distance": 0.0,
+      "external_mean_distance": 0.0,
+      "text_embedding_distance": 1.0,
+      "anchor_violation_score": 0.0,
+      "scale_mismatch_score": 0.0,
+      "numeric_std_ratio": 0.0,
+      "categorical_entropy_ratio": 0.44766322235399186,
+      "minority_scale_ratio": 0.0,
+      "text_similarity_to_internal": 0.0,
+      "text_similarity_to_external": 0.0,
+      "semantic_coherence_score": 1.0,
+      "column_count_diff": 0,
+      "new_column_ratio": 0.0,
+      "missing_column_ratio": 0.0,
+      "max_column_drift": 1.0
+    },
+    "probabilities": {
+      "CONDITIONAL": 0.9858805638305352,
+      "QUARANTINED": 0.005096539643677118,
+      "SAFE": 0.009022896525787619
+    },
+    "confidence": 0.9858805638305352,
+    "feature_importance": {
+      "internal_mean_distance": 0.9304989712046242,
+      "external_mean_distance": 0.7084129858522581,
+      "text_embedding_distance": 0.31572494683739366,
+      "anchor_violation_score": 0.19707282347572402,
+      "scale_mismatch_score": 0.06839583124922696,
+      "numeric_std_ratio": 0.2077928853333762,
+      "categorical_entropy_ratio": 0.026183834211265324,
+      "minority_scale_ratio": 0.1011210403286203,
+      "text_similarity_to_internal": 0.38398488604032344,
+      "text_similarity_to_external": 0.4980296231171589,
+      "semantic_coherence_score": 0.14916284492190654,
+      "column_count_diff": 0.0,
+      "new_column_ratio": 0.006043824470973655,
+      "missing_column_ratio": 0.06857228913456773,
+      "max_column_drift": 0.5523481851702939
+    },
+    "model_info": {
+      "status": "trained",
+      "classes": [
+        "CONDITIONAL",
+        "QUARANTINED",
+        "SAFE"
+      ],
+      "feature_count": 15,
+      "features": [
+        "internal_mean_distance",
+        "external_mean_distance",
+        "text_embedding_distance",
+        "anchor_violation_score",
+        "scale_mismatch_score",
+        "numeric_std_ratio",
+        "categorical_entropy_ratio",
+        "minority_scale_ratio",
+        "text_similarity_to_internal",
+        "text_similarity_to_external",
+        "semantic_coherence_score",
+        "column_count_diff",
+        "new_column_ratio",
+        "missing_column_ratio",
+        "max_column_drift"
+      ],
+      "model_type": "LogisticRegression",
+      "model_path": "C:\\Users\\file\\Documents\\GitHub\\StylesenseSL\\backend\\src\\services\\agentic_ai\\featureops\\models\\drift_triage_model.joblib",
+      "coefficients": {
+        "internal_mean_distance": 0.9304989712046242,
+        "external_mean_distance": -0.7084129858522581,
+        "text_embedding_distance": 0.31572494683739366,
+        "anchor_violation_score": -0.19707282347572402,
+        "scale_mismatch_score": -0.06839583124922696,
+        "numeric_std_ratio": 0.2077928853333762,
+        "categorical_entropy_ratio": 0.026183834211265324,
+        "minority_scale_ratio": -0.1011210403286203,
+        "text_similarity_to_internal": -0.38398488604032344,
+        "text_similarity_to_external": 0.4980296231171589,
+        "semantic_coherence_score": -0.14916284492190654,
+        "column_count_diff": 0.0,
+        "new_column_ratio": -0.006043824470973655,
+        "missing_column_ratio": -0.06857228913456773,
+        "max_column_drift": 0.5523481851702939
+      }
+    }
+  },
+  "release_summary": {
+    "SAFE": 3,
+    "CONDITIONAL": 0,
+    "QUARANTINED": 16
+  },
+  "final_label": "CONDITIONAL",
+  "overall_drift_score": 0.49803682155894474,
+  "confidence": 0.9858805638305352,
+  "severity": "moderate",
+  "reasons": [
+    "Internal alignment score: 100.0%",
+    "External alignment score: 0.0%",
+    "Relational integrity: 100.0%",
+    "60 of 60 rows align with the market baseline better than internal history."
+  ],
+  "affected_columns": [
+    "delivery_address",
+    "delivery_date",
+    "discount_amount",
+    "final_amount",
+    "notes",
+    "payment_method",
+    "product_id",
+    "shop_id",
+    "tax_amount",
+    "total_amount",
+    "transaction_date",
+    "transaction_id",
+    "transaction_status",
+    "transaction_ts",
+    "unit_price",
+    "user_id"
+  ]
+}

@@ -1,4 +1,6 @@
 pytest
+numpy
+scikit-learn
 pandas
 fastapi
 python-multipart
@@ -9,6 +11,8 @@ google-auth
 requests
 chromadb
 sentence-transformers
+# sentence-transformers: optional semantic similarity for drift (embedding_service); TF-IDF fallback if unavailable.
+# No custom fine-tuning required for v1 — compare baseline vs detected meaning strings only.
 beautifulsoup4
 extruct
 w3lib

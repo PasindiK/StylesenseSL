@@ -1,0 +1,1280 @@
+{
+  "version_id": "fashion_trends_v2",
+  "dataset_family_id": "fashion_trends",
+  "version_number": 2,
+  "dataset_name": "trend_semantic_drift_test_dataset.csv",
+  "file_name": "trend_semantic_drift_test_dataset.csv",
+  "family_name": null,
+  "family_id": "fashion_trends",
+  "description": null,
+  "version_note": "Semantic drift follow-up version",
+  "created_at": "2026-05-03T20:52:43.514Z",
+  "row_count": 10,
+  "column_count": 8,
+  "column_names": [
+    "trend_id",
+    "trend_name",
+    "trend_category",
+    "trend_score",
+    "week",
+    "year",
+    "emerging_designers",
+    "trend_tags"
+  ],
+  "dataset_rows": [
+    {
+      "trend_id": "309",
+      "trend_name": "Quiet luxury capsule",
+      "trend_category": "premium_segment",
+      "trend_score": "4.6",
+      "week": "19",
+      "year": "2026",
+      "emerging_designers": "DSG-014;DSG-088",
+      "trend_tags": "views=18400|ctr=0.31|social=positive"
+    },
+    {
+      "trend_id": "310",
+      "trend_name": "Gen Z thrift drop",
+      "trend_category": "customer_segment",
+      "trend_score": "3.9",
+      "week": "19",
+      "year": "2026",
+      "emerging_designers": "DSG-102;DSG-117",
+      "trend_tags": "views=15650|ctr=0.27|social=neutral"
+    },
+    {
+      "trend_id": "311",
+      "trend_name": "Office core refresh",
+      "trend_category": "campaign_type",
+      "trend_score": "4.2",
+      "week": "20",
+      "year": "2026",
+      "emerging_designers": "DSG-021",
+      "trend_tags": "views=12980|ctr=0.22|social=positive"
+    },
+    {
+      "trend_id": "312",
+      "trend_name": "Rain-ready commute",
+      "trend_category": "weather_trigger",
+      "trend_score": "2.8",
+      "week": "20",
+      "year": "2026",
+      "emerging_designers": "DSG-055;DSG-067",
+      "trend_tags": "views=9700|ctr=0.18|social=negative"
+    },
+    {
+      "trend_id": "313",
+      "trend_name": "Festival color story",
+      "trend_category": "campaign_type",
+      "trend_score": "4.8",
+      "week": "21",
+      "year": "2026",
+      "emerging_designers": "DSG-071",
+      "trend_tags": "views=21100|ctr=0.36|social=positive"
+    },
+    {
+      "trend_id": "314",
+      "trend_name": "Resort linen bundle",
+      "trend_category": "premium_segment",
+      "trend_score": "4.1",
+      "week": "21",
+      "year": "2026",
+      "emerging_designers": "DSG-014;DSG-033",
+      "trend_tags": "views=14330|ctr=0.25|social=positive"
+    },
+    {
+      "trend_id": "315",
+      "trend_name": "Back-to-campus edits",
+      "trend_category": "customer_segment",
+      "trend_score": "3.4",
+      "week": "22",
+      "year": "2026",
+      "emerging_designers": "DSG-118",
+      "trend_tags": "views=11120|ctr=0.19|social=neutral"
+    },
+    {
+      "trend_id": "316",
+      "trend_name": "Flash sale denim",
+      "trend_category": "discount_campaign",
+      "trend_score": "2.2",
+      "week": "22",
+      "year": "2026",
+      "emerging_designers": "DSG-205;DSG-207",
+      "trend_tags": "views=8800|ctr=0.14|social=negative"
+    },
+    {
+      "trend_id": "317",
+      "trend_name": "Influencer modestwear",
+      "trend_category": "influencer_theme",
+      "trend_score": "4.5",
+      "week": "23",
+      "year": "2026",
+      "emerging_designers": "DSG-140",
+      "trend_tags": "views=17640|ctr=0.29|social=positive"
+    },
+    {
+      "trend_id": "318",
+      "trend_name": "Beach wedding edits",
+      "trend_category": "event_theme",
+      "trend_score": "3.7",
+      "week": "23",
+      "year": "2026",
+      "emerging_designers": "DSG-188;DSG-190",
+      "trend_tags": "views=13210|ctr=0.24|social=neutral"
+    }
+  ],
+  "dataset_fingerprint": {
+    "column_names": [
+      "trend_id",
+      "trend_name",
+      "trend_category",
+      "trend_score",
+      "week",
+      "year",
+      "emerging_designers",
+      "trend_tags"
+    ],
+    "roles": [
+      "Identifier",
+      "Text Attribute",
+      "Text Attribute",
+      "Score / Rating",
+      "Numeric Measure",
+      "Numeric Measure",
+      "Unknown / Unmapped",
+      "Text Attribute"
+    ],
+    "types": [
+      "numeric",
+      "text",
+      "text",
+      "numeric",
+      "numeric",
+      "numeric",
+      "text",
+      "text"
+    ],
+    "scale_patterns": [
+      "count",
+      "unknown",
+      "unknown",
+      "0-100",
+      "0-100",
+      "count",
+      "unknown",
+      "unknown"
+    ],
+    "important_columns": [
+      "trend_id",
+      "trend_score"
+    ]
+  },
+  "column_profiles": [
+    {
+      "column_name": "trend_id",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": 309,
+      "max": 318,
+      "mean": 313.5,
+      "std": 2.8722813232690143,
+      "sample_values": [
+        "309",
+        "310",
+        "311",
+        "312"
+      ],
+      "row_count": 10,
+      "column_count": 8,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0,
+      "avg_string_length": 3,
+      "outlier_percent": 0,
+      "scale_pattern": "count",
+      "value_pattern": "count",
+      "nullable": false,
+      "detected_unit": "count",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "trend_name",
+      "inferred_type": "text",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "Quiet luxury capsule",
+        "Gen Z thrift drop",
+        "Office core refresh",
+        "Rain-ready commute"
+      ],
+      "row_count": 10,
+      "column_count": 8,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 18.9,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "trend_category",
+      "inferred_type": "text",
+      "missing_percent": 0,
+      "unique_percent": 0.7,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "premium_segment",
+        "customer_segment",
+        "campaign_type",
+        "weather_trigger"
+      ],
+      "row_count": 10,
+      "column_count": 8,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 14.7,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "trend_score",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": 2.2,
+      "max": 4.8,
+      "mean": 3.8200000000000003,
+      "std": 0.782048591840686,
+      "sample_values": [
+        "4.6",
+        "3.9",
+        "4.2",
+        "2.8"
+      ],
+      "row_count": 10,
+      "column_count": 8,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 3,
+      "outlier_percent": 0,
+      "scale_pattern": "0-100",
+      "value_pattern": "0-100",
+      "nullable": false,
+      "detected_unit": "probability-like score",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "week",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 0.5,
+      "min": 19,
+      "max": 23,
+      "mean": 21,
+      "std": 1.4142135623730951,
+      "sample_values": [
+        "19",
+        "19",
+        "20",
+        "20"
+      ],
+      "row_count": 10,
+      "column_count": 8,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0,
+      "avg_string_length": 2,
+      "outlier_percent": 0,
+      "scale_pattern": "0-100",
+      "value_pattern": "0-100",
+      "nullable": false,
+      "detected_unit": "percentage",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "year",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 0.1,
+      "min": 2026,
+      "max": 2026,
+      "mean": 2026,
+      "std": 0,
+      "sample_values": [
+        "2026",
+        "2026",
+        "2026",
+        "2026"
+      ],
+      "row_count": 10,
+      "column_count": 8,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0,
+      "avg_string_length": 4,
+      "outlier_percent": 0,
+      "scale_pattern": "count",
+      "value_pattern": "count",
+      "nullable": false,
+      "detected_unit": "count",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "emerging_designers",
+      "inferred_type": "text",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "DSG-014;DSG-088",
+        "DSG-102;DSG-117",
+        "DSG-021",
+        "DSG-055;DSG-067"
+      ],
+      "row_count": 10,
+      "column_count": 8,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 11.8,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "trend_tags",
+      "inferred_type": "text",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "views=18400|ctr=0.31|social=positive",
+        "views=15650|ctr=0.27|social=neutral",
+        "views=12980|ctr=0.22|social=positive",
+        "views=9700|ctr=0.18|social=negative"
+      ],
+      "row_count": 10,
+      "column_count": 8,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 35.5,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    }
+  ],
+  "semantic_profiles": [
+    {
+      "column_name": "trend_id",
+      "approved_or_detected_meaning": "trend_id record identifier",
+      "generic_role": "Identifier",
+      "expected_scale": "count",
+      "detected_scale": "count",
+      "expected_unit": "count",
+      "detected_unit": "count",
+      "value_direction": "neutral",
+      "source_columns": [
+        "trend_id"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "identifier|count|count"
+    },
+    {
+      "column_name": "trend_name",
+      "approved_or_detected_meaning": "trend_name text attribute",
+      "generic_role": "Text Attribute",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "trend_name"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "text_attribute|unknown|unitless"
+    },
+    {
+      "column_name": "trend_category",
+      "approved_or_detected_meaning": "trend_category text attribute",
+      "generic_role": "Text Attribute",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "trend_category"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "text_attribute|unknown|unitless"
+    },
+    {
+      "column_name": "trend_score",
+      "approved_or_detected_meaning": "trend_score scored indicator",
+      "generic_role": "Score / Rating",
+      "expected_scale": "0-100",
+      "detected_scale": "0-100",
+      "expected_unit": "probability-like score",
+      "detected_unit": "probability-like score",
+      "value_direction": "higher means stronger score",
+      "source_columns": [
+        "trend_score"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "score_/_rating|0-100|probability-like_score"
+    },
+    {
+      "column_name": "week",
+      "approved_or_detected_meaning": "week numeric measure",
+      "generic_role": "Numeric Measure",
+      "expected_scale": "0-100",
+      "detected_scale": "0-100",
+      "expected_unit": "percentage",
+      "detected_unit": "percentage",
+      "value_direction": "neutral",
+      "source_columns": [
+        "week"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "numeric_measure|0-100|percentage"
+    },
+    {
+      "column_name": "year",
+      "approved_or_detected_meaning": "year numeric measure",
+      "generic_role": "Numeric Measure",
+      "expected_scale": "count",
+      "detected_scale": "count",
+      "expected_unit": "count",
+      "detected_unit": "count",
+      "value_direction": "neutral",
+      "source_columns": [
+        "year"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "numeric_measure|count|count"
+    },
+    {
+      "column_name": "emerging_designers",
+      "approved_or_detected_meaning": "emerging_designers numeric measure",
+      "generic_role": "Unknown / Unmapped",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "emerging_designers"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "unknown_/_unmapped|unknown|unitless"
+    },
+    {
+      "column_name": "trend_tags",
+      "approved_or_detected_meaning": "trend_tags text attribute",
+      "generic_role": "Text Attribute",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "trend_tags"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "text_attribute|unknown|unitless"
+    }
+  ],
+  "internal_drift_results": [
+    {
+      "column_name": "trend_id",
+      "compared_by": "trend_id (identifier consistency)",
+      "segment_summaries": [
+        {
+          "segment": "309",
+          "scale": "count",
+          "mean": 309,
+          "unique_percent": 1
+        },
+        {
+          "segment": "310",
+          "scale": "count",
+          "mean": 310,
+          "unique_percent": 1
+        },
+        {
+          "segment": "311",
+          "scale": "count",
+          "mean": 311,
+          "unique_percent": 1
+        },
+        {
+          "segment": "312",
+          "scale": "count",
+          "mean": 312,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Identifier pattern, missingness, and uniqueness stay consistent across segments."
+      ],
+      "explanation": "Identifier pattern and coverage are stable across the dataset.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "trend_name",
+      "compared_by": "trend_id",
+      "segment_summaries": [
+        {
+          "segment": "309",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "310",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "311",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "312",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "trend_category",
+      "compared_by": "trend_id",
+      "segment_summaries": [
+        {
+          "segment": "309",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "310",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "311",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "312",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "trend_score",
+      "compared_by": "trend_id",
+      "segment_summaries": [
+        {
+          "segment": "309",
+          "scale": "0-100",
+          "mean": 4.6,
+          "unique_percent": 1
+        },
+        {
+          "segment": "310",
+          "scale": "0-100",
+          "mean": 3.9,
+          "unique_percent": 1
+        },
+        {
+          "segment": "311",
+          "scale": "0-100",
+          "mean": 4.2,
+          "unique_percent": 1
+        },
+        {
+          "segment": "312",
+          "scale": "0-100",
+          "mean": 2.8,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "MODERATE",
+      "evidence": [
+        "Segment mean spread is 1.80."
+      ],
+      "explanation": "The column shows noticeable internal movement, but likely keeps the same meaning.",
+      "recommended_action": "Review the column before release."
+    },
+    {
+      "column_name": "week",
+      "compared_by": "trend_id",
+      "segment_summaries": [
+        {
+          "segment": "309",
+          "scale": "0-100",
+          "mean": 19,
+          "unique_percent": 1
+        },
+        {
+          "segment": "310",
+          "scale": "0-100",
+          "mean": 19,
+          "unique_percent": 1
+        },
+        {
+          "segment": "311",
+          "scale": "0-100",
+          "mean": 20,
+          "unique_percent": 1
+        },
+        {
+          "segment": "312",
+          "scale": "0-100",
+          "mean": 20,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "year",
+      "compared_by": "trend_id",
+      "segment_summaries": [
+        {
+          "segment": "309",
+          "scale": "count",
+          "mean": 2026,
+          "unique_percent": 1
+        },
+        {
+          "segment": "310",
+          "scale": "count",
+          "mean": 2026,
+          "unique_percent": 1
+        },
+        {
+          "segment": "311",
+          "scale": "count",
+          "mean": 2026,
+          "unique_percent": 1
+        },
+        {
+          "segment": "312",
+          "scale": "count",
+          "mean": 2026,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "emerging_designers",
+      "compared_by": "trend_id",
+      "segment_summaries": [
+        {
+          "segment": "309",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "310",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "311",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "312",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "trend_tags",
+      "compared_by": "trend_id",
+      "segment_summaries": [
+        {
+          "segment": "309",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "310",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "311",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "312",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    }
+  ],
+  "external_drift_results": [
+    {
+      "column_name": "trend_id",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "trend_id record identifier (count)",
+      "current_detected_meaning": "trend_id record identifier (count)",
+      "drift_severity": "NONE",
+      "evidence": [
+        "Meaning, scale, and unit remain aligned with the baseline."
+      ],
+      "explanation": "No external semantic drift detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "trend_name",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "trend_name text attribute (unknown)",
+      "current_detected_meaning": "trend_name text attribute (unknown)",
+      "drift_severity": "NONE",
+      "evidence": [
+        "Meaning, scale, and unit remain aligned with the baseline."
+      ],
+      "explanation": "No external semantic drift detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "trend_category",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "trend_category numeric measure (unknown)",
+      "current_detected_meaning": "trend_category text attribute (unknown)",
+      "drift_severity": "HIGH",
+      "evidence": [
+        "Role changed from Unknown / Unmapped to Text Attribute."
+      ],
+      "explanation": "A semantic meaning, scale, or unit change was detected against the selected baseline.",
+      "recommended_action": "Quarantine or transform current values back to the expected baseline meaning."
+    },
+    {
+      "column_name": "trend_score",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "trend_score scored indicator (0-1)",
+      "current_detected_meaning": "trend_score scored indicator (0-100)",
+      "drift_severity": "HIGH",
+      "evidence": [
+        "Scale changed from 0-1 to 0-100."
+      ],
+      "explanation": "A semantic meaning, scale, or unit change was detected against the selected baseline.",
+      "recommended_action": "Quarantine or transform current values back to the expected baseline meaning."
+    },
+    {
+      "column_name": "week",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "week numeric measure (0-100)",
+      "current_detected_meaning": "week numeric measure (0-100)",
+      "drift_severity": "NONE",
+      "evidence": [
+        "Meaning, scale, and unit remain aligned with the baseline."
+      ],
+      "explanation": "No external semantic drift detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "year",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "year numeric measure (count)",
+      "current_detected_meaning": "year numeric measure (count)",
+      "drift_severity": "NONE",
+      "evidence": [
+        "Meaning, scale, and unit remain aligned with the baseline."
+      ],
+      "explanation": "No external semantic drift detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "emerging_designers",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "emerging_designers text attribute (unknown)",
+      "current_detected_meaning": "emerging_designers numeric measure (unknown)",
+      "drift_severity": "HIGH",
+      "evidence": [
+        "Role changed from Text Attribute to Unknown / Unmapped."
+      ],
+      "explanation": "A semantic meaning, scale, or unit change was detected against the selected baseline.",
+      "recommended_action": "Quarantine or transform current values back to the expected baseline meaning."
+    },
+    {
+      "column_name": "trend_tags",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "trend_tags text attribute (unknown)",
+      "current_detected_meaning": "trend_tags text attribute (unknown)",
+      "drift_severity": "NONE",
+      "evidence": [
+        "Meaning, scale, and unit remain aligned with the baseline."
+      ],
+      "explanation": "No external semantic drift detected.",
+      "recommended_action": "No action needed."
+    }
+  ],
+  "statistical_drift_results": [
+    {
+      "column_name": "trend_id",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "numeric",
+      "drift_severity": "HIGH",
+      "score": 0.9,
+      "evidence": [
+        "Observed value range changed noticeably.",
+        "Distribution changed materially (distance 0.90)."
+      ],
+      "explanation": "Numeric distribution changed materially against the selected baseline.",
+      "recommended_action": "Investigate the distribution shift before release."
+    },
+    {
+      "column_name": "trend_name",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "categorical",
+      "drift_severity": "HIGH",
+      "score": 1,
+      "evidence": [
+        "New categories appeared in 100.0% of rows.",
+        "Baseline categories disappeared in 100.0% of rows.",
+        "Category distribution changed materially (distance 1.00)."
+      ],
+      "explanation": "Categorical distribution changed materially against the selected baseline.",
+      "recommended_action": "Inspect category churn and baseline alignment before release."
+    },
+    {
+      "column_name": "trend_category",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "categorical",
+      "drift_severity": "HIGH",
+      "score": 1,
+      "evidence": [
+        "New categories appeared in 100.0% of rows.",
+        "Baseline categories disappeared in 100.0% of rows.",
+        "Category distribution changed materially (distance 1.00)."
+      ],
+      "explanation": "Categorical distribution changed materially against the selected baseline.",
+      "recommended_action": "Inspect category churn and baseline alignment before release."
+    },
+    {
+      "column_name": "trend_score",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "numeric",
+      "drift_severity": "HIGH",
+      "score": 1,
+      "evidence": [
+        "Mean shifted from 0.72 to 3.82.",
+        "Spread shifted slightly from 0.07 to 0.78.",
+        "Observed value range changed noticeably.",
+        "Distribution changed materially (distance 1.00)."
+      ],
+      "explanation": "Numeric distribution changed materially against the selected baseline.",
+      "recommended_action": "Investigate the distribution shift before release."
+    },
+    {
+      "column_name": "week",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "numeric",
+      "drift_severity": "HIGH",
+      "score": 1,
+      "evidence": [
+        "Mean shifted moderately from 16.00 to 21.00.",
+        "Observed value range changed noticeably.",
+        "Distribution changed materially (distance 1.00)."
+      ],
+      "explanation": "Numeric distribution changed materially against the selected baseline.",
+      "recommended_action": "Investigate the distribution shift before release."
+    },
+    {
+      "column_name": "year",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "numeric",
+      "drift_severity": "NONE",
+      "score": 0.05,
+      "evidence": [
+        "Numeric distribution remains aligned with the baseline."
+      ],
+      "explanation": "No statistical drift detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "trend_tags",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "categorical",
+      "drift_severity": "HIGH",
+      "score": 1,
+      "evidence": [
+        "New categories appeared in 100.0% of rows.",
+        "Baseline categories disappeared in 100.0% of rows.",
+        "Category distribution changed materially (distance 1.00)."
+      ],
+      "explanation": "Categorical distribution changed materially against the selected baseline.",
+      "recommended_action": "Inspect category churn and baseline alignment before release."
+    }
+  ],
+  "behavioral_drift_results": [
+    {
+      "column_name": "trend_id",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "READY",
+      "current_release_status": "QUARANTINED",
+      "release_status_delta": 2,
+      "drift_severity": "HIGH",
+      "evidence": [
+        "Release status changed from READY to QUARANTINED.",
+        "1 additional critical failure appeared."
+      ],
+      "explanation": "Downstream release behavior changed materially against the baseline.",
+      "recommended_action": "Review the downstream impact before promotion."
+    },
+    {
+      "column_name": "trend_name",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "READY",
+      "current_release_status": "QUARANTINED",
+      "release_status_delta": 2,
+      "drift_severity": "HIGH",
+      "evidence": [
+        "Release status changed from READY to QUARANTINED.",
+        "1 additional critical failure appeared."
+      ],
+      "explanation": "Downstream release behavior changed materially against the baseline.",
+      "recommended_action": "Review the downstream impact before promotion."
+    },
+    {
+      "column_name": "trend_category",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "CONDITIONAL",
+      "current_release_status": "QUARANTINED",
+      "release_status_delta": 1,
+      "drift_severity": "MODERATE",
+      "evidence": [
+        "Release status changed from CONDITIONAL to QUARANTINED.",
+        "1 additional critical failure appeared."
+      ],
+      "explanation": "Downstream release behavior changed enough to review.",
+      "recommended_action": "Check why the release status changed."
+    },
+    {
+      "column_name": "trend_score",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "READY",
+      "current_release_status": "QUARANTINED",
+      "release_status_delta": 2,
+      "drift_severity": "HIGH",
+      "evidence": [
+        "Release status changed from READY to QUARANTINED.",
+        "1 additional critical failure appeared."
+      ],
+      "explanation": "Downstream release behavior changed materially against the baseline.",
+      "recommended_action": "Review the downstream impact before promotion."
+    },
+    {
+      "column_name": "week",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "READY",
+      "current_release_status": "QUARANTINED",
+      "release_status_delta": 2,
+      "drift_severity": "HIGH",
+      "evidence": [
+        "Release status changed from READY to QUARANTINED.",
+        "1 additional critical failure appeared."
+      ],
+      "explanation": "Downstream release behavior changed materially against the baseline.",
+      "recommended_action": "Review the downstream impact before promotion."
+    },
+    {
+      "column_name": "year",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "READY",
+      "current_release_status": "READY",
+      "release_status_delta": 0,
+      "drift_severity": "NONE",
+      "evidence": [
+        "Release behavior remains aligned with the baseline."
+      ],
+      "explanation": "No behavioral drift detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "emerging_designers",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "READY",
+      "current_release_status": "QUARANTINED",
+      "release_status_delta": 2,
+      "drift_severity": "HIGH",
+      "evidence": [
+        "Release status changed from READY to QUARANTINED.",
+        "2 additional warnings appeared."
+      ],
+      "explanation": "Downstream release behavior changed materially against the baseline.",
+      "recommended_action": "Review the downstream impact before promotion."
+    },
+    {
+      "column_name": "trend_tags",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "READY",
+      "current_release_status": "QUARANTINED",
+      "release_status_delta": 2,
+      "drift_severity": "HIGH",
+      "evidence": [
+        "Release status changed from READY to QUARANTINED.",
+        "1 additional critical failure appeared."
+      ],
+      "explanation": "Downstream release behavior changed materially against the baseline.",
+      "recommended_action": "Review the downstream impact before promotion."
+    }
+  ],
+  "release_results": [
+    {
+      "column_name": "trend_id",
+      "role": "Identifier",
+      "validation_status": "FAIL",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "HIGH",
+      "behavioral_drift_severity": "HIGH",
+      "release_status": "QUARANTINED",
+      "critical_failures": [
+        "High statistical drift",
+        "High behavioral drift"
+      ],
+      "warnings": [],
+      "explanation": "High statistical drift.",
+      "recommended_action": "Quarantine until the semantic issue is resolved."
+    },
+    {
+      "column_name": "trend_name",
+      "role": "Text Attribute",
+      "validation_status": "FAIL",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "HIGH",
+      "behavioral_drift_severity": "HIGH",
+      "release_status": "QUARANTINED",
+      "critical_failures": [
+        "High statistical drift",
+        "High behavioral drift"
+      ],
+      "warnings": [],
+      "explanation": "High statistical drift.",
+      "recommended_action": "Quarantine until the semantic issue is resolved."
+    },
+    {
+      "column_name": "trend_category",
+      "role": "Text Attribute",
+      "validation_status": "FAIL",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "HIGH",
+      "statistical_drift_severity": "HIGH",
+      "behavioral_drift_severity": "MODERATE",
+      "release_status": "QUARANTINED",
+      "critical_failures": [
+        "High statistical drift"
+      ],
+      "warnings": [
+        "Moderate behavioral drift"
+      ],
+      "explanation": "High statistical drift.",
+      "recommended_action": "Quarantine until the semantic issue is resolved."
+    },
+    {
+      "column_name": "trend_score",
+      "role": "Score / Rating",
+      "validation_status": "FAIL",
+      "internal_drift_severity": "MODERATE",
+      "external_drift_severity": "HIGH",
+      "statistical_drift_severity": "HIGH",
+      "behavioral_drift_severity": "HIGH",
+      "release_status": "QUARANTINED",
+      "critical_failures": [
+        "High statistical drift",
+        "High behavioral drift"
+      ],
+      "warnings": [],
+      "explanation": "High statistical drift.",
+      "recommended_action": "Quarantine until the semantic issue is resolved."
+    },
+    {
+      "column_name": "week",
+      "role": "Numeric Measure",
+      "validation_status": "FAIL",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "HIGH",
+      "behavioral_drift_severity": "HIGH",
+      "release_status": "QUARANTINED",
+      "critical_failures": [
+        "High statistical drift",
+        "High behavioral drift"
+      ],
+      "warnings": [],
+      "explanation": "High statistical drift.",
+      "recommended_action": "Quarantine until the semantic issue is resolved."
+    },
+    {
+      "column_name": "year",
+      "role": "Numeric Measure",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "emerging_designers",
+      "role": "Unknown / Unmapped",
+      "validation_status": "FAIL",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "HIGH",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "HIGH",
+      "release_status": "QUARANTINED",
+      "critical_failures": [
+        "High behavioral drift"
+      ],
+      "warnings": [
+        "Weak role confidence",
+        "Unknown columns should stay in profiling-only mode"
+      ],
+      "explanation": "High behavioral drift.",
+      "recommended_action": "Quarantine until the semantic issue is resolved."
+    },
+    {
+      "column_name": "trend_tags",
+      "role": "Text Attribute",
+      "validation_status": "FAIL",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "HIGH",
+      "behavioral_drift_severity": "HIGH",
+      "release_status": "QUARANTINED",
+      "critical_failures": [
+        "High statistical drift",
+        "High behavioral drift"
+      ],
+      "warnings": [],
+      "explanation": "High statistical drift.",
+      "recommended_action": "Quarantine until the semantic issue is resolved."
+    }
+  ]
+}

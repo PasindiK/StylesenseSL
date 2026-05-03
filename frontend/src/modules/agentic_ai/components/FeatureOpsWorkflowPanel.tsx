@@ -2,18 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { getAgenticApiBase } from '../../../lib/agenticApiBase'
 import '../../data_fabric/components/DataFabricTestingPage.css'
 import './FeatureOpsWorkflowPanel.css'
-import { detectInternalDrift, detectExternalDrift, mapBackendSignalsToUIResults, detectDriftFull, getOrchestratorStats, getPredefinedBaselines, setOrchestratorBaseline } from '../../../services/driftApi'
-import {
-  ProfilerResults,
-  DriftExplanation,
-  RowLevelDrift,
-  ReleaseGate,
-  TwinBaselineComparison,
-  TriageMatrixCard,
-  RelationalAnchorsCard,
-  LearnedScoresChart,
-} from './phase4'
-
+import { FeatureOpsDatasetHistoryTables } from './FeatureOpsDatasetHistoryTables'
+import { detectInternalDrift, detectExternalDrift, mapBackendSignalsToUIResults, detectDriftFull, getPredefinedBaselines, setOrchestratorBaseline } from '../../../services/driftApi'
 type DatasetValue = string | number | boolean | null
 type DatasetRow = Record<string, DatasetValue>
 type InferredType = 'numeric' | 'datetime' | 'boolean' | 'text' | 'mixed' | 'unknown'
@@ -158,6 +148,9 @@ type FamilyRecord = {
   approved_baseline_version?: number
   version_count?: number
   baseline_status: string
+  /** Synthetic row: data-architecture predefined baseline not yet saved in the registry */
+  is_architecture_template?: boolean
+  baseline_key?: string
 }
 
 type StoredVersion = {
@@ -246,8 +239,6 @@ type MappingReviewFinding = {
 
 type SemanticProfileOverride = Partial<Pick<SemanticProfile, 'approved_or_detected_meaning' | 'expected_scale' | 'expected_unit' | 'value_direction'>>
 
-type HumanReviewDecision = 'Pending Review' | 'Accept' | 'Accept with warning' | 'Reject / Quarantine'
-
 type PredefinedBaselineColumn = {
   business_meaning: string
   role: string
@@ -266,6 +257,46 @@ type PredefinedBaseline = {
   source_table: string
   column_count: number
   columns: Record<string, PredefinedBaselineColumn>
+}
+
+/** Prefix for synthetic family_id rows that map to predefined architecture baselines */
+const ARCH_TEMPLATE_FAMILY_PREFIX = '__arch_template__:'
+
+function slugifyFamilyId(value: string): string {
+  const cleaned = value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
+  return cleaned || 'family'
+}
+
+function predefinedTemplateCoveredByRegistry(pre: PredefinedBaseline, registryFamilies: FamilyRecord[]): boolean {
+  const idDataset = slugifyFamilyId(pre.dataset_name)
+  const idKey = slugifyFamilyId(pre.baseline_key)
+  const norm = (s: string) =>
+    s.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase()
+  const nameNorm = norm(pre.dataset_name.replace(/_/g, ' '))
+  const keyNorm = norm(pre.baseline_key)
+  return registryFamilies.some((f) => {
+    if (f.is_architecture_template) return false
+    if (f.family_id === idDataset || f.family_id === idKey) return true
+    const fn = norm(String(f.family_name || ''))
+    return fn === nameNorm || fn === keyNorm
+  })
+}
+
+function buildArchitectureTemplateFamilyRecord(pre: PredefinedBaseline): FamilyRecord {
+  const now = new Date().toISOString()
+  return {
+    family_id: `${ARCH_TEMPLATE_FAMILY_PREFIX}${pre.baseline_key}`,
+    family_name: `${pre.dataset_name.replace(/_/g, ' ')} (approved template)`,
+    description: pre.description || 'Approved data-architecture semantic baseline template.',
+    created_at: now,
+    updated_at: now,
+    versions: [],
+    latest_version: 0,
+    version_count: 0,
+    baseline_status: 'TEMPLATE',
+    is_architecture_template: true,
+    baseline_key: pre.baseline_key,
+  }
 }
 
 const ROLE_OPTIONS: GenericRole[] = [
@@ -1282,6 +1313,34 @@ function buildReleaseResults(
   })
 }
 
+/** Upload header -> baseline column when that baseline field exists (drift demos / common renames). */
+const BASELINE_COLUMN_UPLOAD_ALIASES: Record<string, string[]> = {
+  trend_name: ['label', 'trend_title', 'trendlabel'],
+  trend_score: ['momentum_idx', 'heat_index', 'popularity_index'],
+  sales_amount: ['sales_amt', 'revenue'],
+  quantity: ['qty', 'units'],
+  shop_name: ['store_title', 'shop_title'],
+  location: ['city_name', 'city'],
+  phone_number: ['contact_phone', 'tel'],
+  name: ['full_name', 'customer_name', 'product_name'],
+  email: ['login_email', 'user_email', 'customer_email'],
+  phone: ['contact_phone', 'mobile', 'tel'],
+  price_LKR: ['retail_price_lkr', 'unit_price_lkr'],
+}
+
+function resolveUploadColumnToBaselineName(uploadCol: string, baselineColumns: string[]): string | null {
+  if (baselineColumns.includes(uploadCol)) {
+    return uploadCol
+  }
+  for (const baselineCol of baselineColumns) {
+    const aliases = BASELINE_COLUMN_UPLOAD_ALIASES[baselineCol]
+    if (aliases?.includes(uploadCol)) {
+      return baselineCol
+    }
+  }
+  return null
+}
+
 function runVersionSanityCheck(currentColumns: string[], baselineVersion: StoredVersion | null): SanityCheckResult {
   if (!baselineVersion) {
     return {
@@ -1294,13 +1353,18 @@ function runVersionSanityCheck(currentColumns: string[], baselineVersion: Stored
     }
   }
   const baselineColumns = baselineVersion.column_names || []
-  const baselineSet = new Set(baselineColumns)
-  const currentSet = new Set(currentColumns)
+  const coveredBaseline = new Set<string>()
+  for (const column of currentColumns) {
+    const mapped = resolveUploadColumnToBaselineName(column, baselineColumns)
+    if (mapped) {
+      coveredBaseline.add(mapped)
+    }
+  }
   const importantColumns = (baselineVersion.dataset_fingerprint?.important_columns || []).filter(Boolean)
   const requiredColumns = importantColumns.length ? importantColumns : baselineColumns.slice(0, Math.min(5, baselineColumns.length))
-  const missingColumns = baselineColumns.filter((column) => !currentSet.has(column))
-  const missingImportant = requiredColumns.filter((column) => !currentSet.has(column))
-  const extraColumns = currentColumns.filter((column) => !baselineSet.has(column))
+  const missingColumns = baselineColumns.filter((column) => !coveredBaseline.has(column))
+  const missingImportant = requiredColumns.filter((column) => !coveredBaseline.has(column))
+  const extraColumns = currentColumns.filter((column) => resolveUploadColumnToBaselineName(column, baselineColumns) === null)
   const columnCountDelta = Math.abs(currentColumns.length - baselineColumns.length)
   const passed = missingColumns.length === 0 && missingImportant.length === 0 && columnCountDelta <= Math.max(2, Math.ceil(baselineColumns.length * 0.2))
   return {
@@ -1523,7 +1587,12 @@ function buildWorkflowSteps(mode: 'baseline' | 'version', stage: number, failed 
   })
 }
 
-export default function FeatureOpsWorkflowPanel() {
+export type FeatureOpsWorkflowPanelProps = {
+  /** Full-page registry / upload timeline (same tables as Open History). Keeps one state tree with DE Workflow. */
+  timelineSurface?: boolean
+}
+
+export default function FeatureOpsWorkflowPanel({ timelineSurface = false }: FeatureOpsWorkflowPanelProps = {}) {
   const apiBase = getAgenticApiBase()
   const [uploadedRows, setUploadedRows] = useState<DatasetRow[] | null>(null)
   const [datasetName, setDatasetName] = useState('')
@@ -1566,16 +1635,15 @@ export default function FeatureOpsWorkflowPanel() {
   // ML-based orchestrator state (new)
   const [driftAnalysis, setDriftAnalysis] = useState<any>(null)
   const [driftAnalysisLoading, setDriftAnalysisLoading] = useState(false)
-  const [activeAnalysisTab, setActiveAnalysisTab] = useState<'upload' | 'profiler' | 'drift-explanation' | 'row-level' | 'release' | 'baseline' | 'matrix' | 'anchors' | 'scores'>('upload')
   const [driftDetectionError, setDriftDetectionError] = useState<string | null>(null)
-  const [orchestratorStats, setOrchestratorStats] = useState<any>(null)
   const [predefinedBaselines, setPredefinedBaselines] = useState<PredefinedBaseline[]>([])
   const [selectedPredefinedBaselineKey, setSelectedPredefinedBaselineKey] = useState('')
   const [reviewWorkspaceTab, setReviewWorkspaceTab] = useState<'mapping' | 'drift'>('drift')
-  const [crossModalHumanDecisions, setCrossModalHumanDecisions] = useState<Record<string, HumanReviewDecision>>({})
-  
+
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const pendingVersionFamilyIdRef = useRef<string | null>(null)
+  /** When set, the next baseline save prefers the architecture template family name and baseline key */
+  const pendingArchitectureTemplateKeyRef = useRef<string | null>(null)
 
   const datasetRows = uploadedRows ?? []
   const hasUpload = datasetRows.length > 0
@@ -1739,6 +1807,92 @@ export default function FeatureOpsWorkflowPanel() {
     { READY: 0, CONDITIONAL: 0, QUARANTINED: 0 } as Record<FeatureStatus, number>,
   ), [familyVersions])
   const totalSavedDatasets = useMemo(() => Object.values(familyVersions).reduce((sum, items) => sum + items.length, 0), [familyVersions])
+  /** Version count from family registry records (reliable even when version payloads are still loading). */
+  const totalVersionsFromRegistry = useMemo(
+    () =>
+      families
+        .filter((item) => !item.is_architecture_template)
+        .reduce((sum, item) => sum + Number(item.version_count ?? (item.versions || []).length ?? 0), 0),
+    [families],
+  )
+  const savedVersionsKpi = useMemo(
+    () => Math.max(totalSavedDatasets, totalVersionsFromRegistry),
+    [totalSavedDatasets, totalVersionsFromRegistry],
+  )
+  /** Sum of row_count across loaded registry versions (non-template families only). */
+  const totalRegistryRowsFromVersions = useMemo(() => {
+    let sum = 0
+    for (const family of families) {
+      if (family.is_architecture_template) continue
+      const fid = family.family_id
+      const vers = familyVersions[fid] || []
+      for (const v of vers) {
+        const n = Number(v.row_count)
+        if (Number.isFinite(n)) sum += n
+      }
+    }
+    return sum
+  }, [families, familyVersions])
+  const uploadEventsTotalRows = useMemo(
+    () => driftRuns.reduce((acc, run) => acc + (Number(run.dataset_rows) || 0), 0),
+    [driftRuns],
+  )
+  const registryRowsKpi = useMemo(
+    () => (totalRegistryRowsFromVersions > 0 ? totalRegistryRowsFromVersions : uploadEventsTotalRows),
+    [totalRegistryRowsFromVersions, uploadEventsTotalRows],
+  )
+  /** Registry families plus predefined architecture templates not yet represented in the registry (for pickers / modals). */
+  const familiesDisplayRows = useMemo(() => {
+    const extras = predefinedBaselines
+      .filter((pre) => !predefinedTemplateCoveredByRegistry(pre, families))
+      .map((pre) => buildArchitectureTemplateFamilyRecord(pre))
+    return [...families, ...extras]
+  }, [families, predefinedBaselines])
+  const registryFamilyCount = useMemo(() => families.filter((item) => !item.is_architecture_template).length, [families])
+  const templateFamilyCount = useMemo(() => families.filter((item) => item.is_architecture_template).length, [families])
+  const linkedUploadCount = useMemo(() => driftRuns.filter((run) => !!run.family_id).length, [driftRuns])
+  const unlinkedUploadCount = useMemo(() => Math.max(0, driftRuns.length - linkedUploadCount), [driftRuns.length, linkedUploadCount])
+  const uploadActivitySeries = useMemo(() => {
+    const days: string[] = []
+    for (let i = 13; i >= 0; i -= 1) {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      days.push(d.toISOString().slice(0, 10))
+    }
+    const counts = days.map((day) => driftRuns.filter((r) => String(r.created_at || '').slice(0, 10) === day).length)
+    return { days, counts }
+  }, [driftRuns])
+  const uploadRowsSparkline = useMemo(() => {
+    const sorted = [...driftRuns].sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+    )
+    const raw = sorted.map((r) => {
+      const n = Number(r.dataset_rows)
+      return Number.isFinite(n) && n > 0 ? Math.min(n, 250_000) : 0
+    })
+    const tail = raw.slice(-20)
+    if (tail.length >= 2) return tail
+    return tail.length === 1 ? [0, tail[0]] : [0, 1, 0]
+  }, [driftRuns])
+  const timelineSparkMax = useMemo(() => Math.max(...uploadRowsSparkline, 1), [uploadRowsSparkline])
+  const timelineBarMax = useMemo(() => Math.max(...uploadActivitySeries.counts, 1), [uploadActivitySeries.counts])
+  const linkUploadPct = useMemo(
+    () => (driftRuns.length ? Math.round((linkedUploadCount / driftRuns.length) * 100) : 0),
+    [driftRuns.length, linkedUploadCount],
+  )
+  const timelineLatestLabel = useMemo(() => {
+    let best = 0
+    driftRuns.forEach((run) => {
+      const ms = new Date(run.created_at).getTime()
+      if (!Number.isNaN(ms) && ms > best) best = ms
+    })
+    families.forEach((family) => {
+      if (family.is_architecture_template) return
+      const ms = new Date(family.updated_at).getTime()
+      if (!Number.isNaN(ms) && ms > best) best = ms
+    })
+    return best ? new Date(best).toLocaleString('en-GB') : '—'
+  }, [driftRuns, families])
   const totalFamilies = families.length
   const isNewBaselineFlow = lastWorkflowMode === 'baseline'
   const viewFamilyVersions = useMemo(() => (viewFamilyId ? (familyVersions[viewFamilyId] || []) : []), [familyVersions, viewFamilyId])
@@ -1751,99 +1905,38 @@ export default function FeatureOpsWorkflowPanel() {
     return [left, right] as [StoredVersion | null, StoredVersion | null]
   }, [selectedCompareVersions, viewFamilyVersions, viewFamilyId])
   const versionPairComparison = useMemo(() => buildVersionPairComparison(comparisonVersions[0], comparisonVersions[1]), [comparisonVersions])
-  const learnedProfileColumns = useMemo(() => {
-    const columnsFromAnalysis = driftAnalysis?.profile?.column_profiles
-    if (!Array.isArray(columnsFromAnalysis)) return []
-    return columnsFromAnalysis.map((column: any) => ({
-      column_name: column.column_name,
-      inferred_type: column.inferred_type || column.kind || 'unknown',
-      missing_percent: column.missing_percent ?? 0,
-      unique_percent: column.unique_percent ?? 0,
-      min: column.min ?? null,
-      max: column.max ?? null,
-      mean: column.mean ?? null,
-      std: column.std ?? null,
-      sample_values: column.sample_values || [],
-      scale_pattern: column.scale_pattern || 'unknown',
-      detected_unit: column.detected_unit || 'unitless',
-      detected_direction: column.detected_direction || 'neutral',
+  const semanticExportBase = useMemo(() => `${String(apiBase).replace(/\/$/, '')}/semantic-drift/export`, [apiBase])
+  const columnDriftExecutiveSummary = useMemo(() => {
+    const releaseNeeds = releaseResults.filter((r) => r.release_status !== 'READY')
+    const semanticRows = [...internalDrift, ...externalDrift]
+    const highSemantic = semanticRows.filter((d) => String(d.drift_severity || '').toUpperCase() === 'HIGH')
+    const driftDetected = releaseNeeds.length > 0 || semanticRows.length > 0
+    const humanLoopNeeded =
+      releaseNeeds.some((r) => r.release_status === 'CONDITIONAL' || r.release_status === 'QUARANTINED')
+      || highSemantic.length > 0
+    const columnsAtRisk = Array.from(
+      new Set([...releaseNeeds.map((r) => r.column_name), ...semanticRows.map((d) => d.column_name)]),
+    )
+    const healLines = releaseNeeds.slice(0, 14).map((r) => ({
+      column: r.column_name,
+      action: r.recommended_action || r.explanation || 'Review mapping and baseline alignment.',
     }))
-  }, [driftAnalysis])
-  const learnedDriftExplanations = useMemo(() => {
-    const drifts = driftAnalysis?.drifts_per_column
-    if (!Array.isArray(drifts)) return []
-    return drifts.map((drift: any) => ({
-      column_name: drift.column_name,
-      drift_type: drift.drift_type === 'text' ? 'text' : drift.drift_type === 'relational' ? 'relational' : drift.drift_type === 'categorical' ? 'categorical' : 'numeric',
-      severity: drift.severity || 'none',
-      reason: drift.reason || 'No drift explanation available.',
-      baseline_stats: drift.baseline_stats || {},
-      current_stats: drift.current_stats || {},
-      impact: drift.impact || '',
-      recommendation: drift.recommendation || '',
-    }))
-  }, [driftAnalysis])
-  const learnedRowDrifts = useMemo(() => Array.isArray(driftAnalysis?.row_classifications) ? driftAnalysis.row_classifications : [], [driftAnalysis])
-  const learnedBaselineProfiles = useMemo(() => ({
-    internalBaseline: driftAnalysis?.baselines?.internal
-      ? {
-          dataset_name: driftAnalysis.baselines.internal.dataset_name,
-          created_at: driftAnalysis.baselines.internal.created_at,
-          row_count: driftAnalysis.baselines.internal.row_count,
-          column_count: driftAnalysis.baselines.internal.column_count,
-          column_profiles: driftAnalysis.baselines.internal.column_profiles,
-        }
-      : null,
-    currentUpload: driftAnalysis?.profile
-      ? {
-          dataset_name: driftAnalysis.profile.dataset_name,
-          created_at: driftAnalysis.profile.created_at,
-          row_count: driftAnalysis.profile.row_count,
-          column_count: driftAnalysis.profile.column_count,
-          column_profiles: driftAnalysis.profile.column_profiles,
-        }
-      : null,
-    externalBaseline: driftAnalysis?.baselines?.external
-      ? {
-          dataset_name: driftAnalysis.baselines.external.dataset_name,
-          created_at: driftAnalysis.baselines.external.created_at,
-          row_count: driftAnalysis.baselines.external.row_count,
-          column_count: driftAnalysis.baselines.external.column_count,
-          column_profiles: driftAnalysis.baselines.external.column_profiles,
-        }
-      : null,
-  }), [driftAnalysis])
-  const learnedMatrixCells = useMemo(() => Array.isArray(driftAnalysis?.triage_matrix?.cells) ? driftAnalysis.triage_matrix.cells : [], [driftAnalysis])
-  const learnedAnchors = useMemo(() => Array.isArray(driftAnalysis?.anchors) ? driftAnalysis.anchors : [], [driftAnalysis])
-  const learnedScoreDistribution = useMemo(() => {
-    const probabilities = driftAnalysis?.learned_scores?.probabilities
-    if (!probabilities) return undefined
+    const baselineRows = externalDriftBaseline && typeof (externalDriftBaseline as any).row_count === 'number'
+      ? Number((externalDriftBaseline as any).row_count)
+      : null
+    const uploadRows = datasetRows.length
+    const rowDeltaVsBaseline =
+      baselineRows != null && uploadRows >= 0 ? uploadRows - baselineRows : null
     return {
-      SAFE: Math.round((probabilities.SAFE || 0) * 100),
-      CONDITIONAL: Math.round((probabilities.CONDITIONAL || 0) * 100),
-      QUARANTINED: Math.round((probabilities.QUARANTINED || 0) * 100),
+      driftDetected,
+      humanLoopNeeded,
+      columnsAtRisk,
+      healLines,
+      baselineRows,
+      uploadRows,
+      rowDeltaVsBaseline,
     }
-  }, [driftAnalysis])
-  const learnedFeatureImportance = useMemo(() => driftAnalysis?.learned_scores?.feature_importance || undefined, [driftAnalysis])
-  const learnedReleaseSummary = useMemo(() => ({
-    safe: Number(driftAnalysis?.release_summary?.SAFE || 0),
-    conditional: Number(driftAnalysis?.release_summary?.CONDITIONAL || 0),
-    quarantined: Number(driftAnalysis?.release_summary?.QUARANTINED || 0),
-  }), [driftAnalysis])
-  const crossModalSummary = useMemo(() => ({
-    safe: Number(driftAnalysis?.cross_modal?.summary?.SAFE || 0),
-    conditional: Number(driftAnalysis?.cross_modal?.summary?.CONDITIONAL || 0),
-    quarantined: Number(driftAnalysis?.cross_modal?.summary?.QUARANTINED || 0),
-    pendingReview: Number(driftAnalysis?.cross_modal?.summary?.pending_review || 0),
-  }), [driftAnalysis])
-  const crossModalRows = useMemo(() => Array.isArray(driftAnalysis?.cross_modal?.rows) ? driftAnalysis.cross_modal.rows : [], [driftAnalysis])
-  const crossModalHumanQueue = useMemo(() => {
-    const queue = Array.isArray(driftAnalysis?.human_review_queue) ? driftAnalysis.human_review_queue : []
-    return queue.map((item: any) => ({
-      ...item,
-      review_status: crossModalHumanDecisions[String(item.row_id)] || item.review_status || 'Pending Review',
-    }))
-  }, [crossModalHumanDecisions, driftAnalysis])
+  }, [datasetRows.length, externalDriftBaseline, externalDrift, internalDrift, releaseResults])
   const approvedBaselineColumns = useMemo(
     () => (Array.isArray(driftAnalysis?.baseline_creation) ? driftAnalysis.baseline_creation : []),
     [driftAnalysis],
@@ -1957,17 +2050,11 @@ export default function FeatureOpsWorkflowPanel() {
     try {
       setDriftAnalysisLoading(true)
       setDriftDetectionError(null)
-      setCrossModalHumanDecisions({})
-      const [analysis, stats] = await Promise.all([
-        detectDriftFull(apiBase, file, baselineKey),
-        getOrchestratorStats(apiBase).catch(() => null),
-      ])
+      const analysis = await detectDriftFull(apiBase, file, baselineKey)
       setDriftAnalysis(analysis)
       if (analysis?.selected_predefined_baseline?.baseline_key) {
         setSelectedPredefinedBaselineKey(analysis.selected_predefined_baseline.baseline_key)
       }
-      setOrchestratorStats(stats?.stats || null)
-      setActiveAnalysisTab('release')
       setReviewWorkspaceTab('drift')
       pushMessage(`Learned twin-baseline triage completed: ${analysis.final_label}.`, analysis.final_label === 'QUARANTINED' ? 'warning' : 'success')
       return analysis
@@ -2028,18 +2115,32 @@ export default function FeatureOpsWorkflowPanel() {
     setBackendDriftResults({})
     setDriftAnalysis(null)
     setDriftDetectionError(null)
-    setActiveAnalysisTab('upload')
-    setCrossModalHumanDecisions({})
   }
 
   function openFilePickerForBaseline() {
     pendingVersionFamilyIdRef.current = null
+    pendingArchitectureTemplateKeyRef.current = null
+    setUploadChoiceMode('baseline')
+    setDatasetError(null)
+    fileInputRef.current?.click()
+  }
+
+  function openFilePickerForArchitectureTemplate(baselineKey: string) {
+    pendingVersionFamilyIdRef.current = null
+    pendingArchitectureTemplateKeyRef.current = baselineKey
+    setSelectedPredefinedBaselineKey(baselineKey)
     setUploadChoiceMode('baseline')
     setDatasetError(null)
     fileInputRef.current?.click()
   }
 
   function openFilePickerForVersion(familyId: string) {
+    if (familyId.startsWith(ARCH_TEMPLATE_FAMILY_PREFIX)) {
+      const baselineKey = familyId.slice(ARCH_TEMPLATE_FAMILY_PREFIX.length)
+      openFilePickerForArchitectureTemplate(baselineKey)
+      return
+    }
+    pendingArchitectureTemplateKeyRef.current = null
     pendingVersionFamilyIdRef.current = familyId
     setSelectedFamilyId(familyId)
     const family = families.find((item) => item.family_id === familyId)
@@ -2090,6 +2191,31 @@ export default function FeatureOpsWorkflowPanel() {
     URL.revokeObjectURL(url)
   }
 
+  function downloadCurrentUploadCsv() {
+    if (!columns.length || !datasetRows.length) {
+      pushMessage('Nothing to export — load or upload rows first.', 'warning')
+      return
+    }
+    const esc = (v: DatasetValue) => {
+      if (v == null) return ''
+      const s = String(v)
+      if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`
+      return s
+    }
+    const header = columns.join(',')
+    const body = datasetRows.map((row) => columns.map((c) => esc(row[c] ?? null)).join(',')).join('\n')
+    const blob = new Blob([`${header}\n${body}`], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${(datasetName || 'featureops-upload').replace(/[^\w.-]+/g, '_')}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    pushMessage('Current upload CSV download started.', 'success')
+  }
+
   async function loadFamilies() {
     try {
       const response = await fetch(`${apiBase}/featureops/families`)
@@ -2098,6 +2224,10 @@ export default function FeatureOpsWorkflowPanel() {
         setFamilies(payload.families || [])
         const versionsMap: Record<string, StoredVersion[]> = {}
         await Promise.all((payload.families || []).map(async (family: FamilyRecord) => {
+          if (family.is_architecture_template) {
+            versionsMap[family.family_id] = []
+            return
+          }
           const versionResponse = await fetch(`${apiBase}/featureops/families/${family.family_id}/versions`)
           const versionPayload = await versionResponse.json()
           versionsMap[family.family_id] = (versionPayload.versions || []).sort((a: StoredVersion, b: StoredVersion) => b.version_number - a.version_number)
@@ -2129,6 +2259,10 @@ export default function FeatureOpsWorkflowPanel() {
   useEffect(() => {
     void loadFamilies()
   }, [])
+
+  useEffect(() => {
+    if (timelineSurface) setShowHistoryModal(false)
+  }, [timelineSurface])
 
   useEffect(() => {
     let cancelled = false
@@ -2174,11 +2308,16 @@ export default function FeatureOpsWorkflowPanel() {
     if (!hasUpload || !datasetName || !uploadTime) return
     const uploadKey = `${datasetName}_${uploadTime}`
     if (lastRecordedUploadKey === uploadKey) return
+    const familyIdForRun = (selectedFamilyId && selectedFamilyId.trim()) || matchedBaseline?.family_id || null
+    const versionNumberForRun = selectedVersionNumber ?? matchedBaseline?.version_number ?? null
+    const versionIdForRun =
+      selectedBaseline?.version_id
+      || (familyIdForRun && versionNumberForRun != null ? `${familyIdForRun}_v${versionNumberForRun}` : null)
     const payload = {
       dataset_name: datasetName,
-      family_id: null,
-      version_id: null,
-      version_number: null,
+      family_id: familyIdForRun,
+      version_id: versionIdForRun,
+      version_number: versionNumberForRun,
       created_at: uploadTime,
       dataset_rows: datasetRows,
       dataset_fingerprint: fingerprint,
@@ -2197,7 +2336,21 @@ export default function FeatureOpsWorkflowPanel() {
         await loadFamilies()
       }
     }).catch(() => {})
-  }, [apiBase, datasetName, externalDrift, fingerprint, hasUpload, internalDrift, lastRecordedUploadKey, releaseResults, uploadTime])
+  }, [
+    apiBase,
+    datasetName,
+    externalDrift,
+    fingerprint,
+    hasUpload,
+    internalDrift,
+    lastRecordedUploadKey,
+    matchedBaseline,
+    releaseResults,
+    selectedBaseline,
+    selectedFamilyId,
+    selectedVersionNumber,
+    uploadTime,
+  ])
 
   async function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -2268,7 +2421,7 @@ export default function FeatureOpsWorkflowPanel() {
           pushMessage('Dataset uploaded successfully.', 'success')
           pushMessage('Dataset profiled successfully.', 'success')
           pushMessage('Internal semantic consistency check completed.', 'success')
-          pushMessage(`External drift checked against registry v${baselineForSanity?.version_number ?? baselineNum ?? 'Ã¢â‚¬â€'}.`, 'info')
+          pushMessage(`External drift checked against registry v${baselineForSanity?.version_number ?? baselineNum ?? '—'}.`, 'info')
         }
       } else {
         const suggestedBaselineKey = suggestPredefinedBaselineKey(file.name, parsed, predefinedBaselines)
@@ -2326,9 +2479,22 @@ export default function FeatureOpsWorkflowPanel() {
 
   async function saveAsNewBaseline() {
     if (!hasUpload) return
-    const familyName = datasetName.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim() || matchedBaseline?.family_name || 'Uploaded Dataset'
-    if (!familyName) return
-    const existingFamily = families.find((item) => normalizeFamilyName(String(item.family_name || '')) === normalizeFamilyName(familyName))
+    const templateKeyAtSave = pendingArchitectureTemplateKeyRef.current
+    const predefTemplate = templateKeyAtSave ? predefinedBaselines.find((b) => b.baseline_key === templateKeyAtSave) : undefined
+    const stemName = datasetName.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim()
+    const familyName =
+      (predefTemplate?.dataset_name ? predefTemplate.dataset_name.replace(/_/g, ' ') : stemName) || matchedBaseline?.family_name || 'Uploaded Dataset'
+    if (!familyName) {
+      pendingArchitectureTemplateKeyRef.current = null
+      return
+    }
+    const idFromTemplate = predefTemplate ? slugifyFamilyId(predefTemplate.dataset_name) : null
+    const existingFamily = families.find((item) => {
+      if (item.is_architecture_template) return false
+      if (normalizeFamilyName(String(item.family_name || '')) === normalizeFamilyName(familyName)) return true
+      if (idFromTemplate && item.family_id === idFromTemplate) return true
+      return false
+    })
     if (existingFamily) {
       const duplicateVersion = findDuplicateVersionInFamily(existingFamily.family_id)
       if (duplicateVersion) {
@@ -2338,6 +2504,7 @@ export default function FeatureOpsWorkflowPanel() {
           versionNumber: duplicateVersion.version_number,
         })
         pushMessage(`Duplicate dataset detected: ${existingFamily.family_name} v${duplicateVersion.version_number}.`, 'warning')
+        pendingArchitectureTemplateKeyRef.current = null
         return
       }
       const nextBaseline = (familyVersions[existingFamily.family_id] || []).find((item) => item.version_number === (existingFamily.approved_baseline_version || existingFamily.latest_version))
@@ -2347,6 +2514,7 @@ export default function FeatureOpsWorkflowPanel() {
       setSelectedVersionNumber(existingFamily.approved_baseline_version || existingFamily.latest_version || null)
       pushMessage(`Family "${existingFamily.family_name}" already exists. Saving this upload as a new version instead.`, 'info')
       await addAsNewVersion(existingFamily.family_id, nextBaseline)
+      pendingArchitectureTemplateKeyRef.current = null
       return
     }
     setSavingWorkflow(true)
@@ -2357,7 +2525,7 @@ export default function FeatureOpsWorkflowPanel() {
       dataset_name: datasetName,
       file_name: datasetName,
       family_name: familyName,
-      description: 'Semantic monitoring baseline',
+      description: predefTemplate?.description || 'Semantic monitoring baseline',
       version_note: 'v1 baseline',
       created_at: uploadTime,
       row_count: datasetRows.length,
@@ -2400,6 +2568,7 @@ export default function FeatureOpsWorkflowPanel() {
       setWorkflowSteps(buildWorkflowSteps('baseline', 6, true, columns.length))
       pushMessage(`Unable to create baseline: ${String(error)}`, 'error')
     } finally {
+      pendingArchitectureTemplateKeyRef.current = null
       setSavingWorkflow(false)
     }
   }
@@ -2660,14 +2829,200 @@ export default function FeatureOpsWorkflowPanel() {
   }
 
   return (
-    <section className="df-dashboard-shell featureops-shell" style={{ padding: '12px 12px 24px', display: 'grid', gap: 12, width: '100%', maxWidth: 'none' }}>
-      <div className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap', padding: '14px 16px' }}>
+    <section
+      className="df-dashboard-shell featureops-shell"
+      style={{ padding: '12px 0 24px', display: 'grid', gap: 12, width: '100%', maxWidth: 'none', background: timelineSurface ? '#f8fafc' : undefined }}
+    >
+      <input ref={fileInputRef} type="file" accept=".csv,.json" onChange={handleFileUpload} style={{ display: 'none' }} />
+      {timelineSurface && (
+        <div style={{ width: '100%', display: 'grid', gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>Dataset registry timeline</div>
+            <div style={{ fontSize: 12, color: '#64748b', marginTop: 4, lineHeight: 1.5 }}>
+              Same tables as <strong>Open History</strong> in DE Workflow—family registry, upload events, and version comparison. Use the top nav to switch sections.
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(168px, 1fr))', gap: 10 }}>
+            {[
+              ['Registry families', String(registryFamilyCount), 'Saved dataset families (excludes template-only rows).'],
+              ['Architecture templates', String(templateFamilyCount), 'Predefined data-architecture baselines in the picker.'],
+              [
+                'Saved versions',
+                String(savedVersionsKpi),
+                totalVersionsFromRegistry >= totalSavedDatasets
+                  ? 'Version rows summed from family registry (version_count).'
+                  : 'Version payloads loaded; also reconciled with registry counts.',
+              ],
+              [
+                'Total rows (data)',
+                registryRowsKpi.toLocaleString('en-GB'),
+                totalRegistryRowsFromVersions > 0
+                  ? 'Sum of row_count across saved registry versions.'
+                  : 'No version payloads yet — sum of dataset_rows on upload events as a proxy.',
+              ],
+              ['Upload events', String(driftRuns.length), 'Drift run records from workflow uploads.'],
+              ['Linked uploads', String(linkedUploadCount), 'Upload events tied to a registry family.'],
+              ['Latest activity', timelineLatestLabel, 'Newest upload timestamp or family update.'],
+            ].map(([label, value, hint]) => (
+              <div key={String(label)} style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 4 }}>
+                <div style={{ fontSize: 10, color: '#64748b', fontWeight: 700 }}>{label}</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a' }}>{value}</div>
+                <div style={{ fontSize: 10, color: '#94a3b8', lineHeight: 1.35 }}>{hint}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12, width: '100%' }}>
+            <div style={{ borderRadius: 12, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#0f172a' }}>Upload activity (14 days)</div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 88, paddingTop: 4 }}>
+                {uploadActivitySeries.counts.map((c, i) => (
+                  <div key={uploadActivitySeries.days[i]} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, minWidth: 0 }}>
+                    <div
+                      title={`${uploadActivitySeries.days[i]}: ${c} uploads`}
+                      style={{
+                        width: '100%',
+                        maxWidth: 18,
+                        margin: '0 auto',
+                        height: `${Math.max(6, (c / timelineBarMax) * 72)}px`,
+                        borderRadius: 4,
+                        background: c > 0 ? 'linear-gradient(180deg, #38bdf8, #2563eb)' : '#e2e8f0',
+                      }}
+                    />
+                    <span style={{ fontSize: 8, color: '#94a3b8', fontWeight: 700 }}>{uploadActivitySeries.days[i].slice(8)}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontSize: 10, color: '#64748b' }}>Event-style counts per UTC day (aligned with Data Architecture timeline KPIs).</div>
+            </div>
+
+            <div style={{ borderRadius: 12, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#0f172a' }}>Upload size trend (recent)</div>
+              <svg width="100%" height="90" viewBox="0 0 200 90" preserveAspectRatio="none" style={{ display: 'block' }}>
+                <polygon
+                  fill="rgba(124,58,237,0.12)"
+                  points={`0,90 ${uploadRowsSparkline
+                    .map((v, i) => {
+                      const x = (i / Math.max(uploadRowsSparkline.length - 1, 1)) * 200
+                      const y = 82 - (v / timelineSparkMax) * 72
+                      return `${x},${y}`
+                    })
+                    .join(' ')} 200,90`}
+                />
+                <polyline
+                  fill="none"
+                  stroke="#7c3aed"
+                  strokeWidth="2.5"
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  points={uploadRowsSparkline
+                    .map((v, i) => {
+                      const x = (i / Math.max(uploadRowsSparkline.length - 1, 1)) * 200
+                      const y = 82 - (v / timelineSparkMax) * 72
+                      return `${x},${y}`
+                    })
+                    .join(' ')}
+                />
+              </svg>
+              <div style={{ fontSize: 10, color: '#64748b' }}>Rows per upload event (capped for scale). Flat line means missing row counts on older runs.</div>
+            </div>
+
+            <div style={{ borderRadius: 12, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#0f172a' }}>Linked vs unlinked uploads</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+                <div
+                  style={{
+                    width: 72,
+                    height: 72,
+                    borderRadius: '50%',
+                    background: `conic-gradient(#22c55e 0% ${linkUploadPct}%, #e2e8f0 ${linkUploadPct}% 100%)`,
+                    display: 'grid',
+                    placeItems: 'center',
+                  }}
+                >
+                  <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 800, color: '#0f172a' }}>
+                    {linkUploadPct}%
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gap: 6, fontSize: 11, color: '#475569' }}>
+                  <div>
+                    <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#22c55e', marginRight: 6, verticalAlign: 'middle' }} />
+                    Linked: <strong>{linkedUploadCount}</strong>
+                  </div>
+                  <div>
+                    <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#cbd5e1', marginRight: 6, verticalAlign: 'middle' }} />
+                    Unlinked: <strong>{unlinkedUploadCount}</strong>
+                  </div>
+                  <div style={{ fontSize: 10, color: '#94a3b8' }}>Total events: {driftRuns.length}</div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ borderRadius: 12, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#0f172a' }}>Registry scale</div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, height: 100 }}>
+                {[
+                  { label: 'Families', value: registryFamilyCount, color: '#0ea5e9' },
+                  { label: 'Versions', value: savedVersionsKpi, color: '#6366f1' },
+                  { label: 'Uploads', value: driftRuns.length, color: '#f97316' },
+                ].map((bar) => {
+                  const vmax = Math.max(registryFamilyCount, savedVersionsKpi, driftRuns.length, 1)
+                  const h = Math.max(12, (bar.value / vmax) * 80)
+                  return (
+                    <div key={bar.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                      <div
+                        title={`${bar.label}: ${bar.value}`}
+                        style={{
+                          width: '70%',
+                          maxWidth: 48,
+                          height: `${h}px`,
+                          borderRadius: 8,
+                          background: `linear-gradient(180deg, ${bar.color}, ${bar.color}99)`,
+                        }}
+                      />
+                      <div style={{ fontSize: 18, fontWeight: 800, color: '#0f172a' }}>{bar.value}</div>
+                      <div style={{ fontSize: 10, color: '#64748b', fontWeight: 700 }}>{bar.label}</div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="featureops-history-modal" style={{ borderRadius: 14, background: '#f8fbff', border: '1px solid #dbeafe', padding: '16px 0', display: 'grid', gap: 12, boxShadow: '0 8px 28px rgba(15, 23, 42, 0.08)', width: '100%', maxWidth: 'none' }}>
+            <FeatureOpsDatasetHistoryTables
+              familiesDisplayRows={familiesDisplayRows}
+              families={families}
+              driftRuns={driftRuns}
+              viewFamilyId={viewFamilyId}
+              viewFamilyVersions={viewFamilyVersions}
+              selectedCompareVersions={selectedCompareVersions}
+              toggleCompareVersion={toggleCompareVersion}
+              versionPairComparison={versionPairComparison}
+              historyModalViewMode={historyModalViewMode}
+              setHistoryModalViewMode={setHistoryModalViewMode}
+              setViewFamilyId={setViewFamilyId}
+              setSelectedCompareVersions={setSelectedCompareVersions}
+              openFilePickerForVersion={openFilePickerForVersion}
+              loadVersion={loadVersion}
+              loadDriftRun={loadDriftRun}
+              deleteFamily={deleteFamily}
+              deleteDriftRun={deleteDriftRun}
+              approveVersion={approveVersion}
+              deleteVersion={deleteVersion}
+            />
+          </div>
+        </div>
+      )}
+
+      {!timelineSurface && (
+        <>
+      <div className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap', padding: '14px 0' }}>
         <div>
           <div style={{ fontSize: 18, fontWeight: 800, color: '#ecf6ff' }}>Agentic AI DE Workflow</div>
           <div style={{ fontSize: 12, color: '#98abc8', marginTop: 4 }}>Semantic Drift Monitoring and FeatureOps Release Gate.</div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <input ref={fileInputRef} type="file" accept=".csv,.json" onChange={handleFileUpload} style={{ display: 'none' }} />
           <button type="button" className="df-btn" onClick={() => { setShowUploadModal(true); setUploadChoiceMode('select') }}>
             Upload New Dataset
           </button>
@@ -2677,7 +3032,7 @@ export default function FeatureOpsWorkflowPanel() {
         </div>
       </div>
 
-      <div className="featureops-release-grid">
+      <div className="featureops-release-grid featureops-kpi-strip">
         {[
           ['Dataset families', String(totalFamilies)],
           ['Saved versions', String(totalSavedDatasets)],
@@ -2702,114 +3057,6 @@ export default function FeatureOpsWorkflowPanel() {
         <div style={{ borderRadius: 8, border: '1px solid #fecaca', background: '#fff1f2', color: '#9f1239', padding: '10px 12px', fontSize: 11.5 }}>
           Learned drift analysis error: {driftDetectionError}
         </div>
-      )}
-
-      {false && (driftAnalysisLoading || driftAnalysis) && (
-        <section className="glass-card" style={{ padding: '14px 16px', display: 'grid', gap: 14 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
-            <div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: '#ecf6ff' }}>Twin-Baseline Relational Triage</div>
-              <div style={{ fontSize: 11.5, color: '#9fb4d1', marginTop: 4 }}>
-                Learned scoring across internal history, external benchmark alignment, and relational anchors.
-              </div>
-            </div>
-            {orchestratorStats && (
-              <div style={{ display: 'grid', gap: 4, fontSize: 10.5, color: '#dbeafe', textAlign: 'right' }}>
-                <div>{orchestratorStats.approach}</div>
-                <div>{orchestratorStats.model_type}</div>
-              </div>
-            )}
-          </div>
-
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {[
-              ['release', 'Release Gate'],
-              ['profiler', 'Semantic Profile'],
-              ['drift-explanation', 'Drift Reasons'],
-              ['row-level', 'Row-Level'],
-              ['baseline', 'Twin Baselines'],
-              ['matrix', 'Triage Matrix'],
-              ['anchors', 'Relational Anchors'],
-              ['scores', 'Learned Scores'],
-            ].map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setActiveAnalysisTab(key as typeof activeAnalysisTab)}
-                style={{
-                  borderRadius: 999,
-                  border: activeAnalysisTab === key ? '1px solid #93c5fd' : '1px solid #334155',
-                  background: activeAnalysisTab === key ? '#dbeafe' : '#111827',
-                  color: activeAnalysisTab === key ? '#1d4ed8' : '#dbeafe',
-                  padding: '6px 10px',
-                  fontSize: 10.5,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          {activeAnalysisTab === 'release' && (
-            <ReleaseGate
-              finalDecision={(driftAnalysis?.final_label || 'SAFE') as 'SAFE' | 'CONDITIONAL' | 'QUARANTINED'}
-              overallScore={driftAnalysis?.overall_drift_score || 0}
-              confidence={driftAnalysis?.confidence || 0}
-              reasoning={driftAnalysis?.reasons || []}
-              featureSafeCount={learnedReleaseSummary.safe}
-              featureConditionalCount={learnedReleaseSummary.conditional}
-              featureQuarantinedCount={learnedReleaseSummary.quarantined}
-              isLoading={driftAnalysisLoading}
-              onReview={() => setActiveAnalysisTab('drift-explanation')}
-            />
-          )}
-
-          {activeAnalysisTab === 'profiler' && (
-            <ProfilerResults
-              columnProfiles={learnedProfileColumns}
-              datasetName={driftAnalysis?.profile?.dataset_name || datasetName}
-              rowCount={driftAnalysis?.profile?.row_count || datasetRows.length}
-              columnCount={driftAnalysis?.profile?.column_count || columns.length}
-              isLoading={driftAnalysisLoading}
-            />
-          )}
-
-          {activeAnalysisTab === 'drift-explanation' && (
-            <DriftExplanation drifts={learnedDriftExplanations as any} isLoading={driftAnalysisLoading} />
-          )}
-
-          {activeAnalysisTab === 'row-level' && (
-            <RowLevelDrift rowDrifts={learnedRowDrifts as any} totalRows={datasetRows.length || driftAnalysis?.profile?.row_count || 0} isLoading={driftAnalysisLoading} />
-          )}
-
-          {activeAnalysisTab === 'baseline' && (
-            <TwinBaselineComparison
-              internalBaseline={learnedBaselineProfiles.internalBaseline as any}
-              currentUpload={learnedBaselineProfiles.currentUpload as any}
-              externalBaseline={learnedBaselineProfiles.externalBaseline as any}
-              isLoading={driftAnalysisLoading}
-            />
-          )}
-
-          {activeAnalysisTab === 'matrix' && (
-            <TriageMatrixCard cells={learnedMatrixCells as any} totalRows={datasetRows.length || driftAnalysis?.profile?.row_count || 0} isLoading={driftAnalysisLoading} />
-          )}
-
-          {activeAnalysisTab === 'anchors' && (
-            <RelationalAnchorsCard anchors={learnedAnchors as any} isLoading={driftAnalysisLoading} />
-          )}
-
-          {activeAnalysisTab === 'scores' && (
-            <LearnedScoresChart
-              scoreDistribution={learnedScoreDistribution}
-              featureImportance={learnedFeatureImportance}
-              avgConfidence={driftAnalysis?.confidence}
-              isLoading={driftAnalysisLoading}
-            />
-          )}
-        </section>
       )}
 
       {hasUpload && mappingReviewFindings.length > 0 && (
@@ -2838,6 +3085,8 @@ export default function FeatureOpsWorkflowPanel() {
             </button>
           </div>
         </article>
+      )}
+        </>
       )}
 
       {sanityCheckResult && (
@@ -2982,16 +3231,25 @@ export default function FeatureOpsWorkflowPanel() {
                       </tr>
                     </thead>
                     <tbody>
-                      {families.map((family) => (
+                      {familiesDisplayRows.map((family) => (
                         <tr key={family.family_id}>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{family.family_name}</td>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{family.version_count ?? family.versions.length}</td>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>v{family.latest_version}</td>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{new Date(family.updated_at).toLocaleDateString('en-GB', { month: 'short', day: '2-digit' })}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>
+                            {family.family_name}
+                            {family.is_architecture_template ? (
+                              <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 700, color: '#1d4ed8', border: '1px solid #bfdbfe', borderRadius: 6, padding: '1px 6px', verticalAlign: 'middle' }}>Predefined baseline</span>
+                            ) : null}
+                          </td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{family.is_architecture_template ? '—' : (family.version_count ?? family.versions.length)}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{family.is_architecture_template ? '—' : `v${family.latest_version}`}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{family.is_architecture_template ? '—' : new Date(family.updated_at).toLocaleDateString('en-GB', { month: 'short', day: '2-digit' })}</td>
                           <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
                             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                              <button type="button" onClick={() => openFilePickerForVersion(family.family_id)} style={{ borderRadius: 999, border: '1px solid #2563eb', background: '#eff6ff', color: '#1d4ed8', padding: '6px 10px', fontSize: 10.5, fontWeight: 700, cursor: 'pointer' }}>+ Upload New Dataset</button>
-                              <button type="button" onClick={() => void deleteFamily(family.family_id)} style={{ borderRadius: 999, border: '1px solid #fecaca', background: '#fff1f2', color: '#b91c1c', padding: '6px 10px', fontSize: 10.5, fontWeight: 700, cursor: 'pointer' }}>Delete Family</button>
+                              <button type="button" onClick={() => openFilePickerForVersion(family.family_id)} style={{ borderRadius: 999, border: '1px solid #2563eb', background: '#eff6ff', color: '#1d4ed8', padding: '6px 10px', fontSize: 10.5, fontWeight: 700, cursor: 'pointer' }}>
+                                {family.is_architecture_template ? 'Upload to create registry family' : '+ Upload New Dataset'}
+                              </button>
+                              {!family.is_architecture_template ? (
+                                <button type="button" onClick={() => void deleteFamily(family.family_id)} style={{ borderRadius: 999, border: '1px solid #fecaca', background: '#fff1f2', color: '#b91c1c', padding: '6px 10px', fontSize: 10.5, fontWeight: 700, cursor: 'pointer' }}>Delete Family</button>
+                              ) : null}
                             </div>
                           </td>
                         </tr>
@@ -2999,9 +3257,9 @@ export default function FeatureOpsWorkflowPanel() {
                     </tbody>
                   </table>
                 </div>
-                {!families.length && (
+                {!familiesDisplayRows.length && (
                   <div style={{ borderRadius: 8, border: '1px dashed #cbd5e1', background: '#f8fafc', color: '#475569', padding: '12px', fontSize: 11.5 }}>
-                    No dataset families found yet. Create a baseline family first.
+                    No dataset families or architecture templates available. Check the API connection and try again.
                   </div>
                 )}
               </div>
@@ -3020,199 +3278,38 @@ export default function FeatureOpsWorkflowPanel() {
               </div>
               <button type="button" onClick={() => setShowHistoryModal(false)} style={{ border: 'none', background: 'transparent', color: '#64748b', fontSize: 18, cursor: 'pointer' }}>x</button>
             </div>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#0f172a' }}>
-                <thead>
-                  <tr style={{ background: '#f8fafc' }}>
-                    {['Dataset Family', 'Versions', 'Latest Version', 'Last Updated', 'Actions'].map((header) => (
-                      <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>{header}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {families.map((family) => (
-                    <tr key={family.family_id}>
-                      <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{family.family_name}</td>
-                      <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0', textAlign: 'right', color: '#0f172a' }}>{family.version_count ?? family.versions.length}</td>
-                      <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>v{family.latest_version}</td>
-                      <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{new Date(family.updated_at).toLocaleDateString('en-GB', { month: 'short', day: '2-digit' })}</td>
-                      <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
-                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                          <button type="button" onClick={() => { setViewFamilyId(family.family_id); setSelectedCompareVersions([]); setHistoryModalViewMode('comparison') }} style={{ borderRadius: 999, border: '1px solid #94a3b8', background: '#ffffff', color: '#0f172a', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer', fontWeight: 700 }}>View Versions</button>
-                          <button type="button" onClick={() => openFilePickerForVersion(family.family_id)} style={{ borderRadius: 999, border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer' }}>+ Add Dataset</button>
-                          <button type="button" onClick={() => { void loadVersion(family.family_id, family.approved_baseline_version || family.latest_version); setShowHistoryModal(false) }} style={{ borderRadius: 999, border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer' }}>Load</button>
-                          <button type="button" onClick={() => void deleteFamily(family.family_id)} style={{ borderRadius: 999, border: '1px solid #fecaca', background: '#fff1f2', color: '#b91c1c', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer', fontWeight: 700 }}>Delete Family</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div style={{ display: 'grid', gap: 10 }}>
-              <div className="featureops-history-section-title" style={{ fontSize: 13 }}>Uploaded Dataset History</div>
-              <div className="featureops-history-subtle" style={{ fontSize: 11.5 }}>
-                These rows are upload events only. They are not directly comparable versions. To compare drift, open a family below and select two saved registry versions from that family.
-              </div>
-              {!driftRuns.length ? (
-                <div style={{ borderRadius: 8, border: '1px dashed #cbd5e1', background: '#f1f5f9', color: '#334155', fontWeight: 600, padding: '12px', fontSize: 11.5 }}>
-                  No upload events recorded yet.
-                </div>
-              ) : (
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#0f172a' }}>
-                    <thead>
-                      <tr style={{ background: '#e2e8f0' }}>
-                        {['Dataset Name', 'Uploaded At', 'Linked Family', 'Release Summary'].map((header) => (
-                          <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #cbd5e1', color: '#1e293b', fontWeight: 800 }}>{header}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {driftRuns.slice().reverse().map((run) => (
-                        <tr key={run.run_id}>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0', fontWeight: 700, color: '#0f172a' }}>{run.dataset_name}</td>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0', color: '#1e293b', fontWeight: 600 }}>{new Date(run.created_at).toLocaleString('en-GB')}</td>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0', color: '#1e293b', fontWeight: 600 }}>
-                            {run.family_id ? (families.find((family) => family.family_id === run.family_id)?.family_name || run.family_id) : 'Not linked'}
-                          </td>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                              <span style={{ color: '#334155', fontWeight: 600 }}>{summarizeReleaseResults(run.release_results || [])}</span>
-                              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                            <button type="button" onClick={() => { void loadDriftRun(run); setShowHistoryModal(false) }} style={{ borderRadius: 999, border: '1px solid #64748b', background: '#ffffff', color: '#0f172a', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer', fontWeight: 700 }}>
-                                  Load This Upload
-                                </button>
-                                <button type="button" onClick={() => void deleteDriftRun(run.run_id)} style={{ borderRadius: 999, border: '1px solid #fecaca', background: '#fff1f2', color: '#b91c1c', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer', fontWeight: 700 }}>
-                                  Delete
-                                </button>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            {viewFamilyId && (
-              <div style={{ display: 'grid', gap: 8, paddingTop: 12, borderTop: '2px solid #94a3b8' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <div className="featureops-history-section-title" style={{ fontSize: 12 }}>Registry versions - {families.find((family) => family.family_id === viewFamilyId)?.family_name || viewFamilyId}</div>
-                  <div className="featureops-history-subtle" style={{ fontSize: 11.5 }}>
-                    Only saved registry versions in this same family can be compared. Uploaded Dataset History rows below are upload events, not comparable family versions.
-                  </div>
-                </div>
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#0f172a' }}>
-                    <thead>
-                      <tr style={{ background: '#f8fafc' }}>
-                        {['Compare', 'Version', 'File Name', 'Created Date', 'Rows', 'Columns', 'Release Summary', 'Actions'].map((header) => (
-                          <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>{header}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {viewFamilyVersions.map((version) => (
-                        <tr key={version.version_id}>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
-                            <input type="checkbox" checked={selectedCompareVersions.includes(version.version_number)} onChange={() => toggleCompareVersion(version.version_number)} />
-                          </td>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>v{version.version_number}</td>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{version.file_name || version.dataset_name}</td>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{new Date(version.created_at).toLocaleString('en-GB')}</td>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{version.row_count}</td>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{version.column_count}</td>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{summarizeReleaseResults(version.release_results)}</td>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
-                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                              <button type="button" onClick={() => { void loadVersion(viewFamilyId, version.version_number); setShowHistoryModal(false) }} style={{ borderRadius: 999, border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer' }}>Load</button>
-                              <button type="button" onClick={() => void approveVersion(viewFamilyId, version.version_number)} style={{ borderRadius: 999, border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer' }}>Set As Baseline</button>
-                              <button type="button" onClick={() => void deleteVersion(viewFamilyId, version.version_number)} style={{ borderRadius: 999, border: '1px solid #fecaca', background: '#fff1f2', color: '#b91c1c', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer', fontWeight: 700 }}>Delete</button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                {viewFamilyVersions.length < 2 && (
-                  <div style={{ borderRadius: 8, border: '1px solid #dbeafe', background: '#eff6ff', color: '#1e3a8a', padding: '10px 12px', fontSize: 11.5 }}>
-                    This family currently has only {viewFamilyVersions.length} saved registry version{viewFamilyVersions.length === 1 ? '' : 's'}. Add another dataset as a new version in this same family to enable comparison.
-                  </div>
-                )}
-                {versionPairComparison && (
-                  <div className="featureops-history-compare-card">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-                      <div>
-                        <div style={{ fontSize: 12, fontWeight: 800, color: '#0f172a' }}>Compared versions: v{versionPairComparison.left.version_number} vs v{versionPairComparison.right.version_number}</div>
-                        <div style={{ fontSize: 11, color: '#475569' }}>Columns compared: {versionPairComparison.comparedColumns} | No drift: {versionPairComparison.severityCounts.NONE} | Low drift: {versionPairComparison.severityCounts.LOW} | Moderate drift: {versionPairComparison.severityCounts.MODERATE} | High drift: {versionPairComparison.severityCounts.HIGH}</div>
-                      </div>
-                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                        <button type="button" className={`featureops-filter-pill${historyModalViewMode === 'left' ? ' active' : ''}`} onClick={() => setHistoryModalViewMode('left')}>View v{versionPairComparison.left.version_number} Summary</button>
-                        <button type="button" className={`featureops-filter-pill${historyModalViewMode === 'right' ? ' active' : ''}`} onClick={() => setHistoryModalViewMode('right')}>View v{versionPairComparison.right.version_number} Summary</button>
-                        <button type="button" className={`featureops-filter-pill${historyModalViewMode === 'comparison' ? ' active' : ''}`} onClick={() => setHistoryModalViewMode('comparison')}>View Comparison</button>
-                      </div>
-                    </div>
-                    <div style={{ overflowX: 'auto', marginTop: 10 }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5, color: '#0f172a' }}>
-                        <thead>
-                          <tr style={{ background: '#eef4fb' }}>
-                            {(historyModalViewMode === 'comparison'
-                              ? ['Column', `v${versionPairComparison.left.version_number} Meaning`, `v${versionPairComparison.right.version_number} Meaning`, `v${versionPairComparison.left.version_number} Scale`, `v${versionPairComparison.right.version_number} Scale`, 'Drift', 'Release', 'Reason']
-                              : ['Column', 'Role', 'Scale', 'Release', 'Summary', 'Created']).map((header) => (
-                              <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #dbe5f0', color: '#334155' }}>{header}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {(historyModalViewMode === 'comparison'
-                            ? versionPairComparison.external.map((row) => {
-                                const release = versionPairComparison.releaseByColumn[row.column_name]
-                                const leftScale = versionPairComparison.left.semantic_profiles.find((item) => item.column_name === row.column_name)?.detected_scale || '-'
-                                const rightScale = versionPairComparison.right.semantic_profiles.find((item) => item.column_name === row.column_name)?.detected_scale || '-'
-                                return (
-                                  <tr key={`compare-${row.column_name}`}>
-                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0', fontWeight: 700 }}>{row.column_name}</td>
-                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{row.baseline_meaning}</td>
-                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{row.current_detected_meaning}</td>
-                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{leftScale}</td>
-                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{rightScale}</td>
-                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{row.drift_severity}</td>
-                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{release?.release_status || '-'}</td>
-                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>{row.evidence.join(' ') || release?.explanation || 'stable'}</td>
-                                  </tr>
-                                )
-                              })
-                            : (historyModalViewMode === 'left' ? versionPairComparison.left : versionPairComparison.right).semantic_profiles.map((profile) => {
-                                const source = historyModalViewMode === 'left' ? versionPairComparison.left : versionPairComparison.right
-                                const release = source.release_results.find((item) => item.column_name === profile.column_name)
-                                return (
-                                  <tr key={`${historyModalViewMode}-${profile.column_name}`}>
-                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0', fontWeight: 700 }}>{profile.column_name}</td>
-                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{profile.generic_role}</td>
-                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{profile.detected_scale}</td>
-                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{release?.release_status || '-'}</td>
-                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>{profile.approved_or_detected_meaning}</td>
-                                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #e2e8f0' }}>{new Date(source.created_at).toLocaleString('en-GB')}</td>
-                                  </tr>
-                                )
-                              }))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-            </div>
+            <FeatureOpsDatasetHistoryTables
+              familiesDisplayRows={familiesDisplayRows}
+              families={families}
+              driftRuns={driftRuns}
+              viewFamilyId={viewFamilyId}
+              viewFamilyVersions={viewFamilyVersions}
+              selectedCompareVersions={selectedCompareVersions}
+              toggleCompareVersion={toggleCompareVersion}
+              versionPairComparison={versionPairComparison}
+              historyModalViewMode={historyModalViewMode}
+              setHistoryModalViewMode={setHistoryModalViewMode}
+              setViewFamilyId={setViewFamilyId}
+              setSelectedCompareVersions={setSelectedCompareVersions}
+              openFilePickerForVersion={openFilePickerForVersion}
+              loadVersion={loadVersion}
+              loadDriftRun={loadDriftRun}
+              deleteFamily={deleteFamily}
+              deleteDriftRun={deleteDriftRun}
+              approveVersion={approveVersion}
+              deleteVersion={deleteVersion}
+              afterNavigate={() => setShowHistoryModal(false)}
+            />
+
           </div>
         </div>
       )}
 
+      {!timelineSurface && (
+        <>
       <div className="featureops-top-detail-grid">
-        <article className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 10 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Workflow Messages</div>
+        <article className="featureops-light-panel" style={{ borderRadius: 12, padding: 14, display: 'grid', gap: 10 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>Workflow Messages</div>
           {workflowSteps.length > 0 ? (
             <div style={{ display: 'grid', gap: 8 }}>
               {workflowSteps.map((step) => {
@@ -3268,8 +3365,8 @@ export default function FeatureOpsWorkflowPanel() {
           </div>
         </article>
 
-        <article className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Current Upload Summary</div>
+        <article className="featureops-light-panel" style={{ borderRadius: 12, padding: 14, display: 'grid', gap: 12 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>Current Upload Summary</div>
           {!hasUpload ? (
             <div className="featureops-empty-state">
               No dataset is loaded. Upload a CSV or JSON file to start the workflow.
@@ -3305,7 +3402,7 @@ export default function FeatureOpsWorkflowPanel() {
                   )
                 })}
               </div>
-              <div className="featureops-summary-inline">
+              <div className="featureops-summary-inline featureops-summary-inline--upload">
                 <span>Uploaded time</span>
                 <strong>{uploadTime ? new Date(uploadTime).toLocaleString('en-GB') : 'N/A'}</strong>
               </div>
@@ -3372,12 +3469,12 @@ export default function FeatureOpsWorkflowPanel() {
                 </div>
                 </div>
               )}
-              <div style={{ overflowX: 'auto' }}>
+              <div className="featureops-preview-wrap" style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
                   <thead>
-                    <tr style={{ background: '#f8fafc' }}>
+                    <tr>
                       {columns.slice(0, showFullPreview ? columns.length : 8).map((column) => (
-                        <th key={column} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0' }}>{column}</th>
+                        <th key={column} style={{ textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid #eef2f6' }}>{column}</th>
                       ))}
                     </tr>
                   </thead>
@@ -3385,7 +3482,7 @@ export default function FeatureOpsWorkflowPanel() {
                     {datasetRows.slice(0, showFullPreview ? Math.min(datasetRows.length, 25) : 5).map((row, rowIndex) => (
                       <tr key={`preview-${rowIndex}`}>
                         {columns.slice(0, showFullPreview ? columns.length : 8).map((column) => (
-                          <td key={`${rowIndex}-${column}`} style={{ padding: '7px 6px', borderBottom: '1px solid #f1f5f9', maxWidth: 160, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <td key={`${rowIndex}-${column}`} style={{ padding: '8px 10px', borderBottom: '1px solid #f1f5f9', maxWidth: 160, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {String(row[column] ?? '-')}
                           </td>
                         ))}
@@ -3403,11 +3500,11 @@ export default function FeatureOpsWorkflowPanel() {
       </div>
 
       <section style={{ display: 'grid', gap: 12 }}>
-        <article className="featureops-light-panel" style={{ borderRadius: 14, border: '2px solid #cbd5e1', background: '#ffffff', padding: 14, display: 'grid', gap: 14, boxShadow: '0 10px 24px rgba(15, 23, 42, 0.08)' }}>
+        <article className="featureops-light-panel" style={{ borderRadius: 12, padding: 16, display: 'grid', gap: 14 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>Review Workspace</div>
-              <div className="muted-text" style={{ fontSize: 12, color: '#334155' }}>Use the tabs below to review mappings, semantic profiles, and drift/release outcomes.</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>Review Workspace</div>
+              <div className="muted-text" style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Use the tabs below to review mappings, semantic profiles, and drift/release outcomes.</div>
             </div>
             <div className="featureops-tab-strip">
               <button
@@ -3429,7 +3526,7 @@ export default function FeatureOpsWorkflowPanel() {
 
           {reviewWorkspaceTab === 'mapping' ? (
             <div style={{ display: 'grid', gap: 12 }}>
-              <div className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', padding: 12 }}>
+              <div className="featureops-nested-panel">
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#111827', marginBottom: 10 }}>Mapping Details</div>
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
@@ -3488,7 +3585,7 @@ export default function FeatureOpsWorkflowPanel() {
                 </div>
               </div>
 
-              <div className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', padding: 12 }}>
+              <div className="featureops-nested-panel">
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#111827', marginBottom: 10 }}>Semantic Profiles</div>
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
@@ -3572,7 +3669,7 @@ export default function FeatureOpsWorkflowPanel() {
                 </div>
               </div>
 
-              <div className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', padding: 12, display: 'grid', gap: 12 }}>
+              <div className="featureops-nested-panel">
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                   <div style={{ display: 'grid', gap: 4 }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Data Architecture Baselines</div>
@@ -3620,7 +3717,7 @@ export default function FeatureOpsWorkflowPanel() {
                 )}
               </div>
 
-              <div className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', padding: 12, display: 'grid', gap: 12 }}>
+              <div className="featureops-nested-panel">
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Baseline Creation Module</div>
                   <div className="muted-text" style={{ fontSize: 11 }}>Approved semantic baseline fields and stored business meaning for each baseline column.</div>
@@ -3658,7 +3755,7 @@ export default function FeatureOpsWorkflowPanel() {
                 )}
               </div>
 
-              <div className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', padding: 12, display: 'grid', gap: 12 }}>
+              <div className="featureops-nested-panel">
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>New Dataset Profiling Module</div>
                   <div className="muted-text" style={{ fontSize: 11 }}>Profiles the newly uploaded dataset using names, data types, sample values, nearby columns, and value patterns.</div>
@@ -3695,7 +3792,7 @@ export default function FeatureOpsWorkflowPanel() {
                 )}
               </div>
 
-              <div className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', padding: 12, display: 'grid', gap: 12 }}>
+              <div className="featureops-nested-panel">
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Column Matching Module</div>
                   <div className="muted-text" style={{ fontSize: 11 }}>Matches uploaded columns with baseline columns using exact, normalized, synonym, and semantic similarity checks.</div>
@@ -3733,7 +3830,7 @@ export default function FeatureOpsWorkflowPanel() {
             </div>
           ) : (
             <div style={{ display: 'grid', gap: 12 }}>
-              <div className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
+              <div className="featureops-nested-panel">
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Summary Cards</div>
                 <div className="featureops-release-grid">
                   {(['READY', 'CONDITIONAL', 'QUARANTINED'] as FeatureStatus[]).map((status) => {
@@ -3748,121 +3845,95 @@ export default function FeatureOpsWorkflowPanel() {
                 </div>
               </div>
 
-              <div className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div className="featureops-nested-panel">
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                   <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Cross-Modal Integrity Check</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Drift outcome (column-level)</div>
                     <div className="muted-text" style={{ fontSize: 11 }}>
-                      {driftAnalysis?.cross_modal?.explanation || 'Checks whether numeric, text, and categorical values still make sense together.'}
+                      Row-wise cross-field checks are not used here. Use release flags, semantic drift rows, and exports to decide what changed and how to fix it.
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    {[
-                      { label: 'SAFE', value: crossModalSummary.safe, tone: '#14532d', bg: '#dcfce7' },
-                      { label: 'CONDITIONAL', value: crossModalSummary.conditional, tone: '#92400e', bg: '#fef3c7' },
-                      { label: 'QUARANTINED', value: crossModalSummary.quarantined, tone: '#991b1b', bg: '#fee2e2' },
-                      { label: 'Pending Review', value: crossModalSummary.pendingReview, tone: '#1d4ed8', bg: '#dbeafe' },
-                    ].map((card) => (
-                      <div key={card.label} style={{ minWidth: 110, borderRadius: 10, padding: '8px 10px', background: card.bg, display: 'grid', gap: 4 }}>
-                        <span style={{ fontSize: 10, fontWeight: 800, color: card.tone }}>{card.label}</span>
-                        <strong style={{ fontSize: 18, color: '#0f172a' }}>{card.value}</strong>
-                      </div>
-                    ))}
+                  <span
+                    style={{
+                      borderRadius: 999,
+                      padding: '6px 12px',
+                      fontSize: 11,
+                      fontWeight: 800,
+                      background: columnDriftExecutiveSummary.driftDetected ? '#fef3c7' : '#dcfce7',
+                      color: columnDriftExecutiveSummary.driftDetected ? '#92400e' : '#14532d',
+                      border: `1px solid ${columnDriftExecutiveSummary.driftDetected ? '#fcd34d' : '#86efac'}`,
+                    }}
+                  >
+                    {columnDriftExecutiveSummary.driftDetected ? 'Drift detected' : 'No column drift'}
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 10, marginTop: 10 }}>
+                  <div style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', padding: 10, display: 'grid', gap: 6 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#0f172a' }}>Columns to inspect</div>
+                    <div className="muted-text" style={{ fontSize: 10.5, lineHeight: 1.5 }}>
+                      {columnDriftExecutiveSummary.columnsAtRisk.length
+                        ? columnDriftExecutiveSummary.columnsAtRisk.slice(0, 24).join(', ')
+                        : 'None flagged — all mapped columns are READY for release.'}
+                    </div>
                   </div>
-                </div>
-
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
-                    <thead>
-                      <tr style={{ background: '#eef4fb' }}>
-                        {['Row', 'Status', 'Broken relationship', 'Reason', 'Recommended action'].map((header) => (
-                          <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #dbe5f0', color: '#334155' }}>{header}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {crossModalRows.slice(0, 12).map((row: any) => {
-                        const tone = row.status === 'QUARANTINED'
-                          ? { bg: '#991b1b', text: '#ffffff' }
-                          : row.status === 'CONDITIONAL'
-                            ? { bg: '#92400e', text: '#ffffff' }
-                            : { bg: '#14532d', text: '#ffffff' }
-                        return (
-                          <tr key={`cross-modal-${row.row_id}`}>
-                            <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>Row {row.row_id}</td>
-                            <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
-                              <span style={{ borderRadius: 999, background: tone.bg, color: tone.text, padding: '4px 8px', fontSize: 10, fontWeight: 800 }}>
-                                {row.status}
-                              </span>
-                            </td>
-                            <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{row.broken_relationship}</td>
-                            <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.reason}</td>
-                            <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.recommended_action}</td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-
-                {!crossModalRows.length && (
-                  <div className="featureops-empty-state">
-                    Cross-modal monitoring results will appear here after learned drift analysis runs.
-                  </div>
-                )}
-              </div>
-
-              <div className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Human Review Queue</div>
-                  <div className="muted-text" style={{ fontSize: 11 }}>Ask a reviewer whether the row still makes sense across fields before approving unusual relationships.</div>
-                </div>
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
-                    <thead>
-                      <tr style={{ background: '#eef4fb' }}>
-                        {['Row', 'Review prompt', 'Current decision', 'Actions'].map((header) => (
-                          <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #dbe5f0', color: '#334155' }}>{header}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {crossModalHumanQueue.slice(0, 10).map((item: any) => (
-                        <tr key={`human-review-${item.row_id}`}>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>Row {item.row_id}</td>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{item.review_prompt}</td>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{item.review_status}</td>
-                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
-                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                              {(['Accept', 'Accept with warning', 'Reject / Quarantine'] as HumanReviewDecision[]).map((decision) => (
-                                <button
-                                  key={`${item.row_id}-${decision}`}
-                                  type="button"
-                                  className="featureops-filter-pill"
-                                  onClick={() => {
-                                    setCrossModalHumanDecisions((previous) => ({ ...previous, [String(item.row_id)]: decision }))
-                                    pushMessage(`Human review updated for row ${item.row_id}: ${decision}.`, decision === 'Reject / Quarantine' ? 'warning' : 'success')
-                                  }}
-                                >
-                                  {decision}
-                                </button>
-                              ))}
-                            </div>
-                          </td>
-                        </tr>
+                  <div style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', padding: 10, display: 'grid', gap: 6 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#0f172a' }}>How to heal</div>
+                    <ul style={{ margin: 0, paddingLeft: 16, fontSize: 10.5, color: '#475569', lineHeight: 1.45 }}>
+                      {(columnDriftExecutiveSummary.healLines.length
+                        ? columnDriftExecutiveSummary.healLines
+                        : [{ column: '—', action: 'Run drift against a saved baseline version, then follow recommended actions in the tables below.' }]
+                      ).map((line, idx) => (
+                        <li key={`heal-${idx}-${line.column}`}>
+                          <strong style={{ color: '#111827' }}>{line.column}:</strong> {line.action}
+                        </li>
                       ))}
-                    </tbody>
-                  </table>
+                    </ul>
+                  </div>
+                  <div style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', padding: 10, display: 'grid', gap: 6 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#0f172a' }}>Human loop</div>
+                    <div style={{ fontSize: 10.5, color: '#475569', lineHeight: 1.5 }}>
+                      {columnDriftExecutiveSummary.humanLoopNeeded
+                        ? 'A reviewer should confirm CONDITIONAL / QUARANTINED columns (or high-severity semantic drift) before production release.'
+                        : 'No mandatory human gate from current column signals — still review mapping if the dataset is new.'}
+                    </div>
+                  </div>
+                  <div style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', padding: 10, display: 'grid', gap: 6 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#0f172a' }}>Rows vs registry baseline</div>
+                    <div style={{ fontSize: 10.5, color: '#475569', lineHeight: 1.5 }}>
+                      Current upload: <strong>{columnDriftExecutiveSummary.uploadRows}</strong> rows.
+                      {columnDriftExecutiveSummary.baselineRows != null && (
+                        <>
+                          {' '}Selected baseline version: <strong>{columnDriftExecutiveSummary.baselineRows}</strong> rows.
+                          {columnDriftExecutiveSummary.rowDeltaVsBaseline != null && (
+                            <>
+                              {' '}Delta (upload − baseline): <strong>{columnDriftExecutiveSummary.rowDeltaVsBaseline >= 0 ? '+' : ''}{columnDriftExecutiveSummary.rowDeltaVsBaseline}</strong>.
+                            </>
+                          )}
+                        </>
+                      )}
+                      {' '}Saving a new family version records this upload as a new version; downstream governed tables (for example Chroma sales) are updated only through the semantic ingest / export path, not silently by this screen alone.
+                    </div>
+                  </div>
                 </div>
 
-                {!crossModalHumanQueue.length && (
-                  <div className="featureops-empty-state">
-                    No rows currently need human review.
-                  </div>
-                )}
+                <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <button type="button" className="df-btn secondary" onClick={downloadCurrentUploadCsv} disabled={!datasetRows.length}>
+                    Download current upload (CSV)
+                  </button>
+                  <a className="df-btn secondary" href={`${semanticExportBase}/sales`} download style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
+                    Export Chroma sales (CSV)
+                  </a>
+                  <a className="df-btn secondary" href={`${semanticExportBase}/batches`} download style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
+                    Export ingest batches (CSV)
+                  </a>
+                  <span className="muted-text" style={{ fontSize: 10 }}>
+                    Use batch id from the latest semantic ingest response with <code style={{ fontSize: 10 }}>{semanticExportBase}/drift-results/&lt;batch_id&gt;</code> for drift rows.
+                  </span>
+                </div>
               </div>
 
-              <div className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
+              <div className="featureops-nested-panel">
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Semantic Drift Detected</div>
@@ -3917,10 +3988,10 @@ export default function FeatureOpsWorkflowPanel() {
                 )}
               </div>
 
-              <div style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
+              <div className="featureops-nested-panel">
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                   <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Release Decisions</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>Release Decisions</div>
                     <div className="muted-text" style={{ fontSize: 11 }}>Feature release labels with explanations and actions.</div>
                   </div>
                   <div className="featureops-filter-row">
@@ -3963,6 +4034,8 @@ export default function FeatureOpsWorkflowPanel() {
           )}
         </article>
       </section>
+        </>
+      )}
     </section>
   )
 }
