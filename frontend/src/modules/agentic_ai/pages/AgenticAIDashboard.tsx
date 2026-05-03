@@ -827,7 +827,7 @@ export default function AgenticAIDashboard({
         { label: 'Start chatting to populate', value: 0 },
       ]
     },
-    [metrics.intentDistribution],
+    [metrics.connectedProducts, metrics.intentDistribution],
   )
 
   const agentLatency = useMemo(
