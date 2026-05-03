@@ -1621,14 +1621,89 @@ def remove_uploaded_test_datasets():
 
 @app.post("/api/datamesh/domain-detect/reset")
 def reset_domain_detect_demo_state():
-    """Reset Silver loader demo state: cleanup uploaded test files + clear detection history."""
+    """Legacy alias — full allowlist-based demo reset."""
     return silver_domain_loader_service.reset_demo_state()
+
+
+@app.post("/api/datamesh/demo/reset")
+def reset_datamesh_demo_state():
+    """Reset Silver-to-domain demo: retain only canonical Silver CSVs; clear logs and demo artifacts."""
+    return silver_domain_loader_service.reset_demo_state()
+
+
+@app.get("/api/datamesh/silver-datasets/demo-files")
+def list_silver_demo_files():
+    """List CSV files available under Data/Test-upload-data for demo loading."""
+    return silver_domain_loader_service.list_demo_source_files()
+
+
+@app.post("/api/datamesh/silver-datasets/load-demo")
+def load_silver_demo_dataset(payload: dict = Body(default={})):
+    """Copy a demo CSV from Test-upload-data into Silver-data."""
+    try:
+        return silver_domain_loader_service.load_demo_dataset(
+            dataset_name=str(payload.get("dataset_name") or ""),
+            demo_type=str(payload.get("demo_type") or "demo_load"),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 
 @app.get("/api/datamesh/domain-detect/results")
 def get_domain_detect_results(limit: int = 50):
     """Get recent Silver-to-domain detection results from audit log."""
     return silver_domain_loader_service.get_detection_results(limit=limit)
+
+
+@app.get("/api/datamesh/domain-memory-bank")
+def get_domain_memory_bank():
+    """Governed domain memory bank (reviewer-approved profiles)."""
+    return silver_domain_loader_service.get_domain_memory_bank()
+
+
+@app.post("/api/datamesh/domain-review/decision")
+def post_domain_review_decision(payload: dict = Body(default={})):
+    """Record reviewer decision and update domain memory bank."""
+    try:
+        return silver_domain_loader_service.submit_review_decision(payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.get("/api/datamesh/domain-review/decisions")
+def get_domain_review_decisions():
+    return silver_domain_loader_service.get_review_decisions()
+
+
+@app.get("/api/datamesh/created-domains")
+def get_created_domains_list():
+    return silver_domain_loader_service.list_created_domains()
+
+
+@app.delete("/api/datamesh/created-domains/{domain_name}")
+def delete_created_domain(domain_name: str):
+    try:
+        return silver_domain_loader_service.delete_created_domain(domain_name)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/api/datamesh/domain-admission/apply")
+def post_domain_admission_apply(payload: dict = Body(default={})):
+    """Materialize an admitted Silver dataset into the domain product folder (separate from eligibility scoring)."""
+    try:
+        return silver_domain_loader_service.apply_domain_admission(
+            passport_id=str(payload.get("passport_id") or ""),
+            dataset_name=str(payload.get("dataset_name") or ""),
+            target_domain=str(payload.get("target_domain") or ""),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.get("/api/datamesh/domain-admission/materializations")
+def get_domain_materialization_records(limit: int = 200):
+    return silver_domain_loader_service.get_materialization_records(limit=limit)
 
 
 @app.get("/governance/summary")
