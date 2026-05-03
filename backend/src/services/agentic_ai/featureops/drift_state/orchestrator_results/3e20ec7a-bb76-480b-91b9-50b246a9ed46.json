@@ -1,0 +1,2212 @@
+{
+  "drift_run_id": "3e20ec7a-bb76-480b-91b9-50b246a9ed46",
+  "timestamp": "2026-05-03T21:14:55.596501",
+  "dataset_name": "05_fashion_trends_drift.csv",
+  "profile": {
+    "dataset_name": "05_fashion_trends_drift.csv",
+    "created_at": "2026-05-03T21:14:55.648979",
+    "row_count": 2,
+    "column_count": 9,
+    "column_profiles": [
+      {
+        "column_name": "trend_id",
+        "inferred_type": "numeric",
+        "kind": "numeric",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": 401.0,
+        "max": 402.0,
+        "mean": 401.5,
+        "std": 0.5,
+        "sample_values": [
+          "401",
+          "402"
+        ],
+        "row_count": 2,
+        "column_count": 0,
+        "scale_pattern": "count",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Numeric feature with mean 401.500 and std 0.500",
+        "summary_text": "trend_id is numeric. Numeric feature with mean 401.500 and std 0.500",
+        "top_values": []
+      },
+      {
+        "column_name": "label",
+        "inferred_type": "categorical",
+        "kind": "categorical",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "std": null,
+        "sample_values": [
+          "Coastal linen drift",
+          "Urban mesh drift"
+        ],
+        "row_count": 2,
+        "column_count": 0,
+        "scale_pattern": "unknown",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Top terms: drift, coastal, linen, mesh, urban",
+        "summary_text": "label is categorical. Top terms: drift, coastal, linen, mesh, urban",
+        "top_values": [
+          "Coastal linen drift",
+          "Urban mesh drift"
+        ]
+      },
+      {
+        "column_name": "trend_category",
+        "inferred_type": "categorical",
+        "kind": "categorical",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "std": null,
+        "sample_values": [
+          "seasonal",
+          "category"
+        ],
+        "row_count": 2,
+        "column_count": 0,
+        "scale_pattern": "unknown",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Top terms: category, seasonal",
+        "summary_text": "trend_category is categorical. Top terms: category, seasonal",
+        "top_values": [
+          "seasonal",
+          "category"
+        ]
+      },
+      {
+        "column_name": "momentum_idx",
+        "inferred_type": "numeric",
+        "kind": "numeric",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": 0.88,
+        "max": 0.91,
+        "mean": 0.895,
+        "std": 0.015000000000000013,
+        "sample_values": [
+          "0.88",
+          "0.91"
+        ],
+        "row_count": 2,
+        "column_count": 0,
+        "scale_pattern": "percentage",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Numeric feature with mean 0.895 and std 0.015",
+        "summary_text": "momentum_idx is numeric. Numeric feature with mean 0.895 and std 0.015",
+        "top_values": []
+      },
+      {
+        "column_name": "week",
+        "inferred_type": "numeric",
+        "kind": "numeric",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": 20.0,
+        "max": 21.0,
+        "mean": 20.5,
+        "std": 0.5,
+        "sample_values": [
+          "20",
+          "21"
+        ],
+        "row_count": 2,
+        "column_count": 0,
+        "scale_pattern": "percentage",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Numeric feature with mean 20.500 and std 0.500",
+        "summary_text": "week is numeric. Numeric feature with mean 20.500 and std 0.500",
+        "top_values": []
+      },
+      {
+        "column_name": "year",
+        "inferred_type": "numeric",
+        "kind": "numeric",
+        "missing_percent": 0.0,
+        "unique_percent": 0.5,
+        "min": 2026.0,
+        "max": 2026.0,
+        "mean": 2026.0,
+        "std": 0.0,
+        "sample_values": [
+          "2026"
+        ],
+        "row_count": 2,
+        "column_count": 0,
+        "scale_pattern": "count",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Numeric feature with mean 2026.000 and std 0.000",
+        "summary_text": "year is numeric. Numeric feature with mean 2026.000 and std 0.000",
+        "top_values": []
+      },
+      {
+        "column_name": "emerging_designers",
+        "inferred_type": "categorical",
+        "kind": "categorical",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "std": null,
+        "sample_values": [
+          "Studio A",
+          "Studio B"
+        ],
+        "row_count": 2,
+        "column_count": 0,
+        "scale_pattern": "unknown",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Top terms: studio, a, b",
+        "summary_text": "emerging_designers is categorical. Top terms: studio, a, b",
+        "top_values": [
+          "Studio A",
+          "Studio B"
+        ]
+      },
+      {
+        "column_name": "trend_tags",
+        "inferred_type": "text",
+        "kind": "text",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "std": null,
+        "sample_values": [
+          "linen,sea",
+          "mesh,night"
+        ],
+        "row_count": 2,
+        "column_count": 0,
+        "scale_pattern": "unknown",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Top terms: linen, mesh, night, sea",
+        "summary_text": "trend_tags is text. Top terms: linen, mesh, night, sea",
+        "top_values": [
+          "linen,sea",
+          "mesh,night"
+        ]
+      },
+      {
+        "column_name": "tiktok_mention_count",
+        "inferred_type": "numeric",
+        "kind": "numeric",
+        "missing_percent": 0.0,
+        "unique_percent": 1.0,
+        "min": 15400.0,
+        "max": 22100.0,
+        "mean": 18750.0,
+        "std": 3350.0,
+        "sample_values": [
+          "15400",
+          "22100"
+        ],
+        "row_count": 2,
+        "column_count": 0,
+        "scale_pattern": "count",
+        "detected_unit": "unitless",
+        "detected_direction": "neutral",
+        "topic_summary": "Numeric feature with mean 18750.000 and std 3350.000",
+        "summary_text": "tiktok_mention_count is numeric. Numeric feature with mean 18750.000 and std 3350.000",
+        "top_values": []
+      }
+    ],
+    "relational_anchors": [],
+    "summary_text": "Dataset '05_fashion_trends_drift.csv' contains 9 columns. Numeric columns: trend_id, momentum_idx, week, year, tiktok_mention_count. Text/categorical columns: label, trend_category, emerging_designers, trend_tags.",
+    "summary_embedding": []
+  },
+  "baselines": {
+    "internal": {
+      "dataset_name": "05_fashion_trends_baseline.csv",
+      "created_at": "2026-05-03T21:14:55.681550",
+      "row_count": 8,
+      "column_count": 8,
+      "column_profiles": [
+        {
+          "column_name": "trend_id",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 1.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "301",
+            "302",
+            "303",
+            "304",
+            "305",
+            "306",
+            "307",
+            "308"
+          ],
+          "row_count": 8,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 301, 302, 303, 304, 305, 306",
+          "summary_text": "trend_id is categorical. Top terms: 301, 302, 303, 304, 305, 306",
+          "top_values": [
+            "301",
+            "302",
+            "303",
+            "304",
+            "305",
+            "306",
+            "307",
+            "308"
+          ]
+        },
+        {
+          "column_name": "trend_name",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 1.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "Linen ease",
+            "Neo batik",
+            "Minimal carry",
+            "Athleisure blur",
+            "Pastel suiting",
+            "Coastal stripes",
+            "Upcycled denim",
+            "Monsoon brights"
+          ],
+          "row_count": 8,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: athleisure, batik, blur, brights, carry, coastal",
+          "summary_text": "trend_name is categorical. Top terms: athleisure, batik, blur, brights, carry, coastal",
+          "top_values": [
+            "Linen ease",
+            "Neo batik",
+            "Minimal carry",
+            "Athleisure blur",
+            "Pastel suiting",
+            "Coastal stripes",
+            "Upcycled denim",
+            "Monsoon brights"
+          ]
+        },
+        {
+          "column_name": "trend_category",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 0.625,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "seasonal",
+            "heritage",
+            "bags",
+            "category",
+            "sustainability"
+          ],
+          "row_count": 8,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: bags, category, heritage, seasonal, sustainability",
+          "summary_text": "trend_category is categorical. Top terms: bags, category, heritage, seasonal, sustainability",
+          "top_values": [
+            "seasonal",
+            "heritage",
+            "bags",
+            "category",
+            "sustainability"
+          ]
+        },
+        {
+          "column_name": "trend_score",
+          "inferred_type": "text",
+          "kind": "text",
+          "missing_percent": 0.0,
+          "unique_percent": 1.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "0.78",
+            "0.65",
+            "0.71",
+            "0.82",
+            "0.69",
+            "0.74",
+            "0.77",
+            "0.61"
+          ],
+          "row_count": 8,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 0, 61, 65, 69, 71, 74",
+          "summary_text": "trend_score is text. Top terms: 0, 61, 65, 69, 71, 74",
+          "top_values": [
+            "0.78",
+            "0.65",
+            "0.71",
+            "0.82",
+            "0.69",
+            "0.74",
+            "0.77",
+            "0.61"
+          ]
+        },
+        {
+          "column_name": "week",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 0.625,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "14",
+            "15",
+            "16",
+            "17",
+            "18"
+          ],
+          "row_count": 8,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 14, 15, 16, 17, 18",
+          "summary_text": "week is categorical. Top terms: 14, 15, 16, 17, 18",
+          "top_values": [
+            "15",
+            "16",
+            "17",
+            "14",
+            "18"
+          ]
+        },
+        {
+          "column_name": "year",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 0.125,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "2026"
+          ],
+          "row_count": 8,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: 2026",
+          "summary_text": "year is categorical. Top terms: 2026",
+          "top_values": [
+            "2026"
+          ]
+        },
+        {
+          "column_name": "emerging_designers",
+          "inferred_type": "text",
+          "kind": "text",
+          "missing_percent": 0.0,
+          "unique_percent": 1.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "Perera Atelier;Coast Line",
+            "Batik House SL",
+            "Leather Lab CMB",
+            "Track Studio",
+            "Atelier North",
+            "Wave Knitworks",
+            "Loop Denim",
+            "Rainbow Row"
+          ],
+          "row_count": 8,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: atelier, batik, cmb, coast, denim, house",
+          "summary_text": "emerging_designers is text. Top terms: atelier, batik, cmb, coast, denim, house",
+          "top_values": [
+            "Perera Atelier;Coast Line",
+            "Batik House SL",
+            "Leather Lab CMB",
+            "Track Studio",
+            "Atelier North",
+            "Wave Knitworks",
+            "Loop Denim",
+            "Rainbow Row"
+          ]
+        },
+        {
+          "column_name": "trend_tags",
+          "inferred_type": "text",
+          "kind": "text",
+          "missing_percent": 0.0,
+          "unique_percent": 1.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "linen,neutral,resort",
+            "batik,artisan,colorblock",
+            "leather,compact,utility",
+            "mesh,performance,street",
+            "pastel,tailoring,office",
+            "stripe,knit,holiday",
+            "upcycle,denim,repair",
+            "monsoon,color,safety"
+          ],
+          "row_count": 8,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: artisan, batik, color, colorblock, compact, denim",
+          "summary_text": "trend_tags is text. Top terms: artisan, batik, color, colorblock, compact, denim",
+          "top_values": [
+            "linen,neutral,resort",
+            "batik,artisan,colorblock",
+            "leather,compact,utility",
+            "mesh,performance,street",
+            "pastel,tailoring,office",
+            "stripe,knit,holiday",
+            "upcycle,denim,repair",
+            "monsoon,color,safety"
+          ]
+        }
+      ],
+      "relational_anchors": [],
+      "summary_text": "Dataset '05_fashion_trends_baseline.csv' contains 8 columns. Text/categorical columns: trend_id, trend_name, trend_category, trend_score, week, year, emerging_designers, trend_tags.",
+      "summary_embedding": []
+    },
+    "external": {
+      "dataset_name": "external_demo",
+      "created_at": "2026-05-03T01:43:21.545808",
+      "row_count": 200,
+      "column_count": 4,
+      "column_profiles": [
+        {
+          "column_name": "row_id",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 0.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "E0",
+            "E1",
+            "E2",
+            "E3",
+            "E4",
+            "E5",
+            "E6",
+            "E7",
+            "E8",
+            "E9"
+          ],
+          "row_count": 200,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: e0, e1, e2, e3, e4, e5",
+          "summary_text": "row_id is categorical. Top terms: e0, e1, e2, e3, e4, e5",
+          "top_values": [
+            "E0",
+            "E1",
+            "E2",
+            "E3",
+            "E4",
+            "E5",
+            "E6",
+            "E7",
+            "E8",
+            "E9"
+          ]
+        },
+        {
+          "column_name": "price",
+          "inferred_type": "numeric",
+          "kind": "numeric",
+          "missing_percent": 0.0,
+          "unique_percent": 0.0,
+          "min": 74.09244757710573,
+          "max": 139.47173909795035,
+          "mean": 107.20643336921923,
+          "std": 10.811017729388103,
+          "sample_values": [
+            "89.48263471998102",
+            "119.1651642900698",
+            "92.14301911697689",
+            "93.22008578620486",
+            "104.02164856068536",
+            "116.67355031528697",
+            "111.30125296303873",
+            "116.91845114366271",
+            "103.11991786398252",
+            "106.10598384788445"
+          ],
+          "row_count": 200,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Numeric feature with mean 107.206 and std 10.811",
+          "summary_text": "price is numeric. mean=107.206, std=10.811, min=74.092, max=139.472.",
+          "top_values": []
+        },
+        {
+          "column_name": "category",
+          "inferred_type": "categorical",
+          "kind": "categorical",
+          "missing_percent": 0.0,
+          "unique_percent": 0.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "A",
+            "B",
+            "C"
+          ],
+          "row_count": 200,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: a, b, c",
+          "summary_text": "category is categorical. Top terms: a, b, c",
+          "top_values": [
+            "A",
+            "B",
+            "C"
+          ]
+        },
+        {
+          "column_name": "description",
+          "inferred_type": "text",
+          "kind": "text",
+          "missing_percent": 0.0,
+          "unique_percent": 0.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "sample_values": [
+            "modern performance apparel"
+          ],
+          "row_count": 200,
+          "column_count": 0,
+          "scale_pattern": "unknown",
+          "detected_unit": "unitless",
+          "detected_direction": "neutral",
+          "topic_summary": "Top terms: apparel, modern, performance",
+          "summary_text": "description is text. Top terms: apparel, modern, performance",
+          "top_values": [
+            "modern performance apparel"
+          ]
+        }
+      ],
+      "relational_anchors": [],
+      "summary_text": "Dataset external_demo has 4 columns. row_id (categorical): Top terms: e0, e1, e2, e3, e4, e5 price (numeric): Numeric feature with mean 107.206 and std 10.811 category (categorical): Top terms: a, b, c description (text): Top terms: apparel, modern, performance Anchor: No strong relational anchor detected.",
+      "summary_embedding": [
+        0.16963778593599418,
+        0.0,
+        0.0,
+        0.0,
+        0.08481889296799709,
+        0.0,
+        0.16963778593599418,
+        0.08481889296799709,
+        0.0,
+        0.0,
+        0.2544566789039913,
+        0.16963778593599418,
+        0.16963778593599418,
+        0.4240944648399855,
+        0.08481889296799709,
+        0.08481889296799709,
+        0.0,
+        0.16963778593599418,
+        0.16963778593599418,
+        0.08481889296799709,
+        0.08481889296799709,
+        0.2544566789039913,
+        0.33927557187198837,
+        0.33927557187198837,
+        0.08481889296799709,
+        0.4240944648399855,
+        0.08481889296799709,
+        0.08481889296799709,
+        0.08481889296799709,
+        0.16963778593599418,
+        0.08481889296799709,
+        0.0
+      ]
+    }
+  },
+  "available_predefined_baselines": [
+    {
+      "baseline_key": "products",
+      "dataset_name": "product_catalog",
+      "baseline_version": "v1",
+      "description": "Approved semantic baseline for the products table defined in data architecture.",
+      "source_table": "final_products.csv",
+      "column_count": 14,
+      "columns": {
+        "product_id": {
+          "business_meaning": "Unique identifier for a product listing",
+          "role": "identifier",
+          "domain": "Commerce",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "shop_id": {
+          "business_meaning": "Identifier of the shop that owns the product listing",
+          "role": "identifier",
+          "domain": "Commerce",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "name": {
+          "business_meaning": "Customer-facing product name",
+          "role": "text_attribute",
+          "domain": "Commerce",
+          "unit": "text",
+          "scale": "free_text",
+          "data_type": "string",
+          "value_direction": "neutral description"
+        },
+        "category": {
+          "business_meaning": "Merchandise category assigned to the product",
+          "role": "dimension",
+          "domain": "Commerce",
+          "unit": "category",
+          "scale": "nominal",
+          "data_type": "string",
+          "value_direction": "neutral grouping"
+        },
+        "color": {
+          "business_meaning": "Primary product color descriptor",
+          "role": "dimension",
+          "domain": "Commerce",
+          "unit": "color",
+          "scale": "nominal",
+          "data_type": "string",
+          "value_direction": "neutral attribute"
+        },
+        "fabric": {
+          "business_meaning": "Main material or fabric used in the product",
+          "role": "dimension",
+          "domain": "Commerce",
+          "unit": "material",
+          "scale": "nominal",
+          "data_type": "string",
+          "value_direction": "neutral attribute"
+        },
+        "size_range": {
+          "business_meaning": "Size range supported by the product listing",
+          "role": "dimension",
+          "domain": "Commerce",
+          "unit": "size",
+          "scale": "ordinal",
+          "data_type": "string",
+          "value_direction": "neutral attribute"
+        },
+        "price_LKR": {
+          "business_meaning": "Displayed selling price of the product in Sri Lankan Rupees",
+          "role": "measure",
+          "domain": "Commerce",
+          "unit": "LKR",
+          "scale": "currency",
+          "data_type": "decimal",
+          "value_direction": "higher means higher selling price"
+        },
+        "style_tags": {
+          "business_meaning": "Tag bundle describing product style, fit, and audience cues",
+          "role": "text_attribute",
+          "domain": "Commerce",
+          "unit": "tags",
+          "scale": "multi_label_text",
+          "data_type": "string",
+          "value_direction": "neutral descriptive tags"
+        },
+        "product_url": {
+          "business_meaning": "Canonical product page URL",
+          "role": "identifier",
+          "domain": "Commerce",
+          "unit": "url",
+          "scale": "reference",
+          "data_type": "string",
+          "value_direction": "neutral reference link"
+        },
+        "created_ts": {
+          "business_meaning": "Original source time fragment captured when the product record was created",
+          "role": "timestamp",
+          "domain": "Commerce",
+          "unit": "time",
+          "scale": "time_string",
+          "data_type": "string",
+          "value_direction": "later means more recent source capture"
+        },
+        "popularity_score": {
+          "business_meaning": "Popularity score assigned to the product listing",
+          "role": "score",
+          "domain": "Commerce",
+          "unit": "score",
+          "scale": "normalized_score",
+          "data_type": "decimal",
+          "value_direction": "higher means more popular"
+        },
+        "stock_count": {
+          "business_meaning": "Available stock quantity for the product listing",
+          "role": "measure",
+          "domain": "Inventory",
+          "unit": "count",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "higher means more items in stock"
+        },
+        "created_timestamp": {
+          "business_meaning": "Full timestamp when the product record was created",
+          "role": "timestamp",
+          "domain": "Commerce",
+          "unit": "datetime",
+          "scale": "timestamp",
+          "data_type": "datetime",
+          "value_direction": "later means more recent record creation"
+        }
+      }
+    },
+    {
+      "baseline_key": "users",
+      "dataset_name": "user_profiles",
+      "baseline_version": "v1",
+      "description": "Approved semantic baseline for the users table defined in data architecture.",
+      "source_table": "users_dataset.csv",
+      "column_count": 7,
+      "columns": {
+        "user_id": {
+          "business_meaning": "Unique identifier for a customer account",
+          "role": "identifier",
+          "domain": "Customer",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "name": {
+          "business_meaning": "Customer full name",
+          "role": "text_attribute",
+          "domain": "Customer",
+          "unit": "text",
+          "scale": "free_text",
+          "data_type": "string",
+          "value_direction": "neutral profile text"
+        },
+        "email": {
+          "business_meaning": "Customer email address used for communication and login",
+          "role": "identifier",
+          "domain": "Customer",
+          "unit": "email",
+          "scale": "reference",
+          "data_type": "string",
+          "value_direction": "neutral contact identifier"
+        },
+        "phone": {
+          "business_meaning": "Customer phone number for delivery or support contact",
+          "role": "identifier",
+          "domain": "Customer",
+          "unit": "phone",
+          "scale": "reference",
+          "data_type": "string",
+          "value_direction": "neutral contact identifier"
+        },
+        "shipping_address": {
+          "business_meaning": "Primary shipping address for the customer",
+          "role": "text_attribute",
+          "domain": "Customer",
+          "unit": "address",
+          "scale": "free_text",
+          "data_type": "string",
+          "value_direction": "neutral address detail"
+        },
+        "signup_ts": {
+          "business_meaning": "Date when the customer account was created",
+          "role": "timestamp",
+          "domain": "Customer",
+          "unit": "date",
+          "scale": "date",
+          "data_type": "date",
+          "value_direction": "later means more recently signed up"
+        },
+        "is_active": {
+          "business_meaning": "Whether the customer account is currently active",
+          "role": "binary_label",
+          "domain": "Customer",
+          "unit": "boolean",
+          "scale": "binary",
+          "data_type": "boolean",
+          "value_direction": "true means active account"
+        }
+      }
+    },
+    {
+      "baseline_key": "transactions",
+      "dataset_name": "sales_transactions",
+      "baseline_version": "v1",
+      "description": "Approved semantic baseline for the transactions table defined in data architecture.",
+      "source_table": "transactions_dataset.csv",
+      "column_count": 19,
+      "columns": {
+        "transaction_id": {
+          "business_meaning": "Unique identifier for a transaction",
+          "role": "identifier",
+          "domain": "Sales",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "user_id": {
+          "business_meaning": "Identifier of the customer who placed the order",
+          "role": "identifier",
+          "domain": "Sales",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "product_id": {
+          "business_meaning": "Identifier of the product sold in the transaction",
+          "role": "identifier",
+          "domain": "Sales",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "shop_id": {
+          "business_meaning": "Identifier of the shop fulfilling the order",
+          "role": "identifier",
+          "domain": "Sales",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "quantity": {
+          "business_meaning": "Number of product units sold in the transaction",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "count",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "higher means more items sold"
+        },
+        "unit_price": {
+          "business_meaning": "Selling price per unit before taxes and discounts",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "LKR",
+          "scale": "currency",
+          "data_type": "decimal",
+          "value_direction": "higher means higher per-item selling price"
+        },
+        "total_amount": {
+          "business_meaning": "Gross transaction amount before discounts and taxes",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "LKR",
+          "scale": "currency",
+          "data_type": "decimal",
+          "value_direction": "higher means more gross revenue"
+        },
+        "discount_percent": {
+          "business_meaning": "Discount percentage applied to the transaction",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "percent",
+          "scale": "percentage",
+          "data_type": "decimal",
+          "value_direction": "higher means larger discount share"
+        },
+        "discount_amount": {
+          "business_meaning": "Discount amount deducted from the gross transaction total",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "LKR",
+          "scale": "currency",
+          "data_type": "decimal",
+          "value_direction": "higher means larger discount value"
+        },
+        "tax_percent": {
+          "business_meaning": "Tax percentage applied to the transaction",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "percent",
+          "scale": "percentage",
+          "data_type": "decimal",
+          "value_direction": "higher means larger tax share"
+        },
+        "tax_amount": {
+          "business_meaning": "Tax amount added to the transaction",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "LKR",
+          "scale": "currency",
+          "data_type": "decimal",
+          "value_direction": "higher means larger tax value"
+        },
+        "final_amount": {
+          "business_meaning": "Final sales revenue after applying discounts and taxes",
+          "role": "measure",
+          "domain": "Sales",
+          "unit": "LKR",
+          "scale": "currency",
+          "data_type": "decimal",
+          "value_direction": "higher means more final revenue"
+        },
+        "payment_method": {
+          "business_meaning": "Payment method selected by the customer",
+          "role": "dimension",
+          "domain": "Sales",
+          "unit": "method",
+          "scale": "nominal",
+          "data_type": "string",
+          "value_direction": "neutral payment category"
+        },
+        "transaction_status": {
+          "business_meaning": "Operational status of the transaction lifecycle",
+          "role": "dimension",
+          "domain": "Sales",
+          "unit": "status",
+          "scale": "ordinal",
+          "data_type": "string",
+          "value_direction": "later statuses mean more progressed fulfillment"
+        },
+        "transaction_date": {
+          "business_meaning": "Calendar date when the transaction was recorded",
+          "role": "timestamp",
+          "domain": "Sales",
+          "unit": "date",
+          "scale": "date",
+          "data_type": "date",
+          "value_direction": "later means more recent sale date"
+        },
+        "transaction_ts": {
+          "business_meaning": "Exact timestamp when the transaction was created",
+          "role": "timestamp",
+          "domain": "Sales",
+          "unit": "datetime",
+          "scale": "timestamp",
+          "data_type": "datetime",
+          "value_direction": "later means more recent transaction event"
+        },
+        "delivery_date": {
+          "business_meaning": "Expected or actual delivery date for the order",
+          "role": "timestamp",
+          "domain": "Sales",
+          "unit": "datetime",
+          "scale": "timestamp",
+          "data_type": "datetime",
+          "value_direction": "later means later delivery timing"
+        },
+        "delivery_address": {
+          "business_meaning": "Delivery destination for the order",
+          "role": "text_attribute",
+          "domain": "Sales",
+          "unit": "address",
+          "scale": "free_text",
+          "data_type": "string",
+          "value_direction": "neutral delivery detail"
+        },
+        "notes": {
+          "business_meaning": "Free-text note describing the order context",
+          "role": "text_attribute",
+          "domain": "Sales",
+          "unit": "text",
+          "scale": "free_text",
+          "data_type": "string",
+          "value_direction": "neutral supporting detail"
+        }
+      }
+    },
+    {
+      "baseline_key": "shops",
+      "dataset_name": "shop_directory",
+      "baseline_version": "v1",
+      "description": "Approved semantic baseline for the shops table defined in data architecture.",
+      "source_table": "shops_dataset.csv",
+      "column_count": 9,
+      "columns": {
+        "shop_id": {
+          "business_meaning": "Unique identifier for a shop",
+          "role": "identifier",
+          "domain": "Retail",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "shop_name": {
+          "business_meaning": "Official shop name",
+          "role": "text_attribute",
+          "domain": "Retail",
+          "unit": "text",
+          "scale": "free_text",
+          "data_type": "string",
+          "value_direction": "neutral descriptive text"
+        },
+        "location": {
+          "business_meaning": "City or locality where the shop is located",
+          "role": "dimension",
+          "domain": "Retail",
+          "unit": "location",
+          "scale": "nominal",
+          "data_type": "string",
+          "value_direction": "neutral geographic grouping"
+        },
+        "district": {
+          "business_meaning": "Administrative district for the shop",
+          "role": "dimension",
+          "domain": "Retail",
+          "unit": "district",
+          "scale": "nominal",
+          "data_type": "string",
+          "value_direction": "neutral geographic grouping"
+        },
+        "postal_code": {
+          "business_meaning": "Postal code assigned to the shop location",
+          "role": "identifier",
+          "domain": "Retail",
+          "unit": "postal_code",
+          "scale": "reference",
+          "data_type": "string",
+          "value_direction": "neutral location identifier"
+        },
+        "phone_number": {
+          "business_meaning": "Shop contact phone number",
+          "role": "identifier",
+          "domain": "Retail",
+          "unit": "phone",
+          "scale": "reference",
+          "data_type": "string",
+          "value_direction": "neutral contact identifier"
+        },
+        "is_active": {
+          "business_meaning": "Whether the shop is currently active in the retail network",
+          "role": "binary_label",
+          "domain": "Retail",
+          "unit": "boolean",
+          "scale": "binary",
+          "data_type": "boolean",
+          "value_direction": "true means active shop"
+        },
+        "operating_hours_open": {
+          "business_meaning": "Daily opening time for the shop",
+          "role": "timestamp",
+          "domain": "Retail",
+          "unit": "time",
+          "scale": "time_of_day",
+          "data_type": "string",
+          "value_direction": "later means later opening time"
+        },
+        "operating_hours_close": {
+          "business_meaning": "Daily closing time for the shop",
+          "role": "timestamp",
+          "domain": "Retail",
+          "unit": "time",
+          "scale": "time_of_day",
+          "data_type": "string",
+          "value_direction": "later means later closing time"
+        }
+      }
+    },
+    {
+      "baseline_key": "trends",
+      "dataset_name": "fashion_trends",
+      "baseline_version": "v1",
+      "description": "Approved semantic baseline for the trends table defined in data architecture.",
+      "source_table": "trends_dataset.csv",
+      "column_count": 8,
+      "columns": {
+        "trend_id": {
+          "business_meaning": "Unique identifier for a tracked fashion trend",
+          "role": "identifier",
+          "domain": "Fashion Trends",
+          "unit": "id",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "neutral reference key"
+        },
+        "trend_name": {
+          "business_meaning": "Label of the trend being tracked",
+          "role": "text_attribute",
+          "domain": "Fashion Trends",
+          "unit": "text",
+          "scale": "free_text",
+          "data_type": "string",
+          "value_direction": "neutral descriptive text"
+        },
+        "trend_category": {
+          "business_meaning": "Trend classification such as seasonal or category trend",
+          "role": "dimension",
+          "domain": "Fashion Trends",
+          "unit": "category",
+          "scale": "nominal",
+          "data_type": "string",
+          "value_direction": "neutral grouping"
+        },
+        "trend_score": {
+          "business_meaning": "Trend strength or momentum score for the week",
+          "role": "score",
+          "domain": "Fashion Trends",
+          "unit": "score",
+          "scale": "normalized_score",
+          "data_type": "decimal",
+          "value_direction": "higher means stronger trend momentum"
+        },
+        "week": {
+          "business_meaning": "Calendar week number used for trend tracking",
+          "role": "dimension",
+          "domain": "Fashion Trends",
+          "unit": "week",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "higher means later week in the year"
+        },
+        "year": {
+          "business_meaning": "Calendar year used for trend tracking",
+          "role": "dimension",
+          "domain": "Fashion Trends",
+          "unit": "year",
+          "scale": "integer",
+          "data_type": "integer",
+          "value_direction": "higher means more recent year"
+        },
+        "emerging_designers": {
+          "business_meaning": "Designers associated with the observed trend",
+          "role": "text_attribute",
+          "domain": "Fashion Trends",
+          "unit": "designer_names",
+          "scale": "multi_label_text",
+          "data_type": "string",
+          "value_direction": "neutral descriptive association"
+        },
+        "trend_tags": {
+          "business_meaning": "Tag bundle describing fabrics, aesthetics, and motifs linked to the trend",
+          "role": "text_attribute",
+          "domain": "Fashion Trends",
+          "unit": "tags",
+          "scale": "multi_label_text",
+          "data_type": "string",
+          "value_direction": "neutral descriptive tags"
+        }
+      }
+    }
+  ],
+  "selected_predefined_baseline": {
+    "baseline_key": "trends",
+    "dataset_name": "fashion_trends",
+    "baseline_version": "v1",
+    "description": "Approved semantic baseline for the trends table defined in data architecture.",
+    "source_table": "trends_dataset.csv",
+    "columns": {
+      "trend_id": {
+        "business_meaning": "Unique identifier for a tracked fashion trend",
+        "role": "identifier",
+        "domain": "Fashion Trends",
+        "unit": "id",
+        "scale": "integer",
+        "data_type": "integer",
+        "value_direction": "neutral reference key"
+      },
+      "trend_name": {
+        "business_meaning": "Label of the trend being tracked",
+        "role": "text_attribute",
+        "domain": "Fashion Trends",
+        "unit": "text",
+        "scale": "free_text",
+        "data_type": "string",
+        "value_direction": "neutral descriptive text"
+      },
+      "trend_category": {
+        "business_meaning": "Trend classification such as seasonal or category trend",
+        "role": "dimension",
+        "domain": "Fashion Trends",
+        "unit": "category",
+        "scale": "nominal",
+        "data_type": "string",
+        "value_direction": "neutral grouping"
+      },
+      "trend_score": {
+        "business_meaning": "Trend strength or momentum score for the week",
+        "role": "score",
+        "domain": "Fashion Trends",
+        "unit": "score",
+        "scale": "normalized_score",
+        "data_type": "decimal",
+        "value_direction": "higher means stronger trend momentum"
+      },
+      "week": {
+        "business_meaning": "Calendar week number used for trend tracking",
+        "role": "dimension",
+        "domain": "Fashion Trends",
+        "unit": "week",
+        "scale": "integer",
+        "data_type": "integer",
+        "value_direction": "higher means later week in the year"
+      },
+      "year": {
+        "business_meaning": "Calendar year used for trend tracking",
+        "role": "dimension",
+        "domain": "Fashion Trends",
+        "unit": "year",
+        "scale": "integer",
+        "data_type": "integer",
+        "value_direction": "higher means more recent year"
+      },
+      "emerging_designers": {
+        "business_meaning": "Designers associated with the observed trend",
+        "role": "text_attribute",
+        "domain": "Fashion Trends",
+        "unit": "designer_names",
+        "scale": "multi_label_text",
+        "data_type": "string",
+        "value_direction": "neutral descriptive association"
+      },
+      "trend_tags": {
+        "business_meaning": "Tag bundle describing fabrics, aesthetics, and motifs linked to the trend",
+        "role": "text_attribute",
+        "domain": "Fashion Trends",
+        "unit": "tags",
+        "scale": "multi_label_text",
+        "data_type": "string",
+        "value_direction": "neutral descriptive tags"
+      }
+    }
+  },
+  "baseline_creation": [
+    {
+      "column_name": "trend_id",
+      "business_meaning": "Unique identifier for a tracked fashion trend",
+      "role": "identifier",
+      "domain": "Fashion Trends",
+      "unit": "id",
+      "scale": "integer",
+      "data_type": "integer",
+      "value_direction": "neutral reference key",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "trend_name",
+      "business_meaning": "Label of the trend being tracked",
+      "role": "text_attribute",
+      "domain": "Fashion Trends",
+      "unit": "text",
+      "scale": "free_text",
+      "data_type": "string",
+      "value_direction": "neutral descriptive text",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "trend_category",
+      "business_meaning": "Trend classification such as seasonal or category trend",
+      "role": "dimension",
+      "domain": "Fashion Trends",
+      "unit": "category",
+      "scale": "nominal",
+      "data_type": "string",
+      "value_direction": "neutral grouping",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "trend_score",
+      "business_meaning": "Trend strength or momentum score for the week",
+      "role": "score",
+      "domain": "Fashion Trends",
+      "unit": "score",
+      "scale": "normalized_score",
+      "data_type": "decimal",
+      "value_direction": "higher means stronger trend momentum",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "week",
+      "business_meaning": "Calendar week number used for trend tracking",
+      "role": "dimension",
+      "domain": "Fashion Trends",
+      "unit": "week",
+      "scale": "integer",
+      "data_type": "integer",
+      "value_direction": "higher means later week in the year",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "year",
+      "business_meaning": "Calendar year used for trend tracking",
+      "role": "dimension",
+      "domain": "Fashion Trends",
+      "unit": "year",
+      "scale": "integer",
+      "data_type": "integer",
+      "value_direction": "higher means more recent year",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "emerging_designers",
+      "business_meaning": "Designers associated with the observed trend",
+      "role": "text_attribute",
+      "domain": "Fashion Trends",
+      "unit": "designer_names",
+      "scale": "multi_label_text",
+      "data_type": "string",
+      "value_direction": "neutral descriptive association",
+      "baseline_version": "v1"
+    },
+    {
+      "column_name": "trend_tags",
+      "business_meaning": "Tag bundle describing fabrics, aesthetics, and motifs linked to the trend",
+      "role": "text_attribute",
+      "domain": "Fashion Trends",
+      "unit": "tags",
+      "scale": "multi_label_text",
+      "data_type": "string",
+      "value_direction": "neutral descriptive tags",
+      "baseline_version": "v1"
+    }
+  ],
+  "new_dataset_profiling": [
+    {
+      "column_name": "trend_id",
+      "detected_data_type": "numeric",
+      "sample_values": [
+        "401",
+        "402"
+      ],
+      "nearby_columns": [
+        "label"
+      ],
+      "value_pattern": "count",
+      "possible_business_meaning": "trend id unique identifier",
+      "possible_domain": "Commerce",
+      "possible_role": "Identifier"
+    },
+    {
+      "column_name": "label",
+      "detected_data_type": "categorical",
+      "sample_values": [
+        "Coastal linen drift",
+        "Urban mesh drift"
+      ],
+      "nearby_columns": [
+        "trend_id",
+        "trend_category"
+      ],
+      "value_pattern": "unknown",
+      "possible_business_meaning": "label business category in the Commerce domain",
+      "possible_domain": "Commerce",
+      "possible_role": "Dimension"
+    },
+    {
+      "column_name": "trend_category",
+      "detected_data_type": "categorical",
+      "sample_values": [
+        "seasonal",
+        "category"
+      ],
+      "nearby_columns": [
+        "label",
+        "momentum_idx"
+      ],
+      "value_pattern": "unknown",
+      "possible_business_meaning": "trend category business category in the Commerce domain",
+      "possible_domain": "Commerce",
+      "possible_role": "Dimension"
+    },
+    {
+      "column_name": "momentum_idx",
+      "detected_data_type": "numeric",
+      "sample_values": [
+        "0.88",
+        "0.91"
+      ],
+      "nearby_columns": [
+        "trend_category",
+        "week"
+      ],
+      "value_pattern": "percentage",
+      "possible_business_meaning": "momentum idx unique identifier",
+      "possible_domain": "Commerce",
+      "possible_role": "Identifier"
+    },
+    {
+      "column_name": "week",
+      "detected_data_type": "numeric",
+      "sample_values": [
+        "20",
+        "21"
+      ],
+      "nearby_columns": [
+        "momentum_idx",
+        "year"
+      ],
+      "value_pattern": "percentage",
+      "possible_business_meaning": "week measured business value in the Commerce domain",
+      "possible_domain": "Commerce",
+      "possible_role": "Measure"
+    },
+    {
+      "column_name": "year",
+      "detected_data_type": "numeric",
+      "sample_values": [
+        "2026"
+      ],
+      "nearby_columns": [
+        "week",
+        "emerging_designers"
+      ],
+      "value_pattern": "count",
+      "possible_business_meaning": "year measured business value in the Commerce domain",
+      "possible_domain": "Commerce",
+      "possible_role": "Measure"
+    },
+    {
+      "column_name": "emerging_designers",
+      "detected_data_type": "categorical",
+      "sample_values": [
+        "Studio A",
+        "Studio B"
+      ],
+      "nearby_columns": [
+        "year",
+        "trend_tags"
+      ],
+      "value_pattern": "unknown",
+      "possible_business_meaning": "emerging designers business category in the Commerce domain",
+      "possible_domain": "Commerce",
+      "possible_role": "Dimension"
+    },
+    {
+      "column_name": "trend_tags",
+      "detected_data_type": "text",
+      "sample_values": [
+        "linen,sea",
+        "mesh,night"
+      ],
+      "nearby_columns": [
+        "emerging_designers",
+        "tiktok_mention_count"
+      ],
+      "value_pattern": "unknown",
+      "possible_business_meaning": "trend tags descriptive text in the Commerce domain",
+      "possible_domain": "Commerce",
+      "possible_role": "Description"
+    },
+    {
+      "column_name": "tiktok_mention_count",
+      "detected_data_type": "numeric",
+      "sample_values": [
+        "15400",
+        "22100"
+      ],
+      "nearby_columns": [
+        "trend_tags"
+      ],
+      "value_pattern": "count",
+      "possible_business_meaning": "tiktok mention count measured business value in the Commerce domain",
+      "possible_domain": "Commerce",
+      "possible_role": "Measure"
+    }
+  ],
+  "column_matching": [
+    {
+      "incoming_column": "trend_id",
+      "baseline_column": "trend_id",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "identifier",
+      "incoming_role": "Identifier",
+      "baseline_domain": "Fashion Trends",
+      "incoming_domain": "Commerce",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "label",
+      "baseline_column": null,
+      "match_method": "unmatched",
+      "match_score": 0.0,
+      "baseline_role": null,
+      "incoming_role": "Dimension",
+      "baseline_domain": null,
+      "incoming_domain": "Commerce",
+      "reason": "No exact, normalized, synonym, or semantic match passed the baseline threshold."
+    },
+    {
+      "incoming_column": "trend_category",
+      "baseline_column": "trend_category",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "dimension",
+      "incoming_role": "Dimension",
+      "baseline_domain": "Fashion Trends",
+      "incoming_domain": "Commerce",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "momentum_idx",
+      "baseline_column": null,
+      "match_method": "unmatched",
+      "match_score": 0.0,
+      "baseline_role": null,
+      "incoming_role": "Identifier",
+      "baseline_domain": null,
+      "incoming_domain": "Commerce",
+      "reason": "No exact, normalized, synonym, or semantic match passed the baseline threshold."
+    },
+    {
+      "incoming_column": "week",
+      "baseline_column": "week",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "dimension",
+      "incoming_role": "Measure",
+      "baseline_domain": "Fashion Trends",
+      "incoming_domain": "Commerce",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "year",
+      "baseline_column": "year",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "dimension",
+      "incoming_role": "Measure",
+      "baseline_domain": "Fashion Trends",
+      "incoming_domain": "Commerce",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "emerging_designers",
+      "baseline_column": "emerging_designers",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "text_attribute",
+      "incoming_role": "Dimension",
+      "baseline_domain": "Fashion Trends",
+      "incoming_domain": "Commerce",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "trend_tags",
+      "baseline_column": "trend_tags",
+      "match_method": "exact_name_match",
+      "match_score": 1.0,
+      "baseline_role": "text_attribute",
+      "incoming_role": "Description",
+      "baseline_domain": "Fashion Trends",
+      "incoming_domain": "Commerce",
+      "reason": "Column name matches exactly."
+    },
+    {
+      "incoming_column": "tiktok_mention_count",
+      "baseline_column": null,
+      "match_method": "unmatched",
+      "match_score": 0.0,
+      "baseline_role": null,
+      "incoming_role": "Measure",
+      "baseline_domain": null,
+      "incoming_domain": "Commerce",
+      "reason": "No exact, normalized, synonym, or semantic match passed the baseline threshold."
+    }
+  ],
+  "anchors": [],
+  "triage_matrix": {
+    "cells": [
+      {
+        "internal": "Aligned",
+        "external": "Aligned",
+        "decision": "SAFE",
+        "row_count": 0,
+        "percentage": 0.0,
+        "description": "Stable internally and externally.",
+        "reasoning": []
+      },
+      {
+        "internal": "Aligned",
+        "external": "Outlier",
+        "decision": "CONDITIONAL",
+        "row_count": 0,
+        "percentage": 0.0,
+        "description": "Internally stable but externally out of market range.",
+        "reasoning": []
+      },
+      {
+        "internal": "Drifted",
+        "external": "Aligned",
+        "decision": "CONDITIONAL",
+        "row_count": 2,
+        "percentage": 100.0,
+        "description": "Internal history shifted, but market still supports it.",
+        "reasoning": [
+          "Row semantics do not match the external benchmark profile.",
+          "Numeric values moved away from the internal baseline."
+        ]
+      },
+      {
+        "internal": "Drifted",
+        "external": "Outlier",
+        "decision": "QUARANTINED",
+        "row_count": 0,
+        "percentage": 0.0,
+        "description": "Neither baseline supports the new behavior.",
+        "reasoning": []
+      }
+    ]
+  },
+  "drifts_per_column": [
+    {
+      "column_name": "trend_id",
+      "drift_type": "numeric",
+      "severity": "high",
+      "reason": "Numeric scale moved away from both the internal and external baselines.",
+      "baseline_stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "scale": "unknown"
+      },
+      "current_stats": {
+        "mean": 401.5,
+        "std": 0.5,
+        "scale": "count"
+      },
+      "impact": "High risk of semantic drift.",
+      "recommendation": "Quarantine until the scoring semantics are reviewed."
+    },
+    {
+      "column_name": "label",
+      "drift_type": "text",
+      "severity": "high",
+      "reason": "Text semantics no longer match either baseline profile.",
+      "baseline_stats": {
+        "internal_similarity": 0.0,
+        "external_similarity": 0.0,
+        "baseline_terms": []
+      },
+      "current_stats": {
+        "current_terms": [
+          "Coastal linen drift",
+          "Urban mesh drift"
+        ]
+      },
+      "impact": "Meaning changed enough to affect downstream recommendations.",
+      "recommendation": "Review mappings and quarantine until corrected."
+    },
+    {
+      "column_name": "trend_category",
+      "drift_type": "text",
+      "severity": "high",
+      "reason": "Text semantics no longer match either baseline profile.",
+      "baseline_stats": {
+        "internal_similarity": 0.0,
+        "external_similarity": 0.0,
+        "baseline_terms": [
+          "seasonal",
+          "heritage",
+          "bags",
+          "category",
+          "sustainability"
+        ]
+      },
+      "current_stats": {
+        "current_terms": [
+          "seasonal",
+          "category"
+        ]
+      },
+      "impact": "Meaning changed enough to affect downstream recommendations.",
+      "recommendation": "Review mappings and quarantine until corrected."
+    },
+    {
+      "column_name": "momentum_idx",
+      "drift_type": "numeric",
+      "severity": "none",
+      "reason": "Column remains aligned with learned baselines.",
+      "baseline_stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "scale": null
+      },
+      "current_stats": {
+        "mean": 0.895,
+        "std": 0.015000000000000013,
+        "scale": "percentage"
+      },
+      "impact": "Low release risk.",
+      "recommendation": "No action needed."
+    },
+    {
+      "column_name": "week",
+      "drift_type": "numeric",
+      "severity": "high",
+      "reason": "Numeric scale moved away from both the internal and external baselines.",
+      "baseline_stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "scale": "unknown"
+      },
+      "current_stats": {
+        "mean": 20.5,
+        "std": 0.5,
+        "scale": "percentage"
+      },
+      "impact": "High risk of semantic drift.",
+      "recommendation": "Quarantine until the scoring semantics are reviewed."
+    },
+    {
+      "column_name": "year",
+      "drift_type": "numeric",
+      "severity": "high",
+      "reason": "Numeric scale moved away from both the internal and external baselines.",
+      "baseline_stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "scale": "unknown"
+      },
+      "current_stats": {
+        "mean": 2026.0,
+        "std": 0.0,
+        "scale": "count"
+      },
+      "impact": "High risk of semantic drift.",
+      "recommendation": "Quarantine until the scoring semantics are reviewed."
+    },
+    {
+      "column_name": "emerging_designers",
+      "drift_type": "text",
+      "severity": "high",
+      "reason": "Text semantics no longer match either baseline profile.",
+      "baseline_stats": {
+        "internal_similarity": 0.0,
+        "external_similarity": 0.0,
+        "baseline_terms": [
+          "Perera Atelier;Coast Line",
+          "Batik House SL",
+          "Leather Lab CMB",
+          "Track Studio",
+          "Atelier North"
+        ]
+      },
+      "current_stats": {
+        "current_terms": [
+          "Studio A",
+          "Studio B"
+        ]
+      },
+      "impact": "Meaning changed enough to affect downstream recommendations.",
+      "recommendation": "Review mappings and quarantine until corrected."
+    },
+    {
+      "column_name": "trend_tags",
+      "drift_type": "text",
+      "severity": "high",
+      "reason": "Text semantics no longer match either baseline profile.",
+      "baseline_stats": {
+        "internal_similarity": 0.0,
+        "external_similarity": 0.0,
+        "baseline_terms": [
+          "linen,neutral,resort",
+          "batik,artisan,colorblock",
+          "leather,compact,utility",
+          "mesh,performance,street",
+          "pastel,tailoring,office"
+        ]
+      },
+      "current_stats": {
+        "current_terms": [
+          "linen,sea",
+          "mesh,night"
+        ]
+      },
+      "impact": "Meaning changed enough to affect downstream recommendations.",
+      "recommendation": "Review mappings and quarantine until corrected."
+    },
+    {
+      "column_name": "tiktok_mention_count",
+      "drift_type": "numeric",
+      "severity": "high",
+      "reason": "Numeric scale moved away from both the internal and external baselines.",
+      "baseline_stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "scale": null
+      },
+      "current_stats": {
+        "mean": 18750.0,
+        "std": 3350.0,
+        "scale": "count"
+      },
+      "impact": "High risk of semantic drift.",
+      "recommendation": "Quarantine until the scoring semantics are reviewed."
+    }
+  ],
+  "row_classifications": [
+    {
+      "row_id": 0,
+      "row_index": 0,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "trend_id",
+        "week",
+        "year"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    },
+    {
+      "row_id": 1,
+      "row_index": 1,
+      "status": "CONDITIONAL",
+      "confidence": 1.0,
+      "affected_columns": [
+        "trend_id",
+        "week",
+        "year"
+      ],
+      "reasons": [
+        "Numeric values moved away from the internal baseline.",
+        "Row semantics do not match the external benchmark profile."
+      ],
+      "internal_similarity": 0.0,
+      "external_similarity": 0.0,
+      "internal_status": "Drifted",
+      "external_status": "Outlier"
+    }
+  ],
+  "cross_modal": {
+    "enabled": true,
+    "explanation": "Cross-modal integrity checks whether numeric, text, and categorical fields still make sense together. A row can look valid column by column, but still be risky if the relationship between fields is broken.",
+    "baseline_examples": [
+      {
+        "row_id": 0,
+        "values": {
+          "trend_id": "401",
+          "label": "Coastal linen drift",
+          "trend_category": "seasonal",
+          "momentum_idx": "0.88",
+          "week": "20",
+          "year": "2026"
+        }
+      },
+      {
+        "row_id": 1,
+        "values": {
+          "trend_id": "402",
+          "label": "Urban mesh drift",
+          "trend_category": "category",
+          "momentum_idx": "0.91",
+          "week": "21",
+          "year": "2026"
+        }
+      }
+    ],
+    "baseline_rules": [],
+    "rows": [
+      {
+        "row_id": 0,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "trend_id": "401",
+          "label": "Coastal linen drift",
+          "trend_category": "seasonal",
+          "momentum_idx": "0.88",
+          "week": "20",
+          "year": "2026"
+        }
+      },
+      {
+        "row_id": 1,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "trend_id": "402",
+          "label": "Urban mesh drift",
+          "trend_category": "category",
+          "momentum_idx": "0.91",
+          "week": "21",
+          "year": "2026"
+        }
+      }
+    ],
+    "summary": {
+      "SAFE": 0,
+      "CONDITIONAL": 2,
+      "QUARANTINED": 0,
+      "pending_review": 2
+    },
+    "human_loop_policy": {
+      "safe": "Auto-pass",
+      "conditional": "Ask human to confirm whether the unusual relationship still makes business sense.",
+      "quarantined": "Block by default and require human override to continue."
+    },
+    "human_review_queue": [
+      {
+        "row_id": 0,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "trend_id": "401",
+          "label": "Coastal linen drift",
+          "trend_category": "seasonal",
+          "momentum_idx": "0.88",
+          "week": "20",
+          "year": "2026"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      },
+      {
+        "row_id": 1,
+        "status": "CONDITIONAL",
+        "relational_drift": true,
+        "confidence": 0.76,
+        "broken_relationship": "cross-column relationship shift",
+        "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+        "recommended_action": "Ask a reviewer whether this still makes business sense.",
+        "row_preview": {
+          "trend_id": "402",
+          "label": "Urban mesh drift",
+          "trend_category": "category",
+          "momentum_idx": "0.91",
+          "week": "21",
+          "year": "2026"
+        },
+        "review_status": "Pending Review",
+        "review_prompt": "Does this row still make business sense across its values?"
+      }
+    ]
+  },
+  "human_review_queue": [
+    {
+      "row_id": 0,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "trend_id": "401",
+        "label": "Coastal linen drift",
+        "trend_category": "seasonal",
+        "momentum_idx": "0.88",
+        "week": "20",
+        "year": "2026"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    },
+    {
+      "row_id": 1,
+      "status": "CONDITIONAL",
+      "relational_drift": true,
+      "confidence": 0.76,
+      "broken_relationship": "cross-column relationship shift",
+      "reason": "The row is unusual across multiple fields and should be reviewed by a human.",
+      "recommended_action": "Ask a reviewer whether this still makes business sense.",
+      "row_preview": {
+        "trend_id": "402",
+        "label": "Urban mesh drift",
+        "trend_category": "category",
+        "momentum_idx": "0.91",
+        "week": "21",
+        "year": "2026"
+      },
+      "review_status": "Pending Review",
+      "review_prompt": "Does this row still make business sense across its values?"
+    }
+  ],
+  "learned_scores": {
+    "features": {
+      "internal_mean_distance": 0.0,
+      "external_mean_distance": 0.0,
+      "text_embedding_distance": 1.0,
+      "anchor_violation_score": 0.0,
+      "scale_mismatch_score": 0.0,
+      "numeric_std_ratio": 0.0,
+      "categorical_entropy_ratio": 0.18289053745667663,
+      "minority_scale_ratio": 0.0,
+      "text_similarity_to_internal": 0.0,
+      "text_similarity_to_external": 0.0,
+      "semantic_coherence_score": 1.0,
+      "column_count_diff": 1,
+      "new_column_ratio": 0.3333333333333333,
+      "missing_column_ratio": 0.25,
+      "max_column_drift": 1.0
+    },
+    "probabilities": {
+      "CONDITIONAL": 0.937828098548389,
+      "QUARANTINED": 0.03995850721511484,
+      "SAFE": 0.02221339423649622
+    },
+    "confidence": 0.937828098548389,
+    "feature_importance": {
+      "internal_mean_distance": 0.9304989712046242,
+      "external_mean_distance": 0.7084129858522581,
+      "text_embedding_distance": 0.31572494683739366,
+      "anchor_violation_score": 0.19707282347572402,
+      "scale_mismatch_score": 0.06839583124922696,
+      "numeric_std_ratio": 0.2077928853333762,
+      "categorical_entropy_ratio": 0.026183834211265324,
+      "minority_scale_ratio": 0.1011210403286203,
+      "text_similarity_to_internal": 0.38398488604032344,
+      "text_similarity_to_external": 0.4980296231171589,
+      "semantic_coherence_score": 0.14916284492190654,
+      "column_count_diff": 0.0,
+      "new_column_ratio": 0.006043824470973655,
+      "missing_column_ratio": 0.06857228913456773,
+      "max_column_drift": 0.5523481851702939
+    },
+    "model_info": {
+      "status": "trained",
+      "classes": [
+        "CONDITIONAL",
+        "QUARANTINED",
+        "SAFE"
+      ],
+      "feature_count": 15,
+      "features": [
+        "internal_mean_distance",
+        "external_mean_distance",
+        "text_embedding_distance",
+        "anchor_violation_score",
+        "scale_mismatch_score",
+        "numeric_std_ratio",
+        "categorical_entropy_ratio",
+        "minority_scale_ratio",
+        "text_similarity_to_internal",
+        "text_similarity_to_external",
+        "semantic_coherence_score",
+        "column_count_diff",
+        "new_column_ratio",
+        "missing_column_ratio",
+        "max_column_drift"
+      ],
+      "model_type": "LogisticRegression",
+      "model_path": "C:\\Users\\file\\Documents\\GitHub\\StylesenseSL\\backend\\src\\services\\agentic_ai\\featureops\\models\\drift_triage_model.joblib",
+      "coefficients": {
+        "internal_mean_distance": 0.9304989712046242,
+        "external_mean_distance": -0.7084129858522581,
+        "text_embedding_distance": 0.31572494683739366,
+        "anchor_violation_score": -0.19707282347572402,
+        "scale_mismatch_score": -0.06839583124922696,
+        "numeric_std_ratio": 0.2077928853333762,
+        "categorical_entropy_ratio": 0.026183834211265324,
+        "minority_scale_ratio": -0.1011210403286203,
+        "text_similarity_to_internal": -0.38398488604032344,
+        "text_similarity_to_external": 0.4980296231171589,
+        "semantic_coherence_score": -0.14916284492190654,
+        "column_count_diff": 0.0,
+        "new_column_ratio": -0.006043824470973655,
+        "missing_column_ratio": -0.06857228913456773,
+        "max_column_drift": 0.5523481851702939
+      }
+    }
+  },
+  "release_summary": {
+    "SAFE": 1,
+    "CONDITIONAL": 0,
+    "QUARANTINED": 8
+  },
+  "final_label": "CONDITIONAL",
+  "overall_drift_score": 0.5088725564893093,
+  "confidence": 0.937828098548389,
+  "severity": "moderate",
+  "reasons": [
+    "Internal alignment score: 100.0%",
+    "External alignment score: 0.0%",
+    "Relational integrity: 100.0%",
+    "2 of 2 rows align with the market baseline better than internal history."
+  ],
+  "affected_columns": [
+    "emerging_designers",
+    "label",
+    "tiktok_mention_count",
+    "trend_category",
+    "trend_id",
+    "trend_tags",
+    "week",
+    "year"
+  ]
+}

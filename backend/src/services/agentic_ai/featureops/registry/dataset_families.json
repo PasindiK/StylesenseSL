@@ -1,10 +1,41 @@
 [
   {
-    "family_id": "semantic_internal_drift_1000_records",
-    "family_name": "semantic internal drift 1000 records",
-    "created_at": "2026-05-03T05:55:51.398Z",
-    "updated_at": "2026-05-03T05:55:51.398Z",
-    "description": "Semantic monitoring baseline",
+    "family_id": "sales_transactions",
+    "family_name": "sales transactions",
+    "created_at": "2026-05-03T22:02:08.421Z",
+    "updated_at": "2026-05-03T22:12:01.295Z",
+    "description": "Approved semantic baseline for the transactions table defined in data architecture.",
+    "versions": [
+      1,
+      2
+    ],
+    "latest_version": 2,
+    "approved_baseline_version": 1,
+    "version_count": 2,
+    "baseline_status": "ACTIVE"
+  },
+  {
+    "family_id": "fashion_trends",
+    "family_name": "fashion trends",
+    "created_at": "2026-05-03T19:59:35.130Z",
+    "updated_at": "2026-05-03T21:14:55.390Z",
+    "description": "Approved semantic baseline for the trends table defined in data architecture.",
+    "versions": [
+      1,
+      2,
+      3
+    ],
+    "latest_version": 3,
+    "approved_baseline_version": 1,
+    "version_count": 3,
+    "baseline_status": "ACTIVE"
+  },
+  {
+    "family_id": "product_catalog",
+    "family_name": "product catalog",
+    "created_at": "2026-05-03T21:14:13.086Z",
+    "updated_at": "2026-05-03T21:14:13.086Z",
+    "description": "Approved semantic baseline for the products table defined in data architecture.",
     "versions": [
       1
     ],

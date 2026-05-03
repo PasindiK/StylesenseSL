@@ -1,0 +1,3989 @@
+{
+  "version_id": "sales_transactions_v2",
+  "dataset_family_id": "sales_transactions",
+  "version_number": 2,
+  "dataset_name": "transaction_semantic_drift_self_heal_60_rows.csv",
+  "file_name": "transaction_semantic_drift_self_heal_60_rows.csv",
+  "family_name": null,
+  "family_id": "sales_transactions",
+  "description": null,
+  "version_note": "Semantic drift follow-up version",
+  "created_at": "2026-05-03T22:12:01.295Z",
+  "row_count": 60,
+  "column_count": 19,
+  "column_names": [
+    "transaction_id",
+    "user_id",
+    "product_id",
+    "shop_id",
+    "quantity",
+    "unit_price",
+    "total_amount",
+    "discount_percent",
+    "discount_amount",
+    "tax_percent",
+    "tax_amount",
+    "final_amount",
+    "payment_method",
+    "transaction_status",
+    "transaction_date",
+    "transaction_ts",
+    "delivery_date",
+    "delivery_address",
+    "notes"
+  ],
+  "dataset_rows": [
+    {
+      "transaction_id": "91001",
+      "user_id": "20101",
+      "product_id": "11001",
+      "shop_id": "501",
+      "quantity": "1",
+      "unit_price": "4500.00",
+      "total_amount": "4500.00",
+      "discount_percent": "0.00",
+      "discount_amount": "0.00",
+      "tax_percent": "0.03",
+      "tax_amount": "135.00",
+      "final_amount": "4635.00",
+      "payment_method": "card",
+      "transaction_status": "completed",
+      "transaction_date": "2026-04-07",
+      "transaction_ts": "2026-04-07T09:15:00",
+      "delivery_date": "2026-04-08T11:15:00",
+      "delivery_address": "42 Flower Rd, Colombo 07",
+      "notes": ""
+    },
+    {
+      "transaction_id": "91002",
+      "user_id": "20102",
+      "product_id": "11002",
+      "shop_id": "502",
+      "quantity": "2",
+      "unit_price": "8950.00",
+      "total_amount": "17900.00",
+      "discount_percent": "0.03",
+      "discount_amount": "537.00",
+      "tax_percent": "0.03",
+      "tax_amount": "520.89",
+      "final_amount": "17883.89",
+      "payment_method": "cash",
+      "transaction_status": "shipped",
+      "transaction_date": "2026-04-08",
+      "transaction_ts": "2026-04-08T11:22:00",
+      "delivery_date": "2026-04-10T15:22:00",
+      "delivery_address": "18 Beach Rd, Negombo",
+      "notes": "Gift wrap requested"
+    },
+    {
+      "transaction_id": "91003",
+      "user_id": "20103",
+      "product_id": "11003",
+      "shop_id": "503",
+      "quantity": "1",
+      "unit_price": "12900.00",
+      "total_amount": "12900.00",
+      "discount_percent": "0.05",
+      "discount_amount": "645.00",
+      "tax_percent": "0.03",
+      "tax_amount": "367.65",
+      "final_amount": "12622.65",
+      "payment_method": "bank_transfer",
+      "transaction_status": "paid",
+      "transaction_date": "2026-04-09",
+      "transaction_ts": "2026-04-09T13:29:00",
+      "delivery_date": "2026-04-12T19:29:00",
+      "delivery_address": "9 Hill St, Kandy",
+      "notes": "VIP discount applied"
+    },
+    {
+      "transaction_id": "91004",
+      "user_id": "20104",
+      "product_id": "11004",
+      "shop_id": "504",
+      "quantity": "3",
+      "unit_price": "10050.00",
+      "total_amount": "30150.00",
+      "discount_percent": "0.08",
+      "discount_amount": "2412.00",
+      "tax_percent": "0.03",
+      "tax_amount": "832.14",
+      "final_amount": "28570.14",
+      "payment_method": "card",
+      "transaction_status": "pickup_ready",
+      "transaction_date": "2026-04-10",
+      "transaction_ts": "2026-04-10T15:36:00",
+      "delivery_date": "2026-04-14T23:36:00",
+      "delivery_address": "3 Lake Rd, Batticaloa",
+      "notes": "Pickup at counter"
+    },
+    {
+      "transaction_id": "91005",
+      "user_id": "20105",
+      "product_id": "11005",
+      "shop_id": "505",
+      "quantity": "2",
+      "unit_price": "6200.00",
+      "total_amount": "12400.00",
+      "discount_percent": "0.10",
+      "discount_amount": "1240.00",
+      "tax_percent": "0.03",
+      "tax_amount": "334.80",
+      "final_amount": "11494.80",
+      "payment_method": "cash",
+      "transaction_status": "processing",
+      "transaction_date": "2026-04-11",
+      "transaction_ts": "2026-04-11T17:43:00",
+      "delivery_date": "2026-04-12T19:43:00",
+      "delivery_address": "55 Galle Rd, Matara",
+      "notes": "Split shipment"
+    },
+    {
+      "transaction_id": "91006",
+      "user_id": "20106",
+      "product_id": "11006",
+      "shop_id": "501",
+      "quantity": "1",
+      "unit_price": "11250.00",
+      "total_amount": "11250.00",
+      "discount_percent": "0.12",
+      "discount_amount": "1350.00",
+      "tax_percent": "0.03",
+      "tax_amount": "297.00",
+      "final_amount": "10197.00",
+      "payment_method": "bank_transfer",
+      "transaction_status": "completed",
+      "transaction_date": "2026-04-12",
+      "transaction_ts": "2026-04-12T10:50:00",
+      "delivery_date": "2026-04-14T14:50:00",
+      "delivery_address": "7 Temple Rd, Anuradhapura",
+      "notes": "Customer requested evening delivery"
+    },
+    {
+      "transaction_id": "91007",
+      "user_id": "20107",
+      "product_id": "11007",
+      "shop_id": "502",
+      "quantity": "4",
+      "unit_price": "7700.00",
+      "total_amount": "30800.00",
+      "discount_percent": "0.15",
+      "discount_amount": "4620.00",
+      "tax_percent": "0.03",
+      "tax_amount": "785.40",
+      "final_amount": "26965.40",
+      "payment_method": "card",
+      "transaction_status": "shipped",
+      "transaction_date": "2026-04-13",
+      "transaction_ts": "2026-04-13T12:57:00",
+      "delivery_date": "2026-04-16T18:57:00",
+      "delivery_address": "21 Main St, Jaffna",
+      "notes": "Size exchange note added"
+    },
+    {
+      "transaction_id": "91008",
+      "user_id": "20108",
+      "product_id": "11008",
+      "shop_id": "503",
+      "quantity": "2",
+      "unit_price": "5550.00",
+      "total_amount": "11100.00",
+      "discount_percent": "0.00",
+      "discount_amount": "0.00",
+      "tax_percent": "0.03",
+      "tax_amount": "333.00",
+      "final_amount": "11433.00",
+      "payment_method": "cash",
+      "transaction_status": "paid",
+      "transaction_date": "2026-04-14",
+      "transaction_ts": "2026-04-14T15:04:00",
+      "delivery_date": "2026-04-18T23:04:00",
+      "delivery_address": "14 Fort Rd, Galle",
+      "notes": "Promo campaign order"
+    },
+    {
+      "transaction_id": "91009",
+      "user_id": "20109",
+      "product_id": "11009",
+      "shop_id": "504",
+      "quantity": "1",
+      "unit_price": "15750.00",
+      "total_amount": "15750.00",
+      "discount_percent": "0.03",
+      "discount_amount": "472.50",
+      "tax_percent": "0.03",
+      "tax_amount": "458.33",
+      "final_amount": "15735.83",
+      "payment_method": "bank_transfer",
+      "transaction_status": "pickup_ready",
+      "transaction_date": "2026-04-15",
+      "transaction_ts": "2026-04-15T16:21:00",
+      "delivery_date": "2026-04-16T18:21:00",
+      "delivery_address": "88 Green Ave, Kurunegala",
+      "notes": "Loyalty member purchase"
+    },
+    {
+      "transaction_id": "91010",
+      "user_id": "20110",
+      "product_id": "11010",
+      "shop_id": "505",
+      "quantity": "3",
+      "unit_price": "3900.00",
+      "total_amount": "11700.00",
+      "discount_percent": "0.05",
+      "discount_amount": "585.00",
+      "tax_percent": "0.03",
+      "tax_amount": "333.45",
+      "final_amount": "11448.45",
+      "payment_method": "card",
+      "transaction_status": "processing",
+      "transaction_date": "2026-04-16",
+      "transaction_ts": "2026-04-16T09:28:00",
+      "delivery_date": "2026-04-18T13:28:00",
+      "delivery_address": "31 Station Rd, Nuwara Eliya",
+      "notes": "Deliver before weekend"
+    },
+    {
+      "transaction_id": "91011",
+      "user_id": "20111",
+      "product_id": "11011",
+      "shop_id": "501",
+      "quantity": "1",
+      "unit_price": "21500.00",
+      "total_amount": "21500.00",
+      "discount_percent": "0.08",
+      "discount_amount": "1720.00",
+      "tax_percent": "0.03",
+      "tax_amount": "593.40",
+      "final_amount": "20373.40",
+      "payment_method": "cash",
+      "transaction_status": "completed",
+      "transaction_date": "2026-04-17",
+      "transaction_ts": "2026-04-17T11:35:00",
+      "delivery_date": "2026-04-20T17:35:00",
+      "delivery_address": "6 Canal Rd, Trincomalee",
+      "notes": ""
+    },
+    {
+      "transaction_id": "91012",
+      "user_id": "20112",
+      "product_id": "11012",
+      "shop_id": "502",
+      "quantity": "2",
+      "unit_price": "7400.00",
+      "total_amount": "14800.00",
+      "discount_percent": "0.10",
+      "discount_amount": "1480.00",
+      "tax_percent": "0.03",
+      "tax_amount": "399.60",
+      "final_amount": "13719.60",
+      "payment_method": "bank_transfer",
+      "transaction_status": "shipped",
+      "transaction_date": "2026-04-18",
+      "transaction_ts": "2026-04-18T13:42:00",
+      "delivery_date": "2026-04-22T21:42:00",
+      "delivery_address": "73 Temple Lane, Ratnapura",
+      "notes": "Gift wrap requested"
+    },
+    {
+      "transaction_id": "91013",
+      "user_id": "20113",
+      "product_id": "11001",
+      "shop_id": "503",
+      "quantity": "1",
+      "unit_price": "9350.00",
+      "total_amount": "9350.00",
+      "discount_percent": "0.12",
+      "discount_amount": "1122.00",
+      "tax_percent": "0.03",
+      "tax_amount": "246.84",
+      "final_amount": "8474.84",
+      "payment_method": "card",
+      "transaction_status": "paid",
+      "transaction_date": "2026-04-19",
+      "transaction_ts": "2026-04-19T15:49:00",
+      "delivery_date": "2026-04-20T17:49:00",
+      "delivery_address": "10 Market St, Badulla",
+      "notes": "VIP discount applied"
+    },
+    {
+      "transaction_id": "91014",
+      "user_id": "20114",
+      "product_id": "11002",
+      "shop_id": "504",
+      "quantity": "3",
+      "unit_price": "6750.00",
+      "total_amount": "20250.00",
+      "discount_percent": "0.15",
+      "discount_amount": "3037.50",
+      "tax_percent": "0.03",
+      "tax_amount": "516.38",
+      "final_amount": "17728.88",
+      "payment_method": "cash",
+      "transaction_status": "pickup_ready",
+      "transaction_date": "2026-04-20",
+      "transaction_ts": "2026-04-20T17:56:00",
+      "delivery_date": "2026-04-22T21:56:00",
+      "delivery_address": "45 Queens Rd, Gampaha",
+      "notes": "Pickup at counter"
+    },
+    {
+      "transaction_id": "91015",
+      "user_id": "20115",
+      "product_id": "11003",
+      "shop_id": "505",
+      "quantity": "2",
+      "unit_price": "14900.00",
+      "total_amount": "29800.00",
+      "discount_percent": "0.00",
+      "discount_amount": "0.00",
+      "tax_percent": "0.03",
+      "tax_amount": "894.00",
+      "final_amount": "30694.00",
+      "payment_method": "bank_transfer",
+      "transaction_status": "processing",
+      "transaction_date": "2026-04-21",
+      "transaction_ts": "2026-04-21T11:03:00",
+      "delivery_date": "2026-04-24T17:03:00",
+      "delivery_address": "2 Palm Grove, Kalutara",
+      "notes": "Split shipment"
+    },
+    {
+      "transaction_id": "91016",
+      "user_id": "20116",
+      "product_id": "11004",
+      "shop_id": "501",
+      "quantity": "1",
+      "unit_price": "4650.00",
+      "total_amount": "4650.00",
+      "discount_percent": "0.03",
+      "discount_amount": "139.50",
+      "tax_percent": "0.03",
+      "tax_amount": "135.32",
+      "final_amount": "4645.82",
+      "payment_method": "card",
+      "transaction_status": "completed",
+      "transaction_date": "2026-04-22",
+      "transaction_ts": "2026-04-22T12:20:00",
+      "delivery_date": "2026-04-26T20:20:00",
+      "delivery_address": "42 Flower Rd, Colombo 07",
+      "notes": "Customer requested evening delivery"
+    },
+    {
+      "transaction_id": "91017",
+      "user_id": "20117",
+      "product_id": "11005",
+      "shop_id": "502",
+      "quantity": "4",
+      "unit_price": "8900.00",
+      "total_amount": "35600.00",
+      "discount_percent": "0.05",
+      "discount_amount": "1780.00",
+      "tax_percent": "0.03",
+      "tax_amount": "1014.60",
+      "final_amount": "34834.60",
+      "payment_method": "cash",
+      "transaction_status": "shipped",
+      "transaction_date": "2026-04-23",
+      "transaction_ts": "2026-04-23T14:27:00",
+      "delivery_date": "2026-04-24T16:27:00",
+      "delivery_address": "18 Beach Rd, Negombo",
+      "notes": "Size exchange note added"
+    },
+    {
+      "transaction_id": "91018",
+      "user_id": "20118",
+      "product_id": "11006",
+      "shop_id": "503",
+      "quantity": "2",
+      "unit_price": "12850.00",
+      "total_amount": "25700.00",
+      "discount_percent": "0.08",
+      "discount_amount": "2056.00",
+      "tax_percent": "0.03",
+      "tax_amount": "709.32",
+      "final_amount": "24353.32",
+      "payment_method": "bank_transfer",
+      "transaction_status": "paid",
+      "transaction_date": "2026-04-24",
+      "transaction_ts": "2026-04-24T16:34:00",
+      "delivery_date": "2026-04-26T20:34:00",
+      "delivery_address": "9 Hill St, Kandy",
+      "notes": "Promo campaign order"
+    },
+    {
+      "transaction_id": "91019",
+      "user_id": "20119",
+      "product_id": "11007",
+      "shop_id": "504",
+      "quantity": "1",
+      "unit_price": "10000.00",
+      "total_amount": "10000.00",
+      "discount_percent": "0.10",
+      "discount_amount": "1000.00",
+      "tax_percent": "0.03",
+      "tax_amount": "270.00",
+      "final_amount": "9270.00",
+      "payment_method": "card",
+      "transaction_status": "pickup_ready",
+      "transaction_date": "2026-04-25",
+      "transaction_ts": "2026-04-25T09:41:00",
+      "delivery_date": "2026-04-28T15:41:00",
+      "delivery_address": "3 Lake Rd, Batticaloa",
+      "notes": "Loyalty member purchase"
+    },
+    {
+      "transaction_id": "91020",
+      "user_id": "20120",
+      "product_id": "11008",
+      "shop_id": "505",
+      "quantity": "3",
+      "unit_price": "6350.00",
+      "total_amount": "19050.00",
+      "discount_percent": "0.12",
+      "discount_amount": "2286.00",
+      "tax_percent": "0.03",
+      "tax_amount": "502.92",
+      "final_amount": "17266.92",
+      "payment_method": "cash",
+      "transaction_status": "processing",
+      "transaction_date": "2026-04-26",
+      "transaction_ts": "2026-04-26T11:48:00",
+      "delivery_date": "2026-04-30T19:48:00",
+      "delivery_address": "55 Galle Rd, Matara",
+      "notes": "Deliver before weekend"
+    },
+    {
+      "transaction_id": "91021",
+      "user_id": "20121",
+      "product_id": "11009",
+      "shop_id": "501",
+      "quantity": "1",
+      "unit_price": "11200.00",
+      "total_amount": "11200.00",
+      "discount_percent": "0.15",
+      "discount_amount": "1680.00",
+      "tax_percent": "0.03",
+      "tax_amount": "285.60",
+      "final_amount": "9805.60",
+      "payment_method": "bank_transfer",
+      "transaction_status": "completed",
+      "transaction_date": "2026-04-27",
+      "transaction_ts": "2026-04-27T13:55:00",
+      "delivery_date": "2026-04-28T15:55:00",
+      "delivery_address": "7 Temple Rd, Anuradhapura",
+      "notes": ""
+    },
+    {
+      "transaction_id": "91022",
+      "user_id": "20122",
+      "product_id": "11010",
+      "shop_id": "502",
+      "quantity": "2",
+      "unit_price": "7650.00",
+      "total_amount": "15300.00",
+      "discount_percent": "0.00",
+      "discount_amount": "0.00",
+      "tax_percent": "0.03",
+      "tax_amount": "459.00",
+      "final_amount": "15759.00",
+      "payment_method": "card",
+      "transaction_status": "shipped",
+      "transaction_date": "2026-04-28",
+      "transaction_ts": "2026-04-28T16:02:00",
+      "delivery_date": "2026-04-30T20:02:00",
+      "delivery_address": "21 Main St, Jaffna",
+      "notes": "Gift wrap requested"
+    },
+    {
+      "transaction_id": "91023",
+      "user_id": "20123",
+      "product_id": "11011",
+      "shop_id": "503",
+      "quantity": "1",
+      "unit_price": "5500.00",
+      "total_amount": "5500.00",
+      "discount_percent": "0.03",
+      "discount_amount": "165.00",
+      "tax_percent": "0.03",
+      "tax_amount": "160.05",
+      "final_amount": "5495.05",
+      "payment_method": "cash",
+      "transaction_status": "paid",
+      "transaction_date": "2026-04-29",
+      "transaction_ts": "2026-04-29T17:19:00",
+      "delivery_date": "2026-05-02T23:19:00",
+      "delivery_address": "14 Fort Rd, Galle",
+      "notes": "VIP discount applied"
+    },
+    {
+      "transaction_id": "91024",
+      "user_id": "20124",
+      "product_id": "11012",
+      "shop_id": "504",
+      "quantity": "3",
+      "unit_price": "15900.00",
+      "total_amount": "47700.00",
+      "discount_percent": "0.05",
+      "discount_amount": "2385.00",
+      "tax_percent": "0.03",
+      "tax_amount": "1359.45",
+      "final_amount": "46674.45",
+      "payment_method": "bank_transfer",
+      "transaction_status": "pickup_ready",
+      "transaction_date": "2026-04-30",
+      "transaction_ts": "2026-04-30T10:26:00",
+      "delivery_date": "2026-05-04T18:26:00",
+      "delivery_address": "88 Green Ave, Kurunegala",
+      "notes": "Pickup at counter"
+    },
+    {
+      "transaction_id": "91025",
+      "user_id": "20125",
+      "product_id": "11001",
+      "shop_id": "505",
+      "quantity": "2",
+      "unit_price": "3850.00",
+      "total_amount": "7700.00",
+      "discount_percent": "0.08",
+      "discount_amount": "616.00",
+      "tax_percent": "0.03",
+      "tax_amount": "212.52",
+      "final_amount": "7296.52",
+      "payment_method": "card",
+      "transaction_status": "processing",
+      "transaction_date": "2026-05-01",
+      "transaction_ts": "2026-05-01T12:33:00",
+      "delivery_date": "2026-05-02T14:33:00",
+      "delivery_address": "31 Station Rd, Nuwara Eliya",
+      "notes": "Split shipment"
+    },
+    {
+      "transaction_id": "91026",
+      "user_id": "20126",
+      "product_id": "11002",
+      "shop_id": "501",
+      "quantity": "1",
+      "unit_price": "21450.00",
+      "total_amount": "21450.00",
+      "discount_percent": "0.10",
+      "discount_amount": "2145.00",
+      "tax_percent": "0.03",
+      "tax_amount": "579.15",
+      "final_amount": "19884.15",
+      "payment_method": "cash",
+      "transaction_status": "completed",
+      "transaction_date": "2026-05-02",
+      "transaction_ts": "2026-05-02T14:40:00",
+      "delivery_date": "2026-05-04T18:40:00",
+      "delivery_address": "6 Canal Rd, Trincomalee",
+      "notes": "Customer requested evening delivery"
+    },
+    {
+      "transaction_id": "91027",
+      "user_id": "20127",
+      "product_id": "11003",
+      "shop_id": "502",
+      "quantity": "4",
+      "unit_price": "7350.00",
+      "total_amount": "29400.00",
+      "discount_percent": "0.12",
+      "discount_amount": "3528.00",
+      "tax_percent": "0.03",
+      "tax_amount": "776.16",
+      "final_amount": "26648.16",
+      "payment_method": "bank_transfer",
+      "transaction_status": "shipped",
+      "transaction_date": "2026-05-03",
+      "transaction_ts": "2026-05-03T16:47:00",
+      "delivery_date": "2026-05-06T22:47:00",
+      "delivery_address": "73 Temple Lane, Ratnapura",
+      "notes": "Size exchange note added"
+    },
+    {
+      "transaction_id": "91028",
+      "user_id": "20128",
+      "product_id": "11004",
+      "shop_id": "503",
+      "quantity": "2",
+      "unit_price": "9500.00",
+      "total_amount": "19000.00",
+      "discount_percent": "0.15",
+      "discount_amount": "2850.00",
+      "tax_percent": "0.03",
+      "tax_amount": "484.50",
+      "final_amount": "16634.50",
+      "payment_method": "card",
+      "transaction_status": "paid",
+      "transaction_date": "2026-05-04",
+      "transaction_ts": "2026-05-04T09:54:00",
+      "delivery_date": "2026-05-08T17:54:00",
+      "delivery_address": "10 Market St, Badulla",
+      "notes": "Promo campaign order"
+    },
+    {
+      "transaction_id": "91029",
+      "user_id": "20129",
+      "product_id": "11005",
+      "shop_id": "504",
+      "quantity": "1",
+      "unit_price": "6700.00",
+      "total_amount": "6700.00",
+      "discount_percent": "0.00",
+      "discount_amount": "0.00",
+      "tax_percent": "0.03",
+      "tax_amount": "201.00",
+      "final_amount": "6901.00",
+      "payment_method": "cash",
+      "transaction_status": "pickup_ready",
+      "transaction_date": "2026-05-05",
+      "transaction_ts": "2026-05-05T12:01:00",
+      "delivery_date": "2026-05-06T14:01:00",
+      "delivery_address": "45 Queens Rd, Gampaha",
+      "notes": "Loyalty member purchase"
+    },
+    {
+      "transaction_id": "91030",
+      "user_id": "20130",
+      "product_id": "11006",
+      "shop_id": "505",
+      "quantity": "3",
+      "unit_price": "14850.00",
+      "total_amount": "44550.00",
+      "discount_percent": "0.03",
+      "discount_amount": "1336.50",
+      "tax_percent": "0.03",
+      "tax_amount": "1296.41",
+      "final_amount": "44509.91",
+      "payment_method": "bank_transfer",
+      "transaction_status": "processing",
+      "transaction_date": "2026-05-06",
+      "transaction_ts": "2026-05-06T13:18:00",
+      "delivery_date": "2026-05-08T17:18:00",
+      "delivery_address": "2 Palm Grove, Kalutara",
+      "notes": "Deliver before weekend"
+    },
+    {
+      "transaction_id": "91031",
+      "user_id": "20131",
+      "product_id": "11007",
+      "shop_id": "501",
+      "quantity": "1",
+      "unit_price": "4600.00",
+      "total_amount": "4600.00",
+      "discount_percent": "0.05",
+      "discount_amount": "230.00",
+      "tax_percent": "0.03",
+      "tax_amount": "131.10",
+      "final_amount": "4501.10",
+      "payment_method": "card",
+      "transaction_status": "completed",
+      "transaction_date": "2026-05-07",
+      "transaction_ts": "2026-05-07T15:25:00",
+      "delivery_date": "2026-05-10T21:25:00",
+      "delivery_address": "42 Flower Rd, Colombo 07",
+      "notes": ""
+    },
+    {
+      "transaction_id": "91032",
+      "user_id": "20132",
+      "product_id": "11008",
+      "shop_id": "502",
+      "quantity": "2",
+      "unit_price": "9050.00",
+      "total_amount": "18100.00",
+      "discount_percent": "0.08",
+      "discount_amount": "1448.00",
+      "tax_percent": "0.03",
+      "tax_amount": "499.56",
+      "final_amount": "17151.56",
+      "payment_method": "cash",
+      "transaction_status": "shipped",
+      "transaction_date": "2026-05-08",
+      "transaction_ts": "2026-05-08T17:32:00",
+      "delivery_date": "2026-05-13T01:32:00",
+      "delivery_address": "18 Beach Rd, Negombo",
+      "notes": "Gift wrap requested"
+    },
+    {
+      "transaction_id": "91033",
+      "user_id": "20133",
+      "product_id": "11009",
+      "shop_id": "503",
+      "quantity": "1",
+      "unit_price": "12800.00",
+      "total_amount": "12800.00",
+      "discount_percent": "0.10",
+      "discount_amount": "1280.00",
+      "tax_percent": "0.03",
+      "tax_amount": "345.60",
+      "final_amount": "11865.60",
+      "payment_method": "bank_transfer",
+      "transaction_status": "paid",
+      "transaction_date": "2026-05-09",
+      "transaction_ts": "2026-05-09T10:39:00",
+      "delivery_date": "2026-05-10T12:39:00",
+      "delivery_address": "9 Hill St, Kandy",
+      "notes": "VIP discount applied"
+    },
+    {
+      "transaction_id": "91034",
+      "user_id": "20134",
+      "product_id": "11010",
+      "shop_id": "504",
+      "quantity": "3",
+      "unit_price": "9950.00",
+      "total_amount": "29850.00",
+      "discount_percent": "0.12",
+      "discount_amount": "3582.00",
+      "tax_percent": "0.03",
+      "tax_amount": "788.04",
+      "final_amount": "27056.04",
+      "payment_method": "card",
+      "transaction_status": "pickup_ready",
+      "transaction_date": "2026-05-10",
+      "transaction_ts": "2026-05-10T12:46:00",
+      "delivery_date": "2026-05-12T16:46:00",
+      "delivery_address": "3 Lake Rd, Batticaloa",
+      "notes": "Pickup at counter"
+    },
+    {
+      "transaction_id": "91035",
+      "user_id": "20135",
+      "product_id": "11011",
+      "shop_id": "505",
+      "quantity": "2",
+      "unit_price": "6300.00",
+      "total_amount": "12600.00",
+      "discount_percent": "0.15",
+      "discount_amount": "1890.00",
+      "tax_percent": "0.03",
+      "tax_amount": "321.30",
+      "final_amount": "11031.30",
+      "payment_method": "cash",
+      "transaction_status": "processing",
+      "transaction_date": "2026-05-11",
+      "transaction_ts": "2026-05-11T14:53:00",
+      "delivery_date": "2026-05-14T20:53:00",
+      "delivery_address": "55 Galle Rd, Matara",
+      "notes": "Split shipment"
+    },
+    {
+      "transaction_id": "91036",
+      "user_id": "20101",
+      "product_id": "11012",
+      "shop_id": "501",
+      "quantity": "1",
+      "unit_price": "11350.00",
+      "total_amount": "11350.00",
+      "discount_percent": "0.00",
+      "discount_amount": "0.00",
+      "tax_percent": "0.03",
+      "tax_amount": "340.50",
+      "final_amount": "11690.50",
+      "payment_method": "bank_transfer",
+      "transaction_status": "completed",
+      "transaction_date": "2026-05-12",
+      "transaction_ts": "2026-05-12T17:00:00",
+      "delivery_date": "2026-05-17T01:00:00",
+      "delivery_address": "7 Temple Rd, Anuradhapura",
+      "notes": "Customer requested evening delivery"
+    },
+    {
+      "transaction_id": "91037",
+      "user_id": "20102",
+      "product_id": "11001",
+      "shop_id": "502",
+      "quantity": "4",
+      "unit_price": "7600.00",
+      "total_amount": "30400.00",
+      "discount_percent": "0.03",
+      "discount_amount": "912.00",
+      "tax_percent": "0.03",
+      "tax_amount": "884.64",
+      "final_amount": "30372.64",
+      "payment_method": "card",
+      "transaction_status": "shipped",
+      "transaction_date": "2026-05-13",
+      "transaction_ts": "2026-05-13T09:17:00",
+      "delivery_date": "2026-05-14T11:17:00",
+      "delivery_address": "21 Main St, Jaffna",
+      "notes": "Size exchange note added"
+    },
+    {
+      "transaction_id": "91038",
+      "user_id": "20103",
+      "product_id": "11002",
+      "shop_id": "503",
+      "quantity": "2",
+      "unit_price": "5450.00",
+      "total_amount": "10900.00",
+      "discount_percent": "0.05",
+      "discount_amount": "545.00",
+      "tax_percent": "0.03",
+      "tax_amount": "310.65",
+      "final_amount": "10665.65",
+      "payment_method": "cash",
+      "transaction_status": "paid",
+      "transaction_date": "2026-05-14",
+      "transaction_ts": "2026-05-14T11:24:00",
+      "delivery_date": "2026-05-16T15:24:00",
+      "delivery_address": "14 Fort Rd, Galle",
+      "notes": "Promo campaign order"
+    },
+    {
+      "transaction_id": "91039",
+      "user_id": "20104",
+      "product_id": "11003",
+      "shop_id": "504",
+      "quantity": "1",
+      "unit_price": "15850.00",
+      "total_amount": "15850.00",
+      "discount_percent": "0.08",
+      "discount_amount": "1268.00",
+      "tax_percent": "0.03",
+      "tax_amount": "437.46",
+      "final_amount": "15019.46",
+      "payment_method": "bank_transfer",
+      "transaction_status": "pickup_ready",
+      "transaction_date": "2026-05-15",
+      "transaction_ts": "2026-05-15T13:31:00",
+      "delivery_date": "2026-05-18T19:31:00",
+      "delivery_address": "88 Green Ave, Kurunegala",
+      "notes": "Loyalty member purchase"
+    },
+    {
+      "transaction_id": "91040",
+      "user_id": "20105",
+      "product_id": "11004",
+      "shop_id": "505",
+      "quantity": "3",
+      "unit_price": "4000.00",
+      "total_amount": "12000.00",
+      "discount_percent": "0.10",
+      "discount_amount": "1200.00",
+      "tax_percent": "0.03",
+      "tax_amount": "324.00",
+      "final_amount": "11124.00",
+      "payment_method": "card",
+      "transaction_status": "processing",
+      "transaction_date": "2026-05-16",
+      "transaction_ts": "2026-05-16T15:38:00",
+      "delivery_date": "2026-05-20T23:38:00",
+      "delivery_address": "31 Station Rd, Nuwara Eliya",
+      "notes": "Deliver before weekend"
+    },
+    {
+      "transaction_id": "91041",
+      "user_id": "20106",
+      "product_id": "11005",
+      "shop_id": "501",
+      "quantity": "1",
+      "unit_price": "21400.00",
+      "total_amount": "21400.00",
+      "discount_percent": "0.12",
+      "discount_amount": "2568.00",
+      "tax_percent": "0.03",
+      "tax_amount": "564.96",
+      "final_amount": "19396.96",
+      "payment_method": "cash",
+      "transaction_status": "completed",
+      "transaction_date": "2026-05-17",
+      "transaction_ts": "2026-05-17T17:45:00",
+      "delivery_date": "2026-05-18T19:45:00",
+      "delivery_address": "6 Canal Rd, Trincomalee",
+      "notes": ""
+    },
+    {
+      "transaction_id": "91042",
+      "user_id": "20107",
+      "product_id": "11006",
+      "shop_id": "502",
+      "quantity": "2",
+      "unit_price": "7300.00",
+      "total_amount": "14600.00",
+      "discount_percent": "0.15",
+      "discount_amount": "2190.00",
+      "tax_percent": "0.03",
+      "tax_amount": "372.30",
+      "final_amount": "12782.30",
+      "payment_method": "bank_transfer",
+      "transaction_status": "shipped",
+      "transaction_date": "2026-05-18",
+      "transaction_ts": "2026-05-18T10:52:00",
+      "delivery_date": "2026-05-20T14:52:00",
+      "delivery_address": "73 Temple Lane, Ratnapura",
+      "notes": "Gift wrap requested"
+    },
+    {
+      "transaction_id": "91043",
+      "user_id": "20108",
+      "product_id": "11007",
+      "shop_id": "503",
+      "quantity": "1",
+      "unit_price": "9450.00",
+      "total_amount": "9450.00",
+      "discount_percent": "0.00",
+      "discount_amount": "0.00",
+      "tax_percent": "0.03",
+      "tax_amount": "283.50",
+      "final_amount": "9733.50",
+      "payment_method": "card",
+      "transaction_status": "paid",
+      "transaction_date": "2026-05-19",
+      "transaction_ts": "2026-05-19T12:59:00",
+      "delivery_date": "2026-05-22T18:59:00",
+      "delivery_address": "10 Market St, Badulla",
+      "notes": "VIP discount applied"
+    },
+    {
+      "transaction_id": "91044",
+      "user_id": "20109",
+      "product_id": "11008",
+      "shop_id": "504",
+      "quantity": "3",
+      "unit_price": "6850.00",
+      "total_amount": "20550.00",
+      "discount_percent": "0.03",
+      "discount_amount": "616.50",
+      "tax_percent": "0.03",
+      "tax_amount": "598.01",
+      "final_amount": "20531.51",
+      "payment_method": "cash",
+      "transaction_status": "pickup_ready",
+      "transaction_date": "2026-05-20",
+      "transaction_ts": "2026-05-20T14:16:00",
+      "delivery_date": "2026-05-24T22:16:00",
+      "delivery_address": "45 Queens Rd, Gampaha",
+      "notes": "Pickup at counter"
+    },
+    {
+      "transaction_id": "91045",
+      "user_id": "20110",
+      "product_id": "11009",
+      "shop_id": "505",
+      "quantity": "2",
+      "unit_price": "14800.00",
+      "total_amount": "29600.00",
+      "discount_percent": "0.05",
+      "discount_amount": "1480.00",
+      "tax_percent": "0.03",
+      "tax_amount": "843.60",
+      "final_amount": "28963.60",
+      "payment_method": "bank_transfer",
+      "transaction_status": "processing",
+      "transaction_date": "2026-05-21",
+      "transaction_ts": "2026-05-21T16:23:00",
+      "delivery_date": "2026-05-22T18:23:00",
+      "delivery_address": "2 Palm Grove, Kalutara",
+      "notes": "Split shipment"
+    },
+    {
+      "transaction_id": "91046",
+      "user_id": "20111",
+      "product_id": "11010",
+      "shop_id": "501",
+      "quantity": "1",
+      "unit_price": "4550.00",
+      "total_amount": "4550.00",
+      "discount_percent": "0.08",
+      "discount_amount": "364.00",
+      "tax_percent": "0.03",
+      "tax_amount": "125.58",
+      "final_amount": "4311.58",
+      "payment_method": "card",
+      "transaction_status": "completed",
+      "transaction_date": "2026-05-22",
+      "transaction_ts": "2026-05-22T09:30:00",
+      "delivery_date": "2026-05-24T13:30:00",
+      "delivery_address": "42 Flower Rd, Colombo 07",
+      "notes": "Customer requested evening delivery"
+    },
+    {
+      "transaction_id": "91047",
+      "user_id": "20112",
+      "product_id": "11011",
+      "shop_id": "502",
+      "quantity": "4",
+      "unit_price": "9000.00",
+      "total_amount": "36000.00",
+      "discount_percent": "0.10",
+      "discount_amount": "3600.00",
+      "tax_percent": "0.03",
+      "tax_amount": "972.00",
+      "final_amount": "33372.00",
+      "payment_method": "cash",
+      "transaction_status": "shipped",
+      "transaction_date": "2026-05-23",
+      "transaction_ts": "2026-05-23T11:37:00",
+      "delivery_date": "2026-05-26T17:37:00",
+      "delivery_address": "18 Beach Rd, Negombo",
+      "notes": "Size exchange note added"
+    },
+    {
+      "transaction_id": "91048",
+      "user_id": "20113",
+      "product_id": "11012",
+      "shop_id": "503",
+      "quantity": "2",
+      "unit_price": "12950.00",
+      "total_amount": "25900.00",
+      "discount_percent": "0.12",
+      "discount_amount": "3108.00",
+      "tax_percent": "0.03",
+      "tax_amount": "683.76",
+      "final_amount": "23475.76",
+      "payment_method": "bank_transfer",
+      "transaction_status": "paid",
+      "transaction_date": "2026-05-24",
+      "transaction_ts": "2026-05-24T13:44:00",
+      "delivery_date": "2026-05-28T21:44:00",
+      "delivery_address": "9 Hill St, Kandy",
+      "notes": "Promo campaign order"
+    },
+    {
+      "transaction_id": "91049",
+      "user_id": "20114",
+      "product_id": "11001",
+      "shop_id": "504",
+      "quantity": "1",
+      "unit_price": "9900.00",
+      "total_amount": "9900.00",
+      "discount_percent": "0.15",
+      "discount_amount": "1485.00",
+      "tax_percent": "0.03",
+      "tax_amount": "252.45",
+      "final_amount": "8667.45",
+      "payment_method": "card",
+      "transaction_status": "pickup_ready",
+      "transaction_date": "2026-05-25",
+      "transaction_ts": "2026-05-25T15:51:00",
+      "delivery_date": "2026-05-26T17:51:00",
+      "delivery_address": "3 Lake Rd, Batticaloa",
+      "notes": "Loyalty member purchase"
+    },
+    {
+      "transaction_id": "91050",
+      "user_id": "20115",
+      "product_id": "11002",
+      "shop_id": "505",
+      "quantity": "3",
+      "unit_price": "6250.00",
+      "total_amount": "18750.00",
+      "discount_percent": "0.00",
+      "discount_amount": "0.00",
+      "tax_percent": "0.03",
+      "tax_amount": "562.50",
+      "final_amount": "19312.50",
+      "payment_method": "cash",
+      "transaction_status": "processing",
+      "transaction_date": "2026-05-26",
+      "transaction_ts": "2026-05-26T17:58:00",
+      "delivery_date": "2026-05-28T21:58:00",
+      "delivery_address": "55 Galle Rd, Matara",
+      "notes": "Deliver before weekend"
+    },
+    {
+      "transaction_id": "91051",
+      "user_id": "20116",
+      "product_id": "11003",
+      "shop_id": "501",
+      "quantity": "1",
+      "unit_price": "11300.00",
+      "total_amount": "11300.00",
+      "discount_percent": "0.03",
+      "discount_amount": "339.00",
+      "tax_percent": "0.03",
+      "tax_amount": "328.83",
+      "final_amount": "11289.83",
+      "payment_method": "bank_transfer",
+      "transaction_status": "completed",
+      "transaction_date": "2026-05-27",
+      "transaction_ts": "2026-05-27T10:15:00",
+      "delivery_date": "2026-05-30T16:15:00",
+      "delivery_address": "7 Temple Rd, Anuradhapura",
+      "notes": ""
+    },
+    {
+      "transaction_id": "91052",
+      "user_id": "20117",
+      "product_id": "11004",
+      "shop_id": "502",
+      "quantity": "2",
+      "unit_price": "7750.00",
+      "total_amount": "15500.00",
+      "discount_percent": "0.05",
+      "discount_amount": "775.00",
+      "tax_percent": "0.03",
+      "tax_amount": "441.75",
+      "final_amount": "15166.75",
+      "payment_method": "card",
+      "transaction_status": "shipped",
+      "transaction_date": "2026-05-28",
+      "transaction_ts": "2026-05-28T12:22:00",
+      "delivery_date": "2026-06-01T20:22:00",
+      "delivery_address": "21 Main St, Jaffna",
+      "notes": "Gift wrap requested"
+    },
+    {
+      "transaction_id": "91053",
+      "user_id": "20118",
+      "product_id": "11005",
+      "shop_id": "503",
+      "quantity": "1",
+      "unit_price": "5400.00",
+      "total_amount": "5400.00",
+      "discount_percent": "0.08",
+      "discount_amount": "432.00",
+      "tax_percent": "0.03",
+      "tax_amount": "149.04",
+      "final_amount": "5117.04",
+      "payment_method": "cash",
+      "transaction_status": "paid",
+      "transaction_date": "2026-05-29",
+      "transaction_ts": "2026-05-29T14:29:00",
+      "delivery_date": "2026-05-30T16:29:00",
+      "delivery_address": "14 Fort Rd, Galle",
+      "notes": "VIP discount applied"
+    },
+    {
+      "transaction_id": "91054",
+      "user_id": "20119",
+      "product_id": "11006",
+      "shop_id": "504",
+      "quantity": "3",
+      "unit_price": "15800.00",
+      "total_amount": "47400.00",
+      "discount_percent": "0.10",
+      "discount_amount": "4740.00",
+      "tax_percent": "0.03",
+      "tax_amount": "1279.80",
+      "final_amount": "43939.80",
+      "payment_method": "bank_transfer",
+      "transaction_status": "pickup_ready",
+      "transaction_date": "2026-05-30",
+      "transaction_ts": "2026-05-30T16:36:00",
+      "delivery_date": "2026-06-01T20:36:00",
+      "delivery_address": "88 Green Ave, Kurunegala",
+      "notes": "Pickup at counter"
+    },
+    {
+      "transaction_id": "91055",
+      "user_id": "20120",
+      "product_id": "11007",
+      "shop_id": "505",
+      "quantity": "2",
+      "unit_price": "3950.00",
+      "total_amount": "7900.00",
+      "discount_percent": "0.12",
+      "discount_amount": "948.00",
+      "tax_percent": "0.03",
+      "tax_amount": "208.56",
+      "final_amount": "7160.56",
+      "payment_method": "card",
+      "transaction_status": "processing",
+      "transaction_date": "2026-05-31",
+      "transaction_ts": "2026-05-31T09:43:00",
+      "delivery_date": "2026-06-03T15:43:00",
+      "delivery_address": "31 Station Rd, Nuwara Eliya",
+      "notes": "Split shipment"
+    },
+    {
+      "transaction_id": "91056",
+      "user_id": "20121",
+      "product_id": "11008",
+      "shop_id": "501",
+      "quantity": "1",
+      "unit_price": "21550.00",
+      "total_amount": "21550.00",
+      "discount_percent": "0.15",
+      "discount_amount": "3232.50",
+      "tax_percent": "0.03",
+      "tax_amount": "549.53",
+      "final_amount": "18867.03",
+      "payment_method": "cash",
+      "transaction_status": "completed",
+      "transaction_date": "2026-06-01",
+      "transaction_ts": "2026-06-01T11:50:00",
+      "delivery_date": "2026-06-05T19:50:00",
+      "delivery_address": "6 Canal Rd, Trincomalee",
+      "notes": "Customer requested evening delivery"
+    },
+    {
+      "transaction_id": "91057",
+      "user_id": "20122",
+      "product_id": "11009",
+      "shop_id": "502",
+      "quantity": "4",
+      "unit_price": "7250.00",
+      "total_amount": "29000.00",
+      "discount_percent": "0.00",
+      "discount_amount": "0.00",
+      "tax_percent": "0.03",
+      "tax_amount": "870.00",
+      "final_amount": "29870.00",
+      "payment_method": "bank_transfer",
+      "transaction_status": "shipped",
+      "transaction_date": "2026-06-02",
+      "transaction_ts": "2026-06-02T13:57:00",
+      "delivery_date": "2026-06-03T15:57:00",
+      "delivery_address": "73 Temple Lane, Ratnapura",
+      "notes": "Size exchange note added"
+    },
+    {
+      "transaction_id": "91058",
+      "user_id": "20123",
+      "product_id": "11010",
+      "shop_id": "503",
+      "quantity": "2",
+      "unit_price": "9400.00",
+      "total_amount": "18800.00",
+      "discount_percent": "0.03",
+      "discount_amount": "564.00",
+      "tax_percent": "0.03",
+      "tax_amount": "547.08",
+      "final_amount": "18783.08",
+      "payment_method": "card",
+      "transaction_status": "paid",
+      "transaction_date": "2026-06-03",
+      "transaction_ts": "2026-06-03T16:04:00",
+      "delivery_date": "2026-06-05T20:04:00",
+      "delivery_address": "10 Market St, Badulla",
+      "notes": "Promo campaign order"
+    },
+    {
+      "transaction_id": "91059",
+      "user_id": "20124",
+      "product_id": "11011",
+      "shop_id": "504",
+      "quantity": "1",
+      "unit_price": "6800.00",
+      "total_amount": "6800.00",
+      "discount_percent": "0.05",
+      "discount_amount": "340.00",
+      "tax_percent": "0.03",
+      "tax_amount": "193.80",
+      "final_amount": "6653.80",
+      "payment_method": "cash",
+      "transaction_status": "pickup_ready",
+      "transaction_date": "2026-06-04",
+      "transaction_ts": "2026-06-04T17:21:00",
+      "delivery_date": "2026-06-07T23:21:00",
+      "delivery_address": "45 Queens Rd, Gampaha",
+      "notes": "Loyalty member purchase"
+    },
+    {
+      "transaction_id": "91060",
+      "user_id": "20125",
+      "product_id": "11012",
+      "shop_id": "505",
+      "quantity": "3",
+      "unit_price": "14950.00",
+      "total_amount": "44850.00",
+      "discount_percent": "0.08",
+      "discount_amount": "3588.00",
+      "tax_percent": "0.03",
+      "tax_amount": "1237.86",
+      "final_amount": "42499.86",
+      "payment_method": "bank_transfer",
+      "transaction_status": "processing",
+      "transaction_date": "2026-06-05",
+      "transaction_ts": "2026-06-05T10:28:00",
+      "delivery_date": "2026-06-09T18:28:00",
+      "delivery_address": "2 Palm Grove, Kalutara",
+      "notes": "Deliver before weekend"
+    }
+  ],
+  "dataset_fingerprint": {
+    "column_names": [
+      "transaction_id",
+      "user_id",
+      "product_id",
+      "shop_id",
+      "quantity",
+      "unit_price",
+      "total_amount",
+      "discount_percent",
+      "discount_amount",
+      "tax_percent",
+      "tax_amount",
+      "final_amount",
+      "payment_method",
+      "transaction_status",
+      "transaction_date",
+      "transaction_ts",
+      "delivery_date",
+      "delivery_address",
+      "notes"
+    ],
+    "roles": [
+      "Identifier",
+      "Identifier",
+      "Identifier",
+      "Identifier",
+      "Numeric Measure",
+      "Numeric Measure",
+      "Numeric Measure",
+      "Count / Activity",
+      "Count / Activity",
+      "Rate / Percentage",
+      "Numeric Measure",
+      "Numeric Measure",
+      "Categorical Attribute",
+      "Categorical Attribute",
+      "Timestamp",
+      "Timestamp",
+      "Timestamp",
+      "Categorical Attribute",
+      "Categorical Attribute"
+    ],
+    "types": [
+      "numeric",
+      "numeric",
+      "numeric",
+      "numeric",
+      "numeric",
+      "numeric",
+      "numeric",
+      "numeric",
+      "numeric",
+      "numeric",
+      "numeric",
+      "numeric",
+      "text",
+      "text",
+      "datetime",
+      "datetime",
+      "datetime",
+      "text",
+      "text"
+    ],
+    "scale_patterns": [
+      "count",
+      "count",
+      "count",
+      "count",
+      "0-100",
+      "count",
+      "count",
+      "0-1",
+      "count",
+      "0-1",
+      "raw_sensor_adc",
+      "raw_sensor_adc",
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown"
+    ],
+    "important_columns": [
+      "transaction_id",
+      "user_id",
+      "product_id",
+      "shop_id",
+      "discount_percent",
+      "discount_amount",
+      "tax_percent",
+      "transaction_date",
+      "transaction_ts",
+      "delivery_date"
+    ]
+  },
+  "column_profiles": [
+    {
+      "column_name": "transaction_id",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": 91001,
+      "max": 91060,
+      "mean": 91030.5,
+      "std": 17.318102282486574,
+      "sample_values": [
+        "91001",
+        "91002",
+        "91003",
+        "91004"
+      ],
+      "row_count": 60,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0,
+      "avg_string_length": 5,
+      "outlier_percent": 0,
+      "scale_pattern": "count",
+      "value_pattern": "count",
+      "nullable": false,
+      "detected_unit": "count",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "user_id",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 0.5833333333333334,
+      "min": 20101,
+      "max": 20135,
+      "mean": 20115.916666666668,
+      "std": 9.34039911114914,
+      "sample_values": [
+        "20101",
+        "20102",
+        "20103",
+        "20104"
+      ],
+      "row_count": 60,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0,
+      "avg_string_length": 5,
+      "outlier_percent": 0,
+      "scale_pattern": "count",
+      "value_pattern": "count",
+      "nullable": false,
+      "detected_unit": "count",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "product_id",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 0.2,
+      "min": 11001,
+      "max": 11012,
+      "mean": 11006.5,
+      "std": 3.452052529534663,
+      "sample_values": [
+        "11001",
+        "11002",
+        "11003",
+        "11004"
+      ],
+      "row_count": 60,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0,
+      "avg_string_length": 5,
+      "outlier_percent": 0,
+      "scale_pattern": "count",
+      "value_pattern": "count",
+      "nullable": false,
+      "detected_unit": "count",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "shop_id",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 0.08333333333333333,
+      "min": 501,
+      "max": 505,
+      "mean": 503,
+      "std": 1.4142135623730951,
+      "sample_values": [
+        "501",
+        "502",
+        "503",
+        "504"
+      ],
+      "row_count": 60,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0,
+      "avg_string_length": 3,
+      "outlier_percent": 0,
+      "scale_pattern": "count",
+      "value_pattern": "count",
+      "nullable": false,
+      "detected_unit": "count",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "quantity",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 0.06666666666666667,
+      "min": 1,
+      "max": 4,
+      "mean": 2,
+      "std": 1,
+      "sample_values": [
+        "1",
+        "2",
+        "1",
+        "3"
+      ],
+      "row_count": 60,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0.4,
+      "avg_string_length": 1,
+      "outlier_percent": 0,
+      "scale_pattern": "0-100",
+      "value_pattern": "0-100",
+      "nullable": false,
+      "detected_unit": "percentage",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "unit_price",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": 3850,
+      "max": 21550,
+      "mean": 9781.666666666666,
+      "std": 4644.898336406896,
+      "sample_values": [
+        "4500.00",
+        "8950.00",
+        "12900.00",
+        "10050.00"
+      ],
+      "row_count": 60,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0,
+      "avg_string_length": 7.366666666666666,
+      "outlier_percent": 0,
+      "scale_pattern": "count",
+      "value_pattern": "count",
+      "nullable": false,
+      "detected_unit": "count",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "total_amount",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": 4500,
+      "max": 47700,
+      "mean": 18588.333333333332,
+      "std": 11096.926626573482,
+      "sample_values": [
+        "4500.00",
+        "17900.00",
+        "12900.00",
+        "30150.00"
+      ],
+      "row_count": 60,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0,
+      "avg_string_length": 7.783333333333333,
+      "outlier_percent": 0,
+      "scale_pattern": "count",
+      "value_pattern": "count",
+      "nullable": false,
+      "detected_unit": "count",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "discount_percent",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 0.11666666666666667,
+      "min": 0,
+      "max": 0.15,
+      "mean": 0.07333333333333333,
+      "std": 0.04843093593515983,
+      "sample_values": [
+        "0.00",
+        "0.03",
+        "0.05",
+        "0.08"
+      ],
+      "row_count": 60,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0.15,
+      "binary_like_percent": 0.15,
+      "avg_string_length": 4,
+      "outlier_percent": 0,
+      "scale_pattern": "0-1",
+      "value_pattern": "0-1",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "discount_amount",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 0.85,
+      "min": 0,
+      "max": 4740,
+      "mean": 1398.55,
+      "std": 1230.8215098732499,
+      "sample_values": [
+        "0.00",
+        "537.00",
+        "645.00",
+        "2412.00"
+      ],
+      "row_count": 60,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0.9,
+      "binary_like_percent": 0.15,
+      "avg_string_length": 6.25,
+      "outlier_percent": 0,
+      "scale_pattern": "count",
+      "value_pattern": "count",
+      "nullable": false,
+      "detected_unit": "count",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "tax_percent",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 0.016666666666666666,
+      "min": 0.03,
+      "max": 0.03,
+      "mean": 0.030000000000000023,
+      "std": 2.42861286636753e-17,
+      "sample_values": [
+        "0.03",
+        "0.03",
+        "0.03",
+        "0.03"
+      ],
+      "row_count": 60,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 4,
+      "outlier_percent": 0,
+      "scale_pattern": "0-1",
+      "value_pattern": "0-1",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "tax_amount",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": 125.58,
+      "max": 1359.45,
+      "mean": 515.694,
+      "std": 310.4437936470949,
+      "sample_values": [
+        "135.00",
+        "520.89",
+        "367.65",
+        "832.14"
+      ],
+      "row_count": 60,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0.16666666666666666,
+      "binary_like_percent": 0,
+      "avg_string_length": 6.083333333333333,
+      "outlier_percent": 0,
+      "scale_pattern": "raw_sensor_adc",
+      "value_pattern": "raw_sensor_adc",
+      "nullable": false,
+      "detected_unit": "raw sensor scale",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "final_amount",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": 4311.58,
+      "max": 46674.45,
+      "mean": 17705.477333333336,
+      "std": 10658.566134341723,
+      "sample_values": [
+        "4635.00",
+        "17883.89",
+        "12622.65",
+        "28570.14"
+      ],
+      "row_count": 60,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0.16666666666666666,
+      "binary_like_percent": 0,
+      "avg_string_length": 7.75,
+      "outlier_percent": 0,
+      "scale_pattern": "raw_sensor_adc",
+      "value_pattern": "raw_sensor_adc",
+      "nullable": false,
+      "detected_unit": "raw sensor scale",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "payment_method",
+      "inferred_type": "text",
+      "missing_percent": 0,
+      "unique_percent": 0.05,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "card",
+        "cash",
+        "bank_transfer",
+        "card"
+      ],
+      "row_count": 60,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 7,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "transaction_status",
+      "inferred_type": "text",
+      "missing_percent": 0,
+      "unique_percent": 0.08333333333333333,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "completed",
+        "shipped",
+        "paid",
+        "pickup_ready"
+      ],
+      "row_count": 60,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 8.4,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "transaction_date",
+      "inferred_type": "datetime",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "2026-04-07",
+        "2026-04-08",
+        "2026-04-09",
+        "2026-04-10"
+      ],
+      "row_count": 60,
+      "column_count": 19,
+      "valid_date_percent": 1,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 10,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "unknown",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "transaction_ts",
+      "inferred_type": "datetime",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "2026-04-07T09:15:00",
+        "2026-04-08T11:22:00",
+        "2026-04-09T13:29:00",
+        "2026-04-10T15:36:00"
+      ],
+      "row_count": 60,
+      "column_count": 19,
+      "valid_date_percent": 1,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 19,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "unknown",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "delivery_date",
+      "inferred_type": "datetime",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "2026-04-08T11:15:00",
+        "2026-04-10T15:22:00",
+        "2026-04-12T19:29:00",
+        "2026-04-14T23:36:00"
+      ],
+      "row_count": 60,
+      "column_count": 19,
+      "valid_date_percent": 1,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 19,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "unknown",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "delivery_address",
+      "inferred_type": "text",
+      "missing_percent": 0,
+      "unique_percent": 0.25,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "42 Flower Rd, Colombo 07",
+        "18 Beach Rd, Negombo",
+        "9 Hill St, Kandy",
+        "3 Lake Rd, Batticaloa"
+      ],
+      "row_count": 60,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 21.533333333333335,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "notes",
+      "inferred_type": "text",
+      "missing_percent": 0.1,
+      "unique_percent": 0.16666666666666666,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "Gift wrap requested",
+        "VIP discount applied",
+        "Pickup at counter",
+        "Split shipment"
+      ],
+      "row_count": 60,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 21.555555555555557,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": true,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    }
+  ],
+  "semantic_profiles": [
+    {
+      "column_name": "transaction_id",
+      "approved_or_detected_meaning": "transaction_id record identifier",
+      "generic_role": "Identifier",
+      "expected_scale": "count",
+      "detected_scale": "count",
+      "expected_unit": "count",
+      "detected_unit": "count",
+      "value_direction": "neutral",
+      "source_columns": [
+        "transaction_id"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "identifier|count|count"
+    },
+    {
+      "column_name": "user_id",
+      "approved_or_detected_meaning": "user_id record identifier",
+      "generic_role": "Identifier",
+      "expected_scale": "count",
+      "detected_scale": "count",
+      "expected_unit": "count",
+      "detected_unit": "count",
+      "value_direction": "neutral",
+      "source_columns": [
+        "user_id"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "identifier|count|count"
+    },
+    {
+      "column_name": "product_id",
+      "approved_or_detected_meaning": "product_id record identifier",
+      "generic_role": "Identifier",
+      "expected_scale": "count",
+      "detected_scale": "count",
+      "expected_unit": "count",
+      "detected_unit": "count",
+      "value_direction": "neutral",
+      "source_columns": [
+        "product_id"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "identifier|count|count"
+    },
+    {
+      "column_name": "shop_id",
+      "approved_or_detected_meaning": "shop_id record identifier",
+      "generic_role": "Identifier",
+      "expected_scale": "count",
+      "detected_scale": "count",
+      "expected_unit": "count",
+      "detected_unit": "count",
+      "value_direction": "neutral",
+      "source_columns": [
+        "shop_id"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "identifier|count|count"
+    },
+    {
+      "column_name": "quantity",
+      "approved_or_detected_meaning": "quantity numeric measure",
+      "generic_role": "Numeric Measure",
+      "expected_scale": "0-100",
+      "detected_scale": "0-100",
+      "expected_unit": "percentage",
+      "detected_unit": "percentage",
+      "value_direction": "neutral",
+      "source_columns": [
+        "quantity"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "numeric_measure|0-100|percentage"
+    },
+    {
+      "column_name": "unit_price",
+      "approved_or_detected_meaning": "unit_price numeric measure",
+      "generic_role": "Numeric Measure",
+      "expected_scale": "count",
+      "detected_scale": "count",
+      "expected_unit": "count",
+      "detected_unit": "count",
+      "value_direction": "neutral",
+      "source_columns": [
+        "unit_price"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "numeric_measure|count|count"
+    },
+    {
+      "column_name": "total_amount",
+      "approved_or_detected_meaning": "total_amount numeric measure",
+      "generic_role": "Numeric Measure",
+      "expected_scale": "count",
+      "detected_scale": "count",
+      "expected_unit": "count",
+      "detected_unit": "count",
+      "value_direction": "neutral",
+      "source_columns": [
+        "total_amount"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "numeric_measure|count|count"
+    },
+    {
+      "column_name": "discount_percent",
+      "approved_or_detected_meaning": "discount_percent activity count",
+      "generic_role": "Count / Activity",
+      "expected_scale": "0-1",
+      "detected_scale": "0-1",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "higher means more activity",
+      "source_columns": [
+        "discount_percent"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "count_/_activity|0-1|unitless"
+    },
+    {
+      "column_name": "discount_amount",
+      "approved_or_detected_meaning": "discount_amount activity count",
+      "generic_role": "Count / Activity",
+      "expected_scale": "count",
+      "detected_scale": "count",
+      "expected_unit": "count",
+      "detected_unit": "count",
+      "value_direction": "higher means more activity",
+      "source_columns": [
+        "discount_amount"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "count_/_activity|count|count"
+    },
+    {
+      "column_name": "tax_percent",
+      "approved_or_detected_meaning": "tax_percent bounded ratio",
+      "generic_role": "Rate / Percentage",
+      "expected_scale": "0-1",
+      "detected_scale": "0-1",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "higher means larger share",
+      "source_columns": [
+        "tax_percent"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "rate_/_percentage|0-1|unitless"
+    },
+    {
+      "column_name": "tax_amount",
+      "approved_or_detected_meaning": "tax_amount numeric measure",
+      "generic_role": "Numeric Measure",
+      "expected_scale": "raw_sensor_adc",
+      "detected_scale": "raw_sensor_adc",
+      "expected_unit": "raw sensor scale",
+      "detected_unit": "raw sensor scale",
+      "value_direction": "neutral",
+      "source_columns": [
+        "tax_amount"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "numeric_measure|raw_sensor_adc|raw_sensor_scale"
+    },
+    {
+      "column_name": "final_amount",
+      "approved_or_detected_meaning": "final_amount numeric measure",
+      "generic_role": "Numeric Measure",
+      "expected_scale": "raw_sensor_adc",
+      "detected_scale": "raw_sensor_adc",
+      "expected_unit": "raw sensor scale",
+      "detected_unit": "raw sensor scale",
+      "value_direction": "neutral",
+      "source_columns": [
+        "final_amount"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "numeric_measure|raw_sensor_adc|raw_sensor_scale"
+    },
+    {
+      "column_name": "payment_method",
+      "approved_or_detected_meaning": "payment_method categorical attribute",
+      "generic_role": "Categorical Attribute",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "payment_method"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "categorical_attribute|unknown|unitless"
+    },
+    {
+      "column_name": "transaction_status",
+      "approved_or_detected_meaning": "transaction_status categorical attribute",
+      "generic_role": "Categorical Attribute",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "transaction_status"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "categorical_attribute|unknown|unitless"
+    },
+    {
+      "column_name": "transaction_date",
+      "approved_or_detected_meaning": "transaction_date event timestamp",
+      "generic_role": "Timestamp",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "transaction_date"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "timestamp|unknown|unitless"
+    },
+    {
+      "column_name": "transaction_ts",
+      "approved_or_detected_meaning": "transaction_ts event timestamp",
+      "generic_role": "Timestamp",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "transaction_ts"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "timestamp|unknown|unitless"
+    },
+    {
+      "column_name": "delivery_date",
+      "approved_or_detected_meaning": "delivery_date event timestamp",
+      "generic_role": "Timestamp",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "delivery_date"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "timestamp|unknown|unitless"
+    },
+    {
+      "column_name": "delivery_address",
+      "approved_or_detected_meaning": "delivery_address categorical attribute",
+      "generic_role": "Categorical Attribute",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "delivery_address"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "categorical_attribute|unknown|unitless"
+    },
+    {
+      "column_name": "notes",
+      "approved_or_detected_meaning": "notes categorical attribute",
+      "generic_role": "Categorical Attribute",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "notes"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "categorical_attribute|unknown|unitless"
+    }
+  ],
+  "internal_drift_results": [
+    {
+      "column_name": "transaction_id",
+      "compared_by": "time_window (identifier consistency)",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-15",
+          "scale": "count",
+          "mean": 91008,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 16-30",
+          "scale": "count",
+          "mean": 91023,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 31-45",
+          "scale": "count",
+          "mean": 91038,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 46-60",
+          "scale": "count",
+          "mean": 91053,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Identifier pattern, missingness, and uniqueness stay consistent across segments."
+      ],
+      "explanation": "Identifier pattern and coverage are stable across the dataset.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "user_id",
+      "compared_by": "time_window (identifier consistency)",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-15",
+          "scale": "count",
+          "mean": 20108,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 16-30",
+          "scale": "count",
+          "mean": 20123,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 31-45",
+          "scale": "count",
+          "mean": 20114.666666666668,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 46-60",
+          "scale": "count",
+          "mean": 20118,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Identifier pattern, missingness, and uniqueness stay consistent across segments."
+      ],
+      "explanation": "Identifier pattern and coverage are stable across the dataset.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "product_id",
+      "compared_by": "time_window (identifier consistency)",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-15",
+          "scale": "count",
+          "mean": 11005.6,
+          "unique_percent": 0.8
+        },
+        {
+          "segment": "Rows 16-30",
+          "scale": "count",
+          "mean": 11006.2,
+          "unique_percent": 0.8
+        },
+        {
+          "segment": "Rows 31-45",
+          "scale": "count",
+          "mean": 11006.8,
+          "unique_percent": 0.8
+        },
+        {
+          "segment": "Rows 46-60",
+          "scale": "count",
+          "mean": 11007.4,
+          "unique_percent": 0.8
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Identifier pattern, missingness, and uniqueness stay consistent across segments."
+      ],
+      "explanation": "Identifier pattern and coverage are stable across the dataset.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "shop_id",
+      "compared_by": "time_window (identifier consistency)",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-15",
+          "scale": "count",
+          "mean": 503,
+          "unique_percent": 0.3333333333333333
+        },
+        {
+          "segment": "Rows 16-30",
+          "scale": "count",
+          "mean": 503,
+          "unique_percent": 0.3333333333333333
+        },
+        {
+          "segment": "Rows 31-45",
+          "scale": "count",
+          "mean": 503,
+          "unique_percent": 0.3333333333333333
+        },
+        {
+          "segment": "Rows 46-60",
+          "scale": "count",
+          "mean": 503,
+          "unique_percent": 0.3333333333333333
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Identifier pattern, missingness, and uniqueness stay consistent across segments."
+      ],
+      "explanation": "Identifier pattern and coverage are stable across the dataset.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "quantity",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-15",
+          "scale": "0-100",
+          "mean": 1.9333333333333333,
+          "unique_percent": 0.26666666666666666
+        },
+        {
+          "segment": "Rows 16-30",
+          "scale": "0-100",
+          "mean": 2.066666666666667,
+          "unique_percent": 0.26666666666666666
+        },
+        {
+          "segment": "Rows 31-45",
+          "scale": "0-100",
+          "mean": 1.9333333333333333,
+          "unique_percent": 0.26666666666666666
+        },
+        {
+          "segment": "Rows 46-60",
+          "scale": "0-100",
+          "mean": 2.066666666666667,
+          "unique_percent": 0.26666666666666666
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "unit_price",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-15",
+          "scale": "count",
+          "mean": 9776.666666666666,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 16-30",
+          "scale": "count",
+          "mean": 9780,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 31-45",
+          "scale": "count",
+          "mean": 9783.333333333334,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 46-60",
+          "scale": "count",
+          "mean": 9786.666666666666,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "total_amount",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-15",
+          "scale": "count",
+          "mean": 16943.333333333332,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 16-30",
+          "scale": "count",
+          "mean": 20233.333333333332,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 31-45",
+          "scale": "count",
+          "mean": 16936.666666666668,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 46-60",
+          "scale": "count",
+          "mean": 20240,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "LOW",
+      "evidence": [
+        "Segment mean spread is 3303.33 but scale stays consistent."
+      ],
+      "explanation": "The column has small internal movement only.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "discount_percent",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-15",
+          "scale": "0-1",
+          "mean": 0.07066666666666667,
+          "unique_percent": 0.4666666666666667
+        },
+        {
+          "segment": "Rows 16-30",
+          "scale": "0-1",
+          "mean": 0.07266666666666667,
+          "unique_percent": 0.4666666666666667
+        },
+        {
+          "segment": "Rows 31-45",
+          "scale": "0-1",
+          "mean": 0.07400000000000001,
+          "unique_percent": 0.4666666666666667
+        },
+        {
+          "segment": "Rows 46-60",
+          "scale": "0-1",
+          "mean": 0.07600000000000001,
+          "unique_percent": 0.4666666666666667
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "discount_amount",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-15",
+          "scale": "count",
+          "mean": 1281.4,
+          "unique_percent": 0.8666666666666667
+        },
+        {
+          "segment": "Rows 16-30",
+          "scale": "count",
+          "mean": 1464.4666666666667,
+          "unique_percent": 0.9333333333333333
+        },
+        {
+          "segment": "Rows 31-45",
+          "scale": "count",
+          "mean": 1280.6333333333334,
+          "unique_percent": 0.9333333333333333
+        },
+        {
+          "segment": "Rows 46-60",
+          "scale": "count",
+          "mean": 1567.7,
+          "unique_percent": 0.9333333333333333
+        }
+      ],
+      "drift_severity": "LOW",
+      "evidence": [
+        "Segment mean spread is 287.07 but scale stays consistent."
+      ],
+      "explanation": "The column has small internal movement only.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "tax_percent",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-15",
+          "scale": "0-1",
+          "mean": 0.030000000000000013,
+          "unique_percent": 0.06666666666666667
+        },
+        {
+          "segment": "Rows 16-30",
+          "scale": "0-1",
+          "mean": 0.030000000000000013,
+          "unique_percent": 0.06666666666666667
+        },
+        {
+          "segment": "Rows 31-45",
+          "scale": "0-1",
+          "mean": 0.030000000000000013,
+          "unique_percent": 0.06666666666666667
+        },
+        {
+          "segment": "Rows 46-60",
+          "scale": "0-1",
+          "mean": 0.030000000000000013,
+          "unique_percent": 0.06666666666666667
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "tax_amount",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-15",
+          "scale": "count",
+          "mean": 469.8586666666667,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 16-30",
+          "scale": "raw_sensor_adc",
+          "mean": 563.0666666666667,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 31-45",
+          "scale": "continuous",
+          "mean": 469.6813333333334,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 46-60",
+          "scale": "raw_sensor_adc",
+          "mean": 560.1693333333334,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "HIGH",
+      "evidence": [
+        "Segments show multiple scale patterns: count, raw_sensor_adc, continuous"
+      ],
+      "explanation": "The column appears to change meaning or scale across segments in the same dataset.",
+      "recommended_action": "Quarantine this column until the scale or meaning is standardized."
+    },
+    {
+      "column_name": "final_amount",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-15",
+          "scale": "count",
+          "mean": 16131.792,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 16-30",
+          "scale": "raw_sensor_adc",
+          "mean": 19331.933333333334,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 31-45",
+          "scale": "raw_sensor_adc",
+          "mean": 16125.714666666667,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 46-60",
+          "scale": "raw_sensor_adc",
+          "mean": 19232.46933333333,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "HIGH",
+      "evidence": [
+        "Segments show multiple scale patterns: count, raw_sensor_adc"
+      ],
+      "explanation": "The column appears to change meaning or scale across segments in the same dataset.",
+      "recommended_action": "Quarantine this column until the scale or meaning is standardized."
+    },
+    {
+      "column_name": "payment_method",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-15",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 0.2
+        },
+        {
+          "segment": "Rows 16-30",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 0.2
+        },
+        {
+          "segment": "Rows 31-45",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 0.2
+        },
+        {
+          "segment": "Rows 46-60",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 0.2
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "transaction_status",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-15",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 0.3333333333333333
+        },
+        {
+          "segment": "Rows 16-30",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 0.3333333333333333
+        },
+        {
+          "segment": "Rows 31-45",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 0.3333333333333333
+        },
+        {
+          "segment": "Rows 46-60",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 0.3333333333333333
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "transaction_date",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-15",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 16-30",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 31-45",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 46-60",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "transaction_ts",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-15",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 16-30",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 31-45",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 46-60",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "delivery_date",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-15",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 16-30",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 31-45",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 46-60",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "delivery_address",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-15",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 16-30",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 31-45",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 46-60",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "notes",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-15",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 0.6923076923076923
+        },
+        {
+          "segment": "Rows 16-30",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 0.6428571428571429
+        },
+        {
+          "segment": "Rows 31-45",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 0.6923076923076923
+        },
+        {
+          "segment": "Rows 46-60",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 0.6428571428571429
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    }
+  ],
+  "external_drift_results": [
+    {
+      "column_name": "transaction_id",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "transaction_id record identifier (count)",
+      "current_detected_meaning": "transaction_id record identifier (count)",
+      "drift_severity": "NONE",
+      "evidence": [
+        "Meaning, scale, and unit remain aligned with the baseline."
+      ],
+      "explanation": "No external semantic drift detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "user_id",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "user_id record identifier (count)",
+      "current_detected_meaning": "user_id record identifier (count)",
+      "drift_severity": "NONE",
+      "evidence": [
+        "Meaning, scale, and unit remain aligned with the baseline."
+      ],
+      "explanation": "No external semantic drift detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "product_id",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "product_id record identifier (count)",
+      "current_detected_meaning": "product_id record identifier (count)",
+      "drift_severity": "NONE",
+      "evidence": [
+        "Meaning, scale, and unit remain aligned with the baseline."
+      ],
+      "explanation": "No external semantic drift detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "shop_id",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "shop_id record identifier (count)",
+      "current_detected_meaning": "shop_id record identifier (count)",
+      "drift_severity": "NONE",
+      "evidence": [
+        "Meaning, scale, and unit remain aligned with the baseline."
+      ],
+      "explanation": "No external semantic drift detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "quantity",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "quantity numeric measure (0-100)",
+      "current_detected_meaning": "quantity numeric measure (0-100)",
+      "drift_severity": "NONE",
+      "evidence": [
+        "Meaning, scale, and unit remain aligned with the baseline."
+      ],
+      "explanation": "No external semantic drift detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "unit_price",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "unit_price numeric measure (count)",
+      "current_detected_meaning": "unit_price numeric measure (count)",
+      "drift_severity": "NONE",
+      "evidence": [
+        "Meaning, scale, and unit remain aligned with the baseline."
+      ],
+      "explanation": "No external semantic drift detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "total_amount",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "total_amount numeric measure (count)",
+      "current_detected_meaning": "total_amount numeric measure (count)",
+      "drift_severity": "NONE",
+      "evidence": [
+        "Meaning, scale, and unit remain aligned with the baseline."
+      ],
+      "explanation": "No external semantic drift detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "discount_percent",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "discount_percent activity count (0-100)",
+      "current_detected_meaning": "discount_percent activity count (0-1)",
+      "drift_severity": "HIGH",
+      "evidence": [
+        "Scale changed from 0-100 to 0-1."
+      ],
+      "explanation": "A semantic meaning, scale, or unit change was detected against the selected baseline.",
+      "recommended_action": "Quarantine or transform current values back to the expected baseline meaning."
+    },
+    {
+      "column_name": "discount_amount",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "discount_amount activity count (count)",
+      "current_detected_meaning": "discount_amount activity count (count)",
+      "drift_severity": "NONE",
+      "evidence": [
+        "Meaning, scale, and unit remain aligned with the baseline."
+      ],
+      "explanation": "No external semantic drift detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "tax_percent",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "tax_percent bounded ratio (0-100)",
+      "current_detected_meaning": "tax_percent bounded ratio (0-1)",
+      "drift_severity": "HIGH",
+      "evidence": [
+        "Scale changed from 0-100 to 0-1."
+      ],
+      "explanation": "A semantic meaning, scale, or unit change was detected against the selected baseline.",
+      "recommended_action": "Quarantine or transform current values back to the expected baseline meaning."
+    },
+    {
+      "column_name": "tax_amount",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "tax_amount numeric measure (continuous)",
+      "current_detected_meaning": "tax_amount numeric measure (raw_sensor_adc)",
+      "drift_severity": "HIGH",
+      "evidence": [
+        "Scale changed from continuous to raw_sensor_adc."
+      ],
+      "explanation": "A semantic meaning, scale, or unit change was detected against the selected baseline.",
+      "recommended_action": "Quarantine or transform current values back to the expected baseline meaning."
+    },
+    {
+      "column_name": "final_amount",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "final_amount numeric measure (count)",
+      "current_detected_meaning": "final_amount numeric measure (raw_sensor_adc)",
+      "drift_severity": "HIGH",
+      "evidence": [
+        "Scale changed from count to raw_sensor_adc."
+      ],
+      "explanation": "A semantic meaning, scale, or unit change was detected against the selected baseline.",
+      "recommended_action": "Quarantine or transform current values back to the expected baseline meaning."
+    },
+    {
+      "column_name": "payment_method",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "payment_method categorical attribute (unknown)",
+      "current_detected_meaning": "payment_method categorical attribute (unknown)",
+      "drift_severity": "NONE",
+      "evidence": [
+        "Meaning, scale, and unit remain aligned with the baseline."
+      ],
+      "explanation": "No external semantic drift detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "transaction_status",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "transaction_status categorical attribute (unknown)",
+      "current_detected_meaning": "transaction_status categorical attribute (unknown)",
+      "drift_severity": "NONE",
+      "evidence": [
+        "Meaning, scale, and unit remain aligned with the baseline."
+      ],
+      "explanation": "No external semantic drift detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "transaction_date",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "transaction_date event timestamp (unknown)",
+      "current_detected_meaning": "transaction_date event timestamp (unknown)",
+      "drift_severity": "NONE",
+      "evidence": [
+        "Meaning, scale, and unit remain aligned with the baseline."
+      ],
+      "explanation": "No external semantic drift detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "transaction_ts",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "transaction_ts event timestamp (unknown)",
+      "current_detected_meaning": "transaction_ts event timestamp (unknown)",
+      "drift_severity": "NONE",
+      "evidence": [
+        "Meaning, scale, and unit remain aligned with the baseline."
+      ],
+      "explanation": "No external semantic drift detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "delivery_date",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "delivery_date event timestamp (unknown)",
+      "current_detected_meaning": "delivery_date event timestamp (unknown)",
+      "drift_severity": "NONE",
+      "evidence": [
+        "Meaning, scale, and unit remain aligned with the baseline."
+      ],
+      "explanation": "No external semantic drift detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "delivery_address",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "delivery_address text attribute (unknown)",
+      "current_detected_meaning": "delivery_address categorical attribute (unknown)",
+      "drift_severity": "HIGH",
+      "evidence": [
+        "Role changed from Text Attribute to Categorical Attribute."
+      ],
+      "explanation": "A semantic meaning, scale, or unit change was detected against the selected baseline.",
+      "recommended_action": "Quarantine or transform current values back to the expected baseline meaning."
+    },
+    {
+      "column_name": "notes",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_meaning": "notes text attribute (unknown)",
+      "current_detected_meaning": "notes categorical attribute (unknown)",
+      "drift_severity": "HIGH",
+      "evidence": [
+        "Role changed from Text Attribute to Categorical Attribute."
+      ],
+      "explanation": "A semantic meaning, scale, or unit change was detected against the selected baseline.",
+      "recommended_action": "Quarantine or transform current values back to the expected baseline meaning."
+    }
+  ],
+  "statistical_drift_results": [
+    {
+      "column_name": "transaction_id",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "numeric",
+      "drift_severity": "HIGH",
+      "score": 1,
+      "evidence": [
+        "Spread changed from 1.71 to 17.32.",
+        "Observed value range changed noticeably.",
+        "Distribution changed materially (distance 1.00)."
+      ],
+      "explanation": "Numeric distribution changed materially against the selected baseline.",
+      "recommended_action": "Investigate the distribution shift before release."
+    },
+    {
+      "column_name": "user_id",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "numeric",
+      "drift_severity": "HIGH",
+      "score": 1,
+      "evidence": [
+        "Spread changed from 1.71 to 9.34.",
+        "Observed value range changed noticeably.",
+        "Distribution changed materially (distance 1.00)."
+      ],
+      "explanation": "Numeric distribution changed materially against the selected baseline.",
+      "recommended_action": "Investigate the distribution shift before release."
+    },
+    {
+      "column_name": "product_id",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "numeric",
+      "drift_severity": "MODERATE",
+      "score": 0.5,
+      "evidence": [
+        "Spread shifted slightly from 2.54 to 3.45.",
+        "Observed value range changed noticeably.",
+        "Distribution changed moderately (distance 0.33)."
+      ],
+      "explanation": "Numeric distribution shifted enough to warrant a review.",
+      "recommended_action": "Review the metric trend and baseline alignment."
+    },
+    {
+      "column_name": "shop_id",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "numeric",
+      "drift_severity": "MODERATE",
+      "score": 0.48,
+      "evidence": [
+        "Distribution changed moderately (distance 0.40)."
+      ],
+      "explanation": "Numeric distribution shifted enough to warrant a review.",
+      "recommended_action": "Review the metric trend and baseline alignment."
+    },
+    {
+      "column_name": "quantity",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "numeric",
+      "drift_severity": "LOW",
+      "score": 0.25,
+      "evidence": [
+        "Distribution shifted slightly (distance 0.13)."
+      ],
+      "explanation": "Numeric distribution shifted slightly.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "unit_price",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "numeric",
+      "drift_severity": "MODERATE",
+      "score": 0.5,
+      "evidence": [
+        "Spread shifted slightly from 2832.79 to 4644.90.",
+        "Observed value range changed noticeably.",
+        "Distribution changed moderately (distance 0.28)."
+      ],
+      "explanation": "Numeric distribution shifted enough to warrant a review.",
+      "recommended_action": "Review the metric trend and baseline alignment."
+    },
+    {
+      "column_name": "total_amount",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "numeric",
+      "drift_severity": "MODERATE",
+      "score": 0.62,
+      "evidence": [
+        "Mean shifted moderately from 13600.00 to 18588.33.",
+        "Spread changed from 5164.30 to 11096.93.",
+        "Observed value range changed noticeably.",
+        "Distribution changed moderately (distance 0.27)."
+      ],
+      "explanation": "Numeric distribution shifted enough to warrant a review.",
+      "recommended_action": "Review the metric trend and baseline alignment."
+    },
+    {
+      "column_name": "discount_percent",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "numeric",
+      "drift_severity": "HIGH",
+      "score": 0.78,
+      "evidence": [
+        "Mean shifted from 3.83 to 0.07.",
+        "Spread changed from 4.10 to 0.05.",
+        "Observed value range changed noticeably.",
+        "Distribution changed materially (distance 0.50)."
+      ],
+      "explanation": "Numeric distribution changed materially against the selected baseline.",
+      "recommended_action": "Investigate the distribution shift before release."
+    },
+    {
+      "column_name": "discount_amount",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "numeric",
+      "drift_severity": "HIGH",
+      "score": 0.78,
+      "evidence": [
+        "Mean shifted from 536.33 to 1398.55.",
+        "Spread changed from 623.05 to 1230.82.",
+        "Observed value range changed noticeably.",
+        "Distribution changed materially (distance 0.45)."
+      ],
+      "explanation": "Numeric distribution changed materially against the selected baseline.",
+      "recommended_action": "Investigate the distribution shift before release."
+    },
+    {
+      "column_name": "tax_percent",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "numeric",
+      "drift_severity": "HIGH",
+      "score": 1,
+      "evidence": [
+        "Mean shifted from 3.00 to 0.03.",
+        "Observed value range changed noticeably.",
+        "Distribution changed materially (distance 1.00)."
+      ],
+      "explanation": "Numeric distribution changed materially against the selected baseline.",
+      "recommended_action": "Investigate the distribution shift before release."
+    },
+    {
+      "column_name": "tax_amount",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "numeric",
+      "drift_severity": "MODERATE",
+      "score": 0.62,
+      "evidence": [
+        "Mean shifted moderately from 391.91 to 515.69.",
+        "Spread changed from 151.82 to 310.44.",
+        "Observed value range changed noticeably.",
+        "Distribution changed moderately (distance 0.30)."
+      ],
+      "explanation": "Numeric distribution shifted enough to warrant a review.",
+      "recommended_action": "Review the metric trend and baseline alignment."
+    },
+    {
+      "column_name": "final_amount",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "numeric",
+      "drift_severity": "MODERATE",
+      "score": 0.62,
+      "evidence": [
+        "Mean shifted moderately from 12872.76 to 17705.48.",
+        "Spread changed from 4805.17 to 10658.57.",
+        "Observed value range changed noticeably.",
+        "Distribution changed moderately (distance 0.38)."
+      ],
+      "explanation": "Numeric distribution shifted enough to warrant a review.",
+      "recommended_action": "Review the metric trend and baseline alignment."
+    },
+    {
+      "column_name": "payment_method",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "categorical",
+      "drift_severity": "MODERATE",
+      "score": 0.5,
+      "evidence": [
+        "Category distribution shifted moderately (distance 0.33)."
+      ],
+      "explanation": "Categorical distribution shifted enough to warrant a review.",
+      "recommended_action": "Review the category distribution change."
+    },
+    {
+      "column_name": "transaction_status",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "categorical",
+      "drift_severity": "LOW",
+      "score": 0.22,
+      "evidence": [
+        "Category distribution shifted slightly (distance 0.13)."
+      ],
+      "explanation": "Categorical distribution shifted slightly.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "delivery_address",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "categorical",
+      "drift_severity": "HIGH",
+      "score": 0.82,
+      "evidence": [
+        "New categories appeared in 60.0% of rows.",
+        "Category distribution changed materially (distance 0.60)."
+      ],
+      "explanation": "Categorical distribution changed materially against the selected baseline.",
+      "recommended_action": "Inspect category churn and baseline alignment before release."
+    },
+    {
+      "column_name": "notes",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "field_type": "categorical",
+      "drift_severity": "HIGH",
+      "score": 0.82,
+      "evidence": [
+        "New categories appeared in 55.6% of rows.",
+        "Category distribution changed materially (distance 0.56)."
+      ],
+      "explanation": "Categorical distribution changed materially against the selected baseline.",
+      "recommended_action": "Inspect category churn and baseline alignment before release."
+    }
+  ],
+  "behavioral_drift_results": [
+    {
+      "column_name": "transaction_id",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "READY",
+      "current_release_status": "QUARANTINED",
+      "release_status_delta": 2,
+      "drift_severity": "HIGH",
+      "evidence": [
+        "Release status changed from READY to QUARANTINED.",
+        "1 additional critical failure appeared."
+      ],
+      "explanation": "Downstream release behavior changed materially against the baseline.",
+      "recommended_action": "Review the downstream impact before promotion."
+    },
+    {
+      "column_name": "user_id",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "READY",
+      "current_release_status": "QUARANTINED",
+      "release_status_delta": 2,
+      "drift_severity": "HIGH",
+      "evidence": [
+        "Release status changed from READY to QUARANTINED.",
+        "1 additional critical failure appeared."
+      ],
+      "explanation": "Downstream release behavior changed materially against the baseline.",
+      "recommended_action": "Review the downstream impact before promotion."
+    },
+    {
+      "column_name": "product_id",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "READY",
+      "current_release_status": "CONDITIONAL",
+      "release_status_delta": 1,
+      "drift_severity": "MODERATE",
+      "evidence": [
+        "Release status changed from READY to CONDITIONAL.",
+        "1 additional warning appeared."
+      ],
+      "explanation": "Downstream release behavior changed enough to review.",
+      "recommended_action": "Check why the release status changed."
+    },
+    {
+      "column_name": "shop_id",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "READY",
+      "current_release_status": "CONDITIONAL",
+      "release_status_delta": 1,
+      "drift_severity": "MODERATE",
+      "evidence": [
+        "Release status changed from READY to CONDITIONAL.",
+        "1 additional warning appeared."
+      ],
+      "explanation": "Downstream release behavior changed enough to review.",
+      "recommended_action": "Check why the release status changed."
+    },
+    {
+      "column_name": "quantity",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "QUARANTINED",
+      "current_release_status": "CONDITIONAL",
+      "release_status_delta": -1,
+      "drift_severity": "MODERATE",
+      "evidence": [
+        "Release status changed from QUARANTINED to CONDITIONAL.",
+        "1 additional warning appeared."
+      ],
+      "explanation": "Downstream release behavior changed enough to review.",
+      "recommended_action": "Check why the release status changed."
+    },
+    {
+      "column_name": "unit_price",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "CONDITIONAL",
+      "current_release_status": "CONDITIONAL",
+      "release_status_delta": 0,
+      "drift_severity": "LOW",
+      "evidence": [
+        "1 additional warning appeared."
+      ],
+      "explanation": "Downstream release behavior shifted slightly.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "total_amount",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "CONDITIONAL",
+      "current_release_status": "CONDITIONAL",
+      "release_status_delta": 0,
+      "drift_severity": "LOW",
+      "evidence": [
+        "1 additional warning appeared."
+      ],
+      "explanation": "Downstream release behavior shifted slightly.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "discount_percent",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "CONDITIONAL",
+      "current_release_status": "QUARANTINED",
+      "release_status_delta": 1,
+      "drift_severity": "MODERATE",
+      "evidence": [
+        "Release status changed from CONDITIONAL to QUARANTINED.",
+        "1 additional critical failure appeared."
+      ],
+      "explanation": "Downstream release behavior changed enough to review.",
+      "recommended_action": "Check why the release status changed."
+    },
+    {
+      "column_name": "discount_amount",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "CONDITIONAL",
+      "current_release_status": "QUARANTINED",
+      "release_status_delta": 1,
+      "drift_severity": "MODERATE",
+      "evidence": [
+        "Release status changed from CONDITIONAL to QUARANTINED.",
+        "1 additional critical failure appeared."
+      ],
+      "explanation": "Downstream release behavior changed enough to review.",
+      "recommended_action": "Check why the release status changed."
+    },
+    {
+      "column_name": "tax_percent",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "READY",
+      "current_release_status": "QUARANTINED",
+      "release_status_delta": 2,
+      "drift_severity": "HIGH",
+      "evidence": [
+        "Release status changed from READY to QUARANTINED.",
+        "1 additional critical failure appeared."
+      ],
+      "explanation": "Downstream release behavior changed materially against the baseline.",
+      "recommended_action": "Review the downstream impact before promotion."
+    },
+    {
+      "column_name": "tax_amount",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "CONDITIONAL",
+      "current_release_status": "QUARANTINED",
+      "release_status_delta": 1,
+      "drift_severity": "MODERATE",
+      "evidence": [
+        "Release status changed from CONDITIONAL to QUARANTINED.",
+        "1 additional warning appeared."
+      ],
+      "explanation": "Downstream release behavior changed enough to review.",
+      "recommended_action": "Check why the release status changed."
+    },
+    {
+      "column_name": "final_amount",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "CONDITIONAL",
+      "current_release_status": "QUARANTINED",
+      "release_status_delta": 1,
+      "drift_severity": "MODERATE",
+      "evidence": [
+        "Release status changed from CONDITIONAL to QUARANTINED.",
+        "1 additional warning appeared."
+      ],
+      "explanation": "Downstream release behavior changed enough to review.",
+      "recommended_action": "Check why the release status changed."
+    },
+    {
+      "column_name": "payment_method",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "READY",
+      "current_release_status": "CONDITIONAL",
+      "release_status_delta": 1,
+      "drift_severity": "MODERATE",
+      "evidence": [
+        "Release status changed from READY to CONDITIONAL.",
+        "1 additional warning appeared."
+      ],
+      "explanation": "Downstream release behavior changed enough to review.",
+      "recommended_action": "Check why the release status changed."
+    },
+    {
+      "column_name": "transaction_status",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "READY",
+      "current_release_status": "CONDITIONAL",
+      "release_status_delta": 1,
+      "drift_severity": "MODERATE",
+      "evidence": [
+        "Release status changed from READY to CONDITIONAL.",
+        "1 additional warning appeared."
+      ],
+      "explanation": "Downstream release behavior changed enough to review.",
+      "recommended_action": "Check why the release status changed."
+    },
+    {
+      "column_name": "transaction_date",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "READY",
+      "current_release_status": "READY",
+      "release_status_delta": 0,
+      "drift_severity": "NONE",
+      "evidence": [
+        "Release behavior remains aligned with the baseline."
+      ],
+      "explanation": "No behavioral drift detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "transaction_ts",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "READY",
+      "current_release_status": "READY",
+      "release_status_delta": 0,
+      "drift_severity": "NONE",
+      "evidence": [
+        "Release behavior remains aligned with the baseline."
+      ],
+      "explanation": "No behavioral drift detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "delivery_date",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "READY",
+      "current_release_status": "READY",
+      "release_status_delta": 0,
+      "drift_severity": "NONE",
+      "evidence": [
+        "Release behavior remains aligned with the baseline."
+      ],
+      "explanation": "No behavioral drift detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "delivery_address",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "READY",
+      "current_release_status": "QUARANTINED",
+      "release_status_delta": 2,
+      "drift_severity": "HIGH",
+      "evidence": [
+        "Release status changed from READY to QUARANTINED.",
+        "1 additional critical failure appeared."
+      ],
+      "explanation": "Downstream release behavior changed materially against the baseline.",
+      "recommended_action": "Review the downstream impact before promotion."
+    },
+    {
+      "column_name": "notes",
+      "baseline_version": "v1",
+      "current_version": "current_upload",
+      "baseline_release_status": "CONDITIONAL",
+      "current_release_status": "QUARANTINED",
+      "release_status_delta": 1,
+      "drift_severity": "MODERATE",
+      "evidence": [
+        "Release status changed from CONDITIONAL to QUARANTINED.",
+        "1 additional critical failure appeared."
+      ],
+      "explanation": "Downstream release behavior changed enough to review.",
+      "recommended_action": "Check why the release status changed."
+    }
+  ],
+  "release_results": [
+    {
+      "column_name": "transaction_id",
+      "role": "Identifier",
+      "validation_status": "FAIL",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "HIGH",
+      "behavioral_drift_severity": "HIGH",
+      "release_status": "QUARANTINED",
+      "critical_failures": [
+        "High statistical drift",
+        "High behavioral drift"
+      ],
+      "warnings": [],
+      "explanation": "High statistical drift.",
+      "recommended_action": "Quarantine until the semantic issue is resolved."
+    },
+    {
+      "column_name": "user_id",
+      "role": "Identifier",
+      "validation_status": "FAIL",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "HIGH",
+      "behavioral_drift_severity": "HIGH",
+      "release_status": "QUARANTINED",
+      "critical_failures": [
+        "High statistical drift",
+        "High behavioral drift"
+      ],
+      "warnings": [],
+      "explanation": "High statistical drift.",
+      "recommended_action": "Quarantine until the semantic issue is resolved."
+    },
+    {
+      "column_name": "product_id",
+      "role": "Identifier",
+      "validation_status": "WARN",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "MODERATE",
+      "behavioral_drift_severity": "MODERATE",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [
+        "Moderate statistical drift",
+        "Moderate behavioral drift"
+      ],
+      "explanation": "Moderate statistical drift, admin review recommended.",
+      "recommended_action": "Review before promotion."
+    },
+    {
+      "column_name": "shop_id",
+      "role": "Identifier",
+      "validation_status": "WARN",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "MODERATE",
+      "behavioral_drift_severity": "MODERATE",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [
+        "Moderate statistical drift",
+        "Moderate behavioral drift"
+      ],
+      "explanation": "Moderate statistical drift, admin review recommended.",
+      "recommended_action": "Review before promotion."
+    },
+    {
+      "column_name": "quantity",
+      "role": "Numeric Measure",
+      "validation_status": "WARN",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "LOW",
+      "behavioral_drift_severity": "MODERATE",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [
+        "Moderate behavioral drift",
+        "Low statistical drift"
+      ],
+      "explanation": "Moderate behavioral drift, admin review recommended.",
+      "recommended_action": "Review before promotion."
+    },
+    {
+      "column_name": "unit_price",
+      "role": "Numeric Measure",
+      "validation_status": "WARN",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "MODERATE",
+      "behavioral_drift_severity": "LOW",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [
+        "Moderate statistical drift",
+        "Low behavioral drift"
+      ],
+      "explanation": "Moderate statistical drift, admin review recommended.",
+      "recommended_action": "Review before promotion."
+    },
+    {
+      "column_name": "total_amount",
+      "role": "Numeric Measure",
+      "validation_status": "WARN",
+      "internal_drift_severity": "LOW",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "MODERATE",
+      "behavioral_drift_severity": "LOW",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [
+        "Moderate statistical drift",
+        "Low behavioral drift"
+      ],
+      "explanation": "Moderate statistical drift, admin review recommended.",
+      "recommended_action": "Review before promotion."
+    },
+    {
+      "column_name": "discount_percent",
+      "role": "Count / Activity",
+      "validation_status": "FAIL",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "HIGH",
+      "statistical_drift_severity": "HIGH",
+      "behavioral_drift_severity": "MODERATE",
+      "release_status": "QUARANTINED",
+      "critical_failures": [
+        "High statistical drift"
+      ],
+      "warnings": [
+        "Moderate behavioral drift"
+      ],
+      "explanation": "High statistical drift.",
+      "recommended_action": "Quarantine until the semantic issue is resolved."
+    },
+    {
+      "column_name": "discount_amount",
+      "role": "Count / Activity",
+      "validation_status": "FAIL",
+      "internal_drift_severity": "LOW",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "HIGH",
+      "behavioral_drift_severity": "MODERATE",
+      "release_status": "QUARANTINED",
+      "critical_failures": [
+        "High statistical drift"
+      ],
+      "warnings": [
+        "Moderate behavioral drift"
+      ],
+      "explanation": "High statistical drift.",
+      "recommended_action": "Quarantine until the semantic issue is resolved."
+    },
+    {
+      "column_name": "tax_percent",
+      "role": "Rate / Percentage",
+      "validation_status": "FAIL",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "HIGH",
+      "statistical_drift_severity": "HIGH",
+      "behavioral_drift_severity": "HIGH",
+      "release_status": "QUARANTINED",
+      "critical_failures": [
+        "High statistical drift",
+        "High behavioral drift"
+      ],
+      "warnings": [],
+      "explanation": "High statistical drift.",
+      "recommended_action": "Quarantine until the semantic issue is resolved."
+    },
+    {
+      "column_name": "tax_amount",
+      "role": "Numeric Measure",
+      "validation_status": "WARN",
+      "internal_drift_severity": "HIGH",
+      "external_drift_severity": "HIGH",
+      "statistical_drift_severity": "MODERATE",
+      "behavioral_drift_severity": "MODERATE",
+      "release_status": "QUARANTINED",
+      "critical_failures": [],
+      "warnings": [
+        "Moderate statistical drift",
+        "Moderate behavioral drift"
+      ],
+      "explanation": "Segments show multiple scale patterns: count, raw_sensor_adc, continuous.",
+      "recommended_action": "Quarantine until the semantic issue is resolved."
+    },
+    {
+      "column_name": "final_amount",
+      "role": "Numeric Measure",
+      "validation_status": "WARN",
+      "internal_drift_severity": "HIGH",
+      "external_drift_severity": "HIGH",
+      "statistical_drift_severity": "MODERATE",
+      "behavioral_drift_severity": "MODERATE",
+      "release_status": "QUARANTINED",
+      "critical_failures": [],
+      "warnings": [
+        "Moderate statistical drift",
+        "Moderate behavioral drift"
+      ],
+      "explanation": "Segments show multiple scale patterns: count, raw_sensor_adc.",
+      "recommended_action": "Quarantine until the semantic issue is resolved."
+    },
+    {
+      "column_name": "payment_method",
+      "role": "Categorical Attribute",
+      "validation_status": "WARN",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "MODERATE",
+      "behavioral_drift_severity": "MODERATE",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [
+        "Moderate statistical drift",
+        "Moderate behavioral drift"
+      ],
+      "explanation": "Moderate statistical drift, admin review recommended.",
+      "recommended_action": "Review before promotion."
+    },
+    {
+      "column_name": "transaction_status",
+      "role": "Categorical Attribute",
+      "validation_status": "WARN",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "LOW",
+      "behavioral_drift_severity": "MODERATE",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [
+        "Moderate behavioral drift",
+        "Low statistical drift"
+      ],
+      "explanation": "Moderate behavioral drift, admin review recommended.",
+      "recommended_action": "Review before promotion."
+    },
+    {
+      "column_name": "transaction_date",
+      "role": "Timestamp",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "transaction_ts",
+      "role": "Timestamp",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "delivery_date",
+      "role": "Timestamp",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "delivery_address",
+      "role": "Categorical Attribute",
+      "validation_status": "FAIL",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "HIGH",
+      "statistical_drift_severity": "HIGH",
+      "behavioral_drift_severity": "HIGH",
+      "release_status": "QUARANTINED",
+      "critical_failures": [
+        "High statistical drift",
+        "High behavioral drift"
+      ],
+      "warnings": [],
+      "explanation": "High statistical drift.",
+      "recommended_action": "Quarantine until the semantic issue is resolved."
+    },
+    {
+      "column_name": "notes",
+      "role": "Categorical Attribute",
+      "validation_status": "FAIL",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "HIGH",
+      "statistical_drift_severity": "HIGH",
+      "behavioral_drift_severity": "MODERATE",
+      "release_status": "QUARANTINED",
+      "critical_failures": [
+        "High statistical drift"
+      ],
+      "warnings": [
+        "Moderate behavioral drift"
+      ],
+      "explanation": "High statistical drift.",
+      "recommended_action": "Quarantine until the semantic issue is resolved."
+    }
+  ]
+}

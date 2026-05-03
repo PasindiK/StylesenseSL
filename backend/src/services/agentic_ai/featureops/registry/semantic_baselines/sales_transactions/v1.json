@@ -1,0 +1,1927 @@
+{
+  "version_id": "sales_transactions_v1",
+  "dataset_family_id": "sales_transactions",
+  "version_number": 1,
+  "dataset_name": "03_sales_transactions_baseline.csv",
+  "file_name": "03_sales_transactions_baseline.csv",
+  "family_name": "sales transactions",
+  "family_id": null,
+  "description": "Approved semantic baseline for the transactions table defined in data architecture.",
+  "version_note": "v1 baseline",
+  "created_at": "2026-05-03T22:02:08.421Z",
+  "row_count": 6,
+  "column_count": 19,
+  "column_names": [
+    "transaction_id",
+    "user_id",
+    "product_id",
+    "shop_id",
+    "quantity",
+    "unit_price",
+    "total_amount",
+    "discount_percent",
+    "discount_amount",
+    "tax_percent",
+    "tax_amount",
+    "final_amount",
+    "payment_method",
+    "transaction_status",
+    "transaction_date",
+    "transaction_ts",
+    "delivery_date",
+    "delivery_address",
+    "notes"
+  ],
+  "dataset_rows": [
+    {
+      "transaction_id": "90001",
+      "user_id": "20001",
+      "product_id": "11001",
+      "shop_id": "501",
+      "quantity": "2",
+      "unit_price": "4500.00",
+      "total_amount": "9000.00",
+      "discount_percent": "5.00",
+      "discount_amount": "450.00",
+      "tax_percent": "3.00",
+      "tax_amount": "256.50",
+      "final_amount": "8806.50",
+      "payment_method": "card",
+      "transaction_status": "completed",
+      "transaction_date": "2026-04-01",
+      "transaction_ts": "2026-04-01T10:12:00",
+      "delivery_date": "2026-04-03T18:00:00",
+      "delivery_address": "42 Flower Rd, Colombo 07",
+      "notes": "Gift wrap requested"
+    },
+    {
+      "transaction_id": "90002",
+      "user_id": "20002",
+      "product_id": "11004",
+      "shop_id": "502",
+      "quantity": "1",
+      "unit_price": "8900.00",
+      "total_amount": "8900.00",
+      "discount_percent": "0.00",
+      "discount_amount": "0.00",
+      "tax_percent": "3.00",
+      "tax_amount": "267.00",
+      "final_amount": "8633.00",
+      "payment_method": "card",
+      "transaction_status": "shipped",
+      "transaction_date": "2026-04-02",
+      "transaction_ts": "2026-04-02T14:22:00",
+      "delivery_date": "2026-04-05T12:00:00",
+      "delivery_address": "18 Beach Rd, Negombo",
+      "notes": ""
+    },
+    {
+      "transaction_id": "90003",
+      "user_id": "20003",
+      "product_id": "11003",
+      "shop_id": "502",
+      "quantity": "1",
+      "unit_price": "12800.00",
+      "total_amount": "12800.00",
+      "discount_percent": "10.00",
+      "discount_amount": "1280.00",
+      "tax_percent": "3.00",
+      "tax_amount": "345.60",
+      "final_amount": "11864.40",
+      "payment_method": "bank_transfer",
+      "transaction_status": "paid",
+      "transaction_date": "2026-04-03",
+      "transaction_ts": "2026-04-03T09:05:00",
+      "delivery_date": "2026-04-06T16:30:00",
+      "delivery_address": "9 Hill St, Kandy",
+      "notes": "VIP discount applied"
+    },
+    {
+      "transaction_id": "90004",
+      "user_id": "20004",
+      "product_id": "11007",
+      "shop_id": "504",
+      "quantity": "1",
+      "unit_price": "9900.00",
+      "total_amount": "9900.00",
+      "discount_percent": "0.00",
+      "discount_amount": "0.00",
+      "tax_percent": "3.00",
+      "tax_amount": "297.00",
+      "final_amount": "9603.00",
+      "payment_method": "cash",
+      "transaction_status": "pickup_ready",
+      "transaction_date": "2026-04-04",
+      "transaction_ts": "2026-04-04T16:40:00",
+      "delivery_date": "2026-04-04T17:00:00",
+      "delivery_address": "3 Lake Rd, Batticaloa",
+      "notes": "Pickup at counter"
+    },
+    {
+      "transaction_id": "90005",
+      "user_id": "20005",
+      "product_id": "11002",
+      "shop_id": "501",
+      "quantity": "3",
+      "unit_price": "6200.00",
+      "total_amount": "18600.00",
+      "discount_percent": "8.00",
+      "discount_amount": "1488.00",
+      "tax_percent": "3.00",
+      "tax_amount": "513.36",
+      "final_amount": "16601.64",
+      "payment_method": "card",
+      "transaction_status": "completed",
+      "transaction_date": "2026-04-05",
+      "transaction_ts": "2026-04-05T11:11:00",
+      "delivery_date": "2026-04-07T10:00:00",
+      "delivery_address": "55 Galle Rd, Matara",
+      "notes": "Split shipment"
+    },
+    {
+      "transaction_id": "90006",
+      "user_id": "20006",
+      "product_id": "11008",
+      "shop_id": "504",
+      "quantity": "2",
+      "unit_price": "11200.00",
+      "total_amount": "22400.00",
+      "discount_percent": "0.00",
+      "discount_amount": "0.00",
+      "tax_percent": "3.00",
+      "tax_amount": "672.00",
+      "final_amount": "21728.00",
+      "payment_method": "card",
+      "transaction_status": "processing",
+      "transaction_date": "2026-04-06",
+      "transaction_ts": "2026-04-06T08:50:00",
+      "delivery_date": "2026-04-09T14:00:00",
+      "delivery_address": "7 Temple Rd, Anuradhapura",
+      "notes": ""
+    }
+  ],
+  "dataset_fingerprint": {
+    "column_names": [
+      "transaction_id",
+      "user_id",
+      "product_id",
+      "shop_id",
+      "quantity",
+      "unit_price",
+      "total_amount",
+      "discount_percent",
+      "discount_amount",
+      "tax_percent",
+      "tax_amount",
+      "final_amount",
+      "payment_method",
+      "transaction_status",
+      "transaction_date",
+      "transaction_ts",
+      "delivery_date",
+      "delivery_address",
+      "notes"
+    ],
+    "roles": [
+      "Identifier",
+      "Identifier",
+      "Identifier",
+      "Identifier",
+      "Numeric Measure",
+      "Numeric Measure",
+      "Numeric Measure",
+      "Count / Activity",
+      "Count / Activity",
+      "Rate / Percentage",
+      "Numeric Measure",
+      "Numeric Measure",
+      "Categorical Attribute",
+      "Categorical Attribute",
+      "Timestamp",
+      "Timestamp",
+      "Timestamp",
+      "Text Attribute",
+      "Text Attribute"
+    ],
+    "types": [
+      "numeric",
+      "numeric",
+      "numeric",
+      "numeric",
+      "numeric",
+      "numeric",
+      "numeric",
+      "numeric",
+      "numeric",
+      "numeric",
+      "numeric",
+      "numeric",
+      "text",
+      "text",
+      "datetime",
+      "datetime",
+      "datetime",
+      "text",
+      "text"
+    ],
+    "scale_patterns": [
+      "count",
+      "count",
+      "count",
+      "count",
+      "0-100",
+      "count",
+      "count",
+      "0-100",
+      "count",
+      "0-100",
+      "continuous",
+      "count",
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown"
+    ],
+    "important_columns": [
+      "transaction_id",
+      "user_id",
+      "product_id",
+      "shop_id",
+      "discount_percent",
+      "discount_amount",
+      "tax_percent",
+      "transaction_date",
+      "transaction_ts",
+      "delivery_date"
+    ]
+  },
+  "column_profiles": [
+    {
+      "column_name": "transaction_id",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": 90001,
+      "max": 90006,
+      "mean": 90003.5,
+      "std": 1.707825127659933,
+      "sample_values": [
+        "90001",
+        "90002",
+        "90003",
+        "90004"
+      ],
+      "row_count": 6,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0,
+      "avg_string_length": 5,
+      "outlier_percent": 0,
+      "scale_pattern": "count",
+      "value_pattern": "count",
+      "nullable": false,
+      "detected_unit": "count",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "user_id",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": 20001,
+      "max": 20006,
+      "mean": 20003.5,
+      "std": 1.707825127659933,
+      "sample_values": [
+        "20001",
+        "20002",
+        "20003",
+        "20004"
+      ],
+      "row_count": 6,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0,
+      "avg_string_length": 5,
+      "outlier_percent": 0,
+      "scale_pattern": "count",
+      "value_pattern": "count",
+      "nullable": false,
+      "detected_unit": "count",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "product_id",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": 11001,
+      "max": 11008,
+      "mean": 11004.166666666666,
+      "std": 2.544056253745625,
+      "sample_values": [
+        "11001",
+        "11004",
+        "11003",
+        "11007"
+      ],
+      "row_count": 6,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0,
+      "avg_string_length": 5,
+      "outlier_percent": 0,
+      "scale_pattern": "count",
+      "value_pattern": "count",
+      "nullable": false,
+      "detected_unit": "count",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "shop_id",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 0.5,
+      "min": 501,
+      "max": 504,
+      "mean": 502.3333333333333,
+      "std": 1.247219128924647,
+      "sample_values": [
+        "501",
+        "502",
+        "502",
+        "504"
+      ],
+      "row_count": 6,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0,
+      "avg_string_length": 3,
+      "outlier_percent": 0,
+      "scale_pattern": "count",
+      "value_pattern": "count",
+      "nullable": false,
+      "detected_unit": "count",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "quantity",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 0.5,
+      "min": 1,
+      "max": 3,
+      "mean": 1.6666666666666667,
+      "std": 0.7453559924999299,
+      "sample_values": [
+        "2",
+        "1",
+        "1",
+        "1"
+      ],
+      "row_count": 6,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0.5,
+      "avg_string_length": 1,
+      "outlier_percent": 0,
+      "scale_pattern": "0-100",
+      "value_pattern": "0-100",
+      "nullable": false,
+      "detected_unit": "percentage",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "unit_price",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": 4500,
+      "max": 12800,
+      "mean": 8916.666666666666,
+      "std": 2832.794066327841,
+      "sample_values": [
+        "4500.00",
+        "8900.00",
+        "12800.00",
+        "9900.00"
+      ],
+      "row_count": 6,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0,
+      "avg_string_length": 7.333333333333333,
+      "outlier_percent": 0,
+      "scale_pattern": "count",
+      "value_pattern": "count",
+      "nullable": false,
+      "detected_unit": "count",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "total_amount",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": 8900,
+      "max": 22400,
+      "mean": 13600,
+      "std": 5164.300533470143,
+      "sample_values": [
+        "9000.00",
+        "8900.00",
+        "12800.00",
+        "9900.00"
+      ],
+      "row_count": 6,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0,
+      "avg_string_length": 7.5,
+      "outlier_percent": 0,
+      "scale_pattern": "count",
+      "value_pattern": "count",
+      "nullable": false,
+      "detected_unit": "count",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "discount_percent",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 0.6666666666666666,
+      "min": 0,
+      "max": 10,
+      "mean": 3.8333333333333335,
+      "std": 4.099457958749614,
+      "sample_values": [
+        "5.00",
+        "0.00",
+        "10.00",
+        "0.00"
+      ],
+      "row_count": 6,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0.5,
+      "avg_string_length": 4.166666666666667,
+      "outlier_percent": 0,
+      "scale_pattern": "0-100",
+      "value_pattern": "0-100",
+      "nullable": false,
+      "detected_unit": "percentage",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "discount_amount",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 0.6666666666666666,
+      "min": 0,
+      "max": 1488,
+      "mean": 536.3333333333334,
+      "std": 623.0467255529253,
+      "sample_values": [
+        "450.00",
+        "0.00",
+        "1280.00",
+        "0.00"
+      ],
+      "row_count": 6,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0.5,
+      "avg_string_length": 5.333333333333333,
+      "outlier_percent": 0,
+      "scale_pattern": "count",
+      "value_pattern": "count",
+      "nullable": false,
+      "detected_unit": "count",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "tax_percent",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 0.16666666666666666,
+      "min": 3,
+      "max": 3,
+      "mean": 3,
+      "std": 0,
+      "sample_values": [
+        "3.00",
+        "3.00",
+        "3.00",
+        "3.00"
+      ],
+      "row_count": 6,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0,
+      "avg_string_length": 4,
+      "outlier_percent": 0,
+      "scale_pattern": "0-100",
+      "value_pattern": "0-100",
+      "nullable": false,
+      "detected_unit": "percentage",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "tax_amount",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": 256.5,
+      "max": 672,
+      "mean": 391.91,
+      "std": 151.8175500395129,
+      "sample_values": [
+        "256.50",
+        "267.00",
+        "345.60",
+        "297.00"
+      ],
+      "row_count": 6,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0.5,
+      "binary_like_percent": 0,
+      "avg_string_length": 6,
+      "outlier_percent": 0,
+      "scale_pattern": "continuous",
+      "value_pattern": "continuous",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "final_amount",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": 8633,
+      "max": 21728,
+      "mean": 12872.756666666668,
+      "std": 4805.1704288945075,
+      "sample_values": [
+        "8806.50",
+        "8633.00",
+        "11864.40",
+        "9603.00"
+      ],
+      "row_count": 6,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0.5,
+      "binary_like_percent": 0,
+      "avg_string_length": 7.5,
+      "outlier_percent": 0,
+      "scale_pattern": "count",
+      "value_pattern": "count",
+      "nullable": false,
+      "detected_unit": "count",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "payment_method",
+      "inferred_type": "text",
+      "missing_percent": 0,
+      "unique_percent": 0.5,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "card",
+        "card",
+        "bank_transfer",
+        "cash"
+      ],
+      "row_count": 6,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 5.5,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "transaction_status",
+      "inferred_type": "text",
+      "missing_percent": 0,
+      "unique_percent": 0.8333333333333334,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "completed",
+        "shipped",
+        "paid",
+        "pickup_ready"
+      ],
+      "row_count": 6,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 8.5,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "transaction_date",
+      "inferred_type": "datetime",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "2026-04-01",
+        "2026-04-02",
+        "2026-04-03",
+        "2026-04-04"
+      ],
+      "row_count": 6,
+      "column_count": 19,
+      "valid_date_percent": 1,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 10,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "unknown",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "transaction_ts",
+      "inferred_type": "datetime",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "2026-04-01T10:12:00",
+        "2026-04-02T14:22:00",
+        "2026-04-03T09:05:00",
+        "2026-04-04T16:40:00"
+      ],
+      "row_count": 6,
+      "column_count": 19,
+      "valid_date_percent": 1,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 19,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "unknown",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "delivery_date",
+      "inferred_type": "datetime",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "2026-04-03T18:00:00",
+        "2026-04-05T12:00:00",
+        "2026-04-06T16:30:00",
+        "2026-04-04T17:00:00"
+      ],
+      "row_count": 6,
+      "column_count": 19,
+      "valid_date_percent": 1,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 19,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "unknown",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "delivery_address",
+      "inferred_type": "text",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "42 Flower Rd, Colombo 07",
+        "18 Beach Rd, Negombo",
+        "9 Hill St, Kandy",
+        "3 Lake Rd, Batticaloa"
+      ],
+      "row_count": 6,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 20.833333333333332,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "notes",
+      "inferred_type": "text",
+      "missing_percent": 0.3333333333333333,
+      "unique_percent": 1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "Gift wrap requested",
+        "VIP discount applied",
+        "Pickup at counter",
+        "Split shipment"
+      ],
+      "row_count": 6,
+      "column_count": 19,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 17.5,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": true,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    }
+  ],
+  "semantic_profiles": [
+    {
+      "column_name": "transaction_id",
+      "approved_or_detected_meaning": "transaction_id record identifier",
+      "generic_role": "Identifier",
+      "expected_scale": "count",
+      "detected_scale": "count",
+      "expected_unit": "count",
+      "detected_unit": "count",
+      "value_direction": "neutral",
+      "source_columns": [
+        "transaction_id"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "identifier|count|count"
+    },
+    {
+      "column_name": "user_id",
+      "approved_or_detected_meaning": "user_id record identifier",
+      "generic_role": "Identifier",
+      "expected_scale": "count",
+      "detected_scale": "count",
+      "expected_unit": "count",
+      "detected_unit": "count",
+      "value_direction": "neutral",
+      "source_columns": [
+        "user_id"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "identifier|count|count"
+    },
+    {
+      "column_name": "product_id",
+      "approved_or_detected_meaning": "product_id record identifier",
+      "generic_role": "Identifier",
+      "expected_scale": "count",
+      "detected_scale": "count",
+      "expected_unit": "count",
+      "detected_unit": "count",
+      "value_direction": "neutral",
+      "source_columns": [
+        "product_id"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "identifier|count|count"
+    },
+    {
+      "column_name": "shop_id",
+      "approved_or_detected_meaning": "shop_id record identifier",
+      "generic_role": "Identifier",
+      "expected_scale": "count",
+      "detected_scale": "count",
+      "expected_unit": "count",
+      "detected_unit": "count",
+      "value_direction": "neutral",
+      "source_columns": [
+        "shop_id"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "identifier|count|count"
+    },
+    {
+      "column_name": "quantity",
+      "approved_or_detected_meaning": "quantity numeric measure",
+      "generic_role": "Numeric Measure",
+      "expected_scale": "0-100",
+      "detected_scale": "0-100",
+      "expected_unit": "percentage",
+      "detected_unit": "percentage",
+      "value_direction": "neutral",
+      "source_columns": [
+        "quantity"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "numeric_measure|0-100|percentage"
+    },
+    {
+      "column_name": "unit_price",
+      "approved_or_detected_meaning": "unit_price numeric measure",
+      "generic_role": "Numeric Measure",
+      "expected_scale": "count",
+      "detected_scale": "count",
+      "expected_unit": "count",
+      "detected_unit": "count",
+      "value_direction": "neutral",
+      "source_columns": [
+        "unit_price"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "numeric_measure|count|count"
+    },
+    {
+      "column_name": "total_amount",
+      "approved_or_detected_meaning": "total_amount numeric measure",
+      "generic_role": "Numeric Measure",
+      "expected_scale": "count",
+      "detected_scale": "count",
+      "expected_unit": "count",
+      "detected_unit": "count",
+      "value_direction": "neutral",
+      "source_columns": [
+        "total_amount"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "numeric_measure|count|count"
+    },
+    {
+      "column_name": "discount_percent",
+      "approved_or_detected_meaning": "discount_percent activity count",
+      "generic_role": "Count / Activity",
+      "expected_scale": "0-100",
+      "detected_scale": "0-100",
+      "expected_unit": "percentage",
+      "detected_unit": "percentage",
+      "value_direction": "higher means more activity",
+      "source_columns": [
+        "discount_percent"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "count_/_activity|0-100|percentage"
+    },
+    {
+      "column_name": "discount_amount",
+      "approved_or_detected_meaning": "discount_amount activity count",
+      "generic_role": "Count / Activity",
+      "expected_scale": "count",
+      "detected_scale": "count",
+      "expected_unit": "count",
+      "detected_unit": "count",
+      "value_direction": "higher means more activity",
+      "source_columns": [
+        "discount_amount"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "count_/_activity|count|count"
+    },
+    {
+      "column_name": "tax_percent",
+      "approved_or_detected_meaning": "tax_percent bounded ratio",
+      "generic_role": "Rate / Percentage",
+      "expected_scale": "0-100",
+      "detected_scale": "0-100",
+      "expected_unit": "percentage",
+      "detected_unit": "percentage",
+      "value_direction": "higher means larger share",
+      "source_columns": [
+        "tax_percent"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "rate_/_percentage|0-100|percentage"
+    },
+    {
+      "column_name": "tax_amount",
+      "approved_or_detected_meaning": "tax_amount numeric measure",
+      "generic_role": "Numeric Measure",
+      "expected_scale": "continuous",
+      "detected_scale": "continuous",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "tax_amount"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "numeric_measure|continuous|unitless"
+    },
+    {
+      "column_name": "final_amount",
+      "approved_or_detected_meaning": "final_amount numeric measure",
+      "generic_role": "Numeric Measure",
+      "expected_scale": "count",
+      "detected_scale": "count",
+      "expected_unit": "count",
+      "detected_unit": "count",
+      "value_direction": "neutral",
+      "source_columns": [
+        "final_amount"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "numeric_measure|count|count"
+    },
+    {
+      "column_name": "payment_method",
+      "approved_or_detected_meaning": "payment_method categorical attribute",
+      "generic_role": "Categorical Attribute",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "payment_method"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "categorical_attribute|unknown|unitless"
+    },
+    {
+      "column_name": "transaction_status",
+      "approved_or_detected_meaning": "transaction_status categorical attribute",
+      "generic_role": "Categorical Attribute",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "transaction_status"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "categorical_attribute|unknown|unitless"
+    },
+    {
+      "column_name": "transaction_date",
+      "approved_or_detected_meaning": "transaction_date event timestamp",
+      "generic_role": "Timestamp",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "transaction_date"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "timestamp|unknown|unitless"
+    },
+    {
+      "column_name": "transaction_ts",
+      "approved_or_detected_meaning": "transaction_ts event timestamp",
+      "generic_role": "Timestamp",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "transaction_ts"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "timestamp|unknown|unitless"
+    },
+    {
+      "column_name": "delivery_date",
+      "approved_or_detected_meaning": "delivery_date event timestamp",
+      "generic_role": "Timestamp",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "delivery_date"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "timestamp|unknown|unitless"
+    },
+    {
+      "column_name": "delivery_address",
+      "approved_or_detected_meaning": "delivery_address text attribute",
+      "generic_role": "Text Attribute",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "delivery_address"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "text_attribute|unknown|unitless"
+    },
+    {
+      "column_name": "notes",
+      "approved_or_detected_meaning": "notes text attribute",
+      "generic_role": "Text Attribute",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "notes"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "text_attribute|unknown|unitless"
+    }
+  ],
+  "internal_drift_results": [
+    {
+      "column_name": "transaction_id",
+      "compared_by": "time_window (identifier consistency)",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "count",
+          "mean": 90001.5,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "count",
+          "mean": 90003.5,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "count",
+          "mean": 90005.5,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Identifier pattern, missingness, and uniqueness stay consistent across segments."
+      ],
+      "explanation": "Identifier pattern and coverage are stable across the dataset.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "user_id",
+      "compared_by": "time_window (identifier consistency)",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "count",
+          "mean": 20001.5,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "count",
+          "mean": 20003.5,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "count",
+          "mean": 20005.5,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Identifier pattern, missingness, and uniqueness stay consistent across segments."
+      ],
+      "explanation": "Identifier pattern and coverage are stable across the dataset.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "product_id",
+      "compared_by": "time_window (identifier consistency)",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "count",
+          "mean": 11002.5,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "count",
+          "mean": 11005,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "count",
+          "mean": 11005,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Identifier pattern, missingness, and uniqueness stay consistent across segments."
+      ],
+      "explanation": "Identifier pattern and coverage are stable across the dataset.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "shop_id",
+      "compared_by": "time_window (identifier consistency)",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "count",
+          "mean": 501.5,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "count",
+          "mean": 503,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "count",
+          "mean": 502.5,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Identifier pattern, missingness, and uniqueness stay consistent across segments."
+      ],
+      "explanation": "Identifier pattern and coverage are stable across the dataset.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "quantity",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "0-100",
+          "mean": 1.5,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "0-1",
+          "mean": 1,
+          "unique_percent": 0.5
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "0-100",
+          "mean": 2.5,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "HIGH",
+      "evidence": [
+        "Segments show multiple scale patterns: 0-100, 0-1"
+      ],
+      "explanation": "The column appears to change meaning or scale across segments in the same dataset.",
+      "recommended_action": "Quarantine this column until the scale or meaning is standardized."
+    },
+    {
+      "column_name": "unit_price",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "count",
+          "mean": 6700,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "count",
+          "mean": 11350,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "count",
+          "mean": 8700,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "MODERATE",
+      "evidence": [
+        "Segment mean spread is 4650.00."
+      ],
+      "explanation": "The column shows noticeable internal movement, but likely keeps the same meaning.",
+      "recommended_action": "Review the column before release."
+    },
+    {
+      "column_name": "total_amount",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "count",
+          "mean": 8950,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "count",
+          "mean": 11350,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "count",
+          "mean": 20500,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "MODERATE",
+      "evidence": [
+        "Segment mean spread is 11550.00."
+      ],
+      "explanation": "The column shows noticeable internal movement, but likely keeps the same meaning.",
+      "recommended_action": "Review the column before release."
+    },
+    {
+      "column_name": "discount_percent",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "0-100",
+          "mean": 2.5,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "0-100",
+          "mean": 5,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "0-100",
+          "mean": 4,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "MODERATE",
+      "evidence": [
+        "Segment mean spread is 2.50."
+      ],
+      "explanation": "The column shows noticeable internal movement, but likely keeps the same meaning.",
+      "recommended_action": "Review the column before release."
+    },
+    {
+      "column_name": "discount_amount",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "count",
+          "mean": 225,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "count",
+          "mean": 640,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "count",
+          "mean": 744,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "MODERATE",
+      "evidence": [
+        "Segment mean spread is 519.00."
+      ],
+      "explanation": "The column shows noticeable internal movement, but likely keeps the same meaning.",
+      "recommended_action": "Review the column before release."
+    },
+    {
+      "column_name": "tax_percent",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "0-100",
+          "mean": 3,
+          "unique_percent": 0.5
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "0-100",
+          "mean": 3,
+          "unique_percent": 0.5
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "0-100",
+          "mean": 3,
+          "unique_percent": 0.5
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "tax_amount",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "continuous",
+          "mean": 261.75,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "continuous",
+          "mean": 321.3,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "continuous",
+          "mean": 592.6800000000001,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "MODERATE",
+      "evidence": [
+        "Segment mean spread is 330.93."
+      ],
+      "explanation": "The column shows noticeable internal movement, but likely keeps the same meaning.",
+      "recommended_action": "Review the column before release."
+    },
+    {
+      "column_name": "final_amount",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "raw_sensor_adc",
+          "mean": 8719.75,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "raw_sensor_adc",
+          "mean": 10733.7,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "raw_sensor_adc",
+          "mean": 19164.82,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "MODERATE",
+      "evidence": [
+        "Segment mean spread is 10445.07."
+      ],
+      "explanation": "The column shows noticeable internal movement, but likely keeps the same meaning.",
+      "recommended_action": "Review the column before release."
+    },
+    {
+      "column_name": "payment_method",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 0.5
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 0.5
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "transaction_status",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "transaction_date",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "transaction_ts",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "delivery_date",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "delivery_address",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "notes",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    }
+  ],
+  "external_drift_results": [],
+  "statistical_drift_results": [],
+  "behavioral_drift_results": [],
+  "release_results": [
+    {
+      "column_name": "transaction_id",
+      "role": "Identifier",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "user_id",
+      "role": "Identifier",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "product_id",
+      "role": "Identifier",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "shop_id",
+      "role": "Identifier",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "quantity",
+      "role": "Numeric Measure",
+      "validation_status": "PASS",
+      "internal_drift_severity": "HIGH",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "QUARANTINED",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Segments show multiple scale patterns: 0-100, 0-1.",
+      "recommended_action": "Quarantine until the semantic issue is resolved."
+    },
+    {
+      "column_name": "unit_price",
+      "role": "Numeric Measure",
+      "validation_status": "PASS",
+      "internal_drift_severity": "MODERATE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Segment mean spread is 4650.00., admin review recommended.",
+      "recommended_action": "Review before promotion."
+    },
+    {
+      "column_name": "total_amount",
+      "role": "Numeric Measure",
+      "validation_status": "PASS",
+      "internal_drift_severity": "MODERATE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Segment mean spread is 11550.00., admin review recommended.",
+      "recommended_action": "Review before promotion."
+    },
+    {
+      "column_name": "discount_percent",
+      "role": "Count / Activity",
+      "validation_status": "PASS",
+      "internal_drift_severity": "MODERATE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Segment mean spread is 2.50., admin review recommended.",
+      "recommended_action": "Review before promotion."
+    },
+    {
+      "column_name": "discount_amount",
+      "role": "Count / Activity",
+      "validation_status": "PASS",
+      "internal_drift_severity": "MODERATE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Segment mean spread is 519.00., admin review recommended.",
+      "recommended_action": "Review before promotion."
+    },
+    {
+      "column_name": "tax_percent",
+      "role": "Rate / Percentage",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "tax_amount",
+      "role": "Numeric Measure",
+      "validation_status": "PASS",
+      "internal_drift_severity": "MODERATE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Segment mean spread is 330.93., admin review recommended.",
+      "recommended_action": "Review before promotion."
+    },
+    {
+      "column_name": "final_amount",
+      "role": "Numeric Measure",
+      "validation_status": "PASS",
+      "internal_drift_severity": "MODERATE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Segment mean spread is 10445.07., admin review recommended.",
+      "recommended_action": "Review before promotion."
+    },
+    {
+      "column_name": "payment_method",
+      "role": "Categorical Attribute",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "transaction_status",
+      "role": "Categorical Attribute",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "transaction_date",
+      "role": "Timestamp",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "transaction_ts",
+      "role": "Timestamp",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "delivery_date",
+      "role": "Timestamp",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "delivery_address",
+      "role": "Text Attribute",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "notes",
+      "role": "Text Attribute",
+      "validation_status": "WARN",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [
+        "Higher-than-normal missingness"
+      ],
+      "explanation": "Higher-than-normal missingness, admin review recommended.",
+      "recommended_action": "Review before promotion."
+    }
+  ]
+}

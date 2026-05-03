@@ -661,7 +661,7 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{ flex: 1, minHeight: 0, padding: '0 16px 16px' }}>
+          <div className="agentic-dashboard-scroll" style={{ flex: 1, minHeight: 0, padding: '0 0 16px', width: '100%', boxSizing: 'border-box' }}>
             <AgenticAIDashboard
               userId={userId}
               users={users}

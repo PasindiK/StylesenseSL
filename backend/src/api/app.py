@@ -61,8 +61,11 @@ from src.services.agentic_ai.featureops.predefined_baselines import (
     get_predefined_baseline,
     list_predefined_baselines,
 )
+from src.services.semantic_drift.routes import router as semantic_drift_router
 
 app = FastAPI(title="CatalogAgent API")
+
+app.include_router(semantic_drift_router, prefix="/api/semantic-drift", tags=["Semantic Drift Detection"])
 
 # Enable CORS for frontend to call backend
 app.add_middleware(

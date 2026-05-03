@@ -1,0 +1,556 @@
+{
+  "version_id": "tiny_drift_dataset_v1",
+  "dataset_family_id": "tiny_drift_dataset",
+  "version_number": 1,
+  "dataset_name": "tiny_drift_dataset.csv",
+  "file_name": "tiny_drift_dataset.csv",
+  "family_name": "tiny drift dataset",
+  "family_id": null,
+  "description": "Semantic monitoring baseline",
+  "version_note": "v1 baseline",
+  "created_at": "2026-05-03T11:55:16.761Z",
+  "row_count": 20,
+  "column_count": 4,
+  "column_names": [
+    "record_id",
+    "temperature",
+    "humidity",
+    "risk_label"
+  ],
+  "dataset_rows": [
+    {
+      "record_id": "R001",
+      "temperature": "22.2",
+      "humidity": "53.2",
+      "risk_label": "low"
+    },
+    {
+      "record_id": "R002",
+      "temperature": "22.9",
+      "humidity": "50.5",
+      "risk_label": "low"
+    },
+    {
+      "record_id": "R003",
+      "temperature": "21.6",
+      "humidity": "47.2",
+      "risk_label": "low"
+    },
+    {
+      "record_id": "R004",
+      "temperature": "22.6",
+      "humidity": "52.9",
+      "risk_label": "low"
+    },
+    {
+      "record_id": "R005",
+      "temperature": "23",
+      "humidity": "53",
+      "risk_label": "low"
+    },
+    {
+      "record_id": "R006",
+      "temperature": "23",
+      "humidity": "50.5",
+      "risk_label": "low"
+    },
+    {
+      "record_id": "R007",
+      "temperature": "21.8",
+      "humidity": "49.7",
+      "risk_label": "low"
+    },
+    {
+      "record_id": "R008",
+      "temperature": "21.7",
+      "humidity": "48.7",
+      "risk_label": "low"
+    },
+    {
+      "record_id": "R009",
+      "temperature": "21.7",
+      "humidity": "50.2",
+      "risk_label": "low"
+    },
+    {
+      "record_id": "R010",
+      "temperature": "21.5",
+      "humidity": "51.4",
+      "risk_label": "low"
+    },
+    {
+      "record_id": "R011",
+      "temperature": "21.2",
+      "humidity": "54.5",
+      "risk_label": "low"
+    },
+    {
+      "record_id": "R012",
+      "temperature": "20.8",
+      "humidity": "53.4",
+      "risk_label": "low"
+    },
+    {
+      "record_id": "R013",
+      "temperature": "22.4",
+      "humidity": "48",
+      "risk_label": "low"
+    },
+    {
+      "record_id": "R014",
+      "temperature": "22.2",
+      "humidity": "50.3",
+      "risk_label": "low"
+    },
+    {
+      "record_id": "R015",
+      "temperature": "28.8",
+      "humidity": "0.2",
+      "risk_label": "high"
+    },
+    {
+      "record_id": "R016",
+      "temperature": "32.1",
+      "humidity": "0.51",
+      "risk_label": "high"
+    },
+    {
+      "record_id": "R017",
+      "temperature": "33.3",
+      "humidity": "0.1",
+      "risk_label": "high"
+    },
+    {
+      "record_id": "R018",
+      "temperature": "33.1",
+      "humidity": "0.12",
+      "risk_label": "high"
+    },
+    {
+      "record_id": "R019",
+      "temperature": "33.1",
+      "humidity": "0.58",
+      "risk_label": "high"
+    },
+    {
+      "record_id": "R020",
+      "temperature": "33.3",
+      "humidity": "0.9",
+      "risk_label": "high"
+    }
+  ],
+  "dataset_fingerprint": {
+    "column_names": [
+      "record_id",
+      "temperature",
+      "humidity",
+      "risk_label"
+    ],
+    "roles": [
+      "Identifier",
+      "Numeric Measure",
+      "Rate / Percentage",
+      "Target Column"
+    ],
+    "types": [
+      "text",
+      "numeric",
+      "numeric",
+      "text"
+    ],
+    "scale_patterns": [
+      "unknown",
+      "0-100",
+      "0-100",
+      "unknown"
+    ],
+    "important_columns": [
+      "record_id",
+      "humidity",
+      "risk_label"
+    ]
+  },
+  "column_profiles": [
+    {
+      "column_name": "record_id",
+      "inferred_type": "text",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "R001",
+        "R002",
+        "R003",
+        "R004"
+      ],
+      "row_count": 20,
+      "column_count": 4,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 4,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "temperature",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 0.75,
+      "min": 20.8,
+      "max": 33.3,
+      "mean": 25.115000000000002,
+      "std": 4.806794670047807,
+      "sample_values": [
+        "22.2",
+        "22.9",
+        "21.6",
+        "22.6"
+      ],
+      "row_count": 20,
+      "column_count": 4,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0.1,
+      "binary_like_percent": 0,
+      "avg_string_length": 3.8,
+      "outlier_percent": 0,
+      "scale_pattern": "0-100",
+      "value_pattern": "0-100",
+      "nullable": false,
+      "detected_unit": "temperature-like",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "humidity",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 0.95,
+      "min": 0.1,
+      "max": 54.5,
+      "mean": 35.7955,
+      "std": 23.23874404416039,
+      "sample_values": [
+        "53.2",
+        "50.5",
+        "47.2",
+        "52.9"
+      ],
+      "row_count": 20,
+      "column_count": 4,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0.1,
+      "binary_like_percent": 0,
+      "avg_string_length": 3.65,
+      "outlier_percent": 0,
+      "scale_pattern": "0-100",
+      "value_pattern": "0-100",
+      "nullable": false,
+      "detected_unit": "percentage-like",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "risk_label",
+      "inferred_type": "text",
+      "missing_percent": 0,
+      "unique_percent": 0.1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "low",
+        "low",
+        "low",
+        "low"
+      ],
+      "row_count": 20,
+      "column_count": 4,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 3.3,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": false,
+      "detected_unit": "probability-like score",
+      "detected_direction": "neutral"
+    }
+  ],
+  "semantic_profiles": [
+    {
+      "column_name": "record_id",
+      "approved_or_detected_meaning": "record_id record identifier",
+      "generic_role": "Identifier",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "record_id"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "identifier|unknown|unitless"
+    },
+    {
+      "column_name": "temperature",
+      "approved_or_detected_meaning": "temperature numeric measure",
+      "generic_role": "Numeric Measure",
+      "expected_scale": "0-100",
+      "detected_scale": "0-100",
+      "expected_unit": "temperature-like",
+      "detected_unit": "temperature-like",
+      "value_direction": "neutral",
+      "source_columns": [
+        "temperature"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "numeric_measure|0-100|temperature-like"
+    },
+    {
+      "column_name": "humidity",
+      "approved_or_detected_meaning": "humidity bounded ratio",
+      "generic_role": "Rate / Percentage",
+      "expected_scale": "0-100",
+      "detected_scale": "0-100",
+      "expected_unit": "percentage-like",
+      "detected_unit": "percentage-like",
+      "value_direction": "higher means larger share",
+      "source_columns": [
+        "humidity"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "rate_/_percentage|0-100|percentage-like"
+    },
+    {
+      "column_name": "risk_label",
+      "approved_or_detected_meaning": "risk_label target signal",
+      "generic_role": "Target Column",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "probability-like score",
+      "detected_unit": "probability-like score",
+      "value_direction": "higher means higher risk",
+      "source_columns": [
+        "risk_label"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "target_column|unknown|probability-like_score"
+    }
+  ],
+  "internal_drift_results": [
+    {
+      "column_name": "record_id",
+      "compared_by": "record_id (identifier consistency)",
+      "segment_summaries": [
+        {
+          "segment": "R001",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "R002",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "R003",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "R004",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Identifier pattern, missingness, and uniqueness stay consistent across segments."
+      ],
+      "explanation": "Identifier pattern and coverage are stable across the dataset.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "temperature",
+      "compared_by": "record_id",
+      "segment_summaries": [
+        {
+          "segment": "R001",
+          "scale": "0-100",
+          "mean": 22.2,
+          "unique_percent": 1
+        },
+        {
+          "segment": "R002",
+          "scale": "0-100",
+          "mean": 22.9,
+          "unique_percent": 1
+        },
+        {
+          "segment": "R003",
+          "scale": "0-100",
+          "mean": 21.6,
+          "unique_percent": 1
+        },
+        {
+          "segment": "R004",
+          "scale": "0-100",
+          "mean": 22.6,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "humidity",
+      "compared_by": "record_id",
+      "segment_summaries": [
+        {
+          "segment": "R001",
+          "scale": "0-100",
+          "mean": 53.2,
+          "unique_percent": 1
+        },
+        {
+          "segment": "R002",
+          "scale": "0-100",
+          "mean": 50.5,
+          "unique_percent": 1
+        },
+        {
+          "segment": "R003",
+          "scale": "0-100",
+          "mean": 47.2,
+          "unique_percent": 1
+        },
+        {
+          "segment": "R004",
+          "scale": "0-100",
+          "mean": 52.9,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "LOW",
+      "evidence": [
+        "Segment mean spread is 6.00 but scale stays consistent."
+      ],
+      "explanation": "The column has small internal movement only.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "risk_label",
+      "compared_by": "record_id",
+      "segment_summaries": [
+        {
+          "segment": "R001",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "R002",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "R003",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "R004",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    }
+  ],
+  "external_drift_results": [],
+  "statistical_drift_results": [],
+  "behavioral_drift_results": [],
+  "release_results": [
+    {
+      "column_name": "record_id",
+      "role": "Identifier",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "temperature",
+      "role": "Numeric Measure",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "humidity",
+      "role": "Rate / Percentage",
+      "validation_status": "PASS",
+      "internal_drift_severity": "LOW",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "risk_label",
+      "role": "Target Column",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    }
+  ]
+}

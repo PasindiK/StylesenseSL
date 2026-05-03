@@ -1,0 +1,1559 @@
+{
+  "version_id": "product_catalog_v1",
+  "dataset_family_id": "product_catalog",
+  "version_number": 1,
+  "dataset_name": "01_product_catalog_baseline.csv",
+  "file_name": "01_product_catalog_baseline.csv",
+  "family_name": "product catalog",
+  "family_id": null,
+  "description": "Approved semantic baseline for the products table defined in data architecture.",
+  "version_note": "v1 baseline",
+  "created_at": "2026-05-03T21:14:13.086Z",
+  "row_count": 8,
+  "column_count": 14,
+  "column_names": [
+    "product_id",
+    "shop_id",
+    "name",
+    "category",
+    "color",
+    "fabric",
+    "size_range",
+    "price_LKR",
+    "style_tags",
+    "product_url",
+    "created_ts",
+    "popularity_score",
+    "stock_count",
+    "created_timestamp"
+  ],
+  "dataset_rows": [
+    {
+      "product_id": "11001",
+      "shop_id": "501",
+      "name": "Linen Resort Shirt",
+      "category": "Menswear",
+      "color": "natural",
+      "fabric": "linen",
+      "size_range": "S-XL",
+      "price_LKR": "4500.00",
+      "style_tags": "minimal,beach",
+      "product_url": "https://stylesense.demo/p/11001",
+      "created_ts": "2026-01-08",
+      "popularity_score": "0.72",
+      "stock_count": "18",
+      "created_timestamp": "2026-01-08T09:15:00"
+    },
+    {
+      "product_id": "11002",
+      "shop_id": "501",
+      "name": "Cotton Midi Skirt",
+      "category": "Womenswear",
+      "color": "ivory",
+      "fabric": "cotton",
+      "size_range": "XS-L",
+      "price_LKR": "6200.00",
+      "style_tags": "classic,office",
+      "product_url": "https://stylesense.demo/p/11002",
+      "created_ts": "2026-01-09",
+      "popularity_score": "0.68",
+      "stock_count": "12",
+      "created_timestamp": "2026-01-09T11:20:00"
+    },
+    {
+      "product_id": "11003",
+      "shop_id": "502",
+      "name": "Silk Evening Wrap",
+      "category": "Womenswear",
+      "color": "emerald",
+      "fabric": "silk",
+      "size_range": "One",
+      "price_LKR": "12800.00",
+      "style_tags": "evening,luxe",
+      "product_url": "https://stylesense.demo/p/11003",
+      "created_ts": "2026-01-10",
+      "popularity_score": "0.81",
+      "stock_count": "6",
+      "created_timestamp": "2026-01-10T14:05:00"
+    },
+    {
+      "product_id": "11004",
+      "shop_id": "502",
+      "name": "Denim Slim Jean",
+      "category": "Menswear",
+      "color": "indigo",
+      "fabric": "denim",
+      "size_range": "28-36",
+      "price_LKR": "8900.00",
+      "style_tags": "street,casual",
+      "product_url": "https://stylesense.demo/p/11004",
+      "created_ts": "2026-01-11",
+      "popularity_score": "0.77",
+      "stock_count": "30",
+      "created_timestamp": "2026-01-11T08:40:00"
+    },
+    {
+      "product_id": "11005",
+      "shop_id": "503",
+      "name": "Batik Panel Dress",
+      "category": "Womenswear",
+      "color": "teal",
+      "fabric": "batik",
+      "size_range": "S-M",
+      "price_LKR": "7400.00",
+      "style_tags": "heritage,artisan",
+      "product_url": "https://stylesense.demo/p/11005",
+      "created_ts": "2026-01-12",
+      "popularity_score": "0.64",
+      "stock_count": "9",
+      "created_timestamp": "2026-01-12T16:30:00"
+    },
+    {
+      "product_id": "11006",
+      "shop_id": "503",
+      "name": "Knit Travel Hoodie",
+      "category": "Unisex",
+      "color": "heather",
+      "fabric": "wool blend",
+      "size_range": "M-XL",
+      "price_LKR": "5600.00",
+      "style_tags": "travel,layering",
+      "product_url": "https://stylesense.demo/p/11006",
+      "created_ts": "2026-01-13",
+      "popularity_score": "0.59",
+      "stock_count": "22",
+      "created_timestamp": "2026-01-13T10:12:00"
+    },
+    {
+      "product_id": "11007",
+      "shop_id": "504",
+      "name": "Leather Crossbody",
+      "category": "Accessories",
+      "color": "cognac",
+      "fabric": "leather",
+      "size_range": "One",
+      "price_LKR": "9900.00",
+      "style_tags": "bags,minimal",
+      "product_url": "https://stylesense.demo/p/11007",
+      "created_ts": "2026-01-14",
+      "popularity_score": "0.83",
+      "stock_count": "11",
+      "created_timestamp": "2026-01-14T12:45:00"
+    },
+    {
+      "product_id": "11008",
+      "shop_id": "504",
+      "name": "Performance Sneaker",
+      "category": "Footwear",
+      "color": "white",
+      "fabric": "mesh",
+      "size_range": "6-11",
+      "price_LKR": "11200.00",
+      "style_tags": "sport,urban",
+      "product_url": "https://stylesense.demo/p/11008",
+      "created_ts": "2026-01-15",
+      "popularity_score": "0.88",
+      "stock_count": "40",
+      "created_timestamp": "2026-01-15T09:00:00"
+    }
+  ],
+  "dataset_fingerprint": {
+    "column_names": [
+      "product_id",
+      "shop_id",
+      "name",
+      "category",
+      "color",
+      "fabric",
+      "size_range",
+      "price_LKR",
+      "style_tags",
+      "product_url",
+      "created_ts",
+      "popularity_score",
+      "stock_count",
+      "created_timestamp"
+    ],
+    "roles": [
+      "Identifier",
+      "Identifier",
+      "Text Attribute",
+      "Unknown / Unmapped",
+      "Unknown / Unmapped",
+      "Unknown / Unmapped",
+      "Unknown / Unmapped",
+      "Numeric Measure",
+      "Text Attribute",
+      "Text Attribute",
+      "Timestamp",
+      "Score / Rating",
+      "Count / Activity",
+      "Timestamp"
+    ],
+    "types": [
+      "numeric",
+      "numeric",
+      "text",
+      "text",
+      "text",
+      "text",
+      "text",
+      "numeric",
+      "text",
+      "text",
+      "datetime",
+      "numeric",
+      "numeric",
+      "datetime"
+    ],
+    "scale_patterns": [
+      "count",
+      "count",
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown",
+      "count",
+      "unknown",
+      "unknown",
+      "unknown",
+      "0-1",
+      "0-100",
+      "unknown"
+    ],
+    "important_columns": [
+      "product_id",
+      "shop_id",
+      "created_ts",
+      "popularity_score",
+      "stock_count",
+      "created_timestamp"
+    ]
+  },
+  "column_profiles": [
+    {
+      "column_name": "product_id",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": 11001,
+      "max": 11008,
+      "mean": 11004.5,
+      "std": 2.29128784747792,
+      "sample_values": [
+        "11001",
+        "11002",
+        "11003",
+        "11004"
+      ],
+      "row_count": 8,
+      "column_count": 14,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0,
+      "avg_string_length": 5,
+      "outlier_percent": 0,
+      "scale_pattern": "count",
+      "value_pattern": "count",
+      "nullable": false,
+      "detected_unit": "count",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "shop_id",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 0.5,
+      "min": 501,
+      "max": 504,
+      "mean": 502.5,
+      "std": 1.118033988749895,
+      "sample_values": [
+        "501",
+        "501",
+        "502",
+        "502"
+      ],
+      "row_count": 8,
+      "column_count": 14,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0,
+      "avg_string_length": 3,
+      "outlier_percent": 0,
+      "scale_pattern": "count",
+      "value_pattern": "count",
+      "nullable": false,
+      "detected_unit": "count",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "name",
+      "inferred_type": "text",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "Linen Resort Shirt",
+        "Cotton Midi Skirt",
+        "Silk Evening Wrap",
+        "Denim Slim Jean"
+      ],
+      "row_count": 8,
+      "column_count": 14,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 17.25,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "category",
+      "inferred_type": "text",
+      "missing_percent": 0,
+      "unique_percent": 0.625,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "Menswear",
+        "Womenswear",
+        "Womenswear",
+        "Menswear"
+      ],
+      "row_count": 8,
+      "column_count": 14,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 8.875,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "color",
+      "inferred_type": "text",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "natural",
+        "ivory",
+        "emerald",
+        "indigo"
+      ],
+      "row_count": 8,
+      "column_count": 14,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 5.875,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "fabric",
+      "inferred_type": "text",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "linen",
+        "cotton",
+        "silk",
+        "denim"
+      ],
+      "row_count": 8,
+      "column_count": 14,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 5.75,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "size_range",
+      "inferred_type": "text",
+      "missing_percent": 0,
+      "unique_percent": 0.875,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "S-XL",
+        "XS-L",
+        "One",
+        "28-36"
+      ],
+      "row_count": 8,
+      "column_count": 14,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 3.75,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "price_LKR",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": 4500,
+      "max": 12800,
+      "mean": 8312.5,
+      "std": 2704.827859587371,
+      "sample_values": [
+        "4500.00",
+        "6200.00",
+        "12800.00",
+        "8900.00"
+      ],
+      "row_count": 8,
+      "column_count": 14,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0,
+      "avg_string_length": 7.25,
+      "outlier_percent": 0,
+      "scale_pattern": "count",
+      "value_pattern": "count",
+      "nullable": false,
+      "detected_unit": "count",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "style_tags",
+      "inferred_type": "text",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "minimal,beach",
+        "classic,office",
+        "evening,luxe",
+        "street,casual"
+      ],
+      "row_count": 8,
+      "column_count": 14,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 13.25,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "product_url",
+      "inferred_type": "text",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "https://stylesense.demo/p/11001",
+        "https://stylesense.demo/p/11002",
+        "https://stylesense.demo/p/11003",
+        "https://stylesense.demo/p/11004"
+      ],
+      "row_count": 8,
+      "column_count": 14,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 31,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "textual",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "created_ts",
+      "inferred_type": "datetime",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "2026-01-08",
+        "2026-01-09",
+        "2026-01-10",
+        "2026-01-11"
+      ],
+      "row_count": 8,
+      "column_count": 14,
+      "valid_date_percent": 1,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 10,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "unknown",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "popularity_score",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": 0.59,
+      "max": 0.88,
+      "mean": 0.74,
+      "std": 0.09354143466934854,
+      "sample_values": [
+        "0.72",
+        "0.68",
+        "0.81",
+        "0.77"
+      ],
+      "row_count": 8,
+      "column_count": 14,
+      "valid_date_percent": 0,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 4,
+      "outlier_percent": 0,
+      "scale_pattern": "0-1",
+      "value_pattern": "0-1",
+      "nullable": false,
+      "detected_unit": "probability-like score",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "stock_count",
+      "inferred_type": "numeric",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": 6,
+      "max": 40,
+      "mean": 18.5,
+      "std": 10.908712114635714,
+      "sample_values": [
+        "18",
+        "12",
+        "6",
+        "30"
+      ],
+      "row_count": 8,
+      "column_count": 14,
+      "valid_date_percent": 0,
+      "integer_like_percent": 1,
+      "binary_like_percent": 0,
+      "avg_string_length": 1.75,
+      "outlier_percent": 0,
+      "scale_pattern": "0-100",
+      "value_pattern": "0-100",
+      "nullable": false,
+      "detected_unit": "percentage",
+      "detected_direction": "neutral"
+    },
+    {
+      "column_name": "created_timestamp",
+      "inferred_type": "datetime",
+      "missing_percent": 0,
+      "unique_percent": 1,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "std": 0,
+      "sample_values": [
+        "2026-01-08T09:15:00",
+        "2026-01-09T11:20:00",
+        "2026-01-10T14:05:00",
+        "2026-01-11T08:40:00"
+      ],
+      "row_count": 8,
+      "column_count": 14,
+      "valid_date_percent": 1,
+      "integer_like_percent": 0,
+      "binary_like_percent": 0,
+      "avg_string_length": 19,
+      "outlier_percent": 0,
+      "scale_pattern": "unknown",
+      "value_pattern": "unknown",
+      "nullable": false,
+      "detected_unit": "unitless",
+      "detected_direction": "neutral"
+    }
+  ],
+  "semantic_profiles": [
+    {
+      "column_name": "product_id",
+      "approved_or_detected_meaning": "product_id record identifier",
+      "generic_role": "Identifier",
+      "expected_scale": "count",
+      "detected_scale": "count",
+      "expected_unit": "count",
+      "detected_unit": "count",
+      "value_direction": "neutral",
+      "source_columns": [
+        "product_id"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "identifier|count|count"
+    },
+    {
+      "column_name": "shop_id",
+      "approved_or_detected_meaning": "shop_id record identifier",
+      "generic_role": "Identifier",
+      "expected_scale": "count",
+      "detected_scale": "count",
+      "expected_unit": "count",
+      "detected_unit": "count",
+      "value_direction": "neutral",
+      "source_columns": [
+        "shop_id"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "identifier|count|count"
+    },
+    {
+      "column_name": "name",
+      "approved_or_detected_meaning": "name text attribute",
+      "generic_role": "Text Attribute",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "name"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "text_attribute|unknown|unitless"
+    },
+    {
+      "column_name": "category",
+      "approved_or_detected_meaning": "category numeric measure",
+      "generic_role": "Unknown / Unmapped",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "category"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "unknown_/_unmapped|unknown|unitless"
+    },
+    {
+      "column_name": "color",
+      "approved_or_detected_meaning": "color numeric measure",
+      "generic_role": "Unknown / Unmapped",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "color"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "unknown_/_unmapped|unknown|unitless"
+    },
+    {
+      "column_name": "fabric",
+      "approved_or_detected_meaning": "fabric numeric measure",
+      "generic_role": "Unknown / Unmapped",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "fabric"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "unknown_/_unmapped|unknown|unitless"
+    },
+    {
+      "column_name": "size_range",
+      "approved_or_detected_meaning": "size_range numeric measure",
+      "generic_role": "Unknown / Unmapped",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "size_range"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "unknown_/_unmapped|unknown|unitless"
+    },
+    {
+      "column_name": "price_LKR",
+      "approved_or_detected_meaning": "price_LKR numeric measure",
+      "generic_role": "Numeric Measure",
+      "expected_scale": "count",
+      "detected_scale": "count",
+      "expected_unit": "count",
+      "detected_unit": "count",
+      "value_direction": "neutral",
+      "source_columns": [
+        "price_LKR"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "numeric_measure|count|count"
+    },
+    {
+      "column_name": "style_tags",
+      "approved_or_detected_meaning": "style_tags text attribute",
+      "generic_role": "Text Attribute",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "style_tags"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "text_attribute|unknown|unitless"
+    },
+    {
+      "column_name": "product_url",
+      "approved_or_detected_meaning": "product_url text attribute",
+      "generic_role": "Text Attribute",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "product_url"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "text_attribute|unknown|unitless"
+    },
+    {
+      "column_name": "created_ts",
+      "approved_or_detected_meaning": "created_ts event timestamp",
+      "generic_role": "Timestamp",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "created_ts"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "timestamp|unknown|unitless"
+    },
+    {
+      "column_name": "popularity_score",
+      "approved_or_detected_meaning": "popularity_score scored indicator",
+      "generic_role": "Score / Rating",
+      "expected_scale": "0-1",
+      "detected_scale": "0-1",
+      "expected_unit": "probability-like score",
+      "detected_unit": "probability-like score",
+      "value_direction": "higher means stronger score",
+      "source_columns": [
+        "popularity_score"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "score_/_rating|0-1|probability-like_score"
+    },
+    {
+      "column_name": "stock_count",
+      "approved_or_detected_meaning": "stock_count activity count",
+      "generic_role": "Count / Activity",
+      "expected_scale": "0-100",
+      "detected_scale": "0-100",
+      "expected_unit": "percentage",
+      "detected_unit": "percentage",
+      "value_direction": "higher means more activity",
+      "source_columns": [
+        "stock_count"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "count_/_activity|0-100|percentage"
+    },
+    {
+      "column_name": "created_timestamp",
+      "approved_or_detected_meaning": "created_timestamp event timestamp",
+      "generic_role": "Timestamp",
+      "expected_scale": "unknown",
+      "detected_scale": "unknown",
+      "expected_unit": "unitless",
+      "detected_unit": "unitless",
+      "value_direction": "neutral",
+      "source_columns": [
+        "created_timestamp"
+      ],
+      "computation_logic": "direct column profile",
+      "semantic_signature": "timestamp|unknown|unitless"
+    }
+  ],
+  "internal_drift_results": [
+    {
+      "column_name": "product_id",
+      "compared_by": "time_window (identifier consistency)",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "count",
+          "mean": 11001.5,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "count",
+          "mean": 11003.5,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "count",
+          "mean": 11005.5,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 7-8",
+          "scale": "count",
+          "mean": 11007.5,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Identifier pattern, missingness, and uniqueness stay consistent across segments."
+      ],
+      "explanation": "Identifier pattern and coverage are stable across the dataset.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "shop_id",
+      "compared_by": "time_window (identifier consistency)",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "count",
+          "mean": 501,
+          "unique_percent": 0.5
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "count",
+          "mean": 502,
+          "unique_percent": 0.5
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "count",
+          "mean": 503,
+          "unique_percent": 0.5
+        },
+        {
+          "segment": "Rows 7-8",
+          "scale": "count",
+          "mean": 504,
+          "unique_percent": 0.5
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Identifier pattern, missingness, and uniqueness stay consistent across segments."
+      ],
+      "explanation": "Identifier pattern and coverage are stable across the dataset.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "name",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 7-8",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "category",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 7-8",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "color",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 7-8",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "fabric",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 7-8",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "size_range",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 7-8",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "price_LKR",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "count",
+          "mean": 5350,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "count",
+          "mean": 10850,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "count",
+          "mean": 6500,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 7-8",
+          "scale": "count",
+          "mean": 10550,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "MODERATE",
+      "evidence": [
+        "Segment mean spread is 5500.00."
+      ],
+      "explanation": "The column shows noticeable internal movement, but likely keeps the same meaning.",
+      "recommended_action": "Review the column before release."
+    },
+    {
+      "column_name": "style_tags",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 7-8",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "product_url",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 7-8",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "created_ts",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 7-8",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "popularity_score",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "0-1",
+          "mean": 0.7,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "0-1",
+          "mean": 0.79,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "0-1",
+          "mean": 0.615,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 7-8",
+          "scale": "0-1",
+          "mean": 0.855,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    },
+    {
+      "column_name": "stock_count",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "0-100",
+          "mean": 15,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "0-100",
+          "mean": 18,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "0-100",
+          "mean": 15.5,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 7-8",
+          "scale": "0-100",
+          "mean": 25.5,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "MODERATE",
+      "evidence": [
+        "Segment mean spread is 10.50."
+      ],
+      "explanation": "The column shows noticeable internal movement, but likely keeps the same meaning.",
+      "recommended_action": "Review the column before release."
+    },
+    {
+      "column_name": "created_timestamp",
+      "compared_by": "time_window",
+      "segment_summaries": [
+        {
+          "segment": "Rows 1-2",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 3-4",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 5-6",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        },
+        {
+          "segment": "Rows 7-8",
+          "scale": "unknown",
+          "mean": null,
+          "unique_percent": 1
+        }
+      ],
+      "drift_severity": "NONE",
+      "evidence": [
+        "Segments follow a consistent scale and interpretation."
+      ],
+      "explanation": "No internal semantic inconsistency detected.",
+      "recommended_action": "No action needed."
+    }
+  ],
+  "external_drift_results": [],
+  "statistical_drift_results": [],
+  "behavioral_drift_results": [],
+  "release_results": [
+    {
+      "column_name": "product_id",
+      "role": "Identifier",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "shop_id",
+      "role": "Identifier",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "name",
+      "role": "Text Attribute",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "category",
+      "role": "Unknown / Unmapped",
+      "validation_status": "WARN",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [
+        "Weak role confidence",
+        "Unknown columns should stay in profiling-only mode"
+      ],
+      "explanation": "Weak role confidence, admin review recommended.",
+      "recommended_action": "Review before promotion."
+    },
+    {
+      "column_name": "color",
+      "role": "Unknown / Unmapped",
+      "validation_status": "WARN",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [
+        "Weak role confidence",
+        "Unknown columns should stay in profiling-only mode"
+      ],
+      "explanation": "Weak role confidence, admin review recommended.",
+      "recommended_action": "Review before promotion."
+    },
+    {
+      "column_name": "fabric",
+      "role": "Unknown / Unmapped",
+      "validation_status": "WARN",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [
+        "Weak role confidence",
+        "Unknown columns should stay in profiling-only mode"
+      ],
+      "explanation": "Weak role confidence, admin review recommended.",
+      "recommended_action": "Review before promotion."
+    },
+    {
+      "column_name": "size_range",
+      "role": "Unknown / Unmapped",
+      "validation_status": "WARN",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [
+        "Weak role confidence",
+        "Unknown columns should stay in profiling-only mode"
+      ],
+      "explanation": "Weak role confidence, admin review recommended.",
+      "recommended_action": "Review before promotion."
+    },
+    {
+      "column_name": "price_LKR",
+      "role": "Numeric Measure",
+      "validation_status": "PASS",
+      "internal_drift_severity": "MODERATE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Segment mean spread is 5500.00., admin review recommended.",
+      "recommended_action": "Review before promotion."
+    },
+    {
+      "column_name": "style_tags",
+      "role": "Text Attribute",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "product_url",
+      "role": "Text Attribute",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "created_ts",
+      "role": "Timestamp",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "popularity_score",
+      "role": "Score / Rating",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    },
+    {
+      "column_name": "stock_count",
+      "role": "Count / Activity",
+      "validation_status": "PASS",
+      "internal_drift_severity": "MODERATE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "CONDITIONAL",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Segment mean spread is 10.50., admin review recommended.",
+      "recommended_action": "Review before promotion."
+    },
+    {
+      "column_name": "created_timestamp",
+      "role": "Timestamp",
+      "validation_status": "PASS",
+      "internal_drift_severity": "NONE",
+      "external_drift_severity": "NONE",
+      "statistical_drift_severity": "NONE",
+      "behavioral_drift_severity": "NONE",
+      "release_status": "READY",
+      "critical_failures": [],
+      "warnings": [],
+      "explanation": "Column meaning is stable and validation checks passed.",
+      "recommended_action": "Approve for governed use."
+    }
+  ]
+}

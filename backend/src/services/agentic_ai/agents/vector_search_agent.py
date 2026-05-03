@@ -8,10 +8,17 @@ import hashlib
 from pathlib import Path
 
 try:
-    from sentence_transformers import SentenceTransformer
     from sklearn.metrics.pairwise import cosine_similarity
-    VECTOR_SEARCH_AVAILABLE = True
 except ImportError:
+    cosine_similarity = None  # type: ignore[assignment]
+
+try:
+    from sentence_transformers import SentenceTransformer
+
+    VECTOR_SEARCH_AVAILABLE = True
+except (ImportError, OSError, RuntimeError):
+    # OSError: common on Windows when torch DLLs fail to load (c10.dll).
+    SentenceTransformer = None  # type: ignore[misc,assignment]
     VECTOR_SEARCH_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
