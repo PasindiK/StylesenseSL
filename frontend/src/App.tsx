@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { HardDrive } from 'lucide-react'
+import { getAgenticApiBase } from './lib/agenticApiBase'
 import './App.css'
 import shoppingAssistantAvatar from './assets/shopping-assistant-avatar.svg'
 import ProductCard from './modules/agentic_ai/components/ProductCard'
@@ -99,10 +100,27 @@ export default function App() {
   const listRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
 
-  // Main chat interface API_base - MUST be before useEffect
-  const API_BASE = typeof window !== 'undefined' && (window as any).VITE_API_URL 
-    ? (window as any).VITE_API_URL
-    : (typeof import.meta !== 'undefined' && (import.meta.env.VITE_API_URL as any)) || '/api'
+  // Agentic API only (VITE_AGENTIC_API_URL wins over VITE_API_URL so mesh URL cannot hijack cart/chat)
+  const API_BASE = getAgenticApiBase()
+
+  const fetchCart = useCallback(async () => {
+    try {
+      console.log('[CART] Fetching cart from', `${API_BASE}/cart`)
+      const res = await fetch(`${API_BASE}/cart`)
+      console.log('[CART] Response status:', res.status)
+      if (res.ok) {
+        const data = await res.json()
+        console.log('[CART] Received cart data:', data)
+        setCartData(data)
+        setCartItemCount(data?.total_items || 0)
+        console.log('[CART] Updated cartItemCount to:', data?.total_items)
+      } else {
+        console.error('[CART] Failed to fetch cart, status:', res.status)
+      }
+    } catch (err) {
+      console.error('[CART] Fetch error:', err)
+    }
+  }, [API_BASE])
 
   // Apply dark mode class to document
   useEffect(() => {
@@ -132,29 +150,9 @@ export default function App() {
   // Load cart data
   useEffect(() => {
     if (!showLanding) {
-      fetchCart()
+      void fetchCart()
     }
-  }, [API_BASE, showLanding])
-
-  // Fetch cart from backend
-  async function fetchCart() {
-    try {
-      console.log('[CART] Fetching cart from', `${API_BASE}/cart`)
-      const res = await fetch(`${API_BASE}/cart`)
-      console.log('[CART] Response status:', res.status)
-      if (res.ok) {
-        const data = await res.json()
-        console.log('[CART] Received cart data:', data)
-        setCartData(data)
-        setCartItemCount(data?.total_items || 0)
-        console.log('[CART] Updated cartItemCount to:', data?.total_items)
-      } else {
-        console.error('[CART] Failed to fetch cart, status:', res.status)
-      }
-    } catch (err) {
-      console.error('[CART] Fetch error:', err)
-    }
-  }
+  }, [fetchCart, showLanding])
 
   // Dark mode toggle button
   function toggleDarkMode() {

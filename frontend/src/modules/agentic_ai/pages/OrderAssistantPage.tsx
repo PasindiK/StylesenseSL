@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Star } from 'lucide-react'
+import { getAgenticApiBase } from '../../../lib/agenticApiBase'
 import {
   sendOrderAssistantMessage,
   type OrderAssistantProfile,
@@ -356,6 +357,8 @@ export default function OrderAssistantPage({
   const [satisfactionMessage, setSatisfactionMessage] = useState<string | null>(null)
   const messageListRef = useRef<HTMLDivElement | null>(null)
 
+  const apiBase = useMemo(() => getAgenticApiBase(), [])
+
   const effectiveAutomation = useMemo(
     () => ({
       auto_fill_checkout: automationSettings?.auto_fill_checkout !== false,
@@ -364,6 +367,130 @@ export default function OrderAssistantPage({
     }),
     [automationSettings],
   )
+
+  const availableSizes = useMemo(() => {
+    const fromProduct = [
+      ...normalizeOptionValues(currentProduct?.available_options),
+      ...normalizeOptionValues(currentProduct?.variants?.sizes),
+    ]
+      .filter((opt) => hasValue(opt))
+      .map((opt) => String(opt).trim())
+    if (fromProduct.length > 0) return Array.from(new Set(fromProduct))
+    if (detectedSizes.length > 0) return detectedSizes
+    if (pendingState === 'await_variant') return pendingOptions.filter((opt) => hasValue(opt))
+    return [] as string[]
+  }, [currentProduct, detectedSizes, pendingState, pendingOptions])
+
+  const availableColors = useMemo(() => {
+    const fromProduct = [
+      ...normalizeOptionValues(currentProduct?.available_colors),
+      ...normalizeOptionValues(currentProduct?.variants?.colors),
+    ]
+      .filter((opt) => hasValue(opt))
+      .map((opt) => String(opt).trim())
+    if (fromProduct.length > 0) return Array.from(new Set(fromProduct))
+    if (detectedColors.length > 0) return detectedColors
+    if (pendingState === 'await_color') return pendingOptions.filter((opt) => hasValue(opt))
+    return [] as string[]
+  }, [currentProduct, detectedColors, pendingState, pendingOptions])
+
+  useEffect(() => {
+    if (pendingState !== 'await_profile_confirmation') {
+      setProfileCheckoutOnlyMode(false)
+    }
+  }, [pendingState])
+
+  useEffect(() => {
+    let active = true
+    const bootstrapSession = async () => {
+      setLoading(true)
+      try {
+        const response = await sendOrderAssistantMessage(apiBase, { user_id: userId })
+        if (!active) return
+        setSessionId(response.session_id)
+        setPendingInputType(response.input_type || 'text')
+        setPendingOptions(Array.isArray(response.options) ? response.options : [])
+        setPendingState(response.state || '')
+      } catch (err) {
+        if (!active) return
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            sender: 'assistant',
+            text: `Unable to start order assistant: ${String(err)}`,
+            at: nowText(),
+          },
+        ])
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    bootstrapSession()
+    return () => {
+      active = false
+    }
+  }, [apiBase, userId])
+
+  useEffect(() => {
+    const list = messageListRef.current
+    if (!list) return
+    requestAnimationFrame(() => {
+      list.scrollTop = list.scrollHeight
+    })
+  }, [messages, loading])
+
+  useEffect(() => {
+    const bootstrapCheckoutFromCart = async () => {
+      if (!checkoutRequest || !sessionId || loading) return
+      if (!checkoutRequest.url || consumedCheckoutRequestIdsGlobal.has(checkoutRequest.id)) return
+
+      consumedCheckoutRequestIdsGlobal.add(checkoutRequest.id)
+      onCheckoutRequestConsumed?.()
+
+      addUserActionMessage('Checkout')
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          sender: 'assistant',
+          text: `Starting checkout flow for ${checkoutRequest.name || 'selected cart item'}. I will now verify product details, then we will confirm your user details before payment.`,
+          at: nowText(),
+        },
+      ])
+
+      setLoading(true)
+      setIsCartCheckoutFlow(true)
+      try {
+        const initial = await processProductLink(checkoutRequest.url, sessionId)
+        if (isOutOfStockAvailability(initial?.product?.availability)) {
+          return
+        }
+        await autoAdvanceCartCheckoutFlow(initial, {
+          quantity: checkoutRequest.quantity,
+          size: checkoutRequest.size,
+          color: checkoutRequest.color,
+        })
+      } catch (err) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            sender: 'assistant',
+            text: `Could not start checkout from cart item: ${String(err)}`,
+            at: nowText(),
+          },
+        ])
+      } finally {
+        setIsCartCheckoutFlow(false)
+        setLoading(false)
+      }
+    }
+
+    void bootstrapCheckoutFromCart()
+  }, [checkoutRequest, sessionId, loading])
 
   function addUserActionMessage(text: string) {
     const cleaned = text.trim()
@@ -564,105 +691,6 @@ export default function OrderAssistantPage({
       setLoading(false)
     }
   }
-
-  const apiBase = useMemo(() => {
-    if (typeof window !== 'undefined' && (window as { VITE_API_URL?: string }).VITE_API_URL) {
-      return (window as { VITE_API_URL?: string }).VITE_API_URL || '/api'
-    }
-    return (typeof import.meta !== 'undefined' && (import.meta.env.VITE_API_URL as string)) || '/api'
-  }, [])
-
-  useEffect(() => {
-    let active = true
-    const bootstrapSession = async () => {
-      setLoading(true)
-      try {
-        const response = await sendOrderAssistantMessage(apiBase, { user_id: userId })
-        if (!active) return
-        setSessionId(response.session_id)
-        setPendingInputType(response.input_type || 'text')
-        setPendingOptions(Array.isArray(response.options) ? response.options : [])
-        setPendingState(response.state || '')
-      } catch (err) {
-        if (!active) return
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            sender: 'assistant',
-            text: `Unable to start order assistant: ${String(err)}`,
-            at: nowText(),
-          },
-        ])
-      } finally {
-        if (active) setLoading(false)
-      }
-    }
-
-    bootstrapSession()
-    return () => {
-      active = false
-    }
-  }, [apiBase, userId])
-
-  useEffect(() => {
-    const list = messageListRef.current
-    if (!list) return
-    requestAnimationFrame(() => {
-      list.scrollTop = list.scrollHeight
-    })
-  }, [messages, loading])
-
-  useEffect(() => {
-    const bootstrapCheckoutFromCart = async () => {
-      if (!checkoutRequest || !sessionId || loading) return
-      if (!checkoutRequest.url || consumedCheckoutRequestIdsGlobal.has(checkoutRequest.id)) return
-
-      consumedCheckoutRequestIdsGlobal.add(checkoutRequest.id)
-      onCheckoutRequestConsumed?.()
-
-      addUserActionMessage('Checkout')
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          sender: 'assistant',
-          text: `Starting checkout flow for ${checkoutRequest.name || 'selected cart item'}. I will now verify product details, then we will confirm your user details before payment.`,
-          at: nowText(),
-        },
-      ])
-
-      setLoading(true)
-      setIsCartCheckoutFlow(true)
-      try {
-        const initial = await processProductLink(checkoutRequest.url, sessionId)
-        if (isOutOfStockAvailability(initial?.product?.availability)) {
-          return
-        }
-        await autoAdvanceCartCheckoutFlow(initial, {
-          quantity: checkoutRequest.quantity,
-          size: checkoutRequest.size,
-          color: checkoutRequest.color,
-        })
-      } catch (err) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            sender: 'assistant',
-            text: `Could not start checkout from cart item: ${String(err)}`,
-            at: nowText(),
-          },
-        ])
-      } finally {
-        setIsCartCheckoutFlow(false)
-        setLoading(false)
-      }
-    }
-
-    void bootstrapCheckoutFromCart()
-  }, [checkoutRequest, sessionId, loading])
 
   async function submitTextMessage(text: string) {
     const cleaned = text.trim()
@@ -917,39 +945,7 @@ export default function OrderAssistantPage({
 
   const disableTextInputForState = false
 
-  const availableSizes = useMemo(() => {
-    const fromProduct = [
-      ...normalizeOptionValues(currentProduct?.available_options),
-      ...normalizeOptionValues(currentProduct?.variants?.sizes),
-    ]
-      .filter((opt) => hasValue(opt))
-      .map((opt) => String(opt).trim())
-    if (fromProduct.length > 0) return Array.from(new Set(fromProduct))
-    if (detectedSizes.length > 0) return detectedSizes
-    if (pendingState === 'await_variant') return pendingOptions.filter((opt) => hasValue(opt))
-    return [] as string[]
-  }, [currentProduct, detectedSizes, pendingState, pendingOptions])
-
-  const availableColors = useMemo(() => {
-    const fromProduct = [
-      ...normalizeOptionValues(currentProduct?.available_colors),
-      ...normalizeOptionValues(currentProduct?.variants?.colors),
-    ]
-      .filter((opt) => hasValue(opt))
-      .map((opt) => String(opt).trim())
-    if (fromProduct.length > 0) return Array.from(new Set(fromProduct))
-    if (detectedColors.length > 0) return detectedColors
-    if (pendingState === 'await_color') return pendingOptions.filter((opt) => hasValue(opt))
-    return [] as string[]
-  }, [currentProduct, detectedColors, pendingState, pendingOptions])
-
   const showCombinedSelector = isSelectionState(pendingState) && !isCartCheckoutFlow
-
-  useEffect(() => {
-    if (pendingState !== 'await_profile_confirmation') {
-      setProfileCheckoutOnlyMode(false)
-    }
-  }, [pendingState])
 
   function adjustQuantity(delta: number) {
     setSelectionDraft((prev) => {

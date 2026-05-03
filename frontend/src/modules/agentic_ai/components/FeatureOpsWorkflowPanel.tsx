@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { getAgenticApiBase } from '../../../lib/agenticApiBase'
 import '../../data_fabric/components/DataFabricTestingPage.css'
 import './FeatureOpsWorkflowPanel.css'
 import { FeatureOpsDatasetHistoryTables } from './FeatureOpsDatasetHistoryTables'
@@ -1592,7 +1593,7 @@ export type FeatureOpsWorkflowPanelProps = {
 }
 
 export default function FeatureOpsWorkflowPanel({ timelineSurface = false }: FeatureOpsWorkflowPanelProps = {}) {
-  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_AGENTIC_API_URL || '/api'
+  const apiBase = getAgenticApiBase()
   const [uploadedRows, setUploadedRows] = useState<DatasetRow[] | null>(null)
   const [datasetName, setDatasetName] = useState('')
   const [datasetError, setDatasetError] = useState<string | null>(null)

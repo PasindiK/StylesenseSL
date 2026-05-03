@@ -1,0 +1,72 @@
+# Production: Neo4j + agentic API only (no frontend container — host UI on Vercel).
+# Smaller registry/VM footprint: one app image to build and push, not four microservices + web.
+#
+# Vercel: set project env for the build, e.g.
+#   VITE_API_URL=https://YOUR_AZURE_HOST:8000/api
+# (or your HTTPS API URL). Open the VM NSG for the port you map below.
+#
+# Usage:
+#   export DOCKERHUB_USER=yourdockerhub
+#   export GEMINI_API_KEY=...
+#   docker compose -f docker/docker-compose.prod.yml up -d
+#
+# Build and push only the backend (from repo root):
+#   docker build --platform linux/amd64 -f docker/Dockerfile.backend -t $DOCKERHUB_USER/stylesense-backend:latest .
+#   docker login && docker push $DOCKERHUB_USER/stylesense-backend:latest
+
+services:
+  neo4j:
+    image: neo4j:5
+    container_name: stylesense-neo4j
+    environment:
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:-changeme-strong-password}
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    networks:
+      - stylesense
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 30s
+
+  backend:
+    image: ${DOCKERHUB_USER}/stylesense-backend:latest
+    container_name: stylesense-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MOCK=${GEMINI_MOCK:-}
+      - PYTHONUNBUFFERED=1
+      - KG_ENABLED=${KG_ENABLED:-true}
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-changeme-strong-password}
+      - NEO4J_DB=neo4j
+    volumes:
+      - backend_logs:/app/logs
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    networks:
+      - stylesense
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 120s
+
+networks:
+  stylesense:
+    driver: bridge
+
+volumes:
+  neo4j_data:
+  neo4j_logs:
+  backend_logs:
