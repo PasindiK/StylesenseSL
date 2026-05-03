@@ -21,3 +21,4 @@ lxml
 PyYAML
 xgboost
 neo4j
+openai

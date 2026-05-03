@@ -45,7 +45,9 @@ type AgentStatusResponse = {
 }
 
 const API_BASE =
-  (typeof import.meta !== 'undefined' && (import.meta.env.VITE_API_URL as string)) ||
+  (typeof import.meta !== 'undefined' &&
+    ((import.meta.env.VITE_DATA_FABRIC_API_URL as string) ||
+      (import.meta.env.VITE_API_URL as string))) ||
   'http://127.0.0.1:8002/api'
 
 async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {

@@ -1,0 +1,20 @@
+{
+  "rewrites": [
+    {
+      "source": "/re/agentic/(.*)",
+      "destination": "http://20.205.16.145:8000/api/$1"
+    },
+    {
+      "source": "/re/mesh/(.*)",
+      "destination": "http://57.159.28.109:8001/$1"
+    },
+    {
+      "source": "/re/fabric/(.*)",
+      "destination": "http://20.255.59.204:8002/api/$1"
+    },
+    {
+      "source": "/re/arch/(.*)",
+      "destination": "http://20.205.27.23:8003/api/$1"
+    }
+  ]
+}

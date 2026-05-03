@@ -210,20 +210,23 @@ curl -s http://YOUR_PUBLIC_IP:8003/api/health
 
 ---
 
-## 9. Vercel — frontend environment variables
+## 9. Vercel — frontend (HTTPS, no mixed content)
 
-In the Vercel project → **Settings** → **Environment Variables** → set for **Production** (and Preview if needed):
+Browsers **block** `https://your-app.vercel.app` from calling **`http://`** Azure APIs (“mixed content”).
 
-| Variable | Example value |
-|----------|----------------|
-| `VITE_API_URL` | `http://AGENTIC_PUBLIC_IP:8000/api` |
-| `VITE_DATA_MESH_API_URL` | `http://MESH_PUBLIC_IP:8001` (no trailing slash) |
-| `VITE_DATA_FABRIC_API_URL` | `http://FABRIC_PUBLIC_IP:8002` or `.../api` per your app |
-| `VITE_DATA_ARCH_API_URL` | `http://ARCH_PUBLIC_IP:8003/api` |
+Use **`frontend/vercel.json`** rewrites: the UI calls same-origin **`/re/agentic/...`**, **`/re/mesh/...`**, etc., and Vercel proxies to your VMs server-side. Update **`frontend/vercel.json`** with the team’s public IPs when they change, commit, and redeploy.
 
-Then **Deployments** → **Redeploy** so Vite rebuilds with the new values.
+In Vercel → **Settings** → **Environment Variables** (Production), set values from **`frontend/.env.vercel.example`**:
 
-**Mixed content:** Site is **HTTPS** on Vercel while APIs are **HTTP**. Browsers may block calls; if Console shows “mixed content”, add HTTPS in front of APIs later (reverse proxy / certificate).
+| Variable | Value (example) |
+|----------|-----------------|
+| `VITE_API_URL` | `/re/agentic` |
+| `VITE_AGENTIC_API_URL` | `/re/agentic` |
+| `VITE_DATA_MESH_API_URL` | `/re/mesh` |
+| `VITE_DATA_FABRIC_API_URL` | `/re/fabric` |
+| `VITE_DATA_ARCH_API_URL` | `/re/arch` |
+
+Then **Redeploy**. Ensure the Vercel project **Root Directory** is **`frontend`** (or move `vercel.json` accordingly).
 
 ---
 
