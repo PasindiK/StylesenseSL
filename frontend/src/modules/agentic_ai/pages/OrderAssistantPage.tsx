@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Star } from 'lucide-react'
+import { getAgenticApiBase } from '../../../lib/agenticApiBase'
 import {
   sendOrderAssistantMessage,
   type OrderAssistantProfile,
@@ -565,12 +566,7 @@ export default function OrderAssistantPage({
     }
   }
 
-  const apiBase = useMemo(() => {
-    if (typeof window !== 'undefined' && (window as { VITE_API_URL?: string }).VITE_API_URL) {
-      return (window as { VITE_API_URL?: string }).VITE_API_URL || '/api'
-    }
-    return (typeof import.meta !== 'undefined' && (import.meta.env.VITE_API_URL as string)) || '/api'
-  }, [])
+  const apiBase = useMemo(() => getAgenticApiBase(), [])
 
   useEffect(() => {
     let active = true

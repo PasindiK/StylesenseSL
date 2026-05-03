@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { HardDrive } from 'lucide-react'
+import { getAgenticApiBase } from './lib/agenticApiBase'
 import './App.css'
 import shoppingAssistantAvatar from './assets/shopping-assistant-avatar.svg'
 import ProductCard from './modules/agentic_ai/components/ProductCard'
@@ -99,10 +100,8 @@ export default function App() {
   const listRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
 
-  // Main chat interface API_base - MUST be before useEffect
-  const API_BASE = typeof window !== 'undefined' && (window as any).VITE_API_URL 
-    ? (window as any).VITE_API_URL
-    : (typeof import.meta !== 'undefined' && (import.meta.env.VITE_API_URL as any)) || '/api'
+  // Agentic API only (VITE_AGENTIC_API_URL wins over VITE_API_URL so mesh URL cannot hijack cart/chat)
+  const API_BASE = getAgenticApiBase()
 
   // Apply dark mode class to document
   useEffect(() => {
