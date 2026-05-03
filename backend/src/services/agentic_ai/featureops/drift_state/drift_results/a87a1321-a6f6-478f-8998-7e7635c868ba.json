@@ -1,0 +1,572 @@
+{
+  "drift_run_id": "a87a1321-a6f6-478f-8998-7e7635c868ba",
+  "timestamp": "2026-05-03T01:43:21.624719",
+  "dataset_version_a": "demo:current",
+  "dataset_version_b": "demo:baseline",
+  "is_internal_drift": true,
+  "statistical_signals": [
+    {
+      "column_name": "price",
+      "kind": "numeric",
+      "baseline_mean": 99.72035331525623,
+      "current_mean": 107.35820387322057,
+      "baseline_std": 9.904213153070787,
+      "current_std": 10.8804466408744,
+      "sigma_distance": 0.7711718679637097,
+      "internal_drift": false,
+      "threshold": 3.0
+    }
+  ],
+  "semantic_signals": [
+    {
+      "column_name": "category",
+      "kind": "categorical",
+      "baseline_topic_summary": "Top terms: a, b, c",
+      "current_topic_summary": "Top terms: a, b, c",
+      "cosine_similarity": 1.0,
+      "semantic_drift": false,
+      "threshold": 0.75,
+      "new_values": [],
+      "missing_values": []
+    },
+    {
+      "column_name": "description",
+      "kind": "text",
+      "baseline_topic_summary": "Top terms: apparel, modern, performance",
+      "current_topic_summary": "Top terms: apparel, modern, performance",
+      "cosine_similarity": 1.0000000000000002,
+      "semantic_drift": false,
+      "threshold": 0.75,
+      "new_values": [],
+      "missing_values": []
+    },
+    {
+      "column_name": "row_id",
+      "kind": "categorical",
+      "baseline_topic_summary": "Top terms: e0, e1, e2, e3, e4, e5",
+      "current_topic_summary": "Top terms: n0, n1, n2, n3, n4, n5",
+      "cosine_similarity": 0.37499999999999994,
+      "semantic_drift": true,
+      "threshold": 0.75,
+      "new_values": [
+        "N0",
+        "N1",
+        "N2",
+        "N3",
+        "N4",
+        "N5",
+        "N6",
+        "N7",
+        "N8",
+        "N9"
+      ],
+      "missing_values": [
+        "E0",
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9"
+      ]
+    }
+  ],
+  "behavioral_signals": null,
+  "statistical_drift_score": 0.25705728932123656,
+  "semantic_drift_score": 0.625,
+  "behavioral_drift_score": 0.0,
+  "internal_drift_score": 0.25705728932123656,
+  "external_drift_score": 0.625,
+  "overall_drift_score": 0.4226315091266801,
+  "severity": "high",
+  "drift_detected": false,
+  "reasons": [
+    "Column 'description' semantics changed (similarity 0.40 < 0.75).",
+    "Column 'row_id' semantics changed (similarity 0.56 < 0.75).",
+    "Column 'row_id' semantics changed (similarity 0.37 < 0.75).",
+    "Internal baseline matched, but the external market profile is misaligned."
+  ],
+  "final_label": "SAFE",
+  "internal_status": "Aligned",
+  "external_status": "Outlier",
+  "row_results": [
+    {
+      "row_id": "N0",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.23717082451262847,
+      "external_similarity": 0.2655251346338086
+    },
+    {
+      "row_id": "N1",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.20044593143431833,
+      "external_similarity": 0.25646822545500064
+    },
+    {
+      "row_id": "N2",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.23717082451262847,
+      "external_similarity": 0.2275929725432645
+    },
+    {
+      "row_id": "N3",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.19764235376052375,
+      "external_similarity": 0.3034572967243527
+    },
+    {
+      "row_id": "N4",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.23717082451262844,
+      "external_similarity": 0.22759297254326447
+    },
+    {
+      "row_id": "N5",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.1670382761952653,
+      "external_similarity": 0.22440969727312554
+    },
+    {
+      "row_id": "N6",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.31622776601683794,
+      "external_similarity": 0.3793216209054408
+    },
+    {
+      "row_id": "N7",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.2766992952647332,
+      "external_similarity": 0.2655251346338086
+    },
+    {
+      "row_id": "N8",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.23717082451262847,
+      "external_similarity": 0.2655251346338086
+    },
+    {
+      "row_id": "N9",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.3952847075210474,
+      "external_similarity": 0.4172537829959849
+    },
+    {
+      "row_id": "N10",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.23717082451262844,
+      "external_similarity": 0.3034572967243527
+    },
+    {
+      "row_id": "N11",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.23717082451262847,
+      "external_similarity": 0.2655251346338086
+    },
+    {
+      "row_id": "N12",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.31622776601683794,
+      "external_similarity": 0.3793216209054408
+    },
+    {
+      "row_id": "N13",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.19764235376052372,
+      "external_similarity": 0.22759297254326447
+    },
+    {
+      "row_id": "N14",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.23385358667337136,
+      "external_similarity": 0.22440969727312554
+    },
+    {
+      "row_id": "N15",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.23717082451262847,
+      "external_similarity": 0.2655251346338086
+    },
+    {
+      "row_id": "N16",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.23717082451262847,
+      "external_similarity": 0.2655251346338086
+    },
+    {
+      "row_id": "N17",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.3557562367689427,
+      "external_similarity": 0.4172537829959849
+    },
+    {
+      "row_id": "N18",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.3557562367689427,
+      "external_similarity": 0.4172537829959849
+    },
+    {
+      "row_id": "N19",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.19764235376052375,
+      "external_similarity": 0.3034572967243527
+    },
+    {
+      "row_id": "N20",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.3557562367689427,
+      "external_similarity": 0.4172537829959849
+    },
+    {
+      "row_id": "N21",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.23717082451262847,
+      "external_similarity": 0.3034572967243527
+    },
+    {
+      "row_id": "N22",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.1670382761952653,
+      "external_similarity": 0.25646822545500064
+    },
+    {
+      "row_id": "N23",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.19764235376052372,
+      "external_similarity": 0.2655251346338086
+    },
+    {
+      "row_id": "N24",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.23717082451262847,
+      "external_similarity": 0.3034572967243527
+    },
+    {
+      "row_id": "N25",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.3557562367689427,
+      "external_similarity": 0.3793216209054408
+    },
+    {
+      "row_id": "N26",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.1670382761952653,
+      "external_similarity": 0.25646822545500064
+    },
+    {
+      "row_id": "N27",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.19764235376052372,
+      "external_similarity": 0.2655251346338086
+    },
+    {
+      "row_id": "N28",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.23717082451262847,
+      "external_similarity": 0.3034572967243527
+    },
+    {
+      "row_id": "N29",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.2766992952647332,
+      "external_similarity": 0.3034572967243527
+    },
+    {
+      "row_id": "N30",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.15811388300841897,
+      "external_similarity": 0.3034572967243527
+    },
+    {
+      "row_id": "N31",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.23717082451262847,
+      "external_similarity": 0.417253782995985
+    },
+    {
+      "row_id": "N32",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.2766992952647332,
+      "external_similarity": 0.3793216209054409
+    },
+    {
+      "row_id": "N33",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.23717082451262847,
+      "external_similarity": 0.37932162090544086
+    },
+    {
+      "row_id": "N34",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.11858541225631423,
+      "external_similarity": 0.2655251346338086
+    },
+    {
+      "row_id": "N35",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.15811388300841897,
+      "external_similarity": 0.3034572967243527
+    },
+    {
+      "row_id": "N36",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.15811388300841897,
+      "external_similarity": 0.2655251346338086
+    },
+    {
+      "row_id": "N37",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.15811388300841897,
+      "external_similarity": 0.34138945881489674
+    },
+    {
+      "row_id": "N38",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.23717082451262847,
+      "external_similarity": 0.37932162090544086
+    },
+    {
+      "row_id": "N39",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.2766992952647332,
+      "external_similarity": 0.4551859450865291
+    },
+    {
+      "row_id": "N40",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.23717082451262847,
+      "external_similarity": 0.417253782995985
+    },
+    {
+      "row_id": "N41",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.11858541225631423,
+      "external_similarity": 0.2655251346338086
+    },
+    {
+      "row_id": "N42",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "price is 3.36 sigma from the internal baseline. Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.31622776601683794,
+      "external_similarity": 0.4551859450865291
+    },
+    {
+      "row_id": "N43",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.15811388300841897,
+      "external_similarity": 0.2655251346338086
+    },
+    {
+      "row_id": "N44",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.2766992952647332,
+      "external_similarity": 0.4172537829959849
+    },
+    {
+      "row_id": "N45",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.11858541225631423,
+      "external_similarity": 0.2655251346338086
+    },
+    {
+      "row_id": "N46",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.2766992952647332,
+      "external_similarity": 0.4551859450865291
+    },
+    {
+      "row_id": "N47",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.2766992952647332,
+      "external_similarity": 0.3793216209054409
+    },
+    {
+      "row_id": "N48",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.19764235376052375,
+      "external_similarity": 0.3034572967243527
+    },
+    {
+      "row_id": "N49",
+      "internal_status": "Drifted",
+      "external_status": "Outlier",
+      "final_label": "QUARANTINED",
+      "reasoning": "Row semantics are less aligned with the internal profile than expected. Row semantics are not aligned with the external market profile.",
+      "internal_similarity": 0.19764235376052372,
+      "external_similarity": 0.3034572967243527
+    }
+  ],
+  "profiles": {
+    "current_profile": {
+      "dataset_name": "demo",
+      "row_count": 50,
+      "column_count": 4,
+      "semantic_anchor": "No strong relational anchor detected.",
+      "profile_signature": "7779fb71dbc70f801eec2f2cc5a77be0187854e430c168792ed46a0c633c1288"
+    },
+    "internal_baseline": {
+      "dataset_name": "internal_demo",
+      "row_count": 200,
+      "column_count": 4,
+      "semantic_anchor": "No strong relational anchor detected.",
+      "profile_signature": "eac1c32e58b6a183d325380cd78e18fa7b9923e53cf339aab465dc0fa8f7fc96"
+    },
+    "external_baseline": {
+      "dataset_name": "external_demo",
+      "row_count": 200,
+      "column_count": 4,
+      "semantic_anchor": "No strong relational anchor detected.",
+      "profile_signature": "b5bf650f14d510237681b48f76dbe635ad838f8ae3940ba6cc9d557c8e5b59b3"
+    }
+  },
+  "human_reviewed": false,
+  "human_label": null
+}

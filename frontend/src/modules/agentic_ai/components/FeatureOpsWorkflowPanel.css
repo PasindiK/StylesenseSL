@@ -172,7 +172,7 @@
 .featureops-gauge-meta span,
 .featureops-role-row span,
 .featureops-bar-row > span {
-  color: #d0def0 !important;
+  color: #e6f0fb !important;
   font-size: 0.72rem;
 }
 
@@ -185,7 +185,7 @@
 .featureops-bar-stack strong,
 .featureops-progress-card strong,
 .featureops-progress-title {
-  color: #edf7ff !important;
+  color: #ffffff !important;
 }
 
 .featureops-summary-card strong,
@@ -356,6 +356,35 @@
   border-color: #d9f0ff;
 }
 
+.featureops-tab-strip {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 6px;
+  border-radius: 14px;
+  background: #e2e8f0;
+  border: 1px solid #cbd5e1;
+}
+
+.featureops-workspace-tab {
+  border: 1px solid transparent;
+  background: transparent;
+  color: #334155;
+  border-radius: 10px;
+  padding: 0.6rem 0.95rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.featureops-workspace-tab.active {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #94a3b8;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
 .featureops-detail-panel summary {
   cursor: pointer;
   font-size: 0.82rem;
@@ -419,9 +448,105 @@
   font-weight: 800 !important;
 }
 
+.featureops-release-grid .featureops-status-card,
+.featureops-release-grid .featureops-status-card span,
+.featureops-release-grid .featureops-status-card strong {
+  color: #0f172a !important;
+}
+
 .featureops-history-subtle {
   color: #1f2937 !important;
   font-weight: 600 !important;
+}
+
+.featureops-light-panel,
+.featureops-light-panel table,
+.featureops-light-panel td,
+.featureops-light-panel th,
+.featureops-light-panel div,
+.featureops-light-panel span,
+.featureops-light-panel p,
+.featureops-light-panel strong,
+.featureops-light-panel label {
+  color: #0f172a !important;
+}
+
+.featureops-light-panel .muted-text,
+.featureops-light-panel small {
+  color: #334155 !important;
+}
+
+.featureops-light-panel th {
+  color: #334155 !important;
+  font-weight: 800 !important;
+}
+
+.featureops-light-panel td {
+  color: #0f172a !important;
+}
+
+.featureops-light-panel input,
+.featureops-light-panel select {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.featureops-light-panel .featureops-empty-state {
+  background: #f8fafc;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+.featureops-light-panel .featureops-summary-card,
+.featureops-light-panel .featureops-status-card,
+.featureops-light-panel .featureops-visual-card,
+.featureops-light-panel .featureops-detail-panel,
+.featureops-light-panel .featureops-metric-card,
+.featureops-light-panel .featureops-progress-card,
+.featureops-light-panel .featureops-filter-pill {
+  color: #eaf4ff !important;
+}
+
+.featureops-light-panel .featureops-summary-card span,
+.featureops-light-panel .featureops-status-card span,
+.featureops-light-panel .featureops-summary-inline span,
+.featureops-light-panel .featureops-visual-title,
+.featureops-light-panel .featureops-gauge-copy,
+.featureops-light-panel .featureops-gauge-meta span,
+.featureops-light-panel .featureops-role-row span,
+.featureops-light-panel .featureops-bar-row > span,
+.featureops-light-panel .featureops-progress-copy,
+.featureops-light-panel .featureops-progress-status,
+.featureops-light-panel .featureops-donut-center span,
+.featureops-light-panel .featureops-legend-list span,
+.featureops-light-panel .featureops-metric-card span {
+  color: #d0def0 !important;
+}
+
+.featureops-light-panel .featureops-summary-card strong,
+.featureops-light-panel .featureops-status-card strong,
+.featureops-light-panel .featureops-summary-inline strong,
+.featureops-light-panel .featureops-donut-center strong,
+.featureops-light-panel .featureops-gauge-meta strong,
+.featureops-light-panel .featureops-role-row strong,
+.featureops-light-panel .featureops-bar-stack strong,
+.featureops-light-panel .featureops-progress-card strong,
+.featureops-light-panel .featureops-progress-title,
+.featureops-light-panel .featureops-metric-card strong {
+  color: #edf7ff !important;
+}
+
+.featureops-light-panel .featureops-filter-pill {
+  background: rgba(17, 29, 46, 0.72);
+  color: #cfe0f4 !important;
+  border-color: rgba(124, 152, 188, 0.24);
+}
+
+.featureops-light-panel .featureops-filter-pill.active {
+  background: #d9f0ff;
+  color: #12365f !important;
+  border-color: #d9f0ff;
 }
 
 @media (max-width: 900px) {

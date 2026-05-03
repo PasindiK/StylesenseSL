@@ -1,0 +1,64 @@
+{
+  "drift_run_id": "2ee1bfeb-ec37-4ad7-8228-5066773debef",
+  "timestamp": "2026-05-02T15:50:15.192196",
+  "dataset_version_a": "test_early",
+  "dataset_version_b": "test_late",
+  "is_internal_drift": true,
+  "statistical_signals": [
+    {
+      "ks_statistic": 0.214,
+      "ks_pvalue": 1.9471481091760016e-10,
+      "mean_delta": 0.5613016739384666,
+      "std_delta": 0.24607283087061815,
+      "chi2_statistic": null,
+      "chi2_pvalue": null,
+      "new_categories": null,
+      "missing_categories": null,
+      "missing_rate_baseline": 0.0,
+      "missing_rate_current": 0.0
+    },
+    {
+      "ks_statistic": 0.114,
+      "ks_pvalue": 0.00299005061044668,
+      "mean_delta": 4.157431148063125,
+      "std_delta": 5.395352637988545,
+      "chi2_statistic": null,
+      "chi2_pvalue": null,
+      "new_categories": null,
+      "missing_categories": null,
+      "missing_rate_baseline": 0.0,
+      "missing_rate_current": 0.0
+    },
+    {
+      "ks_statistic": null,
+      "ks_pvalue": null,
+      "mean_delta": null,
+      "std_delta": null,
+      "chi2_statistic": null,
+      "chi2_pvalue": 0.0,
+      "new_categories": [
+        "D"
+      ],
+      "missing_categories": [],
+      "missing_rate_baseline": 0.0,
+      "missing_rate_current": 0.0
+    }
+  ],
+  "semantic_signals": [],
+  "behavioral_signals": null,
+  "statistical_drift_score": 0.6437333333333333,
+  "semantic_drift_score": 0.0,
+  "behavioral_drift_score": 0.0,
+  "internal_drift_score": 0.6437333333333333,
+  "external_drift_score": 0.0,
+  "overall_drift_score": 0.6437333333333333,
+  "severity": "moderate",
+  "drift_detected": true,
+  "reasons": [
+    "Column 'quality_score' shows significant distribution shift (p=0.0000)",
+    "Column 'price' shows significant distribution shift (p=0.0030)",
+    "Column 'category' has new categories: ['D']"
+  ],
+  "human_reviewed": false,
+  "human_label": null
+}

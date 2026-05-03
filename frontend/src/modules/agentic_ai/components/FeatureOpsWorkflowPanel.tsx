@@ -1,6 +1,17 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import '../../data_fabric/components/DataFabricTestingPage.css'
 import './FeatureOpsWorkflowPanel.css'
+import { detectInternalDrift, detectExternalDrift, mapBackendSignalsToUIResults, detectDriftFull, getOrchestratorStats, setOrchestratorBaseline } from '../../../services/driftApi'
+import {
+  ProfilerResults,
+  DriftExplanation,
+  RowLevelDrift,
+  ReleaseGate,
+  TwinBaselineComparison,
+  TriageMatrixCard,
+  RelationalAnchorsCard,
+  LearnedScoresChart,
+} from './phase4'
 
 type DatasetValue = string | number | boolean | null
 type DatasetRow = Record<string, DatasetValue>
@@ -87,12 +98,39 @@ type ExternalDriftResult = {
   recommended_action: string
 }
 
+type StatisticalDriftResult = {
+  column_name: string
+  baseline_version: string
+  current_version: string
+  field_type: 'numeric' | 'categorical'
+  drift_severity: DriftSeverity
+  score: number
+  evidence: string[]
+  explanation: string
+  recommended_action: string
+}
+
+type BehavioralDriftResult = {
+  column_name: string
+  baseline_version: string
+  current_version: string
+  baseline_release_status: FeatureStatus
+  current_release_status: FeatureStatus
+  release_status_delta: number
+  drift_severity: DriftSeverity
+  evidence: string[]
+  explanation: string
+  recommended_action: string
+}
+
 type ReleaseResult = {
   column_name: string
   role: GenericRole
   validation_status: 'PASS' | 'WARN' | 'FAIL'
   internal_drift_severity: DriftSeverity
   external_drift_severity: DriftSeverity
+  statistical_drift_severity: DriftSeverity
+  behavioral_drift_severity: DriftSeverity
   release_status: FeatureStatus
   critical_failures: string[]
   warnings: string[]
@@ -138,6 +176,8 @@ type StoredVersion = {
   semantic_profiles: SemanticProfile[]
   internal_drift_results: InternalDriftResult[]
   external_drift_results?: ExternalDriftResult[]
+  statistical_drift_results?: StatisticalDriftResult[]
+  behavioral_drift_results?: BehavioralDriftResult[]
   release_results: ReleaseResult[]
 }
 
@@ -176,6 +216,8 @@ type DriftRunRecord = {
   dataset_fingerprint: DatasetFingerprint
   internal_drift_results: InternalDriftResult[]
   external_drift_results?: ExternalDriftResult[] | null
+  statistical_drift_results?: StatisticalDriftResult[] | null
+  behavioral_drift_results?: BehavioralDriftResult[] | null
   release_results: ReleaseResult[]
 }
 
@@ -200,6 +242,10 @@ type MappingReviewFinding = {
   suggested_role: GenericRole
   reason: string
 }
+
+type SemanticProfileOverride = Partial<Pick<SemanticProfile, 'approved_or_detected_meaning' | 'expected_scale' | 'expected_unit' | 'value_direction'>>
+
+type HumanReviewDecision = 'Pending Review' | 'Accept' | 'Accept with warning' | 'Reject / Quarantine'
 
 const ROLE_OPTIONS: GenericRole[] = [
   'Identifier',
@@ -563,6 +609,14 @@ function buildSemanticProfile(profile: ColumnProfile, role: GenericRole): Semant
   }
 }
 
+function composeSemanticSignature(profile: SemanticProfile) {
+  return [
+    profile.generic_role.replace(/\s+/g, '_').toLowerCase(),
+    (profile.expected_scale || profile.detected_scale || 'unknown').replace(/\s+/g, '_').toLowerCase(),
+    (profile.expected_unit || profile.detected_unit || 'unitless').replace(/\s+/g, '_').toLowerCase(),
+  ].join('|')
+}
+
 function buildDatasetFingerprint(profiles: ColumnProfile[], semantics: SemanticProfile[]): DatasetFingerprint {
   return {
     column_names: profiles.map((item) => item.column_name),
@@ -804,11 +858,314 @@ function buildExternalDrift(currentSemantics: SemanticProfile[], baselineVersion
     })
 }
 
-function buildReleaseResults(profiles: ColumnProfile[], roles: Record<string, GenericRole>, assessments: Record<string, { confidence: number }>, internal: Record<string, InternalDriftResult>, external: Record<string, ExternalDriftResult>) {
+function cleanCategoryValue(value: DatasetValue) {
+  return String(value ?? '').trim().toLowerCase()
+}
+
+function valueFrequency(values: string[]) {
+  const counts = new Map<string, number>()
+  values.forEach((value) => {
+    counts.set(value, (counts.get(value) || 0) + 1)
+  })
+  return counts
+}
+
+function totalVariationDistance(left: Map<string, number>, right: Map<string, number>) {
+  const keys = new Set([...left.keys(), ...right.keys()])
+  if (!keys.size) return 0
+  let distance = 0
+  keys.forEach((key) => {
+    distance += Math.abs((left.get(key) || 0) - (right.get(key) || 0))
+  })
+  return distance / 2
+}
+
+function normalizedDistribution(values: string[]) {
+  const counts = valueFrequency(values)
+  const total = Math.max(1, values.length)
+  const normalized = new Map<string, number>()
+  counts.forEach((count, key) => {
+    normalized.set(key, count / total)
+  })
+  return normalized
+}
+
+function buildStatisticalDrift(
+  profiles: ColumnProfile[],
+  roles: Record<string, GenericRole>,
+  rows: DatasetRow[],
+  baselineVersion: StoredVersion | null,
+  currentVersionLabel: string,
+): StatisticalDriftResult[] {
+  if (!baselineVersion) return []
+  const baselineRows = baselineVersion.dataset_rows || []
+  const baselineProfileMap = new Map((baselineVersion.column_profiles || []).map((item) => [item.column_name, item]))
+  return profiles.flatMap((profile) => {
+    const role = roles[profile.column_name]
+    const currentValues = rows.map((row) => row[profile.column_name]).filter((value) => value != null && String(value).trim() !== '')
+    const baselineValues = baselineRows.map((row) => row[profile.column_name]).filter((value) => value != null && String(value).trim() !== '')
+    if (!currentValues.length || !baselineValues.length) return []
+
+    const result: StatisticalDriftResult = {
+      column_name: profile.column_name,
+      baseline_version: `v${baselineVersion.version_number}`,
+      current_version: currentVersionLabel,
+      field_type: 'categorical',
+      drift_severity: 'NONE',
+      score: 0,
+      evidence: [],
+      explanation: 'No statistical drift detected.',
+      recommended_action: 'No action needed.',
+    }
+
+    if (['Numeric Measure', 'Count / Activity', 'Rate / Percentage', 'Score / Rating'].includes(role) || profile.inferred_type === 'numeric' || profile.inferred_type === 'mixed') {
+      const currentNumeric = currentValues.map(parseNumberish).filter((value): value is number => value != null)
+      const baselineNumeric = baselineValues.map(parseNumberish).filter((value): value is number => value != null)
+      if (!currentNumeric.length || !baselineNumeric.length) return []
+
+      const allValues = [...currentNumeric, ...baselineNumeric]
+      const min = Math.min(...allValues)
+      const max = Math.max(...allValues)
+      const binCount = Math.min(10, Math.max(4, Math.round(Math.sqrt(Math.max(currentNumeric.length, baselineNumeric.length)))))
+      const buildHistogram = (values: number[]) => {
+        const bins = Array.from({ length: binCount }, () => 0)
+        const span = max - min || 1
+        values.forEach((value) => {
+          const rawIndex = Math.floor(((value - min) / span) * binCount)
+          const index = Math.min(binCount - 1, Math.max(0, Number.isFinite(rawIndex) ? rawIndex : 0))
+          bins[index] += 1
+        })
+        const total = Math.max(1, values.length)
+        return bins.map((count) => count / total)
+      }
+
+      const currentHistogram = buildHistogram(currentNumeric)
+      const baselineHistogram = buildHistogram(baselineNumeric)
+      const tvd = currentHistogram.reduce((sum, value, index) => sum + Math.abs(value - baselineHistogram[index]), 0) / 2
+      const currentMean = average(currentNumeric) ?? 0
+      const baselineMean = average(baselineNumeric) ?? 0
+      const currentStd = stdDev(currentNumeric)
+      const baselineStd = stdDev(baselineNumeric)
+      const meanDelta = Math.abs(currentMean - baselineMean)
+      const stdDelta = Math.abs(currentStd - baselineStd)
+      const currentMissing = profile.missing_percent
+      const baselineMissing = baselineProfileMap.get(profile.column_name)?.missing_percent ?? 0
+      const missingDelta = Math.abs(currentMissing - baselineMissing)
+      const rangeDelta = Math.abs((profile.max ?? 0) - (baselineProfileMap.get(profile.column_name)?.max ?? 0))
+      let score = Math.max(tvd, 0.05)
+
+      if (missingDelta > 0.15) {
+        score = Math.max(score, 0.45)
+        result.evidence.push(`Missingness changed by ${formatPct(missingDelta)}.`)
+      }
+      if (meanDelta > Math.max(1, Math.abs(baselineMean) * 0.4, baselineStd * 0.75)) {
+        score = Math.max(score, 0.7)
+        result.evidence.push(`Mean shifted from ${safeFixed(baselineMean)} to ${safeFixed(currentMean)}.`)
+      } else if (meanDelta > Math.max(0.5, Math.abs(baselineMean) * 0.2, baselineStd * 0.35)) {
+        score = Math.max(score, 0.42)
+        result.evidence.push(`Mean shifted moderately from ${safeFixed(baselineMean)} to ${safeFixed(currentMean)}.`)
+      }
+      if (stdDelta > Math.max(1, baselineStd * 0.75)) {
+        score = Math.max(score, 0.62)
+        result.evidence.push(`Spread changed from ${safeFixed(baselineStd)} to ${safeFixed(currentStd)}.`)
+      } else if (stdDelta > Math.max(0.35, baselineStd * 0.3)) {
+        score = Math.max(score, 0.34)
+        result.evidence.push(`Spread shifted slightly from ${safeFixed(baselineStd)} to ${safeFixed(currentStd)}.`)
+      }
+      if (rangeDelta > Math.max(2, Math.abs((baselineProfileMap.get(profile.column_name)?.max ?? 0) - (baselineProfileMap.get(profile.column_name)?.min ?? 0)) * 0.35)) {
+        score = Math.max(score, 0.5)
+        result.evidence.push('Observed value range changed noticeably.')
+      }
+      if (tvd > 0.4) {
+        score = Math.max(score, 0.78)
+        result.evidence.push(`Distribution changed materially (distance ${tvd.toFixed(2)}).`)
+      } else if (tvd > 0.22) {
+        score = Math.max(score, 0.48)
+        result.evidence.push(`Distribution changed moderately (distance ${tvd.toFixed(2)}).`)
+      } else if (tvd > 0.1) {
+        score = Math.max(score, 0.25)
+        result.evidence.push(`Distribution shifted slightly (distance ${tvd.toFixed(2)}).`)
+      }
+
+      result.field_type = 'numeric'
+      result.score = Math.min(1, score)
+      if (result.score >= 0.7) result.drift_severity = 'HIGH'
+      else if (result.score >= 0.35) result.drift_severity = 'MODERATE'
+      else if (result.score >= 0.15) result.drift_severity = 'LOW'
+      if (!result.evidence.length) result.evidence.push('Numeric distribution remains aligned with the baseline.')
+      result.explanation = result.drift_severity === 'HIGH'
+        ? 'Numeric distribution changed materially against the selected baseline.'
+        : result.drift_severity === 'MODERATE'
+          ? 'Numeric distribution shifted enough to warrant a review.'
+          : result.drift_severity === 'LOW'
+            ? 'Numeric distribution shifted slightly.'
+            : 'No statistical drift detected.'
+      result.recommended_action = result.drift_severity === 'HIGH'
+        ? 'Investigate the distribution shift before release.'
+        : result.drift_severity === 'MODERATE'
+          ? 'Review the metric trend and baseline alignment.'
+          : 'No action needed.'
+      return [result]
+    }
+
+    if (['Categorical Attribute', 'Binary Label', 'Target Column', 'Text Attribute'].includes(role)) {
+      const currentCategories = currentValues.map(cleanCategoryValue).filter(Boolean)
+      const baselineCategories = baselineValues.map(cleanCategoryValue).filter(Boolean)
+      if (!currentCategories.length || !baselineCategories.length) return []
+
+      const currentDist = normalizedDistribution(currentCategories)
+      const baselineDist = normalizedDistribution(baselineCategories)
+      const tvd = totalVariationDistance(currentDist, baselineDist)
+      const baselineSet = new Set(baselineCategories)
+      const currentSet = new Set(currentCategories)
+      const newCategoryRate = currentCategories.filter((value) => !baselineSet.has(value)).length / Math.max(1, currentCategories.length)
+      const disappearedRate = baselineCategories.filter((value) => !currentSet.has(value)).length / Math.max(1, baselineCategories.length)
+      const currentMode = [...currentDist.entries()].sort((left, right) => right[1] - left[1])[0]?.[0] || 'n/a'
+      const baselineMode = [...baselineDist.entries()].sort((left, right) => right[1] - left[1])[0]?.[0] || 'n/a'
+      let score = Math.max(tvd, newCategoryRate * 0.75, disappearedRate * 0.65)
+
+      if (newCategoryRate > 0.25) {
+        score = Math.max(score, 0.75)
+        result.evidence.push(`New categories appeared in ${formatPct(newCategoryRate)} of rows.`)
+      } else if (newCategoryRate > 0.1) {
+        score = Math.max(score, 0.42)
+        result.evidence.push(`Some new categories appeared (${formatPct(newCategoryRate)} of rows).`)
+      }
+      if (disappearedRate > 0.25) {
+        score = Math.max(score, 0.68)
+        result.evidence.push(`Baseline categories disappeared in ${formatPct(disappearedRate)} of rows.`)
+      } else if (disappearedRate > 0.1) {
+        score = Math.max(score, 0.34)
+        result.evidence.push(`Some baseline categories disappeared (${formatPct(disappearedRate)} of rows).`)
+      }
+      if (tvd > 0.45) {
+        score = Math.max(score, 0.82)
+        result.evidence.push(`Category distribution changed materially (distance ${tvd.toFixed(2)}).`)
+      } else if (tvd > 0.25) {
+        score = Math.max(score, 0.5)
+        result.evidence.push(`Category distribution shifted moderately (distance ${tvd.toFixed(2)}).`)
+      } else if (tvd > 0.12) {
+        score = Math.max(score, 0.22)
+        result.evidence.push(`Category distribution shifted slightly (distance ${tvd.toFixed(2)}).`)
+      }
+      if (role === 'Binary Label' || role === 'Target Column') {
+        if (currentSet.size !== baselineSet.size || [...currentSet].some((value) => !baselineSet.has(value))) {
+          score = Math.max(score, 0.7)
+          result.evidence.push('Label values changed against the baseline.')
+        }
+      }
+
+      result.field_type = 'categorical'
+      result.score = Math.min(1, score)
+      if (result.score >= 0.7) result.drift_severity = 'HIGH'
+      else if (result.score >= 0.35) result.drift_severity = 'MODERATE'
+      else if (result.score >= 0.15) result.drift_severity = 'LOW'
+      if (!result.evidence.length) result.evidence.push(`Categorical distribution remains aligned with the baseline (${baselineMode} -> ${currentMode}).`)
+      result.explanation = result.drift_severity === 'HIGH'
+        ? 'Categorical distribution changed materially against the selected baseline.'
+        : result.drift_severity === 'MODERATE'
+          ? 'Categorical distribution shifted enough to warrant a review.'
+          : result.drift_severity === 'LOW'
+            ? 'Categorical distribution shifted slightly.'
+            : 'No statistical drift detected.'
+      result.recommended_action = result.drift_severity === 'HIGH'
+        ? 'Inspect category churn and baseline alignment before release.'
+        : result.drift_severity === 'MODERATE'
+          ? 'Review the category distribution change.'
+          : 'No action needed.'
+      return [result]
+    }
+
+    return []
+  })
+}
+
+function buildBehavioralDrift(
+  preReleaseResults: ReleaseResult[],
+  baselineVersion: StoredVersion | null,
+  currentVersionLabel: string,
+): BehavioralDriftResult[] {
+  if (!baselineVersion) return []
+  const baselineMap = new Map((baselineVersion.release_results || []).map((item) => [item.column_name, item]))
+  const statusRank: Record<FeatureStatus, number> = { READY: 0, CONDITIONAL: 1, QUARANTINED: 2 }
+  return preReleaseResults.map((item) => {
+    const baseline = baselineMap.get(item.column_name)
+    if (!baseline) {
+      return {
+        column_name: item.column_name,
+        baseline_version: `v${baselineVersion.version_number}`,
+        current_version: currentVersionLabel,
+        baseline_release_status: 'READY' as FeatureStatus,
+        current_release_status: item.release_status,
+        release_status_delta: statusRank[item.release_status],
+        drift_severity: 'NONE' as DriftSeverity,
+        evidence: ['No baseline release history exists for this column.'],
+        explanation: 'No behavioral drift comparison available for this column.',
+        recommended_action: 'No action needed.',
+      }
+    }
+
+    const delta = statusRank[item.release_status] - statusRank[baseline.release_status]
+    const failureDelta = item.critical_failures.length - baseline.critical_failures.length
+    const warningDelta = item.warnings.length - baseline.warnings.length
+    let score = 0
+    const evidence: string[] = []
+
+    if (item.release_status !== baseline.release_status) {
+      score = Math.max(score, Math.abs(delta) >= 2 ? 0.85 : 0.45)
+      evidence.push(`Release status changed from ${baseline.release_status} to ${item.release_status}.`)
+    }
+    if (failureDelta > 0) {
+      score = Math.max(score, failureDelta >= 2 ? 0.8 : 0.5)
+      evidence.push(`${failureDelta} additional critical failure${failureDelta === 1 ? '' : 's'} appeared.`)
+    }
+    if (warningDelta > 0) {
+      score = Math.max(score, warningDelta >= 2 ? 0.45 : 0.25)
+      evidence.push(`${warningDelta} additional warning${warningDelta === 1 ? '' : 's'} appeared.`)
+    }
+    if (!evidence.length) evidence.push('Release behavior remains aligned with the baseline.')
+
+    const driftSeverity: DriftSeverity = score >= 0.75 ? 'HIGH' : score >= 0.35 ? 'MODERATE' : score >= 0.15 ? 'LOW' : 'NONE'
+    return {
+      column_name: item.column_name,
+      baseline_version: `v${baselineVersion.version_number}`,
+      current_version: currentVersionLabel,
+      baseline_release_status: baseline.release_status,
+      current_release_status: item.release_status,
+      release_status_delta: delta,
+      drift_severity: driftSeverity,
+      evidence,
+      explanation: driftSeverity === 'HIGH'
+        ? 'Downstream release behavior changed materially against the baseline.'
+        : driftSeverity === 'MODERATE'
+          ? 'Downstream release behavior changed enough to review.'
+          : driftSeverity === 'LOW'
+            ? 'Downstream release behavior shifted slightly.'
+            : 'No behavioral drift detected.',
+      recommended_action: driftSeverity === 'HIGH'
+        ? 'Review the downstream impact before promotion.'
+        : driftSeverity === 'MODERATE'
+          ? 'Check why the release status changed.'
+          : 'No action needed.',
+    }
+  })
+}
+
+function buildReleaseResults(
+  profiles: ColumnProfile[],
+  roles: Record<string, GenericRole>,
+  assessments: Record<string, { confidence: number }>,
+  internal: Record<string, InternalDriftResult>,
+  external: Record<string, ExternalDriftResult>,
+  statistical: Record<string, StatisticalDriftResult>,
+  behavioral: Record<string, BehavioralDriftResult>,
+) {
   return profiles.map((profile) => {
     const role = roles[profile.column_name]
     const internalSeverity = internal[profile.column_name]?.drift_severity ?? 'NONE'
     const externalSeverity = external[profile.column_name]?.drift_severity ?? 'NONE'
+    const statisticalSeverity = statistical[profile.column_name]?.drift_severity ?? 'NONE'
+    const behavioralSeverity = behavioral[profile.column_name]?.drift_severity ?? 'NONE'
     const critical_failures: string[] = []
     const warnings: string[] = []
 
@@ -821,24 +1178,37 @@ function buildReleaseResults(profiles: ColumnProfile[], roles: Record<string, Ge
     if (assessments[profile.column_name].confidence < 0.7) warnings.push('Weak role confidence')
     if (profile.outlier_percent > 0.2) warnings.push('Outlier warning')
     if (role === 'Unknown / Unmapped') warnings.push('Unknown columns should stay in profiling-only mode')
+    if (statisticalSeverity === 'HIGH') critical_failures.push('High statistical drift')
+    else if (statisticalSeverity === 'MODERATE') warnings.push('Moderate statistical drift')
+    if (behavioralSeverity === 'HIGH') critical_failures.push('High behavioral drift')
+    else if (behavioralSeverity === 'MODERATE') warnings.push('Moderate behavioral drift')
+    if (statisticalSeverity === 'LOW') warnings.push('Low statistical drift')
+    if (behavioralSeverity === 'LOW') warnings.push('Low behavioral drift')
 
     let validation_status: 'PASS' | 'WARN' | 'FAIL' = 'PASS'
     if (critical_failures.length) validation_status = 'FAIL'
     else if (warnings.length) validation_status = 'WARN'
 
     let release_status: FeatureStatus = 'READY'
-    if (internalSeverity === 'HIGH' || externalSeverity === 'HIGH' || critical_failures.length) {
+    if (internalSeverity === 'HIGH' || externalSeverity === 'HIGH' || statisticalSeverity === 'HIGH' || behavioralSeverity === 'HIGH' || critical_failures.length) {
       release_status = 'QUARANTINED'
-    } else if (internalSeverity === 'MODERATE' || externalSeverity === 'MODERATE' || validation_status === 'WARN') {
+    } else if (internalSeverity === 'MODERATE' || externalSeverity === 'MODERATE' || statisticalSeverity === 'MODERATE' || behavioralSeverity === 'MODERATE' || validation_status === 'WARN') {
       release_status = 'CONDITIONAL'
     }
+
+    const driftEvidence = [
+      internal[profile.column_name]?.evidence?.[0],
+      external[profile.column_name]?.evidence?.[0],
+      statistical[profile.column_name]?.evidence?.[0],
+      behavioral[profile.column_name]?.evidence?.[0],
+    ].filter(Boolean) as string[]
 
     const explanation =
       release_status === 'READY'
         ? 'Column meaning is stable and validation checks passed.'
         : release_status === 'CONDITIONAL'
-          ? `${warnings[0] || 'Moderate semantic drift detected'}, admin review recommended.`
-          : `${critical_failures[0] || external[profile.column_name]?.evidence?.[0] || internal[profile.column_name]?.evidence?.[0] || 'Critical semantic issue detected'}.`
+          ? `${warnings[0] || driftEvidence[0] || 'Moderate drift detected'}, admin review recommended.`
+          : `${critical_failures[0] || driftEvidence[0] || 'Critical semantic issue detected'}.`
 
     return {
       column_name: profile.column_name,
@@ -846,6 +1216,8 @@ function buildReleaseResults(profiles: ColumnProfile[], roles: Record<string, Ge
       validation_status,
       internal_drift_severity: internalSeverity,
       external_drift_severity: externalSeverity,
+      statistical_drift_severity: statisticalSeverity,
+      behavioral_drift_severity: behavioralSeverity,
       release_status,
       critical_failures,
       warnings,
@@ -1106,6 +1478,7 @@ export default function FeatureOpsWorkflowPanel() {
   const [datasetName, setDatasetName] = useState('')
   const [datasetError, setDatasetError] = useState<string | null>(null)
   const [manualRoles, setManualRoles] = useState<Record<string, GenericRole | undefined>>({})
+  const [manualSemanticOverrides, setManualSemanticOverrides] = useState<Record<string, SemanticProfileOverride>>({})
   const [messages, setMessages] = useState<StatusMessage[]>([])
   const [families, setFamilies] = useState<FamilyRecord[]>([])
   const [familyVersions, setFamilyVersions] = useState<Record<string, StoredVersion[]>>({})
@@ -1134,9 +1507,22 @@ export default function FeatureOpsWorkflowPanel() {
   const [duplicateDatasetResult, setDuplicateDatasetResult] = useState<DuplicateDatasetResult | null>(null)
   const [expandedSummaryKey, setExpandedSummaryKey] = useState<string | null>(null)
   const [expandedWorkflowStepKey, setExpandedWorkflowStepKey] = useState<string | null>(null)
+  
+  // Backend drift detection state
+  const [backendDriftResults, setBackendDriftResults] = useState<Record<string, any>>({})
+  const [driftDetectionLoading, setDriftDetectionLoading] = useState(false)
+
+  // ML-based orchestrator state (new)
+  const [driftAnalysis, setDriftAnalysis] = useState<any>(null)
+  const [driftAnalysisLoading, setDriftAnalysisLoading] = useState(false)
+  const [activeAnalysisTab, setActiveAnalysisTab] = useState<'upload' | 'profiler' | 'drift-explanation' | 'row-level' | 'release' | 'baseline' | 'matrix' | 'anchors' | 'scores'>('upload')
+  const [driftDetectionError, setDriftDetectionError] = useState<string | null>(null)
+  const [orchestratorStats, setOrchestratorStats] = useState<any>(null)
+  const [reviewWorkspaceTab, setReviewWorkspaceTab] = useState<'mapping' | 'drift'>('drift')
+  const [crossModalHumanDecisions, setCrossModalHumanDecisions] = useState<Record<string, HumanReviewDecision>>({})
+  
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const pendingVersionFamilyIdRef = useRef<string | null>(null)
-  const mappingDetailsRef = useRef<HTMLDetailsElement | null>(null)
 
   const datasetRows = uploadedRows ?? []
   const hasUpload = datasetRows.length > 0
@@ -1164,7 +1550,16 @@ export default function FeatureOpsWorkflowPanel() {
       .filter((item): item is MappingReviewFinding => item != null),
     [profiles, roles],
   )
-  const semanticProfiles = useMemo(() => profiles.map((profile) => buildSemanticProfile(profile, roles[profile.column_name])), [profiles, roles])
+  const semanticProfiles = useMemo(() => profiles.map((profile) => {
+    const baseProfile = buildSemanticProfile(profile, roles[profile.column_name])
+    const overrides = manualSemanticOverrides[profile.column_name]
+    if (!overrides) return baseProfile
+    const merged = { ...baseProfile, ...overrides }
+    return {
+      ...merged,
+      semantic_signature: composeSemanticSignature(merged),
+    }
+  }), [manualSemanticOverrides, profiles, roles])
   const fingerprint = useMemo(() => buildDatasetFingerprint(profiles, semanticProfiles), [profiles, semanticProfiles])
   const allVersions = useMemo(() => Object.values(familyVersions).flat(), [familyVersions])
   const matches = useMemo(() => matchFamilies(fingerprint, allVersions).slice(0, 3), [allVersions, fingerprint])
@@ -1190,12 +1585,23 @@ export default function FeatureOpsWorkflowPanel() {
     acc[item.column_name] = item
     return acc
   }, {}), [internalDrift])
+  const statisticalDrift = useMemo(() => buildStatisticalDrift(profiles, roles, datasetRows, externalDriftBaseline, 'current_upload'), [datasetRows, externalDriftBaseline, profiles, roles])
+  const statisticalMap = useMemo(() => statisticalDrift.reduce<Record<string, StatisticalDriftResult>>((acc, item) => {
+    acc[item.column_name] = item
+    return acc
+  }, {}), [statisticalDrift])
   const externalDrift = useMemo(() => buildExternalDrift(semanticProfiles, externalDriftBaseline, 'current_upload'), [externalDriftBaseline, semanticProfiles])
   const externalMap = useMemo(() => externalDrift.reduce<Record<string, ExternalDriftResult>>((acc, item) => {
     acc[item.column_name] = item
     return acc
   }, {}), [externalDrift])
-  const releaseResults = useMemo(() => buildReleaseResults(profiles, roles, assessments, internalMap, externalMap), [assessments, externalMap, internalMap, profiles, roles])
+  const preBehavioralReleaseResults = useMemo(() => buildReleaseResults(profiles, roles, assessments, internalMap, externalMap, statisticalMap, {}), [assessments, externalMap, internalMap, profiles, roles, statisticalMap])
+  const behavioralDrift = useMemo(() => buildBehavioralDrift(preBehavioralReleaseResults, externalDriftBaseline, 'current_upload'), [externalDriftBaseline, preBehavioralReleaseResults])
+  const behavioralMap = useMemo(() => behavioralDrift.reduce<Record<string, BehavioralDriftResult>>((acc, item) => {
+    acc[item.column_name] = item
+    return acc
+  }, {}), [behavioralDrift])
+  const releaseResults = useMemo(() => buildReleaseResults(profiles, roles, assessments, internalMap, externalMap, statisticalMap, behavioralMap), [assessments, behavioralMap, externalMap, internalMap, profiles, roles, statisticalMap])
   const releaseCounts = useMemo(() => releaseResults.reduce((acc, row) => {
     acc[row.release_status] += 1
     return acc
@@ -1237,17 +1643,21 @@ export default function FeatureOpsWorkflowPanel() {
     role: row.role,
     internal_drift: row.internal_drift_severity,
     external_drift: row.external_drift_severity,
+    statistical_drift: row.statistical_drift_severity,
+    behavioral_drift: row.behavioral_drift_severity,
     release_status: row.release_status,
     evidence: [
       ...(internalMap[row.column_name]?.evidence || []),
       ...(externalMap[row.column_name]?.evidence || []),
+      ...(statisticalMap[row.column_name]?.evidence || []),
+      ...(behavioralMap[row.column_name]?.evidence || []),
       ...(row.critical_failures || []),
       ...(row.warnings || []),
     ].filter(Boolean).join(' ') || row.explanation,
-  })), [externalMap, internalMap, releaseResults])
+  })), [behavioralMap, externalMap, internalMap, releaseResults, statisticalMap])
   const visibleDriftEvidenceRows = useMemo(() => {
     if (evidenceFilter === 'Drifted') {
-      return driftEvidenceRows.filter((row) => row.internal_drift !== 'NONE' || row.external_drift !== 'NONE')
+      return driftEvidenceRows.filter((row) => row.internal_drift !== 'NONE' || row.external_drift !== 'NONE' || row.statistical_drift !== 'NONE' || row.behavioral_drift !== 'NONE')
     }
     if (evidenceFilter === 'Conditional') {
       return driftEvidenceRows.filter((row) => row.release_status === 'CONDITIONAL')
@@ -1288,6 +1698,99 @@ export default function FeatureOpsWorkflowPanel() {
     return [left, right] as [StoredVersion | null, StoredVersion | null]
   }, [selectedCompareVersions, viewFamilyVersions, viewFamilyId])
   const versionPairComparison = useMemo(() => buildVersionPairComparison(comparisonVersions[0], comparisonVersions[1]), [comparisonVersions])
+  const learnedProfileColumns = useMemo(() => {
+    const columnsFromAnalysis = driftAnalysis?.profile?.column_profiles
+    if (!Array.isArray(columnsFromAnalysis)) return []
+    return columnsFromAnalysis.map((column: any) => ({
+      column_name: column.column_name,
+      inferred_type: column.inferred_type || column.kind || 'unknown',
+      missing_percent: column.missing_percent ?? 0,
+      unique_percent: column.unique_percent ?? 0,
+      min: column.min ?? null,
+      max: column.max ?? null,
+      mean: column.mean ?? null,
+      std: column.std ?? null,
+      sample_values: column.sample_values || [],
+      scale_pattern: column.scale_pattern || 'unknown',
+      detected_unit: column.detected_unit || 'unitless',
+      detected_direction: column.detected_direction || 'neutral',
+    }))
+  }, [driftAnalysis])
+  const learnedDriftExplanations = useMemo(() => {
+    const drifts = driftAnalysis?.drifts_per_column
+    if (!Array.isArray(drifts)) return []
+    return drifts.map((drift: any) => ({
+      column_name: drift.column_name,
+      drift_type: drift.drift_type === 'text' ? 'text' : drift.drift_type === 'relational' ? 'relational' : drift.drift_type === 'categorical' ? 'categorical' : 'numeric',
+      severity: drift.severity || 'none',
+      reason: drift.reason || 'No drift explanation available.',
+      baseline_stats: drift.baseline_stats || {},
+      current_stats: drift.current_stats || {},
+      impact: drift.impact || '',
+      recommendation: drift.recommendation || '',
+    }))
+  }, [driftAnalysis])
+  const learnedRowDrifts = useMemo(() => Array.isArray(driftAnalysis?.row_classifications) ? driftAnalysis.row_classifications : [], [driftAnalysis])
+  const learnedBaselineProfiles = useMemo(() => ({
+    internalBaseline: driftAnalysis?.baselines?.internal
+      ? {
+          dataset_name: driftAnalysis.baselines.internal.dataset_name,
+          created_at: driftAnalysis.baselines.internal.created_at,
+          row_count: driftAnalysis.baselines.internal.row_count,
+          column_count: driftAnalysis.baselines.internal.column_count,
+          column_profiles: driftAnalysis.baselines.internal.column_profiles,
+        }
+      : null,
+    currentUpload: driftAnalysis?.profile
+      ? {
+          dataset_name: driftAnalysis.profile.dataset_name,
+          created_at: driftAnalysis.profile.created_at,
+          row_count: driftAnalysis.profile.row_count,
+          column_count: driftAnalysis.profile.column_count,
+          column_profiles: driftAnalysis.profile.column_profiles,
+        }
+      : null,
+    externalBaseline: driftAnalysis?.baselines?.external
+      ? {
+          dataset_name: driftAnalysis.baselines.external.dataset_name,
+          created_at: driftAnalysis.baselines.external.created_at,
+          row_count: driftAnalysis.baselines.external.row_count,
+          column_count: driftAnalysis.baselines.external.column_count,
+          column_profiles: driftAnalysis.baselines.external.column_profiles,
+        }
+      : null,
+  }), [driftAnalysis])
+  const learnedMatrixCells = useMemo(() => Array.isArray(driftAnalysis?.triage_matrix?.cells) ? driftAnalysis.triage_matrix.cells : [], [driftAnalysis])
+  const learnedAnchors = useMemo(() => Array.isArray(driftAnalysis?.anchors) ? driftAnalysis.anchors : [], [driftAnalysis])
+  const learnedScoreDistribution = useMemo(() => {
+    const probabilities = driftAnalysis?.learned_scores?.probabilities
+    if (!probabilities) return undefined
+    return {
+      SAFE: Math.round((probabilities.SAFE || 0) * 100),
+      CONDITIONAL: Math.round((probabilities.CONDITIONAL || 0) * 100),
+      QUARANTINED: Math.round((probabilities.QUARANTINED || 0) * 100),
+    }
+  }, [driftAnalysis])
+  const learnedFeatureImportance = useMemo(() => driftAnalysis?.learned_scores?.feature_importance || undefined, [driftAnalysis])
+  const learnedReleaseSummary = useMemo(() => ({
+    safe: Number(driftAnalysis?.release_summary?.SAFE || 0),
+    conditional: Number(driftAnalysis?.release_summary?.CONDITIONAL || 0),
+    quarantined: Number(driftAnalysis?.release_summary?.QUARANTINED || 0),
+  }), [driftAnalysis])
+  const crossModalSummary = useMemo(() => ({
+    safe: Number(driftAnalysis?.cross_modal?.summary?.SAFE || 0),
+    conditional: Number(driftAnalysis?.cross_modal?.summary?.CONDITIONAL || 0),
+    quarantined: Number(driftAnalysis?.cross_modal?.summary?.QUARANTINED || 0),
+    pendingReview: Number(driftAnalysis?.cross_modal?.summary?.pending_review || 0),
+  }), [driftAnalysis])
+  const crossModalRows = useMemo(() => Array.isArray(driftAnalysis?.cross_modal?.rows) ? driftAnalysis.cross_modal.rows : [], [driftAnalysis])
+  const crossModalHumanQueue = useMemo(() => {
+    const queue = Array.isArray(driftAnalysis?.human_review_queue) ? driftAnalysis.human_review_queue : []
+    return queue.map((item: any) => ({
+      ...item,
+      review_status: crossModalHumanDecisions[String(item.row_id)] || item.review_status || 'Pending Review',
+    }))
+  }, [crossModalHumanDecisions, driftAnalysis])
 
   function buildStoredVersionSignature(version: StoredVersion) {
     return buildDatasetContentSignature(version.dataset_rows || [], {
@@ -1317,8 +1820,112 @@ export default function FeatureOpsWorkflowPanel() {
     ])
   }
 
+  // Backend drift detection integration
+  async function fetchInternalDriftFromBackend(datasetName: string, rows: DatasetRow[]) {
+    try {
+      setDriftDetectionLoading(true)
+      setDriftDetectionError(null)
+      const result = await detectInternalDrift(apiBase, datasetName, rows)
+      setBackendDriftResults((prev) => ({
+        ...prev,
+        [`internal_${datasetName}`]: result,
+      }))
+      pushMessage(`Internal drift detected: ${result.severity}`, 'info')
+      return result
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+      setDriftDetectionError(errorMsg)
+      pushMessage(`Drift detection error: ${errorMsg}`, 'error')
+      return null
+    } finally {
+      setDriftDetectionLoading(false)
+    }
+  }
+
+  async function fetchExternalDriftFromBackend(
+    datasetName: string,
+    baselineVersion: string,
+    currentVersion: string,
+    baselineRows: DatasetRow[],
+    currentRows: DatasetRow[]
+  ) {
+    try {
+      setDriftDetectionLoading(true)
+      setDriftDetectionError(null)
+      const result = await detectExternalDrift(
+        apiBase,
+        datasetName,
+        baselineVersion,
+        currentVersion,
+        baselineRows,
+        currentRows
+      )
+      const resultKey = `external_${datasetName}_${baselineVersion}_${currentVersion}`
+      setBackendDriftResults((prev) => ({
+        ...prev,
+        [resultKey]: result,
+      }))
+      pushMessage(`External drift detected: ${result.severity}`, 'info')
+      return result
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+      setDriftDetectionError(errorMsg)
+      pushMessage(`External drift detection error: ${errorMsg}`, 'error')
+      return null
+    } finally {
+      setDriftDetectionLoading(false)
+    }
+  }
+
+  function rowsToJsonFile(rows: DatasetRow[], name: string) {
+    const blob = new Blob([JSON.stringify(rows, null, 2)], { type: 'application/json' })
+    return new File([blob], name.toLowerCase().endsWith('.json') ? name : `${name.replace(/\.[^.]+$/, '') || 'dataset'}.json`, {
+      type: 'application/json',
+    })
+  }
+
+  async function runLearnedDriftAnalysis(file: File) {
+    try {
+      setDriftAnalysisLoading(true)
+      setDriftDetectionError(null)
+      setCrossModalHumanDecisions({})
+      const [analysis, stats] = await Promise.all([
+        detectDriftFull(apiBase, file),
+        getOrchestratorStats(apiBase).catch(() => null),
+      ])
+      setDriftAnalysis(analysis)
+      setOrchestratorStats(stats?.stats || null)
+      setActiveAnalysisTab('release')
+      setReviewWorkspaceTab('drift')
+      pushMessage(`Learned twin-baseline triage completed: ${analysis.final_label}.`, analysis.final_label === 'QUARANTINED' ? 'warning' : 'success')
+      return analysis
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown learned drift analysis error'
+      setDriftDetectionError(errorMsg)
+      setDriftAnalysis(null)
+      pushMessage(`Learned drift analysis failed: ${errorMsg}`, 'error')
+      return null
+    } finally {
+      setDriftAnalysisLoading(false)
+    }
+  }
+
+  async function runLearnedDriftAnalysisFromRows(name: string, rows: DatasetRow[]) {
+    return runLearnedDriftAnalysis(rowsToJsonFile(rows, name))
+  }
+
+  async function syncLearnedInternalBaseline(name: string, rows: DatasetRow[]) {
+    try {
+      await setOrchestratorBaseline(apiBase, 'internal', name, rows)
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unable to update internal learned baseline'
+      pushMessage(errorMsg, 'warning')
+    }
+  }
+
   function resetWorkflowState() {
     setManualRoles({})
+    setManualSemanticOverrides({})
     setSelectedFamilyId('')
     setSelectedVersionNumber(null)
     setViewFamilyId('')
@@ -1334,6 +1941,11 @@ export default function FeatureOpsWorkflowPanel() {
     setDashboardCompareViewMode('comparison')
     setSanityCheckResult(null)
     setDuplicateDatasetResult(null)
+    setBackendDriftResults({})
+    setDriftAnalysis(null)
+    setDriftDetectionError(null)
+    setActiveAnalysisTab('upload')
+    setCrossModalHumanDecisions({})
   }
 
   function openFilePickerForBaseline() {
@@ -1537,6 +2149,10 @@ export default function FeatureOpsWorkflowPanel() {
         const baselineRow = baselineNum != null ? vers.find((item) => item.version_number === baselineNum) : null
         const baselineForSanity = baselineRow || vers[0] || null
         const sanity = runVersionSanityCheck(cols, baselineForSanity)
+        if (baselineForSanity?.dataset_rows?.length) {
+          await syncLearnedInternalBaseline(baselineForSanity.file_name || baselineForSanity.dataset_name || 'baseline.json', baselineForSanity.dataset_rows)
+        }
+        void runLearnedDriftAnalysis(file)
         if (!sanity.passed) {
           setSanityCheckResult(sanity)
           setPendingSaveAction(null)
@@ -1558,6 +2174,7 @@ export default function FeatureOpsWorkflowPanel() {
         setShowUploadModal(false)
         setUploadChoiceMode('select')
         setPendingSaveAction({ mode: 'baseline' })
+        void runLearnedDriftAnalysis(file)
         pushMessage('Dataset uploaded successfully.', 'success')
         pushMessage('Dataset profiled successfully.', 'success')
         pushMessage('Internal semantic consistency check completed.', 'success')
@@ -1577,6 +2194,7 @@ export default function FeatureOpsWorkflowPanel() {
     setUploadTime(new Date().toISOString())
     setDatasetError(null)
     setMessages([])
+    void runLearnedDriftAnalysisFromRows(DEMO_NAME, demoDataset)
     pushMessage('Dataset uploaded successfully.', 'success')
     pushMessage('Dataset profiled successfully.', 'success')
     pushMessage('Internal semantic consistency check completed.', 'success')
@@ -1637,6 +2255,8 @@ export default function FeatureOpsWorkflowPanel() {
       semantic_profiles: semanticProfiles,
       internal_drift_results: internalDrift,
       external_drift_results: [],
+      statistical_drift_results: statisticalDrift,
+      behavioral_drift_results: behavioralDrift,
       release_results: releaseResults,
     }
     try {
@@ -1711,6 +2331,8 @@ export default function FeatureOpsWorkflowPanel() {
       semantic_profiles: semanticProfiles,
       internal_drift_results: internalDrift,
       external_drift_results: externalDrift,
+      statistical_drift_results: statisticalDrift,
+      behavioral_drift_results: behavioralDrift,
       release_results: releaseResults,
     }
     try {
@@ -1762,6 +2384,8 @@ export default function FeatureOpsWorkflowPanel() {
       dataset_fingerprint: fingerprint,
       internal_drift_results: internalDrift,
       external_drift_results: externalDrift,
+      statistical_drift_results: statisticalDrift,
+      behavioral_drift_results: behavioralDrift,
       release_results: releaseResults,
     }
     const response = await fetch(`${apiBase}/featureops/drift-runs`, {
@@ -1782,10 +2406,13 @@ export default function FeatureOpsWorkflowPanel() {
     const payload = await response.json()
     if (payload.status === 'ok') {
       if (payload.version?.dataset_rows?.length) {
+        resetWorkflowState()
         setUploadedRows(payload.version.dataset_rows)
         setDatasetName(payload.version.file_name || payload.version.dataset_name || '')
         setUploadTime(payload.version.created_at || '')
         setDatasetError(null)
+        await syncLearnedInternalBaseline(payload.version.file_name || payload.version.dataset_name || 'baseline.json', payload.version.dataset_rows)
+        void runLearnedDriftAnalysisFromRows(payload.version.file_name || payload.version.dataset_name || 'dataset.json', payload.version.dataset_rows)
       }
       setSelectedFamilyId(familyId)
       setSelectedVersionNumber(versionNumber)
@@ -1795,13 +2422,15 @@ export default function FeatureOpsWorkflowPanel() {
     }
   }
 
-  function loadDriftRun(run: DriftRunRecord) {
+  async function loadDriftRun(run: DriftRunRecord) {
     if (run.dataset_rows?.length) {
       resetWorkflowState()
       setUploadedRows(run.dataset_rows)
       setDatasetName(run.dataset_name)
       setUploadTime(run.created_at)
       setDatasetError(null)
+      await syncLearnedInternalBaseline(run.dataset_name || 'baseline.json', run.dataset_rows)
+      void runLearnedDriftAnalysisFromRows(run.dataset_name || 'dataset.json', run.dataset_rows)
       if (run.family_id) {
         setSelectedFamilyId(run.family_id)
       }
@@ -1955,6 +2584,120 @@ export default function FeatureOpsWorkflowPanel() {
         </div>
       )}
 
+      {driftDetectionError && (
+        <div style={{ borderRadius: 8, border: '1px solid #fecaca', background: '#fff1f2', color: '#9f1239', padding: '10px 12px', fontSize: 11.5 }}>
+          Learned drift analysis error: {driftDetectionError}
+        </div>
+      )}
+
+      {false && (driftAnalysisLoading || driftAnalysis) && (
+        <section className="glass-card" style={{ padding: '14px 16px', display: 'grid', gap: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: '#ecf6ff' }}>Twin-Baseline Relational Triage</div>
+              <div style={{ fontSize: 11.5, color: '#9fb4d1', marginTop: 4 }}>
+                Learned scoring across internal history, external benchmark alignment, and relational anchors.
+              </div>
+            </div>
+            {orchestratorStats && (
+              <div style={{ display: 'grid', gap: 4, fontSize: 10.5, color: '#dbeafe', textAlign: 'right' }}>
+                <div>{orchestratorStats.approach}</div>
+                <div>{orchestratorStats.model_type}</div>
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {[
+              ['release', 'Release Gate'],
+              ['profiler', 'Semantic Profile'],
+              ['drift-explanation', 'Drift Reasons'],
+              ['row-level', 'Row-Level'],
+              ['baseline', 'Twin Baselines'],
+              ['matrix', 'Triage Matrix'],
+              ['anchors', 'Relational Anchors'],
+              ['scores', 'Learned Scores'],
+            ].map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setActiveAnalysisTab(key as typeof activeAnalysisTab)}
+                style={{
+                  borderRadius: 999,
+                  border: activeAnalysisTab === key ? '1px solid #93c5fd' : '1px solid #334155',
+                  background: activeAnalysisTab === key ? '#dbeafe' : '#111827',
+                  color: activeAnalysisTab === key ? '#1d4ed8' : '#dbeafe',
+                  padding: '6px 10px',
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {activeAnalysisTab === 'release' && (
+            <ReleaseGate
+              finalDecision={(driftAnalysis?.final_label || 'SAFE') as 'SAFE' | 'CONDITIONAL' | 'QUARANTINED'}
+              overallScore={driftAnalysis?.overall_drift_score || 0}
+              confidence={driftAnalysis?.confidence || 0}
+              reasoning={driftAnalysis?.reasons || []}
+              featureSafeCount={learnedReleaseSummary.safe}
+              featureConditionalCount={learnedReleaseSummary.conditional}
+              featureQuarantinedCount={learnedReleaseSummary.quarantined}
+              isLoading={driftAnalysisLoading}
+              onReview={() => setActiveAnalysisTab('drift-explanation')}
+            />
+          )}
+
+          {activeAnalysisTab === 'profiler' && (
+            <ProfilerResults
+              columnProfiles={learnedProfileColumns}
+              datasetName={driftAnalysis?.profile?.dataset_name || datasetName}
+              rowCount={driftAnalysis?.profile?.row_count || datasetRows.length}
+              columnCount={driftAnalysis?.profile?.column_count || columns.length}
+              isLoading={driftAnalysisLoading}
+            />
+          )}
+
+          {activeAnalysisTab === 'drift-explanation' && (
+            <DriftExplanation drifts={learnedDriftExplanations as any} isLoading={driftAnalysisLoading} />
+          )}
+
+          {activeAnalysisTab === 'row-level' && (
+            <RowLevelDrift rowDrifts={learnedRowDrifts as any} totalRows={datasetRows.length || driftAnalysis?.profile?.row_count || 0} isLoading={driftAnalysisLoading} />
+          )}
+
+          {activeAnalysisTab === 'baseline' && (
+            <TwinBaselineComparison
+              internalBaseline={learnedBaselineProfiles.internalBaseline as any}
+              currentUpload={learnedBaselineProfiles.currentUpload as any}
+              externalBaseline={learnedBaselineProfiles.externalBaseline as any}
+              isLoading={driftAnalysisLoading}
+            />
+          )}
+
+          {activeAnalysisTab === 'matrix' && (
+            <TriageMatrixCard cells={learnedMatrixCells as any} totalRows={datasetRows.length || driftAnalysis?.profile?.row_count || 0} isLoading={driftAnalysisLoading} />
+          )}
+
+          {activeAnalysisTab === 'anchors' && (
+            <RelationalAnchorsCard anchors={learnedAnchors as any} isLoading={driftAnalysisLoading} />
+          )}
+
+          {activeAnalysisTab === 'scores' && (
+            <LearnedScoresChart
+              scoreDistribution={learnedScoreDistribution}
+              featureImportance={learnedFeatureImportance}
+              avgConfidence={driftAnalysis?.confidence}
+              isLoading={driftAnalysisLoading}
+            />
+          )}
+        </section>
+      )}
+
       {hasUpload && mappingReviewFindings.length > 0 && (
         <article style={{ borderRadius: 10, border: '1px solid #fde68a', background: '#fffbeb', padding: 12, display: 'grid', gap: 10 }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: '#92400e' }}>Mapping review needed</div>
@@ -1973,8 +2716,8 @@ export default function FeatureOpsWorkflowPanel() {
               type="button"
               className="df-btn secondary"
               onClick={() => {
-                mappingDetailsRef.current?.setAttribute('open', 'true')
-                mappingDetailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                setReviewWorkspaceTab('mapping')
+                window.scrollTo({ top: 0, behavior: 'smooth' })
               }}
             >
               Review Mapping
@@ -2223,7 +2966,7 @@ export default function FeatureOpsWorkflowPanel() {
                             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                               <span style={{ color: '#334155', fontWeight: 600 }}>{summarizeReleaseResults(run.release_results || [])}</span>
                               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                                <button type="button" onClick={() => { loadDriftRun(run); setShowHistoryModal(false) }} style={{ borderRadius: 999, border: '1px solid #64748b', background: '#ffffff', color: '#0f172a', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer', fontWeight: 700 }}>
+                            <button type="button" onClick={() => { void loadDriftRun(run); setShowHistoryModal(false) }} style={{ borderRadius: 999, border: '1px solid #64748b', background: '#ffffff', color: '#0f172a', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer', fontWeight: 700 }}>
                                   Load This Upload
                                 </button>
                                 <button type="button" onClick={() => void deleteDriftRun(run.run_id)} style={{ borderRadius: 999, border: '1px solid #fecaca', background: '#fff1f2', color: '#b91c1c', padding: '4px 8px', fontSize: 10.5, cursor: 'pointer', fontWeight: 700 }}>
@@ -2354,7 +3097,7 @@ export default function FeatureOpsWorkflowPanel() {
       )}
 
       <div className="featureops-top-detail-grid">
-        <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 10 }}>
+        <article className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 10 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Workflow Messages</div>
           {workflowSteps.length > 0 ? (
             <div style={{ display: 'grid', gap: 8 }}>
@@ -2411,7 +3154,7 @@ export default function FeatureOpsWorkflowPanel() {
           </div>
         </article>
 
-        <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
+        <article className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Current Upload Summary</div>
           {!hasUpload ? (
             <div className="featureops-empty-state">
@@ -2545,403 +3288,408 @@ export default function FeatureOpsWorkflowPanel() {
         </article>
       </div>
 
-      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Release Summary Cards</div>
-        <div className="featureops-release-grid">
-          {(['READY', 'CONDITIONAL', 'QUARANTINED'] as FeatureStatus[]).map((status) => {
-            const tone = releaseTone(status)
-            return (
-              <div key={status} className="featureops-status-card" style={{ borderColor: tone.border, background: tone.bg }}>
-                <span style={{ color: tone.text }}>{status}</span>
-                <strong style={{ color: '#0f172a' }}>{releaseCounts[status]}</strong>
-              </div>
-            )
-          })}
-        </div>
-      </article>
-
-      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Visual Summary</div>
-        <div className="featureops-visual-grid">
-          <div className="featureops-visual-card">
-            <div className="featureops-visual-title">Release Status</div>
-            <div className="featureops-donut-wrap">
-              <div
-                className="featureops-donut"
-                style={{
-                  background: `conic-gradient(#0f9d58 0 ${releaseResults.length ? (releaseCounts.READY / releaseResults.length) * 360 : 0}deg, #f59e0b ${releaseResults.length ? (releaseCounts.READY / releaseResults.length) * 360 : 0}deg ${releaseResults.length ? ((releaseCounts.READY + releaseCounts.CONDITIONAL) / releaseResults.length) * 360 : 0}deg, #ef4444 ${releaseResults.length ? ((releaseCounts.READY + releaseCounts.CONDITIONAL) / releaseResults.length) * 360 : 0}deg 360deg)`,
-                }}
+      <section style={{ display: 'grid', gap: 12 }}>
+        <article className="featureops-light-panel" style={{ borderRadius: 14, border: '2px solid #cbd5e1', background: '#ffffff', padding: 14, display: 'grid', gap: 14, boxShadow: '0 10px 24px rgba(15, 23, 42, 0.08)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>Review Workspace</div>
+              <div className="muted-text" style={{ fontSize: 12, color: '#334155' }}>Use the tabs below to review mappings, semantic profiles, and drift/release outcomes.</div>
+            </div>
+            <div className="featureops-tab-strip">
+              <button
+                type="button"
+                className={`featureops-workspace-tab${reviewWorkspaceTab === 'mapping' ? ' active' : ''}`}
+                onClick={() => setReviewWorkspaceTab('mapping')}
               >
-                <div className="featureops-donut-center">
-                  <strong>{releaseResults.length}</strong>
-                  <span>features</span>
-                </div>
-              </div>
-            </div>
-            <div className="featureops-legend-list">
-              <span>READY {releaseCounts.READY}</span>
-              <span>CONDITIONAL {releaseCounts.CONDITIONAL}</span>
-              <span>QUARANTINED {releaseCounts.QUARANTINED}</span>
-            </div>
-          </div>
-
-          <div className="featureops-visual-card">
-            <div className="featureops-visual-title">Drift Severity</div>
-            <div className="featureops-bar-group">
-              {(['NONE', 'LOW', 'MODERATE', 'HIGH'] as DriftSeverity[]).map((severity) => {
-                const total = Math.max(1, Math.max(internalDrift.length, externalDrift.length || 1))
-                return (
-                  <div key={severity} className="featureops-bar-row">
-                    <span>{severity}</span>
-                    <div className="featureops-bar-stack">
-                      <div className="featureops-bar-track">
-                        <div className="featureops-bar-fill internal" style={{ width: `${(internalSeverityCounts[severity] / total) * 100}%` }} />
-                      </div>
-                      <strong>{internalSeverityCounts[severity]}</strong>
-                    </div>
-                    <div className="featureops-bar-stack">
-                      <div className="featureops-bar-track">
-                        <div className="featureops-bar-fill external" style={{ width: `${(externalSeverityCounts[severity] / total) * 100}%` }} />
-                      </div>
-                      <strong>{externalSeverityCounts[severity]}</strong>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-            <div className="featureops-legend-list">
-              <span>Internal Drift</span>
-              <span>External Drift</span>
-            </div>
-          </div>
-
-          <div className="featureops-visual-card">
-            <div className="featureops-visual-title">Column Role Distribution</div>
-            <div className="featureops-role-list">
-              {roleDistribution.map((item) => (
-                <div key={item.role} className="featureops-role-row">
-                  <span>{item.role}</span>
-                  <div className="featureops-bar-track">
-                    <div className="featureops-bar-fill role" style={{ width: `${(item.count / Math.max(1, columns.length)) * 100}%` }} />
-                  </div>
-                  <strong>{item.count}</strong>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="featureops-visual-card">
-            <div className="featureops-visual-title">Baseline Match Confidence</div>
-            <div className="featureops-gauge-copy">
-              {matchedBaseline ? `${matchedConfidence}% matched with ${matchedBaseline.family_name} v${matchedBaseline.version_number}` : 'No saved baseline match yet.'}
-            </div>
-            <div className="featureops-gauge-track">
-              <div className="featureops-gauge-fill" style={{ width: `${matchedConfidence}%` }} />
-            </div>
-            <div className="featureops-gauge-meta">
-              <span>Selected baseline</span>
-              <strong>{selectedBaseline ? `${selectedBaseline.dataset_name} v${selectedBaseline.version_number}` : 'Auto-match pending'}</strong>
-            </div>
-          </div>
-
-          <div className="featureops-visual-card featureops-trust-card">
-            <div className="featureops-visual-title">Feature Trust Scores</div>
-            <div className="featureops-role-list">
-              {trustScores.slice(0, 6).map((item) => (
-                <div key={item.column_name} className="featureops-role-row">
-                  <span>{item.column_name}</span>
-                  <div className="featureops-bar-track">
-                    <div className={`featureops-bar-fill ${item.release_status === 'QUARANTINED' ? 'quarantined' : item.release_status === 'CONDITIONAL' ? 'conditional' : 'ready'}`} style={{ width: `${item.trust}%` }} />
-                  </div>
-                  <strong>{item.trust}%</strong>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </article>
-
-      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Drift Evidence Table</div>
-            <div className="muted-text" style={{ fontSize: 11 }}>Prioritized view of drifted, conditional, and quarantined columns.</div>
-          </div>
-          <div className="featureops-filter-row">
-            {(['All', 'Drifted', 'Conditional', 'Quarantined'] as const).map((tab) => (
-              <button key={tab} type="button" className={`featureops-filter-pill${evidenceFilter === tab ? ' active' : ''}`} onClick={() => setEvidenceFilter(tab)}>
-                {tab}
+                Mapping Details
               </button>
-            ))}
-          </div>
-        </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
-            <thead>
-              <tr style={{ background: '#f8fafc' }}>
-                {['Column', 'Role', 'Internal Drift', 'External Drift', 'Release', 'Evidence'].map((header) => (
-                  <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0' }}>{header}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {visibleDriftEvidenceRows.slice(0, 12).map((row) => (
-                <tr key={`evidence-${row.column_name}`}>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{row.column_name}</td>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.role}</td>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.internal_drift}</td>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.external_drift}</td>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.release_status}</td>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#64748b' }}>{row.evidence}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </article>
-
-      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Internal Semantic Drift</div>
-        <div className="featureops-summary-inline">
-          <span>Happens inside the same dataset.</span>
-          <strong>{internalDrift.length} columns checked</strong>
-        </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
-            <thead>
-              <tr style={{ background: '#f8fafc' }}>
-                {['Column', 'Compared using', 'Drift severity', 'Evidence', 'Recommended action'].map((header) => (
-                  <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0' }}>{header}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {internalDrift.slice(0, 10).map((row) => (
-                <tr key={`internal-${row.column_name}`}>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{row.column_name}</td>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.compared_by}</td>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.drift_severity}</td>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#64748b' }}>{row.evidence.join(' ')}</td>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.recommended_action}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </article>
-
-      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>External Semantic Drift</div>
-        {isNewBaselineFlow ? (
-          <div style={{ borderRadius: 8, border: '1px solid #dbeafe', background: '#eff6ff', color: '#1e3a8a', padding: '10px 12px', fontSize: 11.5, lineHeight: 1.6 }}>
-            This upload was saved as a brand-new dataset family, so only internal drift applies right now.
-            Add another saved version to this same family before external version-to-version drift comparison becomes available.
-          </div>
-        ) : !externalDriftBaseline ? (
-          <div style={{ borderRadius: 8, border: '1px solid #dbeafe', background: '#eff6ff', color: '#1e3a8a', padding: '10px 12px', fontSize: 11.5 }}>
-            Happens between dataset versions. Save a family version or select a baseline to compare drift.
-          </div>
-        ) : (
-          <>
-            <div className="featureops-summary-inline">
-              <span>Happens between dataset versions (latest saved snapshot vs current upload when a family is linked).</span>
-              <strong>{externalDrift.length} columns compared with v{externalDriftBaseline.version_number}</strong>
-            </div>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
-                <thead>
-                  <tr style={{ background: '#f8fafc' }}>
-                    {['Column', 'Baseline meaning', 'Current meaning', 'Drift severity', 'Evidence'].map((header) => (
-                      <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0' }}>{header}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {externalDrift.slice(0, 10).map((row) => (
-                    <tr key={`external-${row.column_name}`}>
-                      <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{row.column_name}</td>
-                      <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.baseline_meaning}</td>
-                      <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.current_detected_meaning}</td>
-                      <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.drift_severity}</td>
-                      <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#64748b' }}>{row.evidence.join(' ')}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
-      </article>
-
-      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Feature Release Gate</div>
-            <div className="muted-text" style={{ fontSize: 11 }}>Release-safe view with quick filters for examiners and admins.</div>
-          </div>
-          <div className="featureops-filter-row">
-            {(['All', 'READY', 'CONDITIONAL', 'QUARANTINED'] as const).map((tab) => (
-              <button key={tab} type="button" className={`featureops-filter-pill${releaseFilter === tab ? ' active' : ''}`} onClick={() => setReleaseFilter(tab)}>
-                {tab}
+              <button
+                type="button"
+                className={`featureops-workspace-tab${reviewWorkspaceTab === 'drift' ? ' active' : ''}`}
+                onClick={() => setReviewWorkspaceTab('drift')}
+              >
+                Drift & Release
               </button>
-            ))}
-          </div>
-        </div>
-        <div className="featureops-release-grid">
-          {(['READY', 'CONDITIONAL', 'QUARANTINED'] as FeatureStatus[]).map((status) => {
-            const tone = releaseTone(status)
-            return (
-              <div key={status} className="featureops-status-card" style={{ borderColor: tone.border, background: tone.bg }}>
-                <span style={{ color: tone.text }}>{status}</span>
-                <strong style={{ color: '#0f172a' }}>{releaseCounts[status]}</strong>
-              </div>
-            )
-          })}
-        </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
-            <thead>
-              <tr style={{ background: '#f8fafc' }}>
-                {['Column', 'Role', 'Release', 'Reason', 'Action'].map((header) => (
-                  <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0' }}>{header}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {visibleReleaseRows.slice(0, 16).map((row) => {
-                const tone = releaseTone(row.release_status)
-                return (
-                  <tr key={`release-${row.column_name}`}>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{row.column_name}</td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.role}</td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
-                      <span style={{ borderRadius: 999, background: tone.text, color: '#ffffff', padding: '4px 8px', fontSize: 10, fontWeight: 800 }}>{row.release_status}</span>
-                    </td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.explanation}</td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.recommended_action}</td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      </article>
-
-      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Registry Summary</div>
-        <div className="featureops-overview-grid">
-          {[
-            ['Selected family', selectedFamilyId || 'Not selected'],
-            ['Latest comparison', selectedBaseline ? `Compared with v${selectedBaseline.version_number}` : lastWorkflowMode === 'baseline' ? 'New baseline flow' : 'No comparison baseline'],
-            ['Release summary', summarizeReleaseResults(releaseResults)],
-            ['Last updated', uploadTime ? new Date(uploadTime).toLocaleString('en-GB') : 'N/A'],
-          ].map(([label, value]) => (
-            <div key={label} className="featureops-summary-card">
-              <span>{label}</span>
-              <strong>{value}</strong>
             </div>
-          ))}
-        </div>
-      </article>
-
-      <article style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Recommendation Readiness</div>
-        {!isRecommendationCompatible ? (
-          <div style={{ borderRadius: 8, border: '1px solid #dbeafe', background: '#eff6ff', color: '#1e3a8a', padding: '10px 12px', fontSize: 11.5 }}>
-            This dataset is not recommendation-ready yet. The workflow is running FeatureOps semantic checks only.
           </div>
-        ) : (
-          <div style={{ borderRadius: 8, border: '1px solid #dbeafe', background: '#eff6ff', color: '#1e3a8a', padding: '10px 12px', fontSize: 11.5 }}>
-            Recommendation-ready fields were detected. This upload can move forward into recommendation validation.
-          </div>
-        )}
-      </article>
 
-      <details ref={mappingDetailsRef} className="featureops-detail-panel">
-        <summary>View Mapping Details</summary>
-        <div style={{ overflowX: 'auto', marginTop: 12 }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
-            <thead>
-              <tr style={{ background: '#f8fafc' }}>
-                {['Column', 'Detected type', 'Assigned role', 'Confidence', 'Why', 'Change role'].map((header) => (
-                  <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0' }}>{header}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {profiles.map((profile) => {
-                const detection = detections[profile.column_name]
-                const assessment = assessments[profile.column_name]
-                const tone = confidenceTone(assessment.confidence)
-                const role = roles[profile.column_name]
-                const suggestedRole = findSuggestedRole(profile, role)
-                return (
-                  <tr key={`mapping-${profile.column_name}`} style={suggestedRole ? { background: '#fffbeb' } : undefined}>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{profile.column_name}</td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{profile.inferred_type}</td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{role}</td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
-                      <span style={{ borderRadius: 999, background: tone.bg, color: tone.text, padding: '3px 8px', fontSize: 10, fontWeight: 800 }}>
-                        {Math.round(assessment.confidence * 100)}%
-                      </span>
-                    </td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#64748b' }}>
-                      {suggestedRole
-                        ? `Mapping review needed. ${suggestedRole.reason}`
-                        : manualRoles[profile.column_name]
-                          ? `${assessment.reason} Manual mapping applied.`
-                          : detection.reason}
-                    </td>
-                    <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
-                      <select
-                        value={manualRoles[profile.column_name] || role}
-                        onChange={(event) => {
-                          const nextRole = event.target.value as GenericRole
-                          setManualRoles((previous) => ({ ...previous, [profile.column_name]: nextRole }))
-                          pushMessage('Role mapping updated.', 'success')
-                          pushMessage('Release gate recalculated.', 'info')
-                        }}
-                        style={{ minWidth: 170 }}
-                      >
-                        {ROLE_OPTIONS.map((option) => (
-                          <option key={`${profile.column_name}-${option}`} value={option}>{option}</option>
+          {reviewWorkspaceTab === 'mapping' ? (
+            <div style={{ display: 'grid', gap: 12 }}>
+              <div className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', padding: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#111827', marginBottom: 10 }}>Mapping Details</div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
+                    <thead>
+                      <tr style={{ background: '#eef4fb' }}>
+                        {['Column', 'Detected type', 'Assigned role', 'Confidence', 'Why', 'Change role'].map((header) => (
+                          <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #dbe5f0', color: '#334155' }}>{header}</th>
                         ))}
-                      </select>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      </details>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {profiles.map((profile) => {
+                        const detection = detections[profile.column_name]
+                        const assessment = assessments[profile.column_name]
+                        const tone = confidenceTone(assessment.confidence)
+                        const role = roles[profile.column_name]
+                        const suggestedRole = findSuggestedRole(profile, role)
+                        return (
+                          <tr key={`mapping-tab-${profile.column_name}`} style={suggestedRole ? { background: '#fffbeb' } : undefined}>
+                            <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{profile.column_name}</td>
+                            <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{profile.inferred_type}</td>
+                            <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{role}</td>
+                            <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
+                              <span style={{ borderRadius: 999, background: tone.bg, color: tone.text, padding: '3px 8px', fontSize: 10, fontWeight: 800 }}>
+                                {Math.round(assessment.confidence * 100)}%
+                              </span>
+                            </td>
+                            <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#64748b' }}>
+                              {suggestedRole
+                                ? `Mapping review needed. ${suggestedRole.reason}`
+                                : manualRoles[profile.column_name]
+                                  ? `${assessment.reason} Manual mapping applied.`
+                                  : detection.reason}
+                            </td>
+                            <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
+                              <select
+                                value={manualRoles[profile.column_name] || role}
+                                onChange={(event) => {
+                                  const nextRole = event.target.value as GenericRole
+                                  setManualRoles((previous) => ({ ...previous, [profile.column_name]: nextRole }))
+                                  pushMessage('Role mapping updated.', 'success')
+                                  pushMessage('Release gate recalculated.', 'info')
+                                }}
+                                style={{ minWidth: 170 }}
+                              >
+                                {ROLE_OPTIONS.map((option) => (
+                                  <option key={`${profile.column_name}-${option}`} value={option}>{option}</option>
+                                ))}
+                              </select>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
 
-      <details className="featureops-detail-panel">
-        <summary>View Semantic Profiles</summary>
-        <div style={{ overflowX: 'auto', marginTop: 12 }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
-            <thead>
-              <tr style={{ background: '#f8fafc' }}>
-                {['Column', 'Role', 'Detected scale', 'Detected unit', 'Value direction', 'Semantic signature'].map((header) => (
-                  <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #e2e8f0' }}>{header}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {semanticProfiles.map((profile) => (
-                <tr key={`semantic-${profile.column_name}`}>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{profile.column_name}</td>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{profile.generic_role}</td>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{profile.detected_scale}</td>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{profile.detected_unit}</td>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{profile.value_direction}</td>
-                  <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#64748b' }}>{profile.semantic_signature}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </details>
+              <div className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', padding: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#111827', marginBottom: 10 }}>Semantic Profiles</div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
+                    <thead>
+                      <tr style={{ background: '#eef4fb' }}>
+                        {['Column', 'Role', 'Meaning', 'Expected scale', 'Expected unit', 'Value direction', 'Semantic signature'].map((header) => (
+                          <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #dbe5f0', color: '#334155' }}>{header}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {semanticProfiles.map((profile) => (
+                        <tr key={`semantic-tab-${profile.column_name}`}>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{profile.column_name}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{profile.generic_role}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
+                            <input
+                              type="text"
+                              value={profile.approved_or_detected_meaning}
+                              onChange={(event) => {
+                                const nextValue = event.target.value
+                                setManualSemanticOverrides((previous) => ({
+                                  ...previous,
+                                  [profile.column_name]: { ...previous[profile.column_name], approved_or_detected_meaning: nextValue },
+                                }))
+                              }}
+                              onBlur={() => pushMessage('Semantic meaning updated.', 'success')}
+                              style={{ width: '100%' }}
+                            />
+                          </td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
+                            <input
+                              type="text"
+                              value={profile.expected_scale}
+                              onChange={(event) => {
+                                const nextValue = event.target.value
+                                setManualSemanticOverrides((previous) => ({
+                                  ...previous,
+                                  [profile.column_name]: { ...previous[profile.column_name], expected_scale: nextValue },
+                                }))
+                              }}
+                              onBlur={() => pushMessage('Expected scale updated.', 'info')}
+                              style={{ width: '100%' }}
+                            />
+                          </td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
+                            <input
+                              type="text"
+                              value={profile.expected_unit}
+                              onChange={(event) => {
+                                const nextValue = event.target.value
+                                setManualSemanticOverrides((previous) => ({
+                                  ...previous,
+                                  [profile.column_name]: { ...previous[profile.column_name], expected_unit: nextValue },
+                                }))
+                              }}
+                              onBlur={() => pushMessage('Expected unit updated.', 'info')}
+                              style={{ width: '100%' }}
+                            />
+                          </td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
+                            <input
+                              type="text"
+                              value={profile.value_direction}
+                              onChange={(event) => {
+                                const nextValue = event.target.value
+                                setManualSemanticOverrides((previous) => ({
+                                  ...previous,
+                                  [profile.column_name]: { ...previous[profile.column_name], value_direction: nextValue },
+                                }))
+                              }}
+                              onBlur={() => pushMessage('Value direction updated.', 'info')}
+                              style={{ width: '100%' }}
+                            />
+                          </td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#64748b' }}>{profile.semantic_signature}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gap: 12 }}>
+              <div className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Summary Cards</div>
+                <div className="featureops-release-grid">
+                  {(['READY', 'CONDITIONAL', 'QUARANTINED'] as FeatureStatus[]).map((status) => {
+                    const tone = releaseTone(status)
+                    return (
+                      <div key={`review-${status}`} className="featureops-status-card" style={{ borderColor: tone.border, background: tone.bg }}>
+                        <span style={{ color: '#1f2937' }}>{status}</span>
+                        <strong style={{ color: '#0f172a' }}>{releaseCounts[status]}</strong>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Cross-Modal Integrity Check</div>
+                    <div className="muted-text" style={{ fontSize: 11 }}>
+                      {driftAnalysis?.cross_modal?.explanation || 'Checks whether numeric, text, and categorical values still make sense together.'}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {[
+                      { label: 'SAFE', value: crossModalSummary.safe, tone: '#14532d', bg: '#dcfce7' },
+                      { label: 'CONDITIONAL', value: crossModalSummary.conditional, tone: '#92400e', bg: '#fef3c7' },
+                      { label: 'QUARANTINED', value: crossModalSummary.quarantined, tone: '#991b1b', bg: '#fee2e2' },
+                      { label: 'Pending Review', value: crossModalSummary.pendingReview, tone: '#1d4ed8', bg: '#dbeafe' },
+                    ].map((card) => (
+                      <div key={card.label} style={{ minWidth: 110, borderRadius: 10, padding: '8px 10px', background: card.bg, display: 'grid', gap: 4 }}>
+                        <span style={{ fontSize: 10, fontWeight: 800, color: card.tone }}>{card.label}</span>
+                        <strong style={{ fontSize: 18, color: '#0f172a' }}>{card.value}</strong>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
+                    <thead>
+                      <tr style={{ background: '#eef4fb' }}>
+                        {['Row', 'Status', 'Broken relationship', 'Reason', 'Recommended action'].map((header) => (
+                          <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #dbe5f0', color: '#334155' }}>{header}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {crossModalRows.slice(0, 12).map((row: any) => {
+                        const tone = row.status === 'QUARANTINED'
+                          ? { bg: '#991b1b', text: '#ffffff' }
+                          : row.status === 'CONDITIONAL'
+                            ? { bg: '#92400e', text: '#ffffff' }
+                            : { bg: '#14532d', text: '#ffffff' }
+                        return (
+                          <tr key={`cross-modal-${row.row_id}`}>
+                            <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>Row {row.row_id}</td>
+                            <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
+                              <span style={{ borderRadius: 999, background: tone.bg, color: tone.text, padding: '4px 8px', fontSize: 10, fontWeight: 800 }}>
+                                {row.status}
+                              </span>
+                            </td>
+                            <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{row.broken_relationship}</td>
+                            <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.reason}</td>
+                            <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.recommended_action}</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {!crossModalRows.length && (
+                  <div className="featureops-empty-state">
+                    Cross-modal monitoring results will appear here after learned drift analysis runs.
+                  </div>
+                )}
+              </div>
+
+              <div className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Human Review Queue</div>
+                  <div className="muted-text" style={{ fontSize: 11 }}>Ask a reviewer whether the row still makes sense across fields before approving unusual relationships.</div>
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
+                    <thead>
+                      <tr style={{ background: '#eef4fb' }}>
+                        {['Row', 'Review prompt', 'Current decision', 'Actions'].map((header) => (
+                          <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #dbe5f0', color: '#334155' }}>{header}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {crossModalHumanQueue.slice(0, 10).map((item: any) => (
+                        <tr key={`human-review-${item.row_id}`}>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>Row {item.row_id}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{item.review_prompt}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{item.review_status}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
+                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                              {(['Accept', 'Accept with warning', 'Reject / Quarantine'] as HumanReviewDecision[]).map((decision) => (
+                                <button
+                                  key={`${item.row_id}-${decision}`}
+                                  type="button"
+                                  className="featureops-filter-pill"
+                                  onClick={() => {
+                                    setCrossModalHumanDecisions((previous) => ({ ...previous, [String(item.row_id)]: decision }))
+                                    pushMessage(`Human review updated for row ${item.row_id}: ${decision}.`, decision === 'Reject / Quarantine' ? 'warning' : 'success')
+                                  }}
+                                >
+                                  {decision}
+                                </button>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {!crossModalHumanQueue.length && (
+                  <div className="featureops-empty-state">
+                    No rows currently need human review.
+                  </div>
+                )}
+              </div>
+
+              <div className="featureops-light-panel" style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Semantic Drift Detected</div>
+                    <div className="muted-text" style={{ fontSize: 11 }}>Internal and external semantic drift with explanations and recommended actions.</div>
+                  </div>
+                </div>
+
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
+                    <thead>
+                      <tr style={{ background: '#eef4fb' }}>
+                        {['Column', 'Drift source', 'Severity', 'Explanation', 'Recommended action'].map((header) => (
+                          <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #dbe5f0', color: '#334155' }}>{header}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        ...internalDrift.map((row) => ({
+                          key: `internal-review-${row.column_name}`,
+                          column_name: row.column_name,
+                          source: `Internal (${row.compared_by})`,
+                          severity: row.drift_severity,
+                          explanation: row.explanation || row.evidence.join(' '),
+                          recommended_action: row.recommended_action,
+                        })),
+                        ...externalDrift.map((row) => ({
+                          key: `external-review-${row.column_name}`,
+                          column_name: row.column_name,
+                          source: `External (${row.baseline_version})`,
+                          severity: row.drift_severity,
+                          explanation: row.explanation || row.evidence.join(' '),
+                          recommended_action: row.recommended_action,
+                        })),
+                      ].slice(0, 18).map((row) => (
+                        <tr key={row.key}>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{row.column_name}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.source}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.severity}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.explanation}</td>
+                          <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.recommended_action}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {!internalDrift.length && !externalDrift.length && (
+                  <div className="featureops-empty-state">
+                    No semantic drift was detected yet. Upload a dataset or compare against a saved family version.
+                  </div>
+                )}
+              </div>
+
+              <div style={{ borderRadius: 10, border: '1px solid #e2e8f0', background: '#ffffff', padding: 12, display: 'grid', gap: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>Release Decisions</div>
+                    <div className="muted-text" style={{ fontSize: 11 }}>Feature release labels with explanations and actions.</div>
+                  </div>
+                  <div className="featureops-filter-row">
+                    {(['All', 'READY', 'CONDITIONAL', 'QUARANTINED'] as const).map((tab) => (
+                      <button key={tab} type="button" className={`featureops-filter-pill${releaseFilter === tab ? ' active' : ''}`} onClick={() => setReleaseFilter(tab)}>
+                        {tab}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
+                    <thead>
+                      <tr style={{ background: '#eef4fb' }}>
+                        {['Column', 'Role', 'Release', 'Explanation', 'Recommended action'].map((header) => (
+                          <th key={header} style={{ textAlign: 'left', padding: '7px 6px', borderBottom: '1px solid #dbe5f0', color: '#334155' }}>{header}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {visibleReleaseRows.slice(0, 16).map((row) => {
+                        const tone = releaseTone(row.release_status)
+                        return (
+                          <tr key={`release-review-${row.column_name}`}>
+                            <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', fontWeight: 700 }}>{row.column_name}</td>
+                            <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>{row.role}</td>
+                            <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9' }}>
+                              <span style={{ borderRadius: 999, background: tone.text, color: '#ffffff', padding: '4px 8px', fontSize: 10, fontWeight: 800 }}>{row.release_status}</span>
+                            </td>
+                            <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.explanation}</td>
+                            <td style={{ padding: '8px 6px', borderBottom: '1px solid #f1f5f9', color: '#475569' }}>{row.recommended_action}</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+        </article>
+      </section>
     </section>
   )
 }

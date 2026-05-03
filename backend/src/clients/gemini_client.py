@@ -17,7 +17,8 @@ logger = logging.getLogger(__name__)
 _last_request_time = 0
 _min_request_interval = 5.0  # Minimum 5 seconds between requests to avoid 429 errors
 
-LLM_MOCK = os.getenv("LLM_MOCK", "0") in ("1", "true", "True")
+_mock_flag = os.getenv("GEMINI_MOCK", os.getenv("LLM_MOCK", "0"))
+LLM_MOCK = _mock_flag in ("1", "true", "True")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY") or os.getenv("GROK_API_KEY", "")
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
 STYLING_GROQ_API_KEY = os.getenv("STYLING_GROQ_API_KEY", "")

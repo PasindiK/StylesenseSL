@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { HardDrive } from 'lucide-react'
 import './App.css'
+import shoppingAssistantAvatar from './assets/shopping-assistant-avatar.svg'
 import ProductCard from './modules/agentic_ai/components/ProductCard'
 import type { Product } from './modules/agentic_ai/components/ProductCard'
 import AgenticAIDashboard from './modules/agentic_ai/pages/AgenticAIDashboard'
@@ -86,6 +87,7 @@ export default function App() {
   const [showCart, setShowCart] = useState(false)
   const [cartData, setCartData] = useState<any>(null)
   const [cartItemCount, setCartItemCount] = useState(0)
+  const [showOrderingAssistantHint, setShowOrderingAssistantHint] = useState(false)
   const [agenticInitialSection, setAgenticInitialSection] = useState<'chat' | 'order_assistant'>('chat')
   const [orderAssistantCheckoutRequest, setOrderAssistantCheckoutRequest] = useState<OrderAssistantCheckoutRequest | null>(null)
   const [queryFeedbackByMessage, setQueryFeedbackByMessage] = useState<Record<string, 'yes' | 'no' | 'skip'>>({})
@@ -183,6 +185,10 @@ export default function App() {
   async function handleOpenShoppingCartFromOrderAssistant() {
     await fetchCart()
     setShowCart(true)
+  }
+
+  function handleOpenOrderingAssistant() {
+    window.dispatchEvent(new CustomEvent('open-ordering-assistant'))
   }
 
   function handleCheckoutCartItem(item: any) {
@@ -850,6 +856,30 @@ export default function App() {
                   className="input-field"
                 />
                 <button type="submit" className="send-button">Send</button>
+                <div
+                  className="ordering-assistant-trigger-wrap"
+                  onMouseEnter={() => setShowOrderingAssistantHint(true)}
+                  onMouseLeave={() => setShowOrderingAssistantHint(false)}
+                >
+                  <button
+                    type="button"
+                    className="ordering-assistant-trigger"
+                    title="Ordering Assistant"
+                    aria-label="Open Ordering Assistant"
+                    onClick={handleOpenOrderingAssistant}
+                  >
+                    <img src={shoppingAssistantAvatar} alt="Ordering Assistant" className="ordering-assistant-trigger-avatar" />
+                  </button>
+                  {showOrderingAssistantHint && (
+                    <div className="ordering-assistant-tooltip">
+                      <img src={shoppingAssistantAvatar} alt="Ordering Assistant profile" className="ordering-assistant-tooltip-avatar" />
+                      <div>
+                        <div className="ordering-assistant-tooltip-title">Ordering Assistant</div>
+                        <div className="ordering-assistant-tooltip-text">Cart, checkout, and order help.</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </form>
                 </section>
               }

@@ -784,6 +784,12 @@ body {
   min-width: 0;
 }
 
+/* DE Workflow (FeatureOps): use horizontal space — sidebar stays; content pad tighter */
+.chat-main > div:has([data-dashboard-section='featureops_workflow']) {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
 .chat-main.cart-open {
   padding-right: min(400px, 90vw);
   transition: padding-right 0.25s ease;
@@ -1182,6 +1188,7 @@ body {
   padding: 1.5rem;
   background: var(--bg-secondary);
   border-top: 1px solid var(--border-color);
+  align-items: center;
 }
 
 .agentic-page-shell {
@@ -1255,6 +1262,76 @@ body {
 
 .send-button:active {
   transform: translateY(0);
+}
+
+.ordering-assistant-trigger-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.ordering-assistant-trigger {
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(129, 140, 248, 0.28);
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(239,246,255,0.98));
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ordering-assistant-trigger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.2);
+}
+
+.ordering-assistant-trigger-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: block;
+}
+
+.ordering-assistant-tooltip {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 12px);
+  min-width: 220px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  background: linear-gradient(135deg, rgba(255,255,255,0.995), rgba(241,245,249,0.995));
+  color: #0f172a;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.24);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 80;
+  pointer-events: none;
+}
+
+.ordering-assistant-tooltip-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.ordering-assistant-tooltip-title {
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #0f172a;
+}
+
+.ordering-assistant-tooltip-text {
+  margin-top: 0.2rem;
+  font-size: 0.76rem;
+  color: #475569;
 }
 
 /* ============================================

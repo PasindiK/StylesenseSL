@@ -10,6 +10,7 @@ from uuid import uuid4
 import json
 import re
 import uuid
+import logging
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,6 +18,8 @@ import pandas as pd
 import json
 import shutil
 from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
 
 
 # Load environment variables from .env file
@@ -30,9 +33,16 @@ load_dotenv(dotenv_path=env_path)
 # Verify Groq API key is loaded
 groq_key = os.getenv("GROQ_API_KEY")
 if groq_key:
-    print(f"✅ Groq API key loaded: {groq_key[:20]}...")
+    print(f"Groq API key loaded: {groq_key[:20]}...")
 else:
-    print("⚠️ Groq API key not found in environment")
+    print("Groq API key not found in environment")
+
+
+def _parse_cors_origins(raw_value: str | None) -> list[str]:
+    if not raw_value:
+        return ["*"]
+    origins = [origin.strip() for origin in raw_value.split(",") if origin.strip()]
+    return origins or ["*"]
 
 from src.ingestion.data_loader import DataLoader
 from src.services.agentic_ai.agents.catalog_agent import CatalogAgent
@@ -46,13 +56,14 @@ from src.clients.gemini_client import generate_styling_advice_with_gemini, predi
 from src.services.agentic_ai.agents.order_agent import OrderAgent
 from src.services.agentic_ai.agents.link_order_assistant_agent import LinkOrderAssistantAgent
 from src.services.agentic_ai.featureops.registry import FeatureOpsDatasetRegistry
+from src.services.agentic_ai.featureops.drift_detector_orchestrator import DriftDetectorOrchestrator
 
 app = FastAPI(title="CatalogAgent API")
 
 # Enable CORS for frontend to call backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins (can restrict to specific domains in production)
+    allow_origins=_parse_cors_origins(os.getenv("CORS_ORIGINS")),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -131,6 +142,12 @@ featureops_registry = FeatureOpsDatasetRegistry(
     ROOT / "src" / "services" / "agentic_ai" / "featureops" / "registry"
 )
 
+# Initialize the new drift detector orchestrator (ML-based, replaces rule-based approach)
+drift_orchestrator = DriftDetectorOrchestrator(
+    state_dir=ROOT / "src" / "services" / "agentic_ai" / "featureops" / "drift_state",
+    openai_api_key=os.getenv("OPENAI_API_KEY"),
+)
+
 
 class FeatureOpsSchemaAssistRequest(BaseModel):
     columns: List[str]
@@ -155,6 +172,8 @@ class FeatureOpsDatasetVersionRequest(BaseModel):
     semantic_profiles: List[Dict[str, Any]]
     internal_drift_results: List[Dict[str, Any]]
     external_drift_results: Optional[List[Dict[str, Any]]] = None
+    statistical_drift_results: Optional[List[Dict[str, Any]]] = None
+    behavioral_drift_results: Optional[List[Dict[str, Any]]] = None
     release_results: List[Dict[str, Any]]
 
 
@@ -167,6 +186,8 @@ class FeatureOpsDriftRunRequest(BaseModel):
     dataset_fingerprint: Dict[str, Any]
     internal_drift_results: List[Dict[str, Any]]
     external_drift_results: Optional[List[Dict[str, Any]]] = None
+    statistical_drift_results: Optional[List[Dict[str, Any]]] = None
+    behavioral_drift_results: Optional[List[Dict[str, Any]]] = None
     release_results: List[Dict[str, Any]]
 
 
@@ -2223,6 +2244,342 @@ def featureops_list_drift_runs():
         "status": "ok",
         "runs": featureops_registry.list_drift_runs(),
     }
+
+
+@app.delete("/api/featureops/families/{family_id}/versions/{version_number}")
+def featureops_delete_version(family_id: str, version_number: int):
+    try:
+        result = featureops_registry.delete_version(family_id, version_number)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return {
+        "status": "ok",
+        "message": f"Version v{version_number} deleted successfully.",
+        "result": result,
+    }
+
+
+@app.delete("/api/featureops/families/{family_id}")
+def featureops_delete_family(family_id: str):
+    try:
+        result = featureops_registry.delete_family(family_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return {
+        "status": "ok",
+        "message": "Dataset family deleted successfully.",
+        "result": result,
+    }
+
+
+@app.delete("/api/featureops/drift-runs/{run_id}")
+def featureops_delete_drift_run(run_id: str):
+    try:
+        result = featureops_registry.delete_drift_run(run_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return {
+        "status": "ok",
+        "message": "Upload history record deleted successfully.",
+        "result": result,
+    }
+
+
+# ============ Profile-Based Drift Detection Endpoints ============
+
+from src.services.agentic_ai.featureops.profile_drift_detector import ProfileDriftDetector
+
+# Initialize drift services
+drift_detector = ProfileDriftDetector(ROOT / "src" / "services" / "agentic_ai" / "featureops" / "drift_state")
+
+
+class DetectInternalDriftRequest(BaseModel):
+    dataset_name: str
+    dataset_rows: List[Dict[str, Any]]
+
+
+class DetectExternalDriftRequest(BaseModel):
+    dataset_name: str
+    baseline_version: str
+    current_version: str
+    baseline_rows: List[Dict[str, Any]]
+    current_rows: List[Dict[str, Any]]
+    schema_info: Optional[Dict[str, Any]] = None
+
+
+class TrainDriftScorerRequest(BaseModel):
+    labeled_drift_runs: List[Dict[str, Any]]  # [{drift_result, label}]
+
+
+class SetDriftBaselineRequest(BaseModel):
+    dataset_name: str
+    dataset_rows: List[Dict[str, Any]]
+
+
+@app.post("/api/featureops/drift/detect-internal")
+def detect_internal_drift(req: DetectInternalDriftRequest):
+    """Detect drift within a single dataset (early vs. late portions)."""
+    try:
+        df = pd.DataFrame(req.dataset_rows)
+        result = drift_detector.detect_internal_drift(df, req.dataset_name)
+        return {
+            "status": "ok",
+            "drift_run_id": result.drift_run_id,
+            "drift_detected": result.drift_detected,
+            "severity": result.severity,
+            "overall_score": result.overall_drift_score,
+            "result": result.to_dict(),
+        }
+    except Exception as e:
+        logger.exception(f"Internal drift detection failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Drift detection error: {str(e)}")
+
+
+@app.post("/api/featureops/drift/baselines/internal")
+def set_internal_drift_baseline(req: SetDriftBaselineRequest):
+    """Persist the internal baseline profile as internal_baseline.json."""
+    try:
+        df = pd.DataFrame(req.dataset_rows)
+        return drift_detector.set_baseline("internal", df, req.dataset_name)
+    except Exception as e:
+        logger.exception(f"Failed to set internal drift baseline: {e}")
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+
+@app.post("/api/featureops/drift/baselines/external")
+def set_external_drift_baseline(req: SetDriftBaselineRequest):
+    """Persist the market baseline profile as external_baseline.json."""
+    try:
+        df = pd.DataFrame(req.dataset_rows)
+        return drift_detector.set_baseline("external", df, req.dataset_name)
+    except Exception as e:
+        logger.exception(f"Failed to set external drift baseline: {e}")
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+
+@app.get("/api/featureops/drift/baselines")
+def get_drift_baselines():
+    """Return the active baseline file locations and calibration settings."""
+    try:
+        return {
+            "status": "ok",
+            "baselines": drift_detector.get_training_stats(),
+        }
+    except Exception as e:
+        logger.exception(f"Failed to fetch drift baselines: {e}")
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+
+@app.post("/api/featureops/drift/detect-external")
+def detect_external_drift(req: DetectExternalDriftRequest):
+    """Detect drift between two dataset versions."""
+    try:
+        df_baseline = pd.DataFrame(req.baseline_rows)
+        df_current = pd.DataFrame(req.current_rows)
+        result = drift_detector.detect_external_drift(
+            df_baseline, df_current,
+            req.dataset_name,
+            req.baseline_version,
+            req.current_version,
+            req.schema_info,
+        )
+        return {
+            "status": "ok",
+            "drift_run_id": result.drift_run_id,
+            "drift_detected": result.drift_detected,
+            "severity": result.severity,
+            "overall_score": result.overall_drift_score,
+            "result": result.to_dict(),
+        }
+    except Exception as e:
+        logger.exception(f"External drift detection failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Drift detection error: {str(e)}")
+
+
+@app.get("/api/featureops/drift/results/{run_id}")
+def get_drift_result(run_id: str):
+    """Retrieve a saved drift detection result."""
+    try:
+        result = drift_detector.get_result(run_id)
+        if not result:
+            raise HTTPException(status_code=404, detail=f"Drift result {run_id} not found")
+        return {
+            "status": "ok",
+            "result": result.to_dict(),
+        }
+    except Exception as e:
+        logger.exception(f"Failed to retrieve drift result: {e}")
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+
+@app.post("/api/featureops/drift/train-scorer")
+def train_drift_scorer(req: TrainDriftScorerRequest):
+    """Train the learned drift severity scorer from labeled drift runs."""
+    try:
+        # Format labeled data
+        labeled_data = []
+        for item in req.labeled_drift_runs:
+            drift_result = item.get('drift_result', {})
+            label = item.get('label')
+            if drift_result and label:
+                labeled_data.append((drift_result, label))
+        
+        if not labeled_data:
+            raise ValueError("No valid labeled drift runs provided")
+        
+        metrics = drift_detector.train(labeled_data)
+        return {
+            "status": "ok",
+            "message": f"Trained scorer on {len(labeled_data)} samples",
+            "metrics": metrics,
+        }
+    except Exception as e:
+        logger.exception(f"Drift scorer training failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Training error: {str(e)}")
+
+
+@app.get("/api/featureops/drift/scorer-stats")
+def get_scorer_stats():
+    """Get statistics on the learned drift scorer."""
+    try:
+        stats = drift_detector.get_training_stats()
+        return {
+            "status": "ok",
+            "stats": stats,
+        }
+    except Exception as e:
+        logger.exception(f"Failed to get scorer stats: {e}")
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+
+@app.post("/api/featureops/drift/label-result")
+def label_drift_result(run_id: str, label: str):
+    """
+    Store human-provided label for a drift result (for training).
+    """
+    try:
+        result = drift_detector.get_result(run_id)
+        if not result:
+            raise HTTPException(status_code=404, detail=f"Drift result {run_id} not found")
+        
+        if label not in ['low', 'moderate', 'high']:
+            raise ValueError(f"Invalid label: {label}. Must be 'low', 'moderate', or 'high'")
+        
+        # Mark as human-reviewed
+        result.human_reviewed = True
+        result.human_label = label
+        
+        # Save updated result
+        drift_detector._save_result(result)
+        
+        return {
+            "status": "ok",
+            "message": f"Labeled result {run_id} as '{label}'",
+        }
+    except Exception as e:
+        logger.exception(f"Failed to label drift result: {e}")
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+
+# =====================================================================
+# NEW: ML-Based Drift Detection Orchestrator (Replaces Rule-Based Approach)
+# =====================================================================
+
+@app.post("/api/featureops/drift/detect-full")
+async def detect_drift_full(file: UploadFile = File(...)):
+    """
+    NEW: Full drift detection using learned ML model.
+    
+    Replaces rule-based thresholds with learned decision boundaries.
+    Uses all 4 agents:
+    1. ProfilerAgent - Semantic profiling
+    2. BaselineAgent - Load/compare baselines
+    3. RelationalAnchorAgent - Relationship validation
+    4. LearnedScoringAgent - ML classification (SAFE/CONDITIONAL/QUARANTINED)
+    
+    Returns: Complete drift analysis with profiler, explanations, and row-level results
+    """
+    try:
+        import pandas as pd
+        from io import StringIO
+        
+        # Parse uploaded file
+        content = await file.read()
+        if file.filename.endswith('.csv'):
+            df = pd.read_csv(StringIO(content.decode()))
+        elif file.filename.endswith('.json'):
+            df = pd.read_json(StringIO(content.decode()))
+        else:
+            raise ValueError(f"Unsupported file format: {file.filename}")
+        
+        # Run orchestrator
+        analysis = drift_orchestrator.detect_drift(df, dataset_name=file.filename)
+        
+        # Return complete result
+        return {
+            "status": "success",
+            **analysis.to_dict(),
+        }
+        
+    except Exception as e:
+        logger.exception(f"Full drift detection failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Drift detection error: {str(e)}")
+
+
+@app.post("/api/featureops/drift/orchestrator/baselines/internal")
+def set_orchestrator_internal_baseline(req: SetDriftBaselineRequest):
+    """Set the learned orchestrator internal baseline from dataset rows."""
+    try:
+        df = pd.DataFrame(req.dataset_rows)
+        return drift_orchestrator.set_baseline("internal", df, req.dataset_name)
+    except Exception as e:
+        logger.exception(f"Failed to set orchestrator internal baseline: {e}")
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+
+@app.post("/api/featureops/drift/orchestrator/baselines/external")
+def set_orchestrator_external_baseline(req: SetDriftBaselineRequest):
+    """Set the learned orchestrator external baseline from dataset rows."""
+    try:
+        df = pd.DataFrame(req.dataset_rows)
+        return drift_orchestrator.set_baseline("external", df, req.dataset_name)
+    except Exception as e:
+        logger.exception(f"Failed to set orchestrator external baseline: {e}")
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+
+@app.get("/api/featureops/drift/orchestrator/stats")
+def get_orchestrator_stats():
+    """Get statistics on the drift orchestrator and learned model."""
+    try:
+        stats = {
+            "orchestrator": "DriftDetectorOrchestrator",
+            "agents": [
+                {"name": "ProfilerAgent", "status": "active" if drift_orchestrator.profiler else "inactive"},
+                {"name": "BaselineAgent", "status": "active" if drift_orchestrator.baseline_agent else "inactive"},
+                {"name": "RelationalAnchorAgent", "status": "active" if drift_orchestrator.anchor_agent else "inactive"},
+                {"name": "LearnedScoringAgent", "status": "active" if drift_orchestrator.scoring_agent else "inactive"},
+            ],
+            "approach": "Learned ML model (replaces rule-based thresholds)",
+            "model_type": "Logistic Regression with StandardScaler normalization",
+            "features": 15,
+            "classes": ["SAFE", "CONDITIONAL", "QUARANTINED"],
+        }
+        
+        if drift_orchestrator.scoring_agent:
+            try:
+                model_info = drift_orchestrator.scoring_agent.get_model_info()
+                stats["model_info"] = model_info
+            except:
+                pass
+        
+        return {
+            "status": "ok",
+            "stats": stats,
+        }
+    except Exception as e:
+        logger.exception(f"Failed to get orchestrator stats: {e}")
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 
 @app.get("/api/runtime/scoring")
