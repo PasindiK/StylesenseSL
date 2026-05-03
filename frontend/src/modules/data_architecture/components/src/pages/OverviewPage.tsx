@@ -17,7 +17,7 @@ import { MetricCard } from '../cards/MetricCard';
 import { PipelineFlowDiagram } from '../charts/PipelineFlowDiagram';
 import { Panel } from '../panels/Panel';
 import type { DashboardSummaryResponse } from '../types';
-import { formatBytes, pct } from '../utils/formatters';
+import { formatRechartsBytesTooltip, pct } from '../utils/formatters';
 
 interface OverviewPageProps {
   summary: DashboardSummaryResponse;
@@ -117,11 +117,7 @@ export function OverviewPage({ summary }: OverviewPageProps) {
                     <Cell key={`tier-${item.tier}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip
-                  formatter={(value: unknown) =>
-                    typeof value === 'number' ? formatBytes(value) : 'N/A'
-                  }
-                />
+                <Tooltip formatter={(value) => formatRechartsBytesTooltip(value)} />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
@@ -137,11 +133,7 @@ export function OverviewPage({ summary }: OverviewPageProps) {
                 <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" />
                 <XAxis dataKey="layer" />
                 <YAxis />
-                <Tooltip
-                  formatter={(value: unknown) =>
-                    typeof value === 'number' ? formatBytes(value) : 'N/A'
-                  }
-                />
+                <Tooltip formatter={(value) => formatRechartsBytesTooltip(value)} />
                 <Bar dataKey="size_bytes" fill="#0f766e" name="Layer Volume" />
               </BarChart>
             </ResponsiveContainer>

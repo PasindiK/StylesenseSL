@@ -16,7 +16,7 @@ import {
 import type { DashboardSummaryResponse } from '../types';
 import { MetricCard } from '../cards/MetricCard';
 import { Panel } from '../panels/Panel';
-import { compactDateTime, formatBytes } from '../utils/formatters';
+import { compactDateTime, formatBytes, formatRechartsGb } from '../utils/formatters';
 
 interface StoragePageProps {
   summary: DashboardSummaryResponse;
@@ -148,11 +148,7 @@ export function StoragePage({ summary }: StoragePageProps) {
                     <Cell key={`cell-${index}`} fill={entry.fill} />
                   ))}
                 </Pie>
-                <Tooltip
-                  formatter={(value: unknown) =>
-                    typeof value === 'number' ? `${value.toFixed(2)} GB` : 'N/A'
-                  }
-                />
+                <Tooltip formatter={(value) => formatRechartsGb(value)} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -167,11 +163,7 @@ export function StoragePage({ summary }: StoragePageProps) {
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="date" />
                 <YAxis />
-                <Tooltip
-                  formatter={(value: unknown) =>
-                    typeof value === 'number' ? `${value.toFixed(2)} GB` : 'N/A'
-                  }
-                />
+                <Tooltip formatter={(value) => formatRechartsGb(value)} />
                 <Line type="monotone" dataKey="GB" stroke="#3b82f6" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
