@@ -1,42 +1,117 @@
 domain_name: engagement_domain
 owner: nadunthenuwara@gmail.com
-description: Auto-generated contract for engagement_domain. Add full description here.
+description: >-
+  Demand trends and digital engagement — weekly trend scores plus session and campaign analytics.
+domain_profile:
+  business_meaning: >-
+    Combines macro trend intelligence (what is rising or falling in popularity) with micro
+    behavioral signals such as sessions, page views, dwell time, campaigns, and impressions.
+  common_terms:
+    - session_id
+    - page_view
+    - visit
+    - dwell_time
+    - campaign
+    - impression
+    - engagement_score
+    - event_time
+    - trend_score
+  expected_entities:
+    - session
+    - campaign
+    - trend
+  typical_actions:
+    - view_page
+    - dwell
+    - convert
+    - rank_trend
+  known_dataset_examples:
+    - trends_clean.csv
+    - engagement_events_test.csv
 schema:
-- column: trend_id
-  type: int64
-  nullable: false
-  description: Add column description here
-- column: trend_name
-  type: object
-  nullable: false
-  description: Add column description here
-- column: trend_category
-  type: object
-  nullable: false
-  description: Add column description here
-- column: trend_score
-  type: float64
-  nullable: false
-  description: Add column description here
-- column: week
-  type: float64
-  nullable: false
-  description: Add column description here
-- column: year
-  type: float64
-  nullable: false
-  description: Add column description here
-- column: emerging_designers
-  type: object
-  nullable: false
-  description: Add column description here
-- column: trend_tags
-  type: object
-  nullable: false
-  description: Add column description here
+  - column: trend_id
+    type: int64
+    nullable: false
+    description: Trend surrogate key
+  - column: trend_name
+    type: object
+    nullable: false
+    description: Trend label
+  - column: trend_category
+    type: object
+    nullable: false
+    description: Trend taxonomy
+  - column: trend_score
+    type: float64
+    nullable: false
+    description: Relative strength score
+  - column: week
+    type: float64
+    nullable: false
+    description: ISO or business week index
+  - column: year
+    type: float64
+    nullable: false
+    description: Calendar year
+  - column: emerging_designers
+    type: object
+    nullable: false
+    description: Designer spotlight payload
+  - column: trend_tags
+    type: object
+    nullable: false
+    description: Free-form trend tags
+  - column: momentum_rank
+    type: int64
+    nullable: true
+    description: Rank within category
+  - column: session_id
+    type: object
+    nullable: true
+    description: Web or app session identifier
+  - column: visitor_id
+    type: object
+    nullable: true
+    description: Anonymous visitor key
+  - column: user_id
+    type: int64
+    nullable: true
+    description: Logged-in user when known
+  - column: product_id
+    type: int64
+    nullable: true
+    description: Product context for engagement
+  - column: page_view
+    type: int64
+    nullable: true
+    description: Count or flag of page views
+  - column: visit
+    type: int64
+    nullable: true
+    description: Visit counter
+  - column: dwell_time
+    type: float64
+    nullable: true
+    description: Seconds on page or feature
+  - column: campaign_id
+    type: object
+    nullable: true
+    description: Marketing campaign reference
+  - column: impression_count
+    type: int64
+    nullable: true
+    description: Served impressions
+  - column: engagement_score
+    type: float64
+    nullable: true
+    description: Composite engagement metric
+  - column: event_time
+    type: object
+    nullable: true
+    description: Event timestamp
 update_frequency: weekly
 sla:
   freshness: Data should be updated weekly
   completeness: No missing primary key values allowed
 examples:
-- SELECT * FROM engagement_domain LIMIT 10
+  - SELECT * FROM engagement_domain LIMIT 10

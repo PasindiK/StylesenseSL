@@ -1,0 +1,13 @@
+[
+  {
+    "materialization_id": "07bc94b2-1c29-",
+    "passport_id": "8ea8eb0f-d50",
+    "dataset_name": "sales_orders_test.csv",
+    "source_path": "/Users/nandunmadawa/Desktop/DATAMESHSTYLESENSESL/backend/src/services/data_mesh/data/Data/Silver-data/sales_orders_test.csv",
+    "target_domain": "sales_domain",
+    "target_path": "/Users/nandunmadawa/Desktop/DATAMESHSTYLESENSESL/backend/src/services/data_mesh/data/Data_Mesh_Domains/sales_domain/sales_domain.csv",
+    "loading_status": "LOADED_TO_DOMAIN",
+    "timestamp": "2026-05-04T16:25:29",
+    "triggered_by": "dashboard_apply"
+  }
+]

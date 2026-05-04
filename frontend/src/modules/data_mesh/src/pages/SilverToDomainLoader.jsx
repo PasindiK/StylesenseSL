@@ -8,7 +8,7 @@ const { Title, Paragraph, Text } = Typography;
 const ADMISSION_STATUS_LABELS = {
   AUTO_LOAD_ELIGIBLE: "Ready to load",
   AUTO_ASSIGN_CREATED_DOMAIN: "Ready to load",
-  HUMAN_REVIEW_REQUIRED: "Review required",
+  HUMAN_REVIEW_REQUIRED: "Needs review",
   NEW_DOMAIN_CANDIDATE: "Orphan candidate",
   GOVERNANCE_TICKET_RECOMMENDED: "Ticket required",
 };
@@ -57,9 +57,53 @@ function pct(value) {
   return `${(num * 100).toFixed(1)}%`;
 }
 
+function semanticBackendUiLabel(backend) {
+  const b = String(backend || "");
+  if (b === "sentence_embedding") return "Sentence embedding model";
+  if (b === "tfidf_fallback") return "TF-IDF fallback";
+  if (b === "tfidf") return "TF-IDF profile similarity";
+  return b || "—";
+}
+
+function shortEmbeddingModelId(modelId) {
+  const s = String(modelId || "");
+  if (!s) return "—";
+  if (s.includes("MiniLM") || s.includes("miniLM")) return "all-MiniLM-L6-v2";
+  const parts = s.split("/");
+  return parts[parts.length - 1] || s;
+}
+
+function formatActiveWeightLine(weights, semanticBackend) {
+  if (!weights || typeof weights !== "object") return "—";
+  const w1 = Number(weights.w1_semantic);
+  const w2 = Number(weights.w2_ontology);
+  const w3 = Number(weights.w3_contract);
+  const w4 = Number(weights.w4_memory);
+  const l1 = semanticBackend === "sentence_embedding" ? "Embedding" : "Semantic";
+  return `${l1} ${w1.toFixed(2)} | Ontology ${w2.toFixed(2)} | Contract ${w3.toFixed(2)} | Memory ${w4.toFixed(2)}`;
+}
+
+function isOrphanAssessment(row) {
+  return (
+    row?.admission_status_ui === "Orphan candidate" ||
+    String(row?.admission_decision || row?.action || "") === "NEW_DOMAIN_CANDIDATE"
+  );
+}
+
+function orphanCandidateLabel(row) {
+  const c = String(row?.candidate_domain_name || "").trim();
+  if (c) return c;
+  const stem = String(row?.dataset_name || "")
+    .replace(/\.csv$/i, "")
+    .replace(/[^a-zA-Z0-9]+/g, "_");
+  const tok = stem.split("_").filter(Boolean)[0];
+  return tok ? `candidate_${tok}` : "—";
+}
+
 function admissionStatusColor(status) {
   if (status === "Known domain dataset") return "blue";
   if (status === "Ready to load") return "green";
+  if (status === "Needs review") return "orange";
   if (status === "Review required") return "orange";
   if (status === "Orphan candidate") return "magenta";
   if (status === "Ticket required") return "red";
@@ -73,14 +117,6 @@ function materializationStatusColor(status) {
   if (status === "Already in domain layer") return "blue";
   if (status === "Loaded to domain product") return "green";
   if (status === "Load failed") return "red";
-  return "default";
-}
-
-function contractGateColor(gate) {
-  const g = String(gate || "");
-  if (g === "PASSED") return "green";
-  if (g === "FAILED") return "red";
-  if (g === "REVIEW") return "orange";
   return "default";
 }
 
@@ -124,9 +160,65 @@ function passportMemoryLabel(record, passport) {
   return "—";
 }
 
+function domainSimilarityValue(row) {
+  const p = row?.admission_passport || {};
+  const direct = row?.domain_similarity_score ?? p.domain_similarity_score;
+  if (direct != null && Number(direct) > 0) return Number(direct);
+  const emb =
+    row?.embedding_similarity ??
+    p.embedding_similarity ??
+    row?.embedding_similarity_for_suggested_domain ??
+    p.embedding_similarity_for_suggested_domain ??
+    row?.embedding_similarity_score ??
+    p.embedding_similarity_score;
+  const ont =
+    row?.ontology_concept_match ??
+    p.ontology_concept_match ??
+    row?.ontology_concept_match_score ??
+    p.ontology_concept_match_score ??
+    row?.ontology_concept_match_for_suggested_domain ??
+    p.ontology_concept_match_for_suggested_domain;
+  if (emb != null && ont != null) {
+    const fallback = 0.5 * Number(emb) + 0.5 * Number(ont);
+    if (Number.isFinite(fallback) && fallback > 0) return fallback;
+  }
+  return Number(direct || 0);
+}
+
+function readinessScoreValue(row) {
+  const p = row?.admission_passport || {};
+  return (
+    p.domain_readiness_score ??
+    row?.domain_readiness_score ??
+    p.final_score ??
+    row?.final_score ??
+    p.final_admission_score ??
+    row?.final_admission_score
+  );
+}
+
+function coreValidationStatus(row) {
+  if (row?.dataset_origin !== "CORE") return null;
+  const p = row?.admission_passport || {};
+  const explicit = p.core_validation_status || row?.core_validation_status;
+  if (explicit) return explicit;
+  const name = String(row?.dataset_name || "").toLowerCase();
+  const expected = CORE_EXPECTED_DOMAIN[name];
+  if (!expected) return "WARNING";
+  return String(row?.best_domain || "") === expected ? "PASSED" : "WARNING";
+}
+
+function coreValidationTag(row) {
+  if (row?.dataset_origin !== "CORE") return <Text type="secondary">—</Text>;
+  const s = coreValidationStatus(row);
+  if (s === "PASSED") return <Tag color="green">Passed</Tag>;
+  return <Tag color="orange">Warning</Tag>;
+}
+
 export default function SilverToDomainLoader() {
   const [datasetRows, setDatasetRows] = useState([]);
   const [resultRows, setResultRows] = useState([]);
+  const [historyRows, setHistoryRows] = useState([]);
   const [latestRunId, setLatestRunId] = useState("");
   const [loadingDatasets, setLoadingDatasets] = useState(false);
   const [loadingResults, setLoadingResults] = useState(false);
@@ -148,6 +240,7 @@ export default function SilverToDomainLoader() {
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [reviewRecord, setReviewRecord] = useState(null);
   const [selectedPassportRow, setSelectedPassportRow] = useState(null);
+  const [lastAssessmentStack, setLastAssessmentStack] = useState(null);
   const [reviewForm] = Form.useForm();
   const watchedReviewAction = Form.useWatch("review_action", reviewForm);
 
@@ -165,12 +258,15 @@ export default function SilverToDomainLoader() {
     if (!rows.length) {
       setLatestRunId("");
       setResultRows([]);
+      setHistoryRows([]);
       return;
     }
     const latestId = rows[0]?.run_id || "";
     const latest = dedupeByDataset(rows.filter((row) => row?.run_id === latestId));
+    const history = rows.filter((row) => row?.run_id && row.run_id !== latestId);
     setLatestRunId(String(latestId || ""));
     setResultRows(latest);
+    setHistoryRows(history);
   };
 
   const loadDatasets = async () => {
@@ -192,7 +288,7 @@ export default function SilverToDomainLoader() {
       const rows = Array.isArray(res?.data?.results) ? res.data.results : [];
       applyLatestRunRows(rows);
     } catch (_err) {
-      setError("Unable to load admission assessment results.");
+      setError("Unable to load assessment results.");
     } finally {
       setLoadingResults(false);
     }
@@ -259,10 +355,22 @@ export default function SilverToDomainLoader() {
       const res = await axios.post(`${API_BASE}/api/datamesh/domain-detect/run`);
       const runId = res?.data?.run_id || "latest";
       const count = Number(res?.data?.count || 0);
-      setSuccessMessage(`Admission assessment completed. Run ${runId}. Datasets evaluated: ${count}.`);
+      const stack = semanticBackendUiLabel(res?.data?.semantic_backend);
+      const warn = res?.data?.semantic_scoring_warning ? ` ${String(res.data.semantic_scoring_warning)}` : "";
+      setLastAssessmentStack({
+        semantic_backend: res?.data?.semantic_backend,
+        scoring_backend_effective: res?.data?.scoring_backend_effective,
+        semantic_scoring_warning: res?.data?.semantic_scoring_warning || "",
+        embedding_weights_source: res?.data?.embedding_weights_source,
+        embedding_model_id: res?.data?.embedding_model_id,
+        admission_score_weights: res?.data?.admission_score_weights,
+      });
+      setSuccessMessage(
+        `Semantic domain assessment completed. Run ${runId}. Datasets evaluated: ${count}. Engine: ${stack}.${warn}`
+      );
       await Promise.all([loadDatasets(), refreshAux(), loadResults()]);
     } catch (_err) {
-      setError("Failed to run admission assessment.");
+      setError("Failed to run semantic domain assessment.");
     } finally {
       setRunningDetection(false);
     }
@@ -283,7 +391,7 @@ export default function SilverToDomainLoader() {
       await axios.post(`${API_BASE}/api/datamesh/silver-datasets/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setSuccessMessage("Dataset registered in Silver. Run admission assessment to classify.");
+      setSuccessMessage("Dataset registered in Silver. Run semantic domain assessment to classify.");
       setSelectedUploadFile(null);
       await loadDatasets();
     } catch (err) {
@@ -335,10 +443,14 @@ export default function SilverToDomainLoader() {
   const openReviewModal = (record) => {
     setReviewRecord(record);
     const opts = reviewActionSelectOptions(record);
+    const defaultApproved =
+      isOrphanAssessment(record) || String(record.admission_decision || record.action) === "NEW_DOMAIN_CANDIDATE"
+        ? record.candidate_domain_name || ""
+        : record.best_domain || "";
     reviewForm.setFieldsValue({
       review_action: opts[0]?.value,
       reviewer_note: "",
-      approved_domain: record.best_domain || "",
+      approved_domain: defaultApproved,
       candidate_domain_name: record.candidate_domain_name || "",
     });
     setReviewModalOpen(true);
@@ -423,7 +535,7 @@ export default function SilverToDomainLoader() {
         let admissionStatus =
           row.dataset_origin === "CORE"
             ? "Known domain dataset"
-            : ADMISSION_STATUS_LABELS[admissionRaw] || "Review required";
+            : ADMISSION_STATUS_LABELS[admissionRaw] || "Needs review";
         let targetDomainForLoad = String(row.best_domain || "");
 
         const decisionStatus = String(latestDecision?.decision_status || "");
@@ -459,7 +571,7 @@ export default function SilverToDomainLoader() {
   const groupedResults = useMemo(() => {
     const existing = enrichedRows.filter((r) => r.admission_status_ui === "Known domain dataset");
     const ready = enrichedRows.filter((r) => r.admission_status_ui === "Ready to load" && r.dataset_origin !== "CORE");
-    const reviewRequired = enrichedRows.filter((r) => r.admission_status_ui === "Review required");
+    const reviewRequired = enrichedRows.filter((r) => r.admission_status_ui === "Needs review");
     const orphanCandidates = enrichedRows.filter((r) => ["Orphan candidate", "Ticket required", "Ticket Opened"].includes(r.admission_status_ui));
     return { existing, ready, reviewRequired, orphanCandidates };
   }, [enrichedRows]);
@@ -469,15 +581,58 @@ export default function SilverToDomainLoader() {
       silverDatasets: datasetRows.length,
       coreDatasets: datasetRows.filter((r) => String(r.dataset_origin || "").toUpperCase() === "CORE").length,
       ready: enrichedRows.filter((r) => r.admission_status_ui === "Ready to load" && r.dataset_origin !== "CORE").length,
-      review: enrichedRows.filter((r) => r.admission_status_ui === "Review required").length,
+      review: enrichedRows.filter((r) => r.admission_status_ui === "Needs review").length,
       orphan: enrichedRows.filter((r) => ["Orphan candidate", "Ticket required", "Ticket Opened"].includes(r.admission_status_ui)).length,
       loadedProducts: enrichedRows.filter((r) => r.materialization_status_ui === "Loaded to domain product").length,
     };
   }, [datasetRows, enrichedRows]);
 
+  const assessmentStackFromRows = useMemo(() => {
+    const r = resultRows[0];
+    if (!r) return null;
+    const p = r.admission_passport || {};
+    return {
+      semantic_backend: r.semantic_backend || p.semantic_backend,
+      scoring_backend_effective: r.scoring_backend_effective || p.scoring_backend_effective,
+      semantic_scoring_warning: r.semantic_scoring_warning || p.semantic_scoring_warning || "",
+      embedding_weights_source: r.embedding_weights_source ?? p.embedding_weights_source,
+      embedding_model_id: r.embedding_model_id ?? p.embedding_model_id,
+      admission_score_weights: r.admission_passport?.admission_score_weights || r.admission_score_weights,
+    };
+  }, [resultRows]);
+
+  const activeAssessmentStack = lastAssessmentStack || assessmentStackFromRows;
+
+  const engineWeightSource = useMemo(() => {
+    const w =
+      lastAssessmentStack?.admission_score_weights ||
+      resultRows[0]?.admission_passport?.admission_score_weights ||
+      resultRows[0]?.admission_score_weights;
+    return w;
+  }, [lastAssessmentStack, resultRows]);
+
   const reviewQueueRows = useMemo(
-    () => enrichedRows.filter((r) => ["Review required", "Orphan candidate", "Ticket required"].includes(r.admission_status_ui)),
+    () => enrichedRows.filter((r) => ["Needs review", "Orphan candidate", "Ticket required"].includes(r.admission_status_ui)),
     [enrichedRows]
+  );
+
+  const historyAssessmentRows = useMemo(
+    () =>
+      historyRows.map((row, index) => {
+        const admissionRaw = String(row?.admission_decision || row?.action || "");
+        let admissionStatus =
+          row?.dataset_origin === "CORE"
+            ? "Known domain dataset"
+            : ADMISSION_STATUS_LABELS[admissionRaw] || "Needs review";
+        const mat = MATERIALIZATION_STATUS_LABELS[row?.loading_status] || "Not loaded";
+        if (mat === "Loaded to domain product") admissionStatus = "Loaded";
+        return {
+          ...row,
+          key: `history-${row?.run_id || "run"}-${row?.dataset_name || "dataset"}-${index}`,
+          admission_status_ui: admissionStatus,
+        };
+      }),
+    [historyRows]
   );
 
   const assessedDatasetSet = useMemo(() => new Set(enrichedRows.map((r) => r.dataset_name)), [enrichedRows]);
@@ -550,7 +705,23 @@ export default function SilverToDomainLoader() {
     [materializationRows]
   );
 
+  const renderDomainPrimaryCell = (_, row) => {
+    if (isOrphanAssessment(row)) {
+      const cand = orphanCandidateLabel(row);
+      return (
+        <div>
+          <div style={{ fontSize: 12, color: "#64748b" }}>No existing domain fit</div>
+          <div style={{ fontWeight: 600 }}>Candidate: {cand}</div>
+        </div>
+      );
+    }
+    return row.best_domain || "—";
+  };
+
   const renderNextAction = (record) => {
+    if (record.dataset_origin === "CORE") {
+      return <Text type="secondary">—</Text>;
+    }
     if (record.can_materialize_ui) {
       return (
         <Button type="primary" size="small" loading={applyingKey === record.key} onClick={() => applyToDomainProduct(record)}>
@@ -558,10 +729,17 @@ export default function SilverToDomainLoader() {
         </Button>
       );
     }
-    if (["Review required", "Orphan candidate", "Ticket required"].includes(record.admission_status_ui)) {
+    if (record.admission_status_ui === "Orphan candidate") {
       return (
         <Button type="primary" size="small" onClick={() => openReviewModal(record)}>
-          Review
+          Review Candidate
+        </Button>
+      );
+    }
+    if (["Needs review", "Ticket required", "Ticket Opened"].includes(record.admission_status_ui)) {
+      return (
+        <Button type="primary" size="small" onClick={() => openReviewModal(record)}>
+          Open Review
         </Button>
       );
     }
@@ -569,120 +747,197 @@ export default function SilverToDomainLoader() {
   };
 
   const admissionTableColumns = [
-    { title: "Dataset", dataIndex: "dataset_name", key: "dataset_name", ellipsis: true, width: 180 },
-    { title: "Origin", dataIndex: "dataset_origin_display", key: "origin", width: 90 },
-    { title: "Suggested domain", dataIndex: "best_domain", key: "best_domain", width: 150, render: (v) => v || "—", ellipsis: true },
-    { title: "Trust score", key: "trust", width: 100, render: (_, row) => pct(row.final_admission_score ?? row.confidence_score) },
+    { title: "Dataset", dataIndex: "dataset_name", key: "dataset_name", ellipsis: true, width: 200 },
+    { title: "Origin", dataIndex: "dataset_origin_display", key: "origin", width: 88 },
     {
-      title: "Admission status",
+      title: "Matched / Candidate domain",
+      key: "domain_display",
+      width: 220,
+      ellipsis: true,
+      render: renderDomainPrimaryCell,
+    },
+    {
+      title: "Domain similarity",
+      key: "domain_similarity",
+      width: 120,
+      render: (_, row) => pct(domainSimilarityValue(row)),
+    },
+    {
+      title: "Core validation",
+      key: "core_validation",
+      width: 132,
+      render: (_, row) => coreValidationTag(row),
+    },
+    {
+      title: "Assessment status",
       key: "admission_status_ui",
-      width: 196,
+      width: 168,
       render: (_, row) => <Tag color={admissionStatusColor(row.admission_status_ui)}>{row.admission_status_ui}</Tag>,
     },
-    {
-      title: "Materialization status",
-      key: "materialization_status_ui",
-      width: 176,
-      render: (_, row) => <Tag color={materializationStatusColor(row.materialization_status_ui)}>{row.materialization_status_ui}</Tag>,
-    },
-    { title: "Next action", key: "next_action", width: 220, fixed: "right", render: (_, row) => renderNextAction(row) },
+    { title: "Next action", key: "next_action", width: 200, fixed: "right", render: (_, row) => renderNextAction(row) },
   ];
 
   const reviewQueueColumns = [
     { title: "Dataset", dataIndex: "dataset_name", key: "dataset_name", width: 180, ellipsis: true },
-    { title: "Suggested domain", dataIndex: "best_domain", key: "best_domain", width: 150, ellipsis: true, render: (v) => v || "—" },
+    {
+      title: "Matched / Candidate domain",
+      key: "domain_display",
+      width: 200,
+      ellipsis: true,
+      render: renderDomainPrimaryCell,
+    },
     { title: "Reason", key: "reason", render: (_, row) => row.primary_reason_code_display || row.primary_reason_code || "—", ellipsis: true },
     {
-      title: "Status",
+      title: "Assessment status",
       key: "status",
       width: 170,
       render: (_, row) => <Tag color={admissionStatusColor(row.admission_status_ui)}>{row.admission_status_ui}</Tag>,
     },
     {
-      title: "Action",
+      title: "Next action",
       key: "action",
-      width: 120,
-      render: (_, row) => (
-        <Button type="primary" size="small" onClick={() => openReviewModal(row)}>
-          Review
-        </Button>
-      ),
+      width: 140,
+      render: (_, row) => renderNextAction(row),
     },
   ];
 
-  const renderAdmissionPassport = (record) => {
+  const renderAssessmentDetails = (record) => {
     const p = record.admission_passport || {};
-    const semSuggested =
+    const embeddingSim =
+      p.embedding_similarity_for_suggested_domain ??
+      record.embedding_similarity_for_suggested_domain ??
+      p.embedding_similarity_score ??
+      record.embedding_similarity_score ??
+      p.profile_similarity_for_suggested_domain ??
       record.semantic_similarity_for_suggested_domain ??
       p.semantic_similarity_for_suggested_domain ??
       record.semantic_similarity_score ??
       p.semantic_similarity_score;
-    const profileText = record.dataset_profile_text || p.dataset_profile_text || "—";
+    const ontologyMatch =
+      p.ontology_concept_match_score ??
+      record.ontology_concept_match_score ??
+      p.ontology_concept_match_for_suggested_domain ??
+      record.ontology_concept_match_for_suggested_domain;
+    const contractFit = p.contract_fit_score ?? record.contract_fit_score ?? p.contract_coverage_score ?? record.contract_coverage_score;
+    const domainSimilarity = domainSimilarityValue(record);
+    const readinessScore = readinessScoreValue(record);
+    const datasetBiz = p.dataset_business_sentence || record.dataset_business_sentence || "—";
+    const domainBiz = p.domain_business_sentence || record.domain_business_sentence || "—";
+    const admissionMargin = p.ambiguity_gap ?? record.admission_score_ambiguity_gap;
+    const profileMargin = p.profile_similarity_ambiguity_gap ?? record.semantic_ambiguity_gap;
+    const orphan = isOrphanAssessment(record);
     return (
       <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: 16 }}>
         <Title level={5} style={{ marginTop: 0 }}>
-          Admission Passport
+          Assessment Details
         </Title>
         <Row gutter={[16, 12]}>
+          {orphan ? (
+            <Col span={24}>
+              <Text strong>Matched domain</Text>
+              <Paragraph style={{ marginBottom: 4, marginTop: 4 }}>No existing domain fit</Paragraph>
+              <Text strong>Candidate domain</Text>
+              <Paragraph style={{ marginBottom: 0, marginTop: 4 }}>{orphanCandidateLabel(record)}</Paragraph>
+            </Col>
+          ) : null}
           <Col span={24}>
-            <Text strong>Dataset profile text</Text>
-            <Paragraph style={{ marginBottom: 0, marginTop: 4, fontSize: 12, whiteSpace: "pre-wrap" }}>{profileText}</Paragraph>
+            <Text strong>Dataset business sentence</Text>
+            <Paragraph style={{ marginBottom: 0, marginTop: 4, fontSize: 13, whiteSpace: "pre-wrap" }}>{datasetBiz}</Paragraph>
+          </Col>
+          <Col span={24}>
+            <Text strong>Domain business sentence</Text>
+            <Paragraph style={{ marginBottom: 0, marginTop: 4, fontSize: 13, whiteSpace: "pre-wrap" }}>{domainBiz}</Paragraph>
           </Col>
           <Col xs={24} md={12}>
-            <Text strong>Suggested domain</Text>
-            <div>{record.best_domain || p.suggested_domain || "—"}</div>
+            <Text strong>Embedding similarity</Text>
+            <div style={{ marginTop: 4 }}>{pct(embeddingSim)}</div>
+          </Col>
+          <Col xs={24} md={12}>
+            <Text strong>Ontology concept match</Text>
+            <div style={{ marginTop: 4 }}>{ontologyMatch != null ? pct(ontologyMatch) : "—"}</div>
           </Col>
           <Col xs={24} md={12}>
             <Text strong>Contract fit</Text>
-            <div>{pct(p.contract_coverage_score ?? record.contract_coverage_score)}</div>
+            <div style={{ marginTop: 4 }}>{contractFit != null ? pct(contractFit) : pct(p.contract_coverage_score ?? record.contract_coverage_score)}</div>
           </Col>
           <Col xs={24} md={12}>
-            <Text strong>Semantic/profile similarity</Text>
-            <div>{pct(semSuggested)}</div>
+            <Text strong>Domain similarity score</Text>
+            <div style={{ marginTop: 4 }}>{pct(domainSimilarity)}</div>
           </Col>
           <Col xs={24} md={12}>
-            <Text strong>Memory evidence</Text>
-            <div>{passportMemoryLabel(record, p)}</div>
+            <Text strong>Reviewer memory</Text>
+            <div style={{ marginTop: 4 }}>{passportMemoryLabel(record, p)}</div>
+          </Col>
+          <Col xs={24} md={12}>
+            <Text strong>Readiness score</Text>
+            <div style={{ marginTop: 4 }}>{pct(readinessScore)}</div>
           </Col>
           <Col xs={24} md={12}>
             <Text strong>Ambiguity gap</Text>
-            <div>{Number(p.ambiguity_gap ?? record.semantic_ambiguity_gap ?? 0).toFixed(3)}</div>
-          </Col>
-          <Col xs={24} md={12}>
-            <Text strong>Reason</Text>
-            <div>{record.primary_reason_code_display || record.primary_reason_code || "—"}</div>
-          </Col>
-          <Col xs={24} md={12}>
-            <Text strong>Recommended action</Text>
-            <div>{p.recommended_action || record.recommended_action || "—"}</div>
-          </Col>
-          <Col xs={24}>
-            <Text strong>Contract gate</Text>
-            <div>
-              <Tag color={contractGateColor(record.contract_gate || p.contract_gate)}>
-                {record.contract_gate_display || record.contract_gate || p.contract_gate || "—"}
-              </Tag>
-            </div>
+            <div style={{ marginTop: 4 }}>{Number(admissionMargin ?? 0).toFixed(3)}</div>
+            <Text type="secondary" style={{ fontSize: 11, display: "block", marginTop: 4 }}>
+              Semantic channel gap: {Number(profileMargin ?? 0).toFixed(3)}
+            </Text>
           </Col>
           <Col span={24}>
             <Text strong>Explanation</Text>
-            <Paragraph style={{ marginBottom: 0, marginTop: 4 }}>{p.explanation || record.explanation || "—"}</Paragraph>
+            <Paragraph style={{ marginBottom: 0, marginTop: 4, fontSize: 13 }}>{p.explanation || record.explanation || "—"}</Paragraph>
           </Col>
         </Row>
       </div>
     );
   };
 
+  const sb = activeAssessmentStack?.semantic_backend;
+  const engineHeadline =
+    sb === "sentence_embedding" ? "Sentence embedding model" : sb === "tfidf_fallback" ? "TF-IDF fallback active" : sb ? semanticBackendUiLabel(sb) : "—";
+
   return (
     <div style={{ padding: 16, maxWidth: 1440, margin: "0 auto", width: "100%" }}>
       <header style={{ marginBottom: 20 }}>
         <Title level={2} style={{ marginBottom: 8 }}>
-          Semantic Domain Admission Console
+          Semantic Domain Assignment Console
         </Title>
-        <Paragraph style={{ marginBottom: 0, color: "#64748b", fontSize: 15, maxWidth: 980 }}>
-          Assess Silver-layer datasets against Data Mesh domain profiles before loading them into domain products.
+        <Paragraph style={{ marginBottom: 0, color: "#64748b", fontSize: 15, maxWidth: 900, lineHeight: 1.55 }}>
+          Silver-layer datasets are converted into business meaning profiles and matched against Data Mesh domain profiles using sentence embeddings,
+          ontology concepts, and contract fit.
         </Paragraph>
       </header>
+
+      <Card size="small" bordered={false} style={{ marginBottom: 16, background: "#fafbfc", border: "1px solid #e5e7eb" }}>
+        <Row gutter={[20, 12]} align="top">
+          <Col xs={24} md={8}>
+            <Text type="secondary" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              Active semantic engine
+            </Text>
+            <div style={{ fontSize: 17, fontWeight: 600, color: "#0f172a", marginTop: 6 }}>{engineHeadline}</div>
+            {activeAssessmentStack?.semantic_scoring_warning ? (
+              <Alert type="warning" showIcon style={{ marginTop: 10, fontSize: 12 }} message={String(activeAssessmentStack.semantic_scoring_warning)} />
+            ) : null}
+          </Col>
+          <Col xs={24} md={8}>
+            <Text type="secondary" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              Model
+            </Text>
+            <div style={{ fontSize: 15, fontWeight: 500, marginTop: 6, color: "#334155" }}>
+              {sb === "sentence_embedding" ? shortEmbeddingModelId(activeAssessmentStack?.embedding_model_id) : "—"}
+            </div>
+          </Col>
+          <Col xs={24} md={8}>
+            <Text type="secondary" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              Weights
+            </Text>
+            <div style={{ fontSize: 13, marginTop: 6, color: "#334155", lineHeight: 1.45 }}>
+              {formatActiveWeightLine(engineWeightSource, sb)}
+            </div>
+          </Col>
+        </Row>
+        {!activeAssessmentStack ? (
+          <Paragraph type="secondary" style={{ marginBottom: 0, marginTop: 12, fontSize: 13 }}>
+            Run a semantic domain assessment to show the active engine and weights.
+          </Paragraph>
+        ) : null}
+      </Card>
 
       <Card title="Operational Summary" style={{ marginBottom: 16 }}>
         <Row gutter={[12, 12]}>
@@ -690,7 +945,7 @@ export default function SilverToDomainLoader() {
             { label: "Silver datasets", value: gatewaySummary.silverDatasets },
             { label: "Core datasets", value: gatewaySummary.coreDatasets },
             { label: "Ready to load", value: gatewaySummary.ready },
-            { label: "Review required", value: gatewaySummary.review },
+            { label: "Needs review", value: gatewaySummary.review },
             { label: "Orphan candidates", value: gatewaySummary.orphan },
             { label: "Loaded products", value: gatewaySummary.loadedProducts },
           ].map((kpi) => (
@@ -708,7 +963,7 @@ export default function SilverToDomainLoader() {
         title="Silver Dataset Intake"
         extra={
           <Button type="primary" loading={runningDetection} onClick={runDetection}>
-            Run Admission Assessment
+            Run Semantic Domain Assessment
           </Button>
         }
         style={{ marginBottom: 16 }}
@@ -717,7 +972,7 @@ export default function SilverToDomainLoader() {
           <div>
             <Text strong>Upload CSV</Text>
             <Paragraph type="secondary" style={{ marginBottom: 8, marginTop: 4, fontSize: 13 }}>
-              Register a new Silver-layer CSV for admission assessment.
+              Register a new Silver CSV for semantic domain assessment.
             </Paragraph>
             <Space wrap align="center">
               <Upload
@@ -781,11 +1036,23 @@ export default function SilverToDomainLoader() {
       {error ? <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} /> : null}
       {successMessage ? <Alert type="success" showIcon message={successMessage} style={{ marginBottom: 16 }} /> : null}
 
-      <Card title="Semantic Admission Results" style={{ marginBottom: 16 }}>
-        <Paragraph type="secondary" style={{ marginTop: 0 }}>
-          Admission status determines whether a dataset can proceed to domain product materialization. Materialization status indicates whether the
-          dataset has actually been copied into a domain product.
-        </Paragraph>
+      <Card title="Semantic Domain Assessment Results" style={{ marginBottom: 16 }}>
+        <Collapse
+          ghost
+          items={[
+            {
+              key: "method",
+              label: "Method details",
+              children: (
+                <Paragraph type="secondary" style={{ marginBottom: 0, fontSize: 13 }}>
+                  Each dataset gets a business-language profile. Scoring blends semantic similarity (sentence embeddings, or TF-IDF if the model is
+                  unavailable), ontology concept overlap, contract column fit, and optional reviewer memory. Open <Text strong>Assessment Details</Text>{" "}
+                  on a row for full signals and explanation.
+                </Paragraph>
+              ),
+            },
+          ]}
+        />
         <Tabs
           size="small"
           items={[
@@ -794,7 +1061,7 @@ export default function SilverToDomainLoader() {
               label: `Known Domain Datasets (${groupedResults.existing.length})`,
               children:
                 groupedResults.existing.length > 0 ? (
-                  <Table rowKey="key" size="small" dataSource={groupedResults.existing} loading={loadingResults} pagination={false} scroll={{ x: 1120 }} columns={admissionTableColumns} onRow={(r) => ({ onClick: () => setSelectedPassportRow(r), style: { cursor: "pointer" } })} />
+                  <Table rowKey="key" size="small" dataSource={groupedResults.existing} loading={loadingResults} pagination={false} scroll={{ x: 980 }} columns={admissionTableColumns} onRow={(r) => ({ onClick: () => setSelectedPassportRow(r), style: { cursor: "pointer" } })} />
                 ) : (
                   <Empty description="No known domain datasets in latest run." />
                 ),
@@ -804,27 +1071,27 @@ export default function SilverToDomainLoader() {
               label: `Ready to Load (${groupedResults.ready.length})`,
               children:
                 groupedResults.ready.length > 0 ? (
-                  <Table rowKey="key" size="small" dataSource={groupedResults.ready} loading={loadingResults} pagination={false} scroll={{ x: 1120 }} columns={admissionTableColumns} onRow={(r) => ({ onClick: () => setSelectedPassportRow(r), style: { cursor: "pointer" } })} />
+                  <Table rowKey="key" size="small" dataSource={groupedResults.ready} loading={loadingResults} pagination={false} scroll={{ x: 980 }} columns={admissionTableColumns} onRow={(r) => ({ onClick: () => setSelectedPassportRow(r), style: { cursor: "pointer" } })} />
                 ) : (
                   <Empty description="No datasets currently ready to load." />
                 ),
             },
             {
               key: "review",
-              label: `Review Required (${groupedResults.reviewRequired.length})`,
+              label: `Needs Review (${groupedResults.reviewRequired.length})`,
               children:
                 groupedResults.reviewRequired.length > 0 ? (
-                  <Table rowKey="key" size="small" dataSource={groupedResults.reviewRequired} loading={loadingResults} pagination={false} scroll={{ x: 1120 }} columns={admissionTableColumns} onRow={(r) => ({ onClick: () => setSelectedPassportRow(r), style: { cursor: "pointer" } })} />
+                  <Table rowKey="key" size="small" dataSource={groupedResults.reviewRequired} loading={loadingResults} pagination={false} scroll={{ x: 980 }} columns={admissionTableColumns} onRow={(r) => ({ onClick: () => setSelectedPassportRow(r), style: { cursor: "pointer" } })} />
                 ) : (
-                  <Empty description="No review-required datasets in latest run." />
+                  <Empty description="No datasets need review in the latest run." />
                 ),
             },
             {
               key: "orphan",
-              label: `Orphan Domain Candidates (${groupedResults.orphanCandidates.length})`,
+              label: `Orphan Candidates (${groupedResults.orphanCandidates.length})`,
               children:
                 groupedResults.orphanCandidates.length > 0 ? (
-                  <Table rowKey="key" size="small" dataSource={groupedResults.orphanCandidates} loading={loadingResults} pagination={false} scroll={{ x: 1120 }} columns={admissionTableColumns} onRow={(r) => ({ onClick: () => setSelectedPassportRow(r), style: { cursor: "pointer" } })} />
+                  <Table rowKey="key" size="small" dataSource={groupedResults.orphanCandidates} loading={loadingResults} pagination={false} scroll={{ x: 980 }} columns={admissionTableColumns} onRow={(r) => ({ onClick: () => setSelectedPassportRow(r), style: { cursor: "pointer" } })} />
                 ) : (
                   <Empty description="No orphan domain candidates in latest run." />
                 ),
@@ -833,16 +1100,16 @@ export default function SilverToDomainLoader() {
         />
       </Card>
 
-      <Card title="Admission Passport" style={{ marginBottom: 16 }}>
+      <Card title="Assessment Details" style={{ marginBottom: 16 }}>
         {selectedPassportRow ? (
           <>
             <Paragraph type="secondary" style={{ marginTop: 0, marginBottom: 10 }}>
-              Semantic profile generated from filename, column names, data types, and safe sample summaries.
+              Technical breakdown for the selected dataset. Choose a row from the tables above.
             </Paragraph>
-            {renderAdmissionPassport(selectedPassportRow)}
+            {renderAssessmentDetails(selectedPassportRow)}
           </>
         ) : (
-          <Empty description="Select a dataset to inspect its admission passport." />
+          <Empty description="Select a dataset row to view assessment details." />
         )}
       </Card>
 
@@ -852,6 +1119,48 @@ export default function SilverToDomainLoader() {
         ) : (
           <Table rowKey="key" size="small" dataSource={reviewQueueRows} loading={loadingResults} pagination={{ pageSize: 8 }} scroll={{ x: 1080 }} columns={reviewQueueColumns} />
         )}
+      </Card>
+
+      <Card style={{ marginBottom: 16 }}>
+        <Collapse
+          ghost
+          items={[
+            {
+              key: "assessment-history",
+              label: `Assessment History (${historyAssessmentRows.length})`,
+              children:
+                historyAssessmentRows.length > 0 ? (
+                  <Table
+                    rowKey="key"
+                    size="small"
+                    dataSource={historyAssessmentRows}
+                    pagination={{ pageSize: 8 }}
+                    scroll={{ x: 980 }}
+                    columns={[
+                      { title: "Run ID", dataIndex: "run_id", key: "run_id", width: 110 },
+                      { title: "Dataset", dataIndex: "dataset_name", key: "dataset_name", ellipsis: true, width: 200 },
+                      {
+                        title: "Matched / Candidate domain",
+                        key: "domain_display",
+                        width: 220,
+                        ellipsis: true,
+                        render: renderDomainPrimaryCell,
+                      },
+                      {
+                        title: "Assessment status",
+                        key: "admission_status_ui",
+                        width: 170,
+                        render: (_, row) => <Tag color={admissionStatusColor(row.admission_status_ui)}>{row.admission_status_ui}</Tag>,
+                      },
+                      { title: "Time", dataIndex: "timestamp", key: "timestamp", width: 170, render: formatTimeShort },
+                    ]}
+                  />
+                ) : (
+                  <Empty description="No previous assessment records in audit history." />
+                ),
+            },
+          ]}
+        />
       </Card>
 
       <Card title="Domain Product Loading" style={{ marginBottom: 16 }}>
@@ -877,7 +1186,7 @@ export default function SilverToDomainLoader() {
 
       <Card title="Reviewer Feedback Memory" style={{ marginBottom: 16 }}>
         <Paragraph type="secondary" style={{ marginTop: 0, marginBottom: 12 }}>
-          Approved and rejected domain admission decisions are stored as feedback to support future similar datasets.
+          Prior reviewer decisions are stored as memory to support similar datasets.
         </Paragraph>
         {memoryRows.length === 0 ? (
           <Empty description="No reviewer feedback has been recorded yet." />
@@ -939,8 +1248,8 @@ export default function SilverToDomainLoader() {
       <Modal
         title={
           reviewRecord
-            ? `Domain admission review — ${String(watchedReviewAction || "").replace(/_/g, " ")} — ${reviewRecord.dataset_name}`
-            : "Domain admission review"
+            ? `Review — ${String(watchedReviewAction || "").replace(/_/g, " ")} — ${reviewRecord.dataset_name}`
+            : "Domain review"
         }
         open={reviewModalOpen}
         onCancel={() => {

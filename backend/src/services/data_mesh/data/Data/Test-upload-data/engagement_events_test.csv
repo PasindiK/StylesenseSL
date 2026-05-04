@@ -1,0 +1,4 @@
+session_id,page_view,visit,dwell_time,campaign_id,impression_count,engagement_score,event_time,user_id,product_id
+sess-a1,14,3,128.5,cmp_spring_sale,420,0.78,2026-04-20T08:00:00,5001,701
+sess-a2,22,4,95.0,cmp_spring_sale,610,0.64,2026-04-20T09:30:00,5002,702
+sess-a3,9,2,210.2,cmp_loyalty,300,0.81,2026-04-20T10:45:00,5003,703

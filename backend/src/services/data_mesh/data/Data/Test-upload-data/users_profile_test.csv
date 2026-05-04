@@ -1,0 +1,4 @@
+user_id,customer_id,email,name,gender,age,segment,location,country,signup_ts,is_active
+5001,CUST-5001,jane@example.com,Jane Doe,F,34,VIP,Colombo,LK,2025-01-10,1
+5002,CUST-5002,john@example.com,John Smith,M,29,New,Negombo,LK,2025-02-15,1
+5003,CUST-5003,alex@example.com,Alex Lee,U,41,AtRisk,Kandy,LK,2024-11-01,1

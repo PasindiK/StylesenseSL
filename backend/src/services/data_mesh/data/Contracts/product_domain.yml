@@ -1,62 +1,136 @@
 domain_name: product_domain
 owner: nadunthenuwara@gmail.com
-description: Auto-generated contract for product_domain. Add full description here.
+description: >-
+  Product catalog, merchandising attributes, inventory, and sellable items across channels.
+domain_profile:
+  business_meaning: >-
+    Describes what can be sold — identifiers, categories, brands, sizes, colors, stock levels,
+    and merchandising metadata. Grain is usually one row per SKU or product variant.
+  common_terms:
+    - product_id
+    - item_id
+    - sku
+    - category
+    - brand
+    - size
+    - color
+    - inventory
+    - stock
+    - catalog
+    - attribute
+  expected_entities:
+    - product
+    - variant
+    - sku
+    - category
+  typical_actions:
+    - list
+    - publish
+    - restock
+    - price_update
+  known_dataset_examples:
+    - products_clean.csv
+    - product_catalog_test.csv
 schema:
-- column: product_id
-  type: int64
-  nullable: false
-  description: Add column description here
-- column: shop_id
-  type: int64
-  nullable: false
-  description: Add column description here
-- column: name
-  type: object
-  nullable: false
-  description: Add column description here
-- column: category
-  type: object
-  nullable: false
-  description: Add column description here
-- column: color
-  type: object
-  nullable: false
-  description: Add column description here
-- column: fabric
-  type: object
-  nullable: false
-  description: Add column description here
-- column: size_range
-  type: object
-  nullable: false
-  description: Add column description here
-- column: price_LKR
-  type: float64
-  nullable: false
-  description: Add column description here
-- column: style_tags
-  type: object
-  nullable: false
-  description: Add column description here
-- column: product_url
-  type: object
-  nullable: false
-  description: Add column description here
-- column: created_ts
-  type: object
-  nullable: false
-  description: Add column description here
-- column: popularity_score
-  type: float64
-  nullable: false
-  description: Add column description here
-- column: stock_count
-  type: int64
-  nullable: false
-  description: Add column description here
+  - column: product_id
+    type: int64
+    nullable: false
+    description: Primary product key
+  - column: item_id
+    type: int64
+    nullable: true
+    description: Alternate merchandise identifier
+  - column: shop_id
+    type: int64
+    nullable: false
+    description: Owning shop or merchant
+  - column: sku
+    type: object
+    nullable: true
+    description: Stock keeping unit code
+  - column: name
+    type: object
+    nullable: false
+    description: Display name
+  - column: category
+    type: object
+    nullable: false
+    description: Merchandising category
+  - column: color
+    type: object
+    nullable: false
+    description: Colorway
+  - column: fabric
+    type: object
+    nullable: false
+    description: Material composition
+  - column: size_range
+    type: object
+    nullable: false
+    description: Offered sizes
+  - column: brand
+    type: object
+    nullable: true
+    description: Brand label
+  - column: price_lkr
+    type: float64
+    nullable: false
+    description: List price in LKR
+  - column: list_price
+    type: float64
+    nullable: true
+    description: Alternate list price column
+  - column: style_tags
+    type: object
+    nullable: false
+    description: Style descriptors
+  - column: product_url
+    type: object
+    nullable: false
+    description: PDP URL
+  - column: created_ts
+    type: object
+    nullable: false
+    description: Creation timestamp
+  - column: popularity_score
+    type: float64
+    nullable: false
+    description: Demand signal
+  - column: stock_count
+    type: int64
+    nullable: false
+    description: On-hand inventory units
+  - column: inventory
+    type: int64
+    nullable: true
+    description: Alternate inventory column name
+  - column: stock_units
+    type: int64
+    nullable: true
+    description: Units available (alias)
+  - column: vendor_id
+    type: object
+    nullable: true
+    description: Vendor or supplier reference
+  - column: warehouse_code
+    type: object
+    nullable: true
+    description: Fulfillment node code
+  - column: inventory_qty
+    type: int64
+    nullable: true
+    description: Alternate inventory column
+  - column: catalog_id
+    type: object
+    nullable: true
+    description: External catalog reference
+  - column: attribute_json
+    type: object
+    nullable: true
+    description: Extended attributes blob
 update_frequency: weekly
 sla:
   freshness: Data should be updated weekly
   completeness: No missing primary key values allowed
 examples:
-- SELECT * FROM product_domain LIMIT 10
+  - SELECT * FROM product_domain LIMIT 10

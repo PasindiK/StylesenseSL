@@ -1,35 +1,129 @@
 domain_name: interaction_domain
 owner: nadunthenuwara@gmail.com
-description: Auto-generated contract for interaction_domain. Add full description
-  here.
+description: >-
+  Fine-grained user–product interactions — clicks, views, feedback, and channel metadata.
+domain_profile:
+  business_meaning: >-
+    Captures behavioral events tied to users and products such as clicks, taps, dwell, ratings,
+    comments, and support messages. Grain is typically one row per interaction event.
+  common_terms:
+    - click_id
+    - click_time
+    - interaction_id
+    - interaction_event
+    - product_interaction
+    - feedback
+    - comment
+    - message
+    - rating
+    - user_action
+    - behavior
+    - activity
+    - event_time
+    - product_click
+  expected_entities:
+    - interaction_event
+    - clickstream
+  typical_actions:
+    - click
+    - view
+    - rate
+    - comment
+  known_dataset_examples:
+    - interactions_clean.csv
+    - interaction_clicks_test.csv
 schema:
-- column: interaction_id
-  type: int64
-  nullable: false
-  description: Add column description here
-- column: user_id
-  type: int64
-  nullable: false
-  description: Add column description here
-- column: product_id
-  type: int64
-  nullable: false
-  description: Add column description here
-- column: interaction_type
-  type: object
-  nullable: false
-  description: Add column description here
-- column: interaction_ts
-  type: object
-  nullable: false
-  description: Add column description here
-- column: interaction_date
-  type: object
-  nullable: false
-  description: Add column description here
+  - column: interaction_id
+    type: int64
+    nullable: false
+    description: Primary interaction key
+  - column: click_id
+    type: int64
+    nullable: true
+    description: Click-specific surrogate key
+  - column: user_id
+    type: int64
+    nullable: false
+    description: Acting user
+  - column: product_id
+    type: int64
+    nullable: false
+    description: Product receiving the interaction
+  - column: interaction_type
+    type: object
+    nullable: false
+    description: Event taxonomy (click, view, etc.)
+  - column: interaction_event
+    type: object
+    nullable: true
+    description: Event label alias used by clickstream feeds
+  - column: product_interaction
+    type: object
+    nullable: true
+    description: Product-level interaction summary label
+  - column: user_action
+    type: object
+    nullable: true
+    description: Normalized action label
+  - column: behavior
+    type: object
+    nullable: true
+    description: Behavioral category alias
+  - column: activity
+    type: object
+    nullable: true
+    description: Activity descriptor alias
+  - column: product_click
+    type: int64
+    nullable: true
+    description: Product click counter or flag
+  - column: click_time
+    type: object
+    nullable: true
+    description: Click timestamp
+  - column: interaction_ts
+    type: object
+    nullable: false
+    description: Event timestamp
+  - column: event_time
+    type: object
+    nullable: true
+    description: Alternate event timestamp alias
+  - column: interaction_date
+    type: object
+    nullable: false
+    description: Calendar date of interaction
+  - column: channel
+    type: object
+    nullable: true
+    description: Web, mobile, email, etc.
+  - column: dwell_seconds
+    type: float64
+    nullable: true
+    description: Time on asset
+  - column: session_id
+    type: object
+    nullable: true
+    description: Session grouping key
+  - column: feedback
+    type: object
+    nullable: true
+    description: Structured feedback payload
+  - column: comment_id
+    type: int64
+    nullable: true
+    description: Linked comment identifier
+  - column: message_id
+    type: int64
+    nullable: true
+    description: Chat or inbox message id
+  - column: rating
+    type: float64
+    nullable: true
+    description: Star or numeric rating
 update_frequency: weekly
 sla:
   freshness: Data should be updated weekly
   completeness: No missing primary key values allowed
 examples:
-- SELECT * FROM interaction_domain LIMIT 10
+  - SELECT * FROM interaction_domain LIMIT 10

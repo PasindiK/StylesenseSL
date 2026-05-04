@@ -1,86 +1,152 @@
 domain_name: sales_domain
 owner: nadunthenuwara@gmail.com
-description: Auto-generated contract for sales_domain. Add full description here.
+description: >-
+  Commerce and revenue domain — orders, payments, line items, tax, and fulfillment timestamps.
+domain_profile:
+  business_meaning: >-
+    Captures monetary exchanges between customers and the business: orders, payments, discounts,
+    taxes, shipping, and revenue recognition. Typical grain is one row per transaction line or payment event.
+  common_terms:
+    - order_id
+    - transaction_id
+    - payment_id
+    - price
+    - amount
+    - revenue
+    - quantity
+    - discount
+    - final_amount
+    - transaction_date
+    - invoice
+    - refund
+    - fulfillment
+  expected_entities:
+    - order
+    - payment
+    - line_item
+    - invoice
+    - shipment
+  typical_actions:
+    - purchase
+    - refund
+    - capture
+    - ship
+    - cancel
+  known_dataset_examples:
+    - transactions_clean.csv
+    - sales_orders_test.csv
 schema:
-- column: transaction_id
-  type: int64
-  nullable: false
-  description: Add column description here
-- column: user_id
-  type: int64
-  nullable: false
-  description: Add column description here
-- column: product_id
-  type: int64
-  nullable: false
-  description: Add column description here
-- column: shop_id
-  type: int64
-  nullable: false
-  description: Add column description here
-- column: quantity
-  type: int64
-  nullable: false
-  description: Add column description here
-- column: unit_price
-  type: float64
-  nullable: false
-  description: Add column description here
-- column: total_amount
-  type: float64
-  nullable: false
-  description: Add column description here
-- column: discount_percent
-  type: int64
-  nullable: false
-  description: Add column description here
-- column: discount_amount
-  type: float64
-  nullable: false
-  description: Add column description here
-- column: tax_percent
-  type: int64
-  nullable: false
-  description: Add column description here
-- column: tax_amount
-  type: float64
-  nullable: false
-  description: Add column description here
-- column: final_amount
-  type: float64
-  nullable: false
-  description: Add column description here
-- column: payment_method
-  type: object
-  nullable: false
-  description: Add column description here
-- column: transaction_status
-  type: object
-  nullable: false
-  description: Add column description here
-- column: transaction_date
-  type: object
-  nullable: false
-  description: Add column description here
-- column: transaction_ts
-  type: object
-  nullable: false
-  description: Add column description here
-- column: delivery_date
-  type: object
-  nullable: false
-  description: Add column description here
-- column: delivery_address
-  type: object
-  nullable: false
-  description: Add column description here
-- column: notes
-  type: object
-  nullable: false
-  description: Add column description here
+  - column: transaction_id
+    type: int64
+    nullable: false
+    description: Unique transaction identifier
+  - column: order_id
+    type: int64
+    nullable: true
+    description: Customer order identifier (alternate to transaction_id)
+  - column: line_id
+    type: int64
+    nullable: true
+    description: Order line identifier
+  - column: payment_id
+    type: object
+    nullable: true
+    description: Payment processor reference
+  - column: user_id
+    type: int64
+    nullable: false
+    description: Customer user identifier
+  - column: product_id
+    type: int64
+    nullable: false
+    description: Product sold
+  - column: shop_id
+    type: int64
+    nullable: false
+    description: Selling location
+  - column: sku
+    type: object
+    nullable: true
+    description: Stock keeping unit on the line
+  - column: quantity
+    type: int64
+    nullable: false
+    description: Units purchased
+  - column: unit_price
+    type: float64
+    nullable: false
+    description: Price per unit before discounts
+  - column: price
+    type: float64
+    nullable: true
+    description: Alias unit or line price when named price
+  - column: amount
+    type: float64
+    nullable: true
+    description: Monetary amount for payment or line
+  - column: revenue
+    type: float64
+    nullable: true
+    description: Recognized revenue amount
+  - column: total_amount
+    type: float64
+    nullable: false
+    description: Line or basket total before tax
+  - column: discount_percent
+    type: int64
+    nullable: false
+    description: Discount percentage applied
+  - column: discount_amount
+    type: float64
+    nullable: false
+    description: Discount value
+  - column: tax_percent
+    type: int64
+    nullable: false
+    description: Tax rate
+  - column: tax_amount
+    type: float64
+    nullable: false
+    description: Tax charged
+  - column: final_amount
+    type: float64
+    nullable: false
+    description: Amount after discounts and tax
+  - column: payment_method
+    type: object
+    nullable: false
+    description: Tender type
+  - column: transaction_status
+    type: object
+    nullable: false
+    description: Workflow status
+  - column: transaction_date
+    type: object
+    nullable: false
+    description: Business date of the transaction
+  - column: transaction_ts
+    type: object
+    nullable: false
+    description: Timestamp of the transaction
+  - column: delivery_date
+    type: object
+    nullable: false
+    description: Expected or actual delivery date
+  - column: delivery_address
+    type: object
+    nullable: false
+    description: Ship-to address
+  - column: notes
+    type: object
+    nullable: false
+    description: Free-text notes
+  - column: warehouse_id
+    type: object
+    nullable: true
+    description: Fulfillment warehouse for the line or basket
 update_frequency: weekly
 sla:
   freshness: Data should be updated weekly
   completeness: No missing primary key values allowed
 examples:
-- SELECT * FROM sales_domain LIMIT 10
+  - SELECT * FROM sales_domain LIMIT 10

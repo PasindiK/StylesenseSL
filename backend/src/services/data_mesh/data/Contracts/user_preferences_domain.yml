@@ -1,55 +1,94 @@
 domain_name: user_preferences_domain
 owner: nadunthenuwara@gmail.com
-description: Auto-generated contract for user_preferences_domain. Add full description
-  here.
+description: >-
+  Personalization signals — style, category, color, wishlists, and weighted affinities per user.
+domain_profile:
+  business_meaning: >-
+    Captures what a shopper prefers over time: categories, colors, fabrics, brands, wishlists,
+    and sensitivity to price. Used for recommendations and campaigns.
+  common_terms:
+    - preference_id
+    - wishlist
+    - favorite
+    - rating
+    - interest
+    - style_preference
+    - preferred_category
+    - preferred_color
+  expected_entities:
+    - preference_vector
+    - wishlist_item
+  typical_actions:
+    - save_preference
+    - update_weights
+    - add_to_wishlist
+  known_dataset_examples:
+    - users_preferences_clean.csv
+    - user_preferences_test.csv
 schema:
-- column: preference_id
-  type: int64
-  nullable: false
-  description: Add column description here
-- column: user_id
-  type: int64
-  nullable: false
-  description: Add column description here
-- column: preferred_categories
-  type: object
-  nullable: false
-  description: Add column description here
-- column: preferred_colors
-  type: object
-  nullable: false
-  description: Add column description here
-- column: preferred_fabrics
-  type: object
-  nullable: false
-  description: Add column description here
-- column: preferred_brands
-  type: object
-  nullable: false
-  description: Add column description here
-- column: preferred_styles
-  type: object
-  nullable: false
-  description: Add column description here
-- column: skin_tone
-  type: object
-  nullable: false
-  description: Add column description here
-- column: body_type
-  type: object
-  nullable: false
-  description: Add column description here
-- column: price_sensitivity
-  type: object
-  nullable: false
-  description: Add column description here
-- column: updated_ts
-  type: object
-  nullable: false
-  description: Add column description here
+  - column: preference_id
+    type: int64
+    nullable: false
+    description: Preference row key
+  - column: user_id
+    type: int64
+    nullable: false
+    description: User owning the preferences
+  - column: wishlist_id
+    type: int64
+    nullable: true
+    description: Wishlist container id
+  - column: product_id
+    type: int64
+    nullable: true
+    description: Wishlisted product reference
+  - column: preferred_categories
+    type: object
+    nullable: false
+    description: Category affinities
+  - column: preferred_colors
+    type: object
+    nullable: false
+    description: Color affinities
+  - column: preferred_fabrics
+    type: object
+    nullable: false
+    description: Fabric preferences
+  - column: preferred_brands
+    type: object
+    nullable: false
+    description: Brand affinities
+  - column: preferred_styles
+    type: object
+    nullable: false
+    description: Style tags
+  - column: style_preference
+    type: object
+    nullable: true
+    description: Primary style label
+  - column: interest_tags
+    type: object
+    nullable: true
+    description: Interest keywords
+  - column: skin_tone
+    type: object
+    nullable: false
+    description: Beauty personalization
+  - column: body_type
+    type: object
+    nullable: false
+    description: Fit personalization
+  - column: price_sensitivity
+    type: object
+    nullable: false
+    description: Price band preference
+  - column: updated_ts
+    type: object
+    nullable: false
+    description: Last update time
 update_frequency: weekly
 sla:
   freshness: Data should be updated weekly
   completeness: No missing primary key values allowed
 examples:
-- SELECT * FROM user_preferences_domain LIMIT 10
+  - SELECT * FROM user_preferences_domain LIMIT 10

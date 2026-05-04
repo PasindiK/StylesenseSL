@@ -1,38 +1,97 @@
 domain_name: users_domain
 owner: nadunthenuwara@gmail.com
-description: Auto-generated contract for users_domain. Add full description here.
+description: >-
+  Registered customers and profiles — identity, contact, demographics, and loyalty segmentation.
+domain_profile:
+  business_meaning: >-
+    One row per person who can authenticate or purchase. Covers PII-light profile traits, signup,
+    activity flags, and marketing segments.
+  common_terms:
+    - user_id
+    - customer_id
+    - email
+    - name
+    - gender
+    - age
+    - profile
+    - location
+    - segment
+    - loyalty
+  expected_entities:
+    - user
+    - customer
+    - account
+  typical_actions:
+    - signup
+    - update_profile
+    - verify_email
+  known_dataset_examples:
+    - users_clean.csv
+    - users_profile_test.csv
 schema:
-- column: user_id
-  type: int64
-  nullable: false
-  description: Add column description here
-- column: name
-  type: object
-  nullable: false
-  description: Add column description here
-- column: email
-  type: object
-  nullable: false
-  description: Add column description here
-- column: phone
-  type: object
-  nullable: false
-  description: Add column description here
-- column: shipping_address
-  type: object
-  nullable: false
-  description: Add column description here
-- column: signup_ts
-  type: object
-  nullable: false
-  description: Add column description here
-- column: is_active
-  type: bool
-  nullable: false
-  description: Add column description here
+  - column: user_id
+    type: int64
+    nullable: false
+    description: Internal user key
+  - column: customer_id
+    type: object
+    nullable: true
+    description: External CRM customer id
+  - column: name
+    type: object
+    nullable: false
+    description: Display name
+  - column: email
+    type: object
+    nullable: false
+    description: Login email
+  - column: phone
+    type: object
+    nullable: false
+    description: Contact phone
+  - column: gender
+    type: object
+    nullable: true
+    description: Self-reported gender
+  - column: age
+    type: int64
+    nullable: true
+    description: Age or age band encoded as integer
+  - column: location
+    type: object
+    nullable: true
+    description: City or region label
+  - column: country
+    type: object
+    nullable: true
+    description: Country or region code
+  - column: segment
+    type: object
+    nullable: true
+    description: Marketing or lifecycle segment
+  - column: profile_url
+    type: object
+    nullable: true
+    description: Public profile link
+  - column: shipping_address
+    type: object
+    nullable: false
+    description: Default ship-to
+  - column: signup_ts
+    type: object
+    nullable: false
+    description: Account creation time
+  - column: loyalty_tier
+    type: object
+    nullable: true
+    description: Loyalty program tier
+  - column: is_active
+    type: bool
+    nullable: false
+    description: Account active flag
 update_frequency: weekly
 sla:
   freshness: Data should be updated weekly
   completeness: No missing primary key values allowed
 examples:
-- SELECT * FROM users_domain LIMIT 10
+  - SELECT * FROM users_domain LIMIT 10

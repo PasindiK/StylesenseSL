@@ -4,3 +4,4 @@ pandas==2.3.3
 pyyaml==6.0.3
 python-multipart==0.0.20
 scikit-learn==1.6.1
+sentence-transformers>=3.0.0

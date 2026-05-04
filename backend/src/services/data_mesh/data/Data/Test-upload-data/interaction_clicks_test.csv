@@ -1,0 +1,4 @@
+click_id,user_id,product_id,click_time,rating,interaction_type,interaction_ts,interaction_date
+90001,5001,701,2026-04-20T12:01:00,4.5,click,2026-04-20T12:01:00,2026-04-20
+90002,5002,702,2026-04-20T12:05:00,5.0,click,2026-04-20T12:05:00,2026-04-20
+90003,5003,703,2026-04-20T12:09:00,3.5,click,2026-04-20T12:09:00,2026-04-20

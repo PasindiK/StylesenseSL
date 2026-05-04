@@ -1,0 +1,4 @@
+preference_id,user_id,wishlist_id,product_id,preferred_categories,preferred_colors,preferred_styles,updated_ts
+8801,5001,12001,701,"Dresses,Tops","Navy,White","Casual,Formal",2026-04-01 10:00:00
+8802,5002,12002,702,"Pants","Black","Athleisure",2026-04-02 11:30:00
+8803,5003,12003,703,"Outerwear","Olive","Utility",2026-04-03 09:15:00

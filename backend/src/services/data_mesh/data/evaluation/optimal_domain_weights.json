@@ -1,0 +1,46 @@
+{
+  "scoring_backend": "sentence_embedding",
+  "best_weights": {
+    "w1_semantic": 0.1,
+    "w2_ontology": 0.5,
+    "w3_contract": 0.4,
+    "w4_memory": 0.0
+  },
+  "metrics": {
+    "domain_assignment_accuracy": 0.8888888888888888,
+    "orphan_detection_accuracy": 1.0,
+    "review_routing_accuracy": 0.75,
+    "wrong_auto_assignment_rate": 0.0,
+    "overall_objective_score": 0.8069444444444445,
+    "counts": {
+      "rows": 15,
+      "gold_existing": 9,
+      "gold_orphan": 2,
+      "gold_review": 4
+    }
+  },
+  "tested_combinations_count": 12341,
+  "grid_step": 0.025,
+  "fine_tune_summary": "Exhaustive grid at step 0.025: 12341 weight tuples on the simplex; 48 tuple(s) tie at the top objective 0.806944.",
+  "prototype_weights": {
+    "w1_semantic": 0.6,
+    "w2_ontology": 0.2,
+    "w3_contract": 0.15,
+    "w4_memory": 0.05
+  },
+  "prototype_metrics": {
+    "domain_assignment_accuracy": 0.1111111111111111,
+    "orphan_detection_accuracy": 1.0,
+    "review_routing_accuracy": 0.0,
+    "wrong_auto_assignment_rate": 0.0,
+    "overall_objective_score": 0.3055555555555556,
+    "counts": {
+      "rows": 15,
+      "gold_existing": 9,
+      "gold_orphan": 2,
+      "gold_review": 4
+    }
+  },
+  "explanation": "TF-IDF tuned weights (w1 profile TF-IDF in production when scoring_backend is tfidf or semantic_backend is tfidf_fallback). Router field scoring_backend chooses sentence embeddings vs TF-IDF path. Sentence-embedding numeric weights are maintained separately in optimal_embedding_domain_weights.json.",
+  "generated_at": "2026-05-04T12:00:00"
+}

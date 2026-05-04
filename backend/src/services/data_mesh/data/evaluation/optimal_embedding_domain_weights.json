@@ -1,0 +1,30 @@
+{
+  "scoring_backend": "sentence_embedding",
+  "best_weights": {
+    "w1_semantic": 0.4,
+    "w2_ontology": 0.4,
+    "w3_contract": 0.2,
+    "w4_memory": 0.0
+  },
+  "metrics": {
+    "domain_assignment_accuracy": 0.8888888888888888,
+    "orphan_detection_accuracy": 1.0,
+    "review_routing_accuracy": 0.75,
+    "wrong_auto_assignment_rate": 0.06666666666666667,
+    "overall_objective_score": 0.8002777777777778,
+    "counts": {
+      "rows": 15,
+      "gold_existing": 9,
+      "gold_orphan": 2,
+      "gold_review": 4
+    }
+  },
+  "tested_combinations_count": 1771,
+  "grid_step": 0.05,
+  "tuning_backend": "embedding",
+  "fine_tune_summary": "Live embedding w1 grid at step 0.05: 1771 tuples; 29 tie(s) at objective 0.800278. Domains in matrix: 7.",
+  "explanation": "best_weights tuned with live sentence-transformers embedding similarity (w1) when the model loads; otherwise TF-IDF was used as w1 stand-in for this run. TF-IDF routing weights remain in optimal_domain_weights.json.",
+  "semantic_backend_at_tune": "sentence_embedding",
+  "embedding_tune_warning": null,
+  "generated_at": "2026-05-04T10:13:42"
+}

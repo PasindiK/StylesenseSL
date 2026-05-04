@@ -1,4 +1,4 @@
-user_id,product_id,click_time,amount
-101,9001,2026-04-20T09:10:00,499.99
-102,9002,2026-04-20T10:00:00,1299.00
-103,9003,2026-04-20T11:15:00,799.50
+user_id,product_id,shop_id,session_id,page_view,amount,transaction_date
+5001,701,90,sess-mx-1,3,1299.50,2026-04-20
+5002,702,91,sess-mx-2,5,899.00,2026-04-21
+5003,703,92,sess-mx-3,2,450.25,2026-04-22

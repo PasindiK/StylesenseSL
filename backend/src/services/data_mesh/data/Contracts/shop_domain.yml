@@ -1,46 +1,92 @@
 domain_name: shop_domain
 owner: nadunthenuwara@gmail.com
-description: Auto-generated contract for shop_domain. Add full description here.
+description: >-
+  Physical or digital storefronts — identifiers, geography, hours, and operational status.
+domain_profile:
+  business_meaning: >-
+    Represents places where commerce happens: branches, outlets, and partner stores with address,
+    region, and operating hours metadata.
+  common_terms:
+    - shop_id
+    - store_id
+    - branch
+    - outlet
+    - location
+    - region
+    - city
+    - shop_name
+    - opening_hours
+  expected_entities:
+    - store
+    - branch
+    - outlet
+  typical_actions:
+    - open_store
+    - close_store
+    - update_hours
+  known_dataset_examples:
+    - shops_clean.csv
+    - shop_locations_test.csv
 schema:
-- column: shop_id
-  type: int64
-  nullable: false
-  description: Add column description here
-- column: shop_name
-  type: object
-  nullable: false
-  description: Add column description here
-- column: location
-  type: object
-  nullable: false
-  description: Add column description here
-- column: district
-  type: object
-  nullable: false
-  description: Add column description here
-- column: postal_code
-  type: int64
-  nullable: false
-  description: Add column description here
-- column: phone_number
-  type: int64
-  nullable: false
-  description: Add column description here
-- column: is_active
-  type: bool
-  nullable: false
-  description: Add column description here
-- column: operating_hours_open
-  type: object
-  nullable: false
-  description: Add column description here
-- column: operating_hours_close
-  type: object
-  nullable: false
-  description: Add column description here
+  - column: shop_id
+    type: int64
+    nullable: false
+    description: Internal shop key
+  - column: store_id
+    type: object
+    nullable: true
+    description: Alternate store identifier
+  - column: shop_name
+    type: object
+    nullable: false
+    description: Store display name
+  - column: branch
+    type: object
+    nullable: true
+    description: Branch or sub-location label
+  - column: location
+    type: object
+    nullable: false
+    description: Address or geo label
+  - column: city
+    type: object
+    nullable: true
+    description: City name
+  - column: region
+    type: object
+    nullable: true
+    description: Region or province
+  - column: district
+    type: object
+    nullable: false
+    description: District within region
+  - column: postal_code
+    type: int64
+    nullable: false
+    description: Postal or ZIP code
+  - column: phone_number
+    type: int64
+    nullable: false
+    description: Store contact number
+  - column: opening_hours
+    type: object
+    nullable: true
+    description: Human-readable hours string
+  - column: is_active
+    type: bool
+    nullable: false
+    description: Store open for business
+  - column: operating_hours_open
+    type: object
+    nullable: false
+    description: Opening time token
+  - column: operating_hours_close
+    type: object
+    nullable: false
+    description: Closing time token
 update_frequency: weekly
 sla:
   freshness: Data should be updated weekly
   completeness: No missing primary key values allowed
 examples:
-- SELECT * FROM shop_domain LIMIT 10
+  - SELECT * FROM shop_domain LIMIT 10

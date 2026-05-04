@@ -2,6 +2,7 @@
 backend/.env
 backend/.venv/
 **/.venv/
+**/.venv_eval/
 __pycache__/
 **/__pycache__/
 **/.pytest_cache/

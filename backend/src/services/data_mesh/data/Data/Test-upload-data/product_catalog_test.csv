@@ -1,0 +1,4 @@
+product_id,shop_id,sku,category,brand,color,size_range,price_lkr,stock_count,inventory
+701,3,SKU-GL-001,Dresses,BrandA,Navy,M,2499.00,42,42
+702,3,SKU-GL-002,Tops,BrandB,White,S,1899.00,18,18
+703,4,SKU-GL-003,Pants,BrandC,Black,L,3299.00,7,7
