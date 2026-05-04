@@ -322,6 +322,11 @@ const RATE_KEYWORDS = ['ratio', 'percentage', 'pct', 'percent']
 const BINARY_KEYWORDS = ['flag', 'detected', 'is_', 'has_', 'failed', 'anomaly']
 const TARGET_KEYWORDS = ['label', 'target', 'relevant', 'outcome', 'class']
 const TEXT_KEYWORDS = ['description', 'comment', 'message', 'review', 'query', 'prompt', 'title', 'name']
+/** Fashion / catalog columns: nominal dimensions, not "unknown" when text cardinality is high. */
+const CATALOG_ATTRIBUTE_KEYWORDS = [
+  'category', 'color', 'colour', 'fabric', 'material', 'size', 'fit', 'season', 'brand', 'style',
+  'pattern', 'silhouette', 'department', 'gender', 'occasion', 'collection', 'variant',
+]
 
 const demoDataset: DatasetRow[] = [
   { deviceId: 'ESP32_BAG_01', rideId: 'RIDE_001', timestamp: '2025-01-06 14:25:00', temperature: 29.18, coldTemperature: 28.78, humidity: 77.84, rainValue: 4095, rainStatus: 'Wet', magnetDetected: true, tilt_rate: -0.23, tilt_risk_score: 0.12, rain_risk_score: 0.81, label: 1 },
@@ -377,6 +382,106 @@ function formatPct(value: number) {
 
 function safeFixed(value: number | null, digits = 2) {
   return value == null ? 'N/A' : value.toFixed(digits)
+}
+
+/** Map data-architecture predefined `role` strings to UI GenericRole. */
+function mapPredefinedApiRoleToGeneric(roleRaw: string, columnName: string, unitHint = ''): GenericRole | null {
+  const r = String(roleRaw || '').toLowerCase().replace(/\s+/g, '_').trim()
+  const n = columnName.toLowerCase()
+  const u = String(unitHint || '').toLowerCase().trim()
+  if (!r) return null
+  if (u === 'email' || n === 'email' || n.endsWith('_email')) return 'Text Attribute'
+  if (u === 'phone' || n === 'phone' || n === 'mobile' || n.endsWith('_phone') || n.endsWith('_mobile')) return 'Text Attribute'
+  if (r === 'identifier') {
+    if (n.includes('url') || n.includes('link') || n.endsWith('_uri')) return 'Text Attribute'
+    return 'Identifier'
+  }
+  if (r === 'text_attribute') return 'Text Attribute'
+  if (r === 'dimension') return 'Categorical Attribute'
+  if (r === 'measure') {
+    if (/%|percent|pct|ratio|_rate$/i.test(n) || /\b(rate|ratio|percent)\b/i.test(n)) return 'Rate / Percentage'
+    if (keywordMatch(columnName, COUNT_KEYWORDS) || /\b(qty|quantity|stock|units)\b/i.test(n) || /(^|_)count($|_)/i.test(n) || /_count$/i.test(n)) return 'Count / Activity'
+    return 'Numeric Measure'
+  }
+  if (r === 'timestamp') return 'Timestamp'
+  if (r === 'score' || r === 'rating') return 'Score / Rating'
+  if (r === 'rate' || r === 'percentage' || r === 'percent') return 'Rate / Percentage'
+  if (r === 'binary' || r === 'flag') return 'Binary Label'
+  if (r === 'label' || r === 'target') return 'Target Column'
+  return null
+}
+
+function rolesFromRegistrySemanticBaseline(version: StoredVersion | null): Record<string, GenericRole> {
+  if (!version?.semantic_profiles?.length) return {}
+  const out: Record<string, GenericRole> = {}
+  for (const sp of version.semantic_profiles) {
+    const cn = sp.column_name
+    const n = cn.toLowerCase()
+    if (n === 'email' || n.endsWith('_email')) {
+      out[cn] = 'Text Attribute'
+      continue
+    }
+    if (n === 'phone' || n === 'mobile' || n.endsWith('_phone') || n.endsWith('_mobile')) {
+      out[cn] = 'Text Attribute'
+      continue
+    }
+    const gr = sp.generic_role as GenericRole
+    if (ROLE_OPTIONS.includes(gr)) out[cn] = gr
+  }
+  return out
+}
+
+/** Match upload column names to predefined template keys case-insensitively. */
+function rolesFromPredefinedForUploadColumns(pre: PredefinedBaseline | null, uploadColumns: string[]): Record<string, GenericRole> {
+  if (!pre?.columns || !uploadColumns.length) return {}
+  const lowerToTemplateKey = new Map<string, string>()
+  for (const k of Object.keys(pre.columns)) lowerToTemplateKey.set(k.toLowerCase(), k)
+  const out: Record<string, GenericRole> = {}
+  for (const col of uploadColumns) {
+    const templateKey = lowerToTemplateKey.get(col.toLowerCase())
+    if (!templateKey) continue
+    const meta = pre.columns[templateKey]
+    const g = mapPredefinedApiRoleToGeneric(meta.role, col, meta.unit || '')
+    if (g) out[col] = g
+  }
+  return out
+}
+
+/**
+ * Segment mean spread across quartiles is often benign for governed measures that still match
+ * the baseline schema (external drift NONE). Downgrade MODERATE → LOW so they do not look
+ * like new semantic incidents in every table.
+ */
+function softenInternalDriftForBaselineSchemaColumns(
+  raw: Record<string, InternalDriftResult>,
+  external: Record<string, ExternalDriftResult>,
+  baselineVersion: StoredVersion | null,
+  roles: Record<string, GenericRole>,
+): Record<string, InternalDriftResult> {
+  if (!baselineVersion?.semantic_profiles?.length) return raw
+  const baselineCols = new Set(
+    baselineVersion.semantic_profiles.map((sp) => sp.column_name.toLowerCase()),
+  )
+  const relaxRoles: GenericRole[] = ['Numeric Measure', 'Count / Activity', 'Rate / Percentage']
+  const next: Record<string, InternalDriftResult> = { ...raw }
+  for (const col of Object.keys(next)) {
+    if (!baselineCols.has(col.toLowerCase())) continue
+    const ext = external[col]?.drift_severity ?? 'NONE'
+    if (ext !== 'NONE') continue
+    const role = roles[col]
+    if (!relaxRoles.includes(role)) continue
+    const row = next[col]
+    if (row.drift_severity !== 'MODERATE') continue
+    const ev = row.evidence.join(' ').toLowerCase()
+    if (!ev.includes('segment mean spread') && !ev.includes('mean spread')) continue
+    next[col] = {
+      ...row,
+      drift_severity: 'LOW',
+      explanation: 'Segment-level mean movement is within expected variance for a baseline-aligned measure.',
+      recommended_action: 'No action needed.',
+    }
+  }
+  return next
 }
 
 function keywordMatch(columnName: string, keywords: string[]) {
@@ -526,6 +631,22 @@ function buildColumnProfile(columnName: string, rows: DatasetRow[], columnCount:
 
 function detectRole(profile: ColumnProfile): RoleDetection {
   const name = profile.column_name.toLowerCase()
+  if (name === 'email' || name.endsWith('_email')) {
+    return {
+      column_name: profile.column_name,
+      detected_role: 'Text Attribute',
+      confidence: 0.92,
+      reason: 'Email values are modeled as text, not strict identifier tokens.',
+    }
+  }
+  if (name === 'phone' || name === 'mobile' || name.endsWith('_phone') || name.endsWith('_mobile')) {
+    return {
+      column_name: profile.column_name,
+      detected_role: 'Text Attribute',
+      confidence: 0.9,
+      reason: 'Phone numbers are contact text, not entity IDs.',
+    }
+  }
   let detectedRole: GenericRole = 'Unknown / Unmapped'
   let confidence = 0.25
   let reason = 'No strong deterministic pattern matched.'
@@ -582,6 +703,10 @@ function detectRole(profile: ColumnProfile): RoleDetection {
     detectedRole = 'Categorical Attribute'
     confidence = 0.9
     reason = 'Repeated text values indicate a categorical attribute.'
+  } else if (profile.inferred_type === 'text' && keywordMatch(name, CATALOG_ATTRIBUTE_KEYWORDS)) {
+    detectedRole = profile.unique_percent <= 0.82 ? 'Categorical Attribute' : 'Text Attribute'
+    confidence = 0.88
+    reason = 'Catalog or merchandising attribute keyword matched; treated as a governed nominal/text field.'
   } else if (profile.inferred_type === 'text' && (hasTextKeyword || profile.avg_string_length >= 12)) {
     detectedRole = 'Text Attribute'
     confidence = 0.82
@@ -612,7 +737,19 @@ function detectRole(profile: ColumnProfile): RoleDetection {
   return { column_name: profile.column_name, detected_role: detectedRole, confidence, reason }
 }
 
-function assessRoleFit(profile: ColumnProfile, role: GenericRole, detection: RoleDetection) {
+function assessRoleFit(
+  profile: ColumnProfile,
+  role: GenericRole,
+  detection: RoleDetection,
+  opts?: { schemaInherited?: boolean },
+) {
+  if (opts?.schemaInherited) {
+    return {
+      confidence: 0.92,
+      reason: 'Role aligned with approved baseline schema for this column.',
+      lowConfidence: false,
+    }
+  }
   if (role === detection.detected_role) return { confidence: detection.confidence, reason: detection.reason, lowConfidence: detection.confidence < 0.7 }
   let confidence = 0.35
   let reason = 'Manual override applied, but the current column profile only weakly supports this role.'
@@ -771,6 +908,74 @@ function quartileSegments(rows: DatasetRow[]) {
     .filter((segment) => segment.rows.length > 0)
 }
 
+function maxDriftSeverity(...sevs: DriftSeverity[]): DriftSeverity {
+  const order: Record<DriftSeverity, number> = { NONE: 0, LOW: 1, MODERATE: 2, HIGH: 3 }
+  return sevs.reduce((best, s) => (order[s] > order[best] ? s : best), 'NONE' as DriftSeverity)
+}
+
+/** Rule-based mapping from composite statistical score — detection only (no ML). */
+function statisticalScoreToDriftSeverity(score: number): DriftSeverity {
+  if (score >= 0.82) return 'HIGH'
+  if (score >= 0.5) return 'MODERATE'
+  if (score >= 0.2) return 'LOW'
+  return 'NONE'
+}
+
+/**
+ * Rule-based behavioral drift vs baseline release snapshot.
+ * Does not echo the same incident as HIGH when only statistical/internal drift already explains QUARANTINE.
+ */
+function ruleBasedBehavioralDriftSeverity(
+  item: ReleaseResult,
+  baseline: ReleaseResult,
+): { drift_severity: DriftSeverity; evidence: string[] } {
+  const statusRank: Record<FeatureStatus, number> = { READY: 0, CONDITIONAL: 1, QUARANTINED: 2 }
+  const delta = statusRank[item.release_status] - statusRank[baseline.release_status]
+  const failureDelta = item.critical_failures.length - baseline.critical_failures.length
+  const warningDelta = item.warnings.length - baseline.warnings.length
+  const maxStructural = maxDriftSeverity(
+    item.internal_drift_severity,
+    item.external_drift_severity,
+    item.statistical_drift_severity,
+  )
+
+  const evidence: string[] = []
+  if (item.release_status !== baseline.release_status) {
+    evidence.push(`Release status changed from ${baseline.release_status} to ${item.release_status}.`)
+  }
+  if (failureDelta !== 0) {
+    evidence.push(`Critical failure delta vs baseline: ${failureDelta > 0 ? '+' : ''}${failureDelta}.`)
+  }
+  if (warningDelta !== 0) {
+    evidence.push(`Validation warning delta vs baseline: ${warningDelta > 0 ? '+' : ''}${warningDelta}.`)
+  }
+
+  if (!evidence.length) {
+    return { drift_severity: 'NONE', evidence: ['Release behavior remains aligned with the baseline.'] }
+  }
+
+  let drift_severity: DriftSeverity = 'NONE'
+
+  if (failureDelta >= 2) {
+    drift_severity = 'HIGH'
+  } else if (failureDelta >= 1 && maxStructural === 'HIGH') {
+    drift_severity = 'HIGH'
+  } else if (failureDelta >= 1 || maxStructural === 'HIGH' || Math.abs(delta) >= 2) {
+    drift_severity = 'MODERATE'
+  } else if (Math.abs(delta) >= 1 || warningDelta >= 1) {
+    drift_severity = 'LOW'
+  } else {
+    drift_severity = 'LOW'
+  }
+
+  const isRef = item.role === 'Identifier' || item.role === 'Timestamp'
+  if (isRef && failureDelta < 1 && maxStructural !== 'HIGH') {
+    drift_severity = drift_severity === 'HIGH' ? 'MODERATE' : drift_severity === 'MODERATE' ? 'LOW' : drift_severity
+  }
+
+  return { drift_severity, evidence }
+}
+
 function buildInternalDrift(profiles: ColumnProfile[], roles: Record<string, GenericRole>, rows: DatasetRow[]): InternalDriftResult[] {
   const { compared_by, segments } = segmentDataset(rows, roles)
   return profiles.map((profile) => {
@@ -838,16 +1043,34 @@ function buildInternalDrift(profiles: ColumnProfile[], roles: Record<string, Gen
       }
     }
     if (scaleSet.size > 1 && !scaleSet.has('unknown')) {
-      drift_severity = 'HIGH'
-      evidence.push(`Segments show multiple scale patterns: ${Array.from(scaleSet).join(', ')}`)
-    } else if (meanSpread > Math.max(1, Math.abs(profile.mean ?? 0) * 0.35)) {
-      drift_severity = 'MODERATE'
-      evidence.push(`Segment mean spread is ${meanSpread.toFixed(2)}.`)
-    } else if (meanSpread > Math.max(0.5, Math.abs(profile.mean ?? 0) * 0.15)) {
-      drift_severity = 'LOW'
-      evidence.push(`Segment mean spread is ${meanSpread.toFixed(2)} but scale stays consistent.`)
+      const scales = Array.from(scaleSet)
+      const boundedScales = new Set(['0-1', '0-100', '1-5', '1-10', 'count', 'continuous'])
+      const boundedMix =
+        scales.every((s) => boundedScales.has(s))
+        && scales.some((s) => s === '0-1' || s === '0-100')
+        && ['Numeric Measure', 'Count / Activity', 'Score / Rating', 'Rate / Percentage'].includes(role)
+      if (boundedMix) {
+        drift_severity = 'MODERATE'
+        evidence.push(
+          `Segments show mixed bounded scales (${scales.join(', ')}); rule: encoding variance (0–1 vs 0–100 style), not a new semantic type.`,
+        )
+      } else {
+        drift_severity = 'HIGH'
+        evidence.push(`Segments show multiple scale patterns: ${scales.join(', ')}`)
+      }
     } else {
-      evidence.push('Segments follow a consistent scale and interpretation.')
+      const absMean = Math.abs(profile.mean ?? 0)
+      const modThreshold = Math.max(8, absMean * 0.5)
+      const lowThreshold = Math.max(1, absMean * 0.22)
+      if (meanSpread > modThreshold) {
+        drift_severity = 'MODERATE'
+        evidence.push(`Segment mean spread is ${meanSpread.toFixed(2)} (rule threshold ${modThreshold.toFixed(2)}).`)
+      } else if (meanSpread > lowThreshold) {
+        drift_severity = 'LOW'
+        evidence.push(`Segment mean spread is ${meanSpread.toFixed(2)} (within low band vs column mean).`)
+      } else {
+        evidence.push('Segments follow a consistent scale and interpretation.')
+      }
     }
     return {
       column_name: profile.column_name,
@@ -1071,9 +1294,7 @@ function buildStatisticalDrift(
 
       result.field_type = 'numeric'
       result.score = Math.min(1, score)
-      if (result.score >= 0.7) result.drift_severity = 'HIGH'
-      else if (result.score >= 0.35) result.drift_severity = 'MODERATE'
-      else if (result.score >= 0.15) result.drift_severity = 'LOW'
+      result.drift_severity = statisticalScoreToDriftSeverity(result.score)
       if (!result.evidence.length) result.evidence.push('Numeric distribution remains aligned with the baseline.')
       result.explanation = result.drift_severity === 'HIGH'
         ? 'Numeric distribution changed materially against the selected baseline.'
@@ -1139,9 +1360,7 @@ function buildStatisticalDrift(
 
       result.field_type = 'categorical'
       result.score = Math.min(1, score)
-      if (result.score >= 0.7) result.drift_severity = 'HIGH'
-      else if (result.score >= 0.35) result.drift_severity = 'MODERATE'
-      else if (result.score >= 0.15) result.drift_severity = 'LOW'
+      result.drift_severity = statisticalScoreToDriftSeverity(result.score)
       if (!result.evidence.length) result.evidence.push(`Categorical distribution remains aligned with the baseline (${baselineMode} -> ${currentMode}).`)
       result.explanation = result.drift_severity === 'HIGH'
         ? 'Categorical distribution changed materially against the selected baseline.'
@@ -1188,26 +1407,7 @@ function buildBehavioralDrift(
     }
 
     const delta = statusRank[item.release_status] - statusRank[baseline.release_status]
-    const failureDelta = item.critical_failures.length - baseline.critical_failures.length
-    const warningDelta = item.warnings.length - baseline.warnings.length
-    let score = 0
-    const evidence: string[] = []
-
-    if (item.release_status !== baseline.release_status) {
-      score = Math.max(score, Math.abs(delta) >= 2 ? 0.85 : 0.45)
-      evidence.push(`Release status changed from ${baseline.release_status} to ${item.release_status}.`)
-    }
-    if (failureDelta > 0) {
-      score = Math.max(score, failureDelta >= 2 ? 0.8 : 0.5)
-      evidence.push(`${failureDelta} additional critical failure${failureDelta === 1 ? '' : 's'} appeared.`)
-    }
-    if (warningDelta > 0) {
-      score = Math.max(score, warningDelta >= 2 ? 0.45 : 0.25)
-      evidence.push(`${warningDelta} additional warning${warningDelta === 1 ? '' : 's'} appeared.`)
-    }
-    if (!evidence.length) evidence.push('Release behavior remains aligned with the baseline.')
-
-    const driftSeverity: DriftSeverity = score >= 0.75 ? 'HIGH' : score >= 0.35 ? 'MODERATE' : score >= 0.15 ? 'LOW' : 'NONE'
+    const { drift_severity: driftSeverity, evidence } = ruleBasedBehavioralDriftSeverity(item, baseline)
     return {
       column_name: item.column_name,
       baseline_version: `v${baselineVersion.version_number}`,
@@ -1218,11 +1418,11 @@ function buildBehavioralDrift(
       drift_severity: driftSeverity,
       evidence,
       explanation: driftSeverity === 'HIGH'
-        ? 'Downstream release behavior changed materially against the baseline.'
+        ? 'Downstream release behavior changed materially against the baseline (rule table: new critical failures or structural HIGH drift).'
         : driftSeverity === 'MODERATE'
-          ? 'Downstream release behavior changed enough to review.'
+          ? 'Downstream release behavior changed under rule-based governance comparison.'
           : driftSeverity === 'LOW'
-            ? 'Downstream release behavior shifted slightly.'
+            ? 'Downstream release tier shifted slightly vs baseline without crossing HIGH rule thresholds.'
             : 'No behavioral drift detected.',
       recommended_action: driftSeverity === 'HIGH'
         ? 'Review the downstream impact before promotion.'
@@ -1231,6 +1431,66 @@ function buildBehavioralDrift(
           : 'No action needed.',
     }
   })
+}
+
+/** Risk 0–100 for automation: only elevated scores queue for human (CONDITIONAL). */
+function automationRiskScore(
+  profile: ColumnProfile,
+  role: GenericRole,
+  internalSeverity: string,
+  externalSeverity: string,
+  statisticalSeverity: string,
+  behavioralSeverity: string,
+  roleConfidence: number,
+): number {
+  const col = profile.column_name
+  const idLike =
+    role === 'Identifier' || /(^|_)(id|uuid|guid|sku|code)(_|$)/i.test(col) || /_id$/i.test(col)
+  const financial = /price|amount|lkr|total|tax|discount|fee|revenue|cost|balance/i.test(col)
+
+  const w = (sev: string, idScale: number, finBoost: number) => {
+    if (sev === 'HIGH') return 42 + finBoost
+    if (sev === 'MODERATE') return (idLike ? 10 : 22) + (financial ? finBoost : 0)
+    if (sev === 'LOW') return 6
+    return 0
+  }
+
+  let s = 0
+  s += w(internalSeverity, 1, financial ? 8 : 0)
+  s += w(externalSeverity, 1, financial ? 12 : 0)
+  s += w(statisticalSeverity, 1, financial ? 10 : 0)
+  s += w(behavioralSeverity, 1, 0)
+
+  if (profile.missing_percent > 0.2) s += profile.missing_percent > 0.35 ? 18 : 8
+  if (roleConfidence < 0.55) s += 14
+  else if (roleConfidence < 0.7) s += 6
+  if (profile.outlier_percent > 0.2) s += 5
+  if (role === 'Unknown / Unmapped') s += 22
+
+  return Math.min(100, s)
+}
+
+/** Above this risk score → human review (CONDITIONAL); below → automated READY path. */
+const HUMAN_REVIEW_RISK_THRESHOLD = 46
+
+/** Prefer evidence from the strongest drift axis so QUARANTINED rows do not show benign internal text first. */
+function pickPrimaryDriftEvidenceLine(
+  internal?: InternalDriftResult,
+  external?: ExternalDriftResult,
+  statistical?: StatisticalDriftResult,
+  behavioral?: BehavioralDriftResult,
+): string | undefined {
+  const cands: Array<{ sev: DriftSeverity; line?: string }> = [
+    { sev: behavioral?.drift_severity ?? 'NONE', line: behavioral?.evidence?.[0] },
+    { sev: statistical?.drift_severity ?? 'NONE', line: statistical?.evidence?.[0] },
+    { sev: external?.drift_severity ?? 'NONE', line: external?.evidence?.[0] },
+    { sev: internal?.drift_severity ?? 'NONE', line: internal?.evidence?.[0] },
+  ]
+  const rank: Record<DriftSeverity, number> = { NONE: 0, LOW: 1, MODERATE: 2, HIGH: 3 }
+  cands.sort((a, b) => rank[b.sev] - rank[a.sev])
+  const strong = cands.find((c) => rank[c.sev] >= 2 && c.line)
+  if (strong?.line) return strong.line
+  return cands.find((c) => c.line)?.line
 }
 
 function buildReleaseResults(
@@ -1264,17 +1524,26 @@ function buildReleaseResults(
     else if (statisticalSeverity === 'MODERATE') warnings.push('Moderate statistical drift')
     if (behavioralSeverity === 'HIGH') critical_failures.push('High behavioral drift')
     else if (behavioralSeverity === 'MODERATE') warnings.push('Moderate behavioral drift')
-    if (statisticalSeverity === 'LOW') warnings.push('Low statistical drift')
-    if (behavioralSeverity === 'LOW') warnings.push('Low behavioral drift')
+    // LOW statistical/behavioral alone should not force CONDITIONAL — keeps validation noise down.
 
     let validation_status: 'PASS' | 'WARN' | 'FAIL' = 'PASS'
     if (critical_failures.length) validation_status = 'FAIL'
     else if (warnings.length) validation_status = 'WARN'
 
+    const risk = automationRiskScore(
+      profile,
+      role,
+      internalSeverity,
+      externalSeverity,
+      statisticalSeverity,
+      behavioralSeverity,
+      assessments[profile.column_name]?.confidence ?? 1,
+    )
+
     let release_status: FeatureStatus = 'READY'
     if (internalSeverity === 'HIGH' || externalSeverity === 'HIGH' || statisticalSeverity === 'HIGH' || behavioralSeverity === 'HIGH' || critical_failures.length) {
       release_status = 'QUARANTINED'
-    } else if (internalSeverity === 'MODERATE' || externalSeverity === 'MODERATE' || statisticalSeverity === 'MODERATE' || behavioralSeverity === 'MODERATE' || validation_status === 'WARN') {
+    } else if (risk >= HUMAN_REVIEW_RISK_THRESHOLD) {
       release_status = 'CONDITIONAL'
     }
 
@@ -1284,13 +1553,19 @@ function buildReleaseResults(
       statistical[profile.column_name]?.evidence?.[0],
       behavioral[profile.column_name]?.evidence?.[0],
     ].filter(Boolean) as string[]
+    const primaryDriftLine = pickPrimaryDriftEvidenceLine(
+      internal[profile.column_name],
+      external[profile.column_name],
+      statistical[profile.column_name],
+      behavioral[profile.column_name],
+    )
 
     const explanation =
       release_status === 'READY'
         ? 'Column meaning is stable and validation checks passed.'
         : release_status === 'CONDITIONAL'
-          ? `${warnings[0] || driftEvidence[0] || 'Moderate drift detected'}, admin review recommended.`
-          : `${critical_failures[0] || driftEvidence[0] || 'Critical semantic issue detected'}.`
+          ? `${warnings[0] || primaryDriftLine || driftEvidence[0] || 'Moderate drift detected'}, admin review recommended.`
+          : `${critical_failures[0] || primaryDriftLine || driftEvidence[0] || 'Critical semantic issue detected'}.`
 
     return {
       column_name: profile.column_name,
@@ -1657,14 +1932,53 @@ export default function FeatureOpsWorkflowPanel({ timelineSurface = false }: Fea
     acc[profile.column_name] = detectRole(profile)
     return acc
   }, {}), [profiles])
-  const roles = useMemo(() => profiles.reduce<Record<string, GenericRole>>((acc, profile) => {
-    acc[profile.column_name] = manualRoles[profile.column_name] || detections[profile.column_name].detected_role
-    return acc
-  }, {}), [detections, manualRoles, profiles])
+  const selectedBaseline = useMemo(() => {
+    if (!selectedFamilyId || selectedVersionNumber == null) return null
+    return (familyVersions[selectedFamilyId] || []).find((item) => item.version_number === selectedVersionNumber) || null
+  }, [familyVersions, selectedFamilyId, selectedVersionNumber])
+  const registryLatestVersion = useMemo(() => {
+    if (!selectedFamilyId) return null
+    const list = familyVersions[selectedFamilyId] || []
+    if (!list.length) return null
+    return list.reduce((best, item) => (item.version_number > best.version_number ? item : best), list[0])
+  }, [familyVersions, selectedFamilyId])
+  const externalDriftBaseline = useMemo(() => {
+    if (hasUpload && selectedFamilyId && registryLatestVersion) {
+      return registryLatestVersion
+    }
+    return selectedBaseline
+  }, [hasUpload, registryLatestVersion, selectedBaseline, selectedFamilyId])
+  const baselineRegistryRoles = useMemo(
+    () => rolesFromRegistrySemanticBaseline(externalDriftBaseline),
+    [externalDriftBaseline],
+  )
+  const activePredefinedBaseline = useMemo(
+    () => predefinedBaselines.find((b) => b.baseline_key === selectedPredefinedBaselineKey) ?? null,
+    [predefinedBaselines, selectedPredefinedBaselineKey],
+  )
+  const baselinePredefinedRoles = useMemo(
+    () => rolesFromPredefinedForUploadColumns(activePredefinedBaseline, columns),
+    [activePredefinedBaseline, columns],
+  )
+  const roles = useMemo(() => {
+    return profiles.reduce<Record<string, GenericRole>>((acc, profile) => {
+      const col = profile.column_name
+      acc[col] =
+        manualRoles[col]
+        || baselinePredefinedRoles[col]
+        || baselineRegistryRoles[col]
+        || detections[col].detected_role
+      return acc
+    }, {})
+  }, [baselinePredefinedRoles, baselineRegistryRoles, detections, manualRoles, profiles])
   const assessments = useMemo(() => profiles.reduce<Record<string, { confidence: number; reason: string; lowConfidence: boolean }>>((acc, profile) => {
-    acc[profile.column_name] = assessRoleFit(profile, roles[profile.column_name], detections[profile.column_name])
+    const col = profile.column_name
+    const schemaInherited =
+      !manualRoles[col]
+      && (Boolean(baselineRegistryRoles[col]) || Boolean(baselinePredefinedRoles[col]))
+    acc[col] = assessRoleFit(profile, roles[col], detections[col], { schemaInherited })
     return acc
-  }, {}), [detections, profiles, roles])
+  }, {}), [baselinePredefinedRoles, baselineRegistryRoles, detections, manualRoles, profiles, roles])
   const mappingReviewFindings = useMemo(
     () => profiles
       .map((profile) => findSuggestedRole(profile, roles[profile.column_name]))
@@ -1685,27 +1999,11 @@ export default function FeatureOpsWorkflowPanel({ timelineSurface = false }: Fea
   const allVersions = useMemo(() => Object.values(familyVersions).flat(), [familyVersions])
   const matches = useMemo(() => matchFamilies(fingerprint, allVersions).slice(0, 3), [allVersions, fingerprint])
   const matchedBaseline = matches[0] || null
-  const selectedBaseline = useMemo(() => {
-    if (!selectedFamilyId || selectedVersionNumber == null) return null
-    return (familyVersions[selectedFamilyId] || []).find((item) => item.version_number === selectedVersionNumber) || null
-  }, [familyVersions, selectedFamilyId, selectedVersionNumber])
-  const registryLatestVersion = useMemo(() => {
-    if (!selectedFamilyId) return null
-    const list = familyVersions[selectedFamilyId] || []
-    if (!list.length) return null
-    return list.reduce((best, item) => (item.version_number > best.version_number ? item : best), list[0])
-  }, [familyVersions, selectedFamilyId])
-  const externalDriftBaseline = useMemo(() => {
-    if (hasUpload && selectedFamilyId && registryLatestVersion) {
-      return registryLatestVersion
-    }
-    return selectedBaseline
-  }, [hasUpload, registryLatestVersion, selectedBaseline, selectedFamilyId])
-  const internalDrift = useMemo(() => buildInternalDrift(profiles, roles, datasetRows), [datasetRows, profiles, roles])
-  const internalMap = useMemo(() => internalDrift.reduce<Record<string, InternalDriftResult>>((acc, item) => {
+  const internalDriftRaw = useMemo(() => buildInternalDrift(profiles, roles, datasetRows), [datasetRows, profiles, roles])
+  const internalMapRaw = useMemo(() => internalDriftRaw.reduce<Record<string, InternalDriftResult>>((acc, item) => {
     acc[item.column_name] = item
     return acc
-  }, {}), [internalDrift])
+  }, {}), [internalDriftRaw])
   const statisticalDrift = useMemo(() => buildStatisticalDrift(profiles, roles, datasetRows, externalDriftBaseline, 'current_upload'), [datasetRows, externalDriftBaseline, profiles, roles])
   const statisticalMap = useMemo(() => statisticalDrift.reduce<Record<string, StatisticalDriftResult>>((acc, item) => {
     acc[item.column_name] = item
@@ -1716,6 +2014,14 @@ export default function FeatureOpsWorkflowPanel({ timelineSurface = false }: Fea
     acc[item.column_name] = item
     return acc
   }, {}), [externalDrift])
+  const internalMap = useMemo(
+    () => softenInternalDriftForBaselineSchemaColumns(internalMapRaw, externalMap, externalDriftBaseline, roles),
+    [externalDriftBaseline, externalMap, internalMapRaw, roles],
+  )
+  const internalDrift = useMemo(
+    () => profiles.map((p) => internalMap[p.column_name]).filter((x): x is InternalDriftResult => Boolean(x)),
+    [internalMap, profiles],
+  )
   const preBehavioralReleaseResults = useMemo(() => buildReleaseResults(profiles, roles, assessments, internalMap, externalMap, statisticalMap, {}), [assessments, externalMap, internalMap, profiles, roles, statisticalMap])
   const behavioralDrift = useMemo(() => buildBehavioralDrift(preBehavioralReleaseResults, externalDriftBaseline, 'current_upload'), [externalDriftBaseline, preBehavioralReleaseResults])
   const behavioralMap = useMemo(() => behavioralDrift.reduce<Record<string, BehavioralDriftResult>>((acc, item) => {

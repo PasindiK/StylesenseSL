@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { getAgenticApiBase } from '../../../lib/agenticApiBase'
 
 const PIPELINE_STEPS = [
   { step: '1', label: 'Dataset Upload', agent: 'Ingestion Agent', detail: 'Dataset accepted and staged for semantic monitoring.' },
@@ -28,7 +29,7 @@ type DriftRunApiRow = {
 }
 
 export default function DEOverviewPanel() {
-  const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_AGENTIC_API_URL || '/api'
+  const apiBase = useMemo(() => getAgenticApiBase(), [])
   const [families, setFamilies] = useState<FamilyApiRow[]>([])
   const [runs, setRuns] = useState<DriftRunApiRow[]>([])
   const [error, setError] = useState<string | null>(null)
