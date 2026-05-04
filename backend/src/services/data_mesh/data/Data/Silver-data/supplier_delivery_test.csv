@@ -1,4 +1,0 @@
-supplier_id,delivery_id,warehouse_id,dispatch_date,vehicle_number
-S001,D1001,W12,2026-04-20,KA-1234
-S002,D1002,W13,2026-04-21,KA-5678
-S003,D1003,W14,2026-04-22,KA-9012

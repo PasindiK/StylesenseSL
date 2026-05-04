@@ -6,8 +6,8 @@ import { API_BASE } from "../config";
 const { Title, Paragraph, Text } = Typography;
 
 const ADMISSION_STATUS_LABELS = {
-  AUTO_LOAD_ELIGIBLE: "Ready to load",
-  AUTO_ASSIGN_CREATED_DOMAIN: "Ready to load",
+  AUTO_LOAD_ELIGIBLE: "Matching domain found",
+  AUTO_ASSIGN_CREATED_DOMAIN: "Matching domain found",
   HUMAN_REVIEW_REQUIRED: "Needs review",
   NEW_DOMAIN_CANDIDATE: "Orphan candidate",
   GOVERNANCE_TICKET_RECOMMENDED: "Ticket required",
@@ -102,7 +102,7 @@ function orphanCandidateLabel(row) {
 
 function admissionStatusColor(status) {
   if (status === "Known domain dataset") return "blue";
-  if (status === "Ready to load") return "green";
+  if (status === "Matching domain found") return "green";
   if (status === "Needs review") return "orange";
   if (status === "Review required") return "orange";
   if (status === "Orphan candidate") return "magenta";
@@ -515,47 +515,37 @@ export default function SilverToDomainLoader() {
     }
   };
 
-  const latestDecisionByDataset = useMemo(() => {
-    const sorted = [...(reviewDecisions || [])].sort((a, b) =>
-      String(b.timestamp || "").localeCompare(String(a.timestamp || ""))
-    );
-    const m = new Map();
-    sorted.forEach((d) => {
-      const ds = d.dataset_name;
-      if (ds && !m.has(ds)) m.set(ds, d);
+  const confirmApplyToDomainProduct = (record) => {
+    const ds = record?.dataset_name || "this dataset";
+    const domain = record?.target_domain_for_load || record?.best_domain || "the matched domain";
+    Modal.confirm({
+      title: "Confirm Domain Load",
+      content: `Latest semantic assessment matched ${ds} to ${domain}. Confirm loading this dataset into the ${domain} product folder.`,
+      okText: "Confirm Load",
+      cancelText: "Cancel",
+      onOk: () => applyToDomainProduct(record),
     });
-    return m;
-  }, [reviewDecisions]);
+  };
 
   const enrichedRows = useMemo(
     () =>
       resultRows.map((row, index) => {
         const admissionRaw = String(row.admission_decision || row.action || "");
-        const latestDecision = latestDecisionByDataset.get(row.dataset_name);
         let admissionStatus =
           row.dataset_origin === "CORE"
             ? "Known domain dataset"
             : ADMISSION_STATUS_LABELS[admissionRaw] || "Needs review";
-        let targetDomainForLoad = String(row.best_domain || "");
-
-        const decisionStatus = String(latestDecision?.decision_status || "");
-        if (decisionStatus === "APPROVED" || decisionStatus === "CHANGED" || decisionStatus === "DOMAIN_CREATED") {
-          admissionStatus = "Ready to load";
-          targetDomainForLoad = String(latestDecision?.approved_domain || latestDecision?.candidate_domain_name || row.best_domain || "");
-        } else if (decisionStatus === "ORPHAN_CANDIDATE") {
-          admissionStatus = "Orphan candidate";
-        } else if (decisionStatus === "TICKET_OPENED") {
-          admissionStatus = "Ticket Opened";
-        } else if (decisionStatus === "REJECTED") {
-          admissionStatus = "Rejected";
-        }
+        const targetDomainForLoad = String(row.best_domain || "");
 
         const materializationStatus = MATERIALIZATION_STATUS_LABELS[row.loading_status] || "Not loaded";
         if (materializationStatus === "Loaded to domain product") {
           admissionStatus = "Loaded";
         }
 
-        const isReady = admissionStatus === "Ready to load" && row.dataset_origin !== "CORE";
+        const isReady =
+          String(row.admission_decision || row.action || "") === "AUTO_LOAD_ELIGIBLE" &&
+          row.dataset_origin !== "CORE" &&
+          Boolean(targetDomainForLoad);
         return {
           ...row,
           key: `${row.run_id || "run"}-${row.dataset_name || "dataset"}-${index}`,
@@ -565,12 +555,12 @@ export default function SilverToDomainLoader() {
           can_materialize_ui: isReady && Boolean(targetDomainForLoad),
         };
       }),
-    [resultRows, latestDecisionByDataset]
+    [resultRows]
   );
 
   const groupedResults = useMemo(() => {
     const existing = enrichedRows.filter((r) => r.admission_status_ui === "Known domain dataset");
-    const ready = enrichedRows.filter((r) => r.admission_status_ui === "Ready to load" && r.dataset_origin !== "CORE");
+    const ready = enrichedRows.filter((r) => r.admission_status_ui === "Matching domain found" && r.dataset_origin !== "CORE");
     const reviewRequired = enrichedRows.filter((r) => r.admission_status_ui === "Needs review");
     const orphanCandidates = enrichedRows.filter((r) => ["Orphan candidate", "Ticket required", "Ticket Opened"].includes(r.admission_status_ui));
     return { existing, ready, reviewRequired, orphanCandidates };
@@ -580,7 +570,7 @@ export default function SilverToDomainLoader() {
     return {
       silverDatasets: datasetRows.length,
       coreDatasets: datasetRows.filter((r) => String(r.dataset_origin || "").toUpperCase() === "CORE").length,
-      ready: enrichedRows.filter((r) => r.admission_status_ui === "Ready to load" && r.dataset_origin !== "CORE").length,
+      ready: enrichedRows.filter((r) => r.admission_status_ui === "Matching domain found" && r.dataset_origin !== "CORE").length,
       review: enrichedRows.filter((r) => r.admission_status_ui === "Needs review").length,
       orphan: enrichedRows.filter((r) => ["Orphan candidate", "Ticket required", "Ticket Opened"].includes(r.admission_status_ui)).length,
       loadedProducts: enrichedRows.filter((r) => r.materialization_status_ui === "Loaded to domain product").length,
@@ -701,7 +691,17 @@ export default function SilverToDomainLoader() {
     () =>
       (materializationRows || [])
         .filter((r) => !CORE_DATASETS.has(String(r.dataset_name || "").toLowerCase()))
+        .filter((r) => String(r.record_scope || "current") === "current")
         .map((r, i) => ({ ...r, key: `${r.materialization_id || "mat"}-${i}` })),
+    [materializationRows]
+  );
+
+  const historicalMaterializationRows = useMemo(
+    () =>
+      (materializationRows || [])
+        .filter((r) => !CORE_DATASETS.has(String(r.dataset_name || "").toLowerCase()))
+        .filter((r) => String(r.record_scope || "") === "history")
+        .map((r, i) => ({ ...r, key: `hist-${r.materialization_id || "mat"}-${i}` })),
     [materializationRows]
   );
 
@@ -715,7 +715,12 @@ export default function SilverToDomainLoader() {
         </div>
       );
     }
-    return row.best_domain || "—";
+    return (
+      <div>
+        <div style={{ fontSize: 12, color: "#64748b" }}>Matched domain</div>
+        <div style={{ fontWeight: 600 }}>{row.best_domain || "—"}</div>
+      </div>
+    );
   };
 
   const renderNextAction = (record) => {
@@ -723,10 +728,14 @@ export default function SilverToDomainLoader() {
       return <Text type="secondary">—</Text>;
     }
     if (record.can_materialize_ui) {
+      const target = record.target_domain_for_load || record.best_domain || "the matched domain";
       return (
-        <Button type="primary" size="small" loading={applyingKey === record.key} onClick={() => applyToDomainProduct(record)}>
-          Load to Domain Product
-        </Button>
+        <div>
+          <Button type="primary" size="small" loading={applyingKey === record.key} onClick={() => confirmApplyToDomainProduct(record)}>
+            Confirm Load
+          </Button>
+          <div style={{ fontSize: 11, color: "#64748b", marginTop: 4 }}>Loads into {target}</div>
+        </div>
       );
     }
     if (record.admission_status_ui === "Orphan candidate") {
@@ -944,7 +953,7 @@ export default function SilverToDomainLoader() {
           {[
             { label: "Silver datasets", value: gatewaySummary.silverDatasets },
             { label: "Core datasets", value: gatewaySummary.coreDatasets },
-            { label: "Ready to load", value: gatewaySummary.ready },
+            { label: "Matching domain found", value: gatewaySummary.ready },
             { label: "Needs review", value: gatewaySummary.review },
             { label: "Orphan candidates", value: gatewaySummary.orphan },
             { label: "Loaded products", value: gatewaySummary.loadedProducts },
@@ -1182,6 +1191,37 @@ export default function SilverToDomainLoader() {
             ]}
           />
         )}
+      </Card>
+
+      <Card style={{ marginBottom: 16 }}>
+        <Collapse
+          ghost
+          items={[
+            {
+              key: "materialization-history",
+              label: `Domain Product Loading History (${historicalMaterializationRows.length})`,
+              children:
+                historicalMaterializationRows.length === 0 ? (
+                  <Empty description="No historical materialization records." />
+                ) : (
+                  <Table
+                    rowKey="key"
+                    size="small"
+                    dataSource={historicalMaterializationRows}
+                    pagination={{ pageSize: 8 }}
+                    scroll={{ x: 1080 }}
+                    columns={[
+                      { title: "Dataset", dataIndex: "dataset_name", key: "dataset_name", ellipsis: true },
+                      { title: "Target domain", dataIndex: "target_domain", key: "target_domain", width: 180 },
+                      { title: "Target path", dataIndex: "target_path", key: "target_path", ellipsis: true },
+                      { title: "Load status", dataIndex: "loading_status", key: "loading_status", width: 170, render: (v) => <Tag color={materializationStatusColor(MATERIALIZATION_STATUS_LABELS[v] || v)}>{MATERIALIZATION_STATUS_LABELS[v] || v}</Tag> },
+                      { title: "Time", dataIndex: "timestamp", key: "timestamp", width: 160, render: formatTimeShort },
+                    ]}
+                  />
+                ),
+            },
+          ]}
+        />
       </Card>
 
       <Card title="Reviewer Feedback Memory" style={{ marginBottom: 16 }}>

@@ -745,6 +745,15 @@ class SilverToDomainLoaderService:
             key=lambda x: str(x.get("timestamp") or ""),
             reverse=True,
         )
+        latest_by_dataset: dict[str, str] = {}
+        for rec in rows_sorted:
+            ds = str(rec.get("dataset_name") or "")
+            if ds and ds not in latest_by_dataset:
+                latest_by_dataset[ds] = str(rec.get("materialization_id") or "")
+        for rec in rows_sorted:
+            ds = str(rec.get("dataset_name") or "")
+            rid = str(rec.get("materialization_id") or "")
+            rec["record_scope"] = "current" if ds and latest_by_dataset.get(ds) == rid else "history"
         page = rows_sorted[:limit]
         return {"records": page, "count": len(page), "total": len(rows_sorted)}
 
@@ -766,24 +775,24 @@ class SilverToDomainLoaderService:
                 "Apply is only for uploads or demo-loaded datasets."
             )
 
-        audit_row = self._find_audit_row_by_passport(pid, ds)
-        if not audit_row:
-            raise ValueError("No admission record matches this passport_id for the given dataset.")
+        latest_row = self._latest_audit_row_for_dataset(ds)
+        if not latest_row:
+            raise ValueError("No latest assessment found for this dataset. Run assessment first.")
+        latest_pp = latest_row.get("admission_passport") if isinstance(latest_row.get("admission_passport"), dict) else {}
+        latest_passport_id = str(latest_pp.get("passport_id") or "")
+        if latest_passport_id != pid:
+            raise ValueError("Cannot load: target domain does not match latest assessment.")
+        audit_row = latest_row
 
         best = str(audit_row.get("best_domain") or "")
         best_norm = self._normalize_domain_name(best)
         if best_norm != target_norm:
-            # Allow reviewer-approved domain overrides (e.g., CHANGE_DOMAIN).
-            if not self._review_allows_materialization(ds, target_norm):
-                raise ValueError("target_domain does not match the admission suggestion for this passport.")
+            raise ValueError("Cannot load: target domain does not match latest assessment.")
 
         decision = str(audit_row.get("admission_decision") or audit_row.get("action") or "")
-        allowed_direct = {"AUTO_LOAD_ELIGIBLE", "AUTO_ASSIGN_CREATED_DOMAIN"}
+        allowed_direct = {"AUTO_LOAD_ELIGIBLE"}
         if decision not in allowed_direct:
-            if not self._review_allows_materialization(ds, target_norm):
-                raise ValueError(
-                    "This admission requires reviewer approval before loading into a domain product."
-                )
+            raise ValueError("Cannot load: target domain does not match latest assessment.")
 
         pp = audit_row.get("admission_passport") or {}
         passport_ref = str(pp.get("passport_id") or pid)
@@ -2659,6 +2668,15 @@ class SilverToDomainLoaderService:
             pp = row.get("admission_passport") if isinstance(row.get("admission_passport"), dict) else {}
             if str(pp.get("passport_id") or "") == str(passport_id):
                 return row
+        return None
+
+    def _latest_audit_row_for_dataset(self, dataset_name: str) -> dict | None:
+        for row in self._read_audit_rows():
+            if not isinstance(row, dict):
+                continue
+            if str(row.get("dataset_name") or "") != str(dataset_name or ""):
+                continue
+            return row
         return None
 
     def _read_review_decisions_flat(self) -> list[dict]:
