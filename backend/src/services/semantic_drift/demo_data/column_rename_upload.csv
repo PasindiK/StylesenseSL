@@ -1,0 +1,3 @@
+customer_id,order_id,sales_amt,qty,discount_amount,order_date
+CUST_SL_1013,ORD_FSH_24013,9100.00,1,0.00,12/04/2026
+CUST_SL_1014,ORD_FSH_24014,16800.00,2,900.00,13/04/2026
