@@ -14,6 +14,19 @@ function isNonAgenticVercelProxy(url: string): boolean {
   return NON_AGENTIC_RE_PREFIXES.some((p) => u === p || u.startsWith(`${p}/`))
 }
 
+/** Data Architecture local API (port 8003 in this repo). Must not be used for FeatureOps / semantic drift. */
+function isDataArchitectureApiUrl(url: string): boolean {
+  const u = stripTrailingSlash(url.trim().toLowerCase())
+  if (/:8003(\/|$)/.test(u)) {
+    return true
+  }
+  const arch = (import.meta.env.VITE_DATA_ARCH_API_URL as string | undefined)?.trim()
+  if (!arch) {
+    return false
+  }
+  return stripTrailingSlash(arch.toLowerCase()) === u
+}
+
 export function getAgenticApiBase(): string {
   const explicit = (import.meta.env.VITE_AGENTIC_API_URL as string | undefined)?.trim()
   if (explicit && !isNonAgenticVercelProxy(explicit)) {
@@ -21,7 +34,7 @@ export function getAgenticApiBase(): string {
   }
 
   const generic = (import.meta.env.VITE_API_URL as string | undefined)?.trim()
-  if (generic && !isNonAgenticVercelProxy(generic)) {
+  if (generic && !isNonAgenticVercelProxy(generic) && !isDataArchitectureApiUrl(generic)) {
     return stripTrailingSlash(generic)
   }
 

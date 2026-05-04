@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Pencil, RefreshCw, UserRound } from 'lucide-react'
 import { getAgenticApiBase } from '../../../lib/agenticApiBase'
 import shoppingAssistantAvatar from '../../../assets/shopping-assistant-avatar.svg'
@@ -406,7 +406,7 @@ export default function AgenticAIDashboard({
       { key: 'featureops_workflow' as DashboardSection, label: 'DE Workflow' },
       { key: 'data_upload_timeline' as DashboardSection, label: 'Timeline' },
       { key: 'de_overview' as DashboardSection, label: 'DE Overview' },
-      { key: 'validations' as DashboardSection, label: 'Validations' },
+      { key: 'validations' as DashboardSection, label: 'Validation' },
       { key: 'system_overview' as DashboardSection, label: 'System Overview' },
       { key: 'feedback_center' as DashboardSection, label: 'Recommendation Feedback' },
     ],

@@ -327,6 +327,35 @@ class ProfileDriftDetector:
                         "threshold": self.thresholds["internal_sigma_threshold"],
                     }
                 )
+            elif kind == "identifier" and baseline.get("kind") == "identifier":
+                cur_s = {str(x) for x in (current.get("sample_values") or []) if x is not None and str(x).strip()}
+                base_s = {str(x) for x in (baseline.get("sample_values") or []) if x is not None and str(x).strip()}
+                union = len(cur_s | base_s)
+                overlap_ratio = float(len(cur_s & base_s)) / float(union) if union else 1.0
+                min_similarity = min(min_similarity, overlap_ratio)
+                ratio_c = float(current.get("unique_ratio") or (current.get("unique_count", 0) / max(current.get("non_null_count", 1), 1)))
+                ratio_b = float(baseline.get("unique_ratio") or (baseline.get("unique_count", 0) / max(baseline.get("non_null_count", 1), 1)))
+                card_shift = abs(ratio_c - ratio_b)
+                dynamic_cut = max(0.25, 1.0 - overlap_ratio * 0.5)
+                semantic_drift = overlap_ratio < 0.35 or card_shift > max(0.1, 0.4 * max(ratio_b, 1e-6))
+                if semantic_drift:
+                    drifted_semantic += 1
+                    reasons.append(
+                        f"Column '{column_name}' identifier sample overlap {overlap_ratio:.2f} "
+                        f"(cardinality shift {card_shift:.2f}) vs {baseline_label} baseline."
+                    )
+                semantic_signals.append(
+                    {
+                        "column_name": column_name,
+                        "kind": "identifier",
+                        "sample_overlap": overlap_ratio,
+                        "cosine_similarity": overlap_ratio,
+                        "semantic_drift": semantic_drift,
+                        "threshold": dynamic_cut,
+                        "new_values": self._new_values(current, baseline),
+                        "missing_values": self._missing_values(current, baseline),
+                    }
+                )
             else:
                 baseline_summary = baseline.get("topic_summary") or baseline.get("summary_text") or self._column_text(baseline)
                 current_summary = current.get("topic_summary") or current.get("summary_text") or self._column_text(current)
@@ -359,7 +388,7 @@ class ProfileDriftDetector:
         if missing_columns:
             reasons.append(f"Columns disappeared: {missing_columns}")
 
-        internal_match = drifted_numeric == 0 and not new_columns and not missing_columns
+        internal_match = drifted_numeric == 0 and drifted_semantic == 0 and not new_columns and not missing_columns
         external_match = drifted_semantic == 0 and min_similarity >= self.thresholds["semantic_threshold"]
 
         internal_status = "Aligned" if internal_match else "Drifted"
@@ -601,6 +630,18 @@ class ProfileDriftDetector:
                     "summary_text": f"{column_name} is numeric. mean={float(numeric_series.mean()):.3f}, std={std_value:.3f}, min={float(numeric_series.min()):.3f}, max={float(numeric_series.max()):.3f}.",
                 }
             )
+        elif inferred_kind == "identifier":
+            nu = int(non_null.nunique(dropna=True))
+            ratio = nu / max(len(non_null), 1)
+            profile.update(
+                {
+                    "unique_count": nu,
+                    "unique_ratio": float(ratio),
+                    "topic_summary": f"High-cardinality identifier (unique_ratio={ratio:.3f}).",
+                    "summary_text": f"{column_name} is identifier. unique_ratio={ratio:.3f}.",
+                    "top_values": [str(value) for value in non_null.astype(str).head(8).tolist()],
+                }
+            )
         else:
             topic_summary = self._summarize_text_samples(column_name, samples)
             categorical_values = [str(value) for value in non_null.astype(str).value_counts().head(10).index.tolist()]
@@ -618,17 +659,47 @@ class ProfileDriftDetector:
 
     def _infer_kind(self, series: pd.Series, column_name: str) -> str:
         lower_name = column_name.lower()
-        if pd.api.types.is_numeric_dtype(series):
-            return "numeric"
         if any(token in lower_name for token in ("timestamp", "date", "time", "created_at", "updated_at")):
             return "datetime"
-        sample = series.dropna().astype(str).head(20).tolist()
-        if not sample:
+
+        non_null = series.dropna()
+        n = int(len(non_null))
+        if n == 0:
             return "categorical"
+
+        if pd.api.types.is_numeric_dtype(series):
+            numeric_series = pd.to_numeric(non_null, errors="coerce").dropna()
+            nu = int(numeric_series.nunique(dropna=True))
+            nn = int(len(numeric_series))
+            if nn == 0:
+                return "numeric"
+            uniq_ratio = nu / max(nn, 1)
+            dynamic_uniq = 1.0 - min(0.35, 3.0 / math.sqrt(max(nn, 9)))
+            integerish = 0
+            for v in numeric_series.head(min(200, nn)):
+                try:
+                    fv = float(v)
+                    if abs(fv - round(fv)) < 1e-6:
+                        integerish += 1
+                except Exception:
+                    pass
+            int_frac = integerish / max(min(200, nn), 1)
+            if uniq_ratio >= dynamic_uniq and int_frac >= 0.85:
+                return "identifier"
+            return "numeric"
+
+        sample = non_null.astype(str).head(20).tolist()
         joined = " ".join(sample)
         avg_length = sum(len(item) for item in sample) / max(len(sample), 1)
         if avg_length >= 20 or any(char in joined for char in [".", ",", "?", "!", ";"]):
             return "text"
+
+        nu_cat = int(non_null.astype(str).nunique(dropna=True))
+        uniq_ratio_cat = nu_cat / max(n, 1)
+        dynamic_uniq_cat = 1.0 - min(0.4, 4.0 / math.sqrt(max(n, 9)))
+        if uniq_ratio_cat >= dynamic_uniq_cat:
+            return "identifier"
+
         return "categorical"
 
     def _summarize_text_samples(self, column_name: str, samples: List[str]) -> str:
@@ -728,13 +799,25 @@ class ProfileDriftDetector:
         return sorted(baseline_values - current_values)[:10]
 
     def _sigma_distance(self, current: Dict[str, Any], baseline: Dict[str, Any]) -> float:
-        current_mean = _safe_float(current.get("mean"), 0.0) or 0.0
-        baseline_mean = _safe_float(baseline.get("mean"), 0.0) or 0.0
-        baseline_std = _safe_float(baseline.get("std"), 0.0) or 0.0
-        sigma = abs(current_mean - baseline_mean) / max(baseline_std, 1e-6)
+        baseline_std = max(_safe_float(baseline.get("std"), 0.0) or 0.0, 1e-6)
+        mean_s = abs(_safe_float(current.get("mean"), 0.0) - _safe_float(baseline.get("mean"), 0.0)) / baseline_std
+
+        med_c = _safe_float(current.get("median")) or _safe_float(current.get("mean"), 0.0) or 0.0
+        med_b = _safe_float(baseline.get("median")) or _safe_float(baseline.get("mean"), 0.0) or 0.0
+        p10_b = _safe_float(baseline.get("p10")) or med_b
+        p90_b = _safe_float(baseline.get("p90")) or med_b
+        iqr_b = max(abs(p90_b - p10_b), 1e-6)
+        robust_scale = max(iqr_b / 1.34896, baseline_std * 0.5)
+        median_s = abs(med_c - med_b) / max(robust_scale, 1e-6)
+
+        std_c = _safe_float(current.get("std"), 0.0) or 0.0
+        std_b = _safe_float(baseline.get("std"), 0.0) or 0.0
+        std_rel = abs(std_c - std_b) / baseline_std
+
+        sigma = float(max(mean_s, median_s, std_rel))
         if math.isnan(sigma) or math.isinf(sigma):
             return 0.0
-        return float(sigma)
+        return sigma
 
     def _row_sigma_distance(self, value: float, baseline: Dict[str, Any]) -> float:
         baseline_mean = _safe_float(baseline.get("mean"), 0.0) or 0.0

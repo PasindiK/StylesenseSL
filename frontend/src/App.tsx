@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { HardDrive } from 'lucide-react'
 import { getAgenticApiBase } from './lib/agenticApiBase'
 import './App.css'
 import shoppingAssistantAvatar from './assets/shopping-assistant-avatar.svg'
@@ -57,6 +56,40 @@ const componentCards: Array<{
   },
 ]
 
+function moduleNavAbbrev(key: ComponentKey): string {
+  const t = componentCards.find((c) => c.key === key)?.title || ''
+  const parts = t.split(/\s+/).filter(Boolean)
+  if (parts.length >= 2) {
+    return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase()
+  }
+  return t.slice(0, 2).toUpperCase() || key.slice(0, 2).toUpperCase()
+}
+
+function ShellSidebarNavButtons({
+  selectedComponent,
+  onSelect,
+}: {
+  selectedComponent: ComponentKey | null
+  onSelect: (key: ComponentKey) => void
+}) {
+  return (
+    <nav className="sidebar-shell-nav sidebar-shell-nav--pillars" aria-label="Modules">
+      {componentCards.map((card) => (
+        <button
+          key={card.key}
+          type="button"
+          className={`sidebar-shell-nav-btn ${selectedComponent === card.key ? 'active' : ''}`}
+          onClick={() => onSelect(card.key)}
+          title={card.title}
+        >
+          <span className="nav-btn-label nav-btn-label--full">{card.title}</span>
+          <span className="nav-btn-label nav-btn-label--short">{moduleNavAbbrev(card.key)}</span>
+        </button>
+      ))}
+    </nav>
+  )
+}
+
 export default function App() {
   // Landing page state
   const [showLanding, setShowLanding] = useState(true)
@@ -64,6 +97,9 @@ export default function App() {
   
   // Dark mode state
   const [darkMode, setDarkMode] = useState(true)
+
+  /** Collapsible left rail (Agentic + other module shells) */
+  const [shellSidebarCollapsed, setShellSidebarCollapsed] = useState(false)
 
   // Selected demo user for personalization header
   const [userId, setUserId] = useState('')
@@ -159,9 +195,20 @@ export default function App() {
     setDarkMode(!darkMode)
   }
 
-  function goToTilesHome() {
+  function scrollToLandingModules() {
+    document.getElementById('landing-modules')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  function selectModuleFromLanding(key: ComponentKey) {
     setShowLanding(false)
+    setSelectedComponent(key)
+  }
+
+  function goToLandingPage() {
+    setShowCart(false)
+    setShowLanding(true)
     setSelectedComponent(null)
+    setShellSidebarCollapsed(false)
   }
 
   function handleDashboardUserChange(nextUserId: string) {
@@ -215,44 +262,190 @@ export default function App() {
   if (showLanding) {
     return (
       <div className="landing-page">
-        {/* Animated background shapes */}
-        <div className="landing-bg-shapes">
-          <div className="shape shape-1"></div>
-          <div className="shape shape-2"></div>
-          <div className="shape shape-3"></div>
+        <div className="landing-atmosphere" aria-hidden="true">
+          <div className="landing-orb landing-orb--cyan" />
+          <div className="landing-orb landing-orb--violet" />
+          <div className="landing-orb landing-orb--magenta" />
+          <div className="landing-grid" />
+          <div className="landing-vignette" />
         </div>
 
-        <div className="landing-container">
-          <div className="landing-content">
-            <h1 className="landing-title">StylesenseSL</h1>
-            <p className="landing-description">
-              Discover your perfect style with AI-powered fashion recommendations.
-              Get personalized product suggestions tailored to your unique taste and preferences.
-            </p>
-            <div className="landing-actions">
-              <button 
-                className="landing-button"
-                onClick={() => {
-                  console.log('Explore button clicked!')
-                  setShowLanding(false)
-                  setSelectedComponent(null)
-                }}
+        <header className="landing-header">
+          <div className="landing-wrap landing-header-inner">
+            <div className="landing-header-brand">
+              <img
+                className="landing-header-logo"
+                src="/brand-logo.png"
+                alt=""
+                width={40}
+                height={40}
+                decoding="async"
+              />
+              <span className="landing-header-title">
+                Stylesense<span className="landing-title-accent">SL</span>
+              </span>
+            </div>
+            <nav className="landing-nav" aria-label="On this page">
+              <a className="landing-nav-link" href="#landing-overview">
+                Overview
+              </a>
+              <a className="landing-nav-link" href="#landing-features">
+                Capabilities
+              </a>
+              <a className="landing-nav-link" href="#landing-modules">
+                Get started
+              </a>
+            </nav>
+            <button
+              type="button"
+              className="landing-header-theme-btn"
+              onClick={toggleDarkMode}
+              title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {darkMode ? 'Light' : 'Dark'}
+            </button>
+          </div>
+        </header>
+
+        <main className="landing-site-main">
+          <section id="landing-overview" className="landing-hero" aria-labelledby="landing-hero-heading">
+            <div className="landing-wrap">
+              <div className="landing-hero-grid">
+                <div className="landing-hero-copy">
+                  <p className="landing-kicker">Fashion intelligence in the cloud</p>
+                  <h1 id="landing-hero-heading" className="landing-hero-title">
+                    <span className="landing-title-word">Stylesense</span>{' '}
+                    <span className="landing-title-accent">SL</span>
+                  </h1>
+                  <p className="landing-lede">
+                    Discover your style with recommendations that respect your taste, your data, and
+                    how your teams actually work—from discovery through operations.
+                  </p>
+                  <div className="landing-hero-actions">
+                    <button type="button" className="landing-button" onClick={scrollToLandingModules}>
+                      Explore the platform
+                    </button>
+                    <a className="landing-scroll-hint" href="#landing-features">
+                      View capabilities
+                    </a>
+                  </div>
+                </div>
+                <div className="landing-hero-visual" aria-hidden="true">
+                  <div className="landing-hero-visual-glow" />
+                  <div className="landing-logo-panel">
+                    <img
+                      className="landing-logo landing-logo--hero"
+                      src="/brand-logo.png"
+                      alt="StylesenseSL"
+                      width={320}
+                      height={320}
+                      decoding="async"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="landing-features" className="landing-section landing-features">
+            <div className="landing-wrap">
+              <header className="landing-section-head">
+                <h2 className="landing-section-title">Capabilities that scale with you</h2>
+                <p className="landing-section-sub">
+                  One platform narrative—clear positioning for retail, data, and AI stakeholders.
+                </p>
+              </header>
+              <div className="landing-feature-grid">
+                <article className="landing-feature-card">
+                  <div className="landing-feature-icon" aria-hidden="true" />
+                  <h3 className="landing-feature-name">Personalized discovery</h3>
+                  <p className="landing-feature-text">
+                    Recommendations aligned to preferences, context, and how people actually browse
+                    and buy.
+                  </p>
+                </article>
+                <article className="landing-feature-card">
+                  <div className="landing-feature-icon" aria-hidden="true" />
+                  <h3 className="landing-feature-name">Grounded AI</h3>
+                  <p className="landing-feature-text">
+                    Clear signals from your catalog and activity so outputs stay explainable and
+                    trustworthy.
+                  </p>
+                </article>
+                <article className="landing-feature-card">
+                  <div className="landing-feature-icon" aria-hidden="true" />
+                  <h3 className="landing-feature-name">Enterprise-ready workflows</h3>
+                  <p className="landing-feature-text">
+                    From merchandising to operations—structured for teams that need reliability, not
+                    novelty demos.
+                  </p>
+                </article>
+              </div>
+            </div>
+          </section>
+
+          <section
+            id="landing-modules"
+            className="landing-section landing-modules"
+            aria-labelledby="landing-modules-heading"
+          >
+            <div className="landing-wrap">
+              <header className="landing-modules-head">
+                <h2 id="landing-modules-heading" className="landing-modules-title">
+                  Select a Platform Component
+                </h2>
+                <p className="landing-modules-sub">Choose one of the four modules to continue</p>
+              </header>
+
+              <div className="landing-module-grid">
+                {componentCards.map((component) => (
+                  <button
+                    key={component.key}
+                    type="button"
+                    className="landing-module-card"
+                    onClick={() => selectModuleFromLanding(component.key)}
+                  >
+                    <h3>{component.title}</h3>
+                    <p>{component.description}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section id="landing-cta" className="landing-section landing-cta-band">
+            <div className="landing-wrap landing-cta-inner">
+              <div className="landing-cta-copy">
+                <h2 className="landing-cta-title">Open the platform</h2>
+                <p className="landing-cta-sub">
+                  Select a module in the section above to enter tools and the agent console.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="landing-button landing-button--lg"
+                onClick={scrollToLandingModules}
               >
-                Explore Now
+                Jump to module grid
               </button>
             </div>
-          </div>
-        </div>
+          </section>
+        </main>
 
         <footer className="app-footer landing-footer">
-          <span>© 2026 StylesenseSL</span>
-          <span>AI-Powered Fashion Intelligence Platform</span>
+          <div className="landing-wrap landing-footer-inner">
+            <div className="landing-footer-row landing-footer-row--main">
+              <span>© 2026 StylesenseSL</span>
+              <span className="landing-footer-tag">AI-powered fashion intelligence</span>
+            </div>
+            <div className="landing-footer-modules" aria-label="Platform modules">
+              <span className="landing-footer-modules-label">Enterprise Data &amp; AI Modules</span>
+              <span className="landing-footer-modules-list">
+                Agentic AI • Data Mesh • Data Fabric • Data Architecture
+              </span>
+            </div>
+          </div>
         </footer>
-
-        {/* Dark mode toggle - top right */}
-        <button className="theme-toggle" onClick={toggleDarkMode} title="Toggle dark mode">
-          {darkMode ? '☀️' : '🌙'}
-        </button>
       </div>
     )
   }
@@ -280,17 +473,12 @@ export default function App() {
             ))}
           </div>
 
-          <div className="component-tile-actions">
-            <button
-              type="button"
-              className="sidebar-btn"
-              onClick={() => setShowLanding(true)}
-              title="Go to landing"
-            >
-              🏠
+          <div className="component-tile-actions shell-tile-actions">
+            <button type="button" className="shell-text-btn" onClick={() => setShowLanding(true)}>
+              Landing
             </button>
-            <button className="theme-toggle" onClick={toggleDarkMode} title="Toggle dark mode">
-              {darkMode ? '☀️' : '🌙'}
+            <button type="button" className="shell-text-btn" onClick={toggleDarkMode}>
+              {darkMode ? 'Light' : 'Dark'}
             </button>
           </div>
 
@@ -308,52 +496,75 @@ export default function App() {
     return (
       <div id="agent-console" className={`theme-${darkMode ? 'dark' : 'light'}`}>
         <div className="chat-layout">
-          <aside className="chat-sidebar">
-            <div className="sidebar-header">
-              <h2>{component?.title || 'Component'}</h2>
-            </div>
-
-            <div className="sidebar-controls component-sidebar-text">
-              <div className="component-nav">
-                {componentCards.map((card) => (
-                  <button
-                    key={card.key}
-                    type="button"
-                    className={`component-nav-btn ${selectedComponent === card.key ? 'active' : ''}`}
-                    onClick={() => setSelectedComponent(card.key)}
-                    title={card.title}
-                  >
-                    {card.key === 'data_architecture' && <HardDrive size={16} strokeWidth={2} style={{ marginRight: '6px' }} />}
-                    {card.title}
-                  </button>
-                ))}
+          <aside
+            className={`chat-sidebar chat-sidebar--shell ${shellSidebarCollapsed ? 'is-collapsed' : ''}`}
+          >
+            <div className="sidebar-header sidebar-header--shell-row">
+              <div className="sidebar-header-brand-block">
+                <h2 className="sidebar-brand-title">
+                  <span className="sidebar-brand-word">Stylesense</span>
+                  <span className="sidebar-brand-accent">SL</span>
+                </h2>
+                <p className="sidebar-header-context">{component?.title || 'Component'}</p>
               </div>
-              <p>{component?.description}</p>
+              <button
+                type="button"
+                className="sidebar-collapse-toggle"
+                onClick={() => setShellSidebarCollapsed((c) => !c)}
+                aria-expanded={!shellSidebarCollapsed}
+                aria-controls="shell-sidebar-panel"
+                title={shellSidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'}
+              >
+                <span aria-hidden="true">{shellSidebarCollapsed ? '›' : '‹'}</span>
+              </button>
             </div>
 
-            <div className="sidebar-footer">
-              <button
-                className="sidebar-btn theme-toggle-btn"
-                onClick={toggleDarkMode}
-                title="Toggle dark mode"
-              >
-                {darkMode ? '☀️' : '🌙'}
-              </button>
-              <button
-                className="sidebar-btn home-btn"
-                onClick={goToTilesHome}
-                title="Home"
-              >
-                🏠
-              </button>
+            <div id="shell-sidebar-panel" className="sidebar-shell-panel">
+              <ShellSidebarNavButtons
+                selectedComponent={selectedComponent}
+                onSelect={(key) => setSelectedComponent(key)}
+              />
+              <div className="sidebar-module-desc component-sidebar-text">
+                <p>{component?.description}</p>
+              </div>
+
+              <footer className="sidebar-shell-footer">
+                <div className="sidebar-shell-actions">
+                  <button type="button" className="sidebar-shell-text-btn" onClick={toggleDarkMode}>
+                    <span className="sidebar-action-label sidebar-action-label--full">
+                      {darkMode ? 'Light' : 'Dark'}
+                    </span>
+                    <span className="sidebar-action-label sidebar-action-label--short">
+                      {darkMode ? 'Lt' : 'Dk'}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className="sidebar-shell-text-btn"
+                    onClick={goToLandingPage}
+                    title="Back to landing page"
+                  >
+                    <span className="sidebar-action-label sidebar-action-label--full">Home</span>
+                    <span className="sidebar-action-label sidebar-action-label--short">Hm</span>
+                  </button>
+                </div>
+                <div className="sidebar-shell-meta">
+                  <span className="sidebar-shell-meta-label">Enterprise Data &amp; AI Modules</span>
+                  <span className="sidebar-shell-meta-list">
+                    Agentic AI • Data Mesh • Data Fabric • Data Architecture
+                  </span>
+                </div>
+              </footer>
             </div>
           </aside>
 
           <main className="chat-main">
-            <div className="chat-header">
-              <h1>{component?.title}</h1>
-              <p className="chat-subtitle">{component?.description}</p>
-            </div>
+            <header className="chat-header chat-header--shell">
+              <div className="chat-header--shell-inner">
+                <h1 className="shell-main-title">{component?.title}</h1>
+                <p className="chat-subtitle">{component?.description}</p>
+              </div>
+            </header>
 
             <div className={`component-view ${selectedComponent === 'data_mesh' ? 'data-mesh-host' : ''}`}>
               {selectedComponent === 'data_mesh' ? (
@@ -602,62 +813,87 @@ export default function App() {
     <div id="agent-console" className={`theme-${darkMode ? 'dark' : 'light'}`}>
       <div className="chat-layout">
         {/* LEFT SIDEBAR */}
-        <aside className="chat-sidebar">
-          <div className="sidebar-header">
-            <h2>StylesenseSL</h2>
-          </div>
-
-          <div className="sidebar-controls">
-            <div className="component-nav">
-              {componentCards.map((card) => (
-                <button
-                  key={card.key}
-                  type="button"
-                  className={`component-nav-btn ${selectedComponent === card.key ? 'active' : ''}`}
-                  onClick={() => setSelectedComponent(card.key)}
-                  title={card.title}
-                >
-                  {card.key === 'data_architecture' && <HardDrive size={16} strokeWidth={2} style={{ marginRight: '6px' }} />}
-                  {card.title}
-                </button>
-              ))}
+        <aside
+          className={`chat-sidebar chat-sidebar--shell ${shellSidebarCollapsed ? 'is-collapsed' : ''}`}
+        >
+          <div className="sidebar-header sidebar-header--shell-row">
+            <div className="sidebar-header-brand-block">
+              <h2 className="sidebar-brand-title">
+                <span className="sidebar-brand-word">Stylesense</span>
+                <span className="sidebar-brand-accent">SL</span>
+              </h2>
             </div>
+            <button
+              type="button"
+              className="sidebar-collapse-toggle"
+              onClick={() => setShellSidebarCollapsed((c) => !c)}
+              aria-expanded={!shellSidebarCollapsed}
+              aria-controls="shell-sidebar-panel-agentic"
+              title={shellSidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'}
+            >
+              <span aria-hidden="true">{shellSidebarCollapsed ? '›' : '‹'}</span>
+            </button>
           </div>
 
-          <div className="sidebar-footer">
-            <button 
-              className="sidebar-btn cart-btn"
-              onClick={() => setShowCart(!showCart)}
-              title="View shopping cart"
-            >
-              🛒
-              {cartItemCount > 0 && <span className="cart-badge">{cartItemCount}</span>}
-            </button>
-            <button 
-              className="sidebar-btn theme-toggle-btn"
-              onClick={toggleDarkMode}
-              title="Toggle dark mode"
-            >
-              {darkMode ? '☀️' : '🌙'}
-            </button>
-            <button
-              className="sidebar-btn home-btn"
-              onClick={goToTilesHome}
-              title="Home"
-            >
-              🏠
-            </button>
+          <div id="shell-sidebar-panel-agentic" className="sidebar-shell-panel">
+            <ShellSidebarNavButtons
+              selectedComponent={selectedComponent}
+              onSelect={(key) => setSelectedComponent(key)}
+            />
+
+            <div className="sidebar-body-spacer" aria-hidden="true" />
+
+            <footer className="sidebar-shell-footer">
+              <div className="sidebar-shell-actions">
+                <button
+                  type="button"
+                  className="sidebar-shell-text-btn cart-btn cart-btn--text"
+                  onClick={() => setShowCart(!showCart)}
+                  title="View shopping cart"
+                >
+                  <span className="sidebar-action-label sidebar-action-label--full">Cart</span>
+                  <span className="sidebar-action-label sidebar-action-label--short">Ct</span>
+                  {cartItemCount > 0 && <span className="cart-badge cart-badge--text">{cartItemCount}</span>}
+                </button>
+                <button type="button" className="sidebar-shell-text-btn" onClick={toggleDarkMode}>
+                  <span className="sidebar-action-label sidebar-action-label--full">
+                    {darkMode ? 'Light' : 'Dark'}
+                  </span>
+                  <span className="sidebar-action-label sidebar-action-label--short">
+                    {darkMode ? 'Lt' : 'Dk'}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className="sidebar-shell-text-btn"
+                  onClick={goToLandingPage}
+                  title="Back to landing page"
+                >
+                  <span className="sidebar-action-label sidebar-action-label--full">Home</span>
+                  <span className="sidebar-action-label sidebar-action-label--short">Hm</span>
+                </button>
+              </div>
+              <div className="sidebar-shell-meta">
+                <span className="sidebar-shell-meta-label">Enterprise Data &amp; AI Modules</span>
+                <span className="sidebar-shell-meta-list">
+                  Agentic AI • Data Mesh • Data Fabric • Data Architecture
+                </span>
+              </div>
+            </footer>
           </div>
         </aside>
 
         {/* RIGHT CHAT AREA */}
         <main className={`chat-main ${showCart ? 'cart-open' : ''}`}>
-          <div className="chat-header">
-            <div>
-              <h1>{agenticComponent?.title || 'Agentic AI'}</h1>
-              <p className="chat-subtitle">{agenticComponent?.description || 'Find your perfect style with AI recommendations'}</p>
+          <header className="chat-header chat-header--shell">
+            <div className="chat-header--shell-inner">
+              <h1 className="shell-main-title">{agenticComponent?.title || 'Agentic AI'}</h1>
+              <p className="chat-subtitle">
+                {agenticComponent?.description ||
+                  'Find your perfect style with AI recommendations'}
+              </p>
             </div>
-          </div>
+          </header>
 
           <div className="agentic-dashboard-scroll" style={{ flex: 1, minHeight: 0, padding: '0 0 16px', width: '100%', boxSizing: 'border-box' }}>
             <AgenticAIDashboard
