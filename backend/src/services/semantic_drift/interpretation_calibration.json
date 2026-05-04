@@ -1,0 +1,28 @@
+{
+  "_comment": "Tune boundaries here (not in code). Weights combine meaning similarity with numeric alignment after optional transforms.",
+  "weights": {
+    "meaning_similarity": 0.55,
+    "numeric_alignment": 0.45
+  },
+  "combined_score": {
+    "append_min": 0.38,
+    "heal_min": 0.52,
+    "human_review_below": 0.58,
+    "quarantine_meaning_similarity_below": 0.35
+  },
+  "numeric_transform": {
+    "min_improvement_to_prefer_transform": 0.06,
+    "min_alignment_for_auto_heal": 0.62,
+    "min_meaning_similarity_for_numeric_heal": 0.62
+  },
+  "semantic_guards": [
+    {
+      "id": "sold_quantity_vs_inventory_context",
+      "enabled": true,
+      "baseline_meaning_contains_any": ["sold", "order"],
+      "new_meaning_contains_any": ["stock", "inventory", "warehouse"],
+      "column_name_regex": "(?i)^(quantity|qty)$",
+      "action": "QUARANTINE"
+    }
+  ]
+}
