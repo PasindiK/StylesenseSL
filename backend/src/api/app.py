@@ -61,11 +61,28 @@ from src.services.agentic_ai.featureops.predefined_baselines import (
     get_predefined_baseline,
     list_predefined_baselines,
 )
-from src.services.semantic_drift.routes import router as semantic_drift_router
-
 app = FastAPI(title="CatalogAgent API")
 
-app.include_router(semantic_drift_router, prefix="/api/semantic-drift", tags=["Semantic Drift Detection"])
+try:
+    from src.services.semantic_drift.routes import router as semantic_drift_router
+
+    app.include_router(semantic_drift_router, prefix="/api/semantic-drift", tags=["Semantic Drift Detection"])
+except ModuleNotFoundError:
+    logger.warning("Semantic drift routes are unavailable; skipping router registration.")
+
+try:
+    from src.services.featureops.healing_routes import router as healing_router
+
+    app.include_router(healing_router, prefix="/api/semantic-drift", tags=["Semantic Drift Healing"])
+except ModuleNotFoundError:
+    logger.warning("Healing dashboard routes unavailable; skipping registration.")
+
+try:
+    from src.services.agentic_ai.featureops.drift_healing.routes import router as drift_healing_router
+
+    app.include_router(drift_healing_router)
+except ModuleNotFoundError:
+    logger.warning("Drift healing API routes unavailable; skipping registration.")
 
 # Enable CORS for frontend to call backend
 app.add_middleware(
@@ -105,6 +122,28 @@ if shops_path.exists():
         pass
 
 agent = CatalogAgent(loader=loader)
+
+# Initialize healing orchestrator only after the catalog agent exists.
+try:
+    from src.services.agentic_ai.featureops.drift_healing.routes import init_healing_orchestrator
+
+    vector_search = getattr(agent, "vector_search", None)
+    if vector_search and getattr(vector_search, "enabled", False):
+        embedding_model = getattr(vector_search, "model", None)
+        if embedding_model is not None:
+            init_healing_orchestrator(embedding_model)
+            logger.info("Healing orchestrator initialized with embedding model")
+        else:
+            logger.warning(
+                "Vector search is enabled but no embedding model instance was found; "
+                "skipping healing orchestrator initialization"
+            )
+    else:
+        logger.info("Vector search not enabled; healing orchestrator not initialized")
+except ModuleNotFoundError:
+    logger.warning("Drift healing routes not present; cannot initialize orchestrator")
+except Exception as exc:
+    logger.warning(f"Failed to initialize healing orchestrator: {exc}")
 
 # Initialize user intelligence
 user_agent = UserAgent()
