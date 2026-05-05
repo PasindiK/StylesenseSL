@@ -36,6 +36,7 @@ export default function PipelineMonitoring() {
   const [adminResult, setAdminResult] = useState(null);
   const messagesEndRef = useRef(null);
   const sessionIdRef = useRef(`dm-pm-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+  const prevRerunStatusRef = useRef((rerunStatus?.status || "idle").toLowerCase());
 
   function isRerunCommand(text) {
     const q = text.toLowerCase();
@@ -98,6 +99,15 @@ export default function PipelineMonitoring() {
       loadRerunStatus();
     }, 3000);
     return () => clearInterval(timer);
+  }, [rerunStatus?.status]);
+
+  useEffect(() => {
+    const cur = (rerunStatus?.status || "idle").toLowerCase();
+    const prev = prevRerunStatusRef.current;
+    prevRerunStatusRef.current = cur;
+    if (prev === "running" && cur === "completed") {
+      window.dispatchEvent(new CustomEvent("dm-data-mesh-governance-refresh"));
+    }
   }, [rerunStatus?.status]);
 
   const metrics = useMemo(() => {

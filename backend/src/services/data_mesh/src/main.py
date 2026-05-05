@@ -137,12 +137,21 @@ GOVERNANCE_TEST_CASES = {
             "users_stale_distribution_shift.csv",
         ],
     },
+    "product_domain": {
+        "silver_target": "products_clean.csv",
+        "business_date_field": "created_ts",
+        "prepared_files": [
+            "product_domain_healthy.csv",
+            "product_domain_stale.csv",
+        ],
+    },
 }
 
 TEST_CASE_PREFIX_DOMAIN_MAPPING = {
     "sales_": "sales_domain",
     "users_": "users_domain",
     "products_": "product_domain",
+    "product_domain_": "product_domain",
     "shops_": "shop_domain",
 }
 
@@ -162,7 +171,41 @@ _rerun_state = {
     "rows_processed_so_far": 0,
     "current_domain": None,
     "current_domain_status": None,
+    "domain_date_rebase": None,
+    "domain_history_baseline": None,
+    "skip_post_pipeline_domain_normalization": False,
 }
+
+
+def _env_demo_mode_skip_rebase() -> bool:
+    """When DEMO_MODE_SKIP_REBASE is true, skip domain date rebase + history baseline rebuild after pipeline."""
+    return os.environ.get("DEMO_MODE_SKIP_REBASE", "").strip().lower() in ("1", "true", "yes")
+
+
+def _filename_suggests_preserve_freshness_demo(name: str) -> bool:
+    """Stale/test fixtures should keep raw business dates for governance demo visibility."""
+    n = (name or "").lower()
+    return "_stale" in n or "_test" in n
+
+
+def _should_skip_post_pipeline_domain_normalization(
+    *,
+    from_governance_upload: bool = False,
+    dataset_name: str | None = None,
+) -> bool:
+    """Skip domain CSV date rebase (and matching history rebuild) so ADGRI can surface real freshness lag.
+
+    - DEMO_MODE_SKIP_REBASE=true: skip for all pipeline completions (demo toggle).
+    - Governance file upload: always treat as demo-origin data until manual normalization.
+    - Prepared datasets with _stale / _test in the name: preserve for scenario visibility.
+    """
+    if _env_demo_mode_skip_rebase():
+        return True
+    if from_governance_upload:
+        return True
+    if dataset_name and _filename_suggests_preserve_freshness_demo(dataset_name):
+        return True
+    return False
 
 
 def _load_reload_pipeline_class():
@@ -245,7 +288,40 @@ def _run_rerun_job(job_id: str) -> None:
                 )
 
         summary = pipeline.run_once(progress_callback=_progress_update)
+        rebase_meta = None
+        rebuild_meta = None
+        if isinstance(summary, dict) and str(summary.get("status") or "").upper() == "SUCCESS":
+            with _rerun_lock:
+                skip_norm = bool(_rerun_state.get("skip_post_pipeline_domain_normalization"))
+            if skip_norm:
+                rebase_meta = {
+                    "status": "skipped",
+                    "reason": "demo_preserve_freshness_visibility",
+                    "detail": "Domain date rebase and history baseline rebuild skipped so stale business dates remain for ADGRI. "
+                    "Clear DEMO_MODE_SKIP_REBASE or POST /admin/governance-demo/apply-domain-date-normalization to align dates.",
+                }
+                rebuild_meta = {
+                    "status": "skipped",
+                    "reason": "demo_preserve_freshness_visibility",
+                    "detail": "Skipped with domain rebase so domain_health_history baseline stays comparable to pre-demo runs.",
+                }
+            else:
+                try:
+                    rebase_meta = _rebase_data_mesh_domain_outputs()
+                except Exception as exc:  # noqa: BLE001
+                    rebase_meta = {
+                        "status": "error",
+                        "message": str(exc),
+                    }
+                try:
+                    rebuild_meta = _rebuild_domain_health_history_baseline_from_domain_csvs()
+                except Exception as exc:  # noqa: BLE001
+                    rebuild_meta = {
+                        "status": "error",
+                        "message": str(exc),
+                    }
         with _rerun_lock:
+            sk = bool(_rerun_state.get("skip_post_pipeline_domain_normalization"))
             _rerun_state.update(
                 {
                     "status": "completed",
@@ -258,6 +334,9 @@ def _run_rerun_job(job_id: str) -> None:
                     "rows_processed_so_far": int(summary.get("rows_processed") or 0),
                     "current_domain": None,
                     "current_domain_status": None,
+                    "domain_date_rebase": rebase_meta,
+                    "domain_history_baseline": rebuild_meta,
+                    "skip_post_pipeline_domain_normalization": sk,
                 }
             )
     except Exception as exc:
@@ -268,11 +347,14 @@ def _run_rerun_job(job_id: str) -> None:
                     "finished_at": datetime.now().isoformat(timespec="seconds"),
                     "error": str(exc),
                     "current_domain_status": "FAILED",
+                    "domain_date_rebase": None,
+                    "domain_history_baseline": None,
+                    "skip_post_pipeline_domain_normalization": False,
                 }
             )
 
 
-def _trigger_pipeline_rerun() -> dict:
+def _trigger_pipeline_rerun(skip_post_pipeline_domain_normalization: bool = False) -> dict:
     with _rerun_lock:
         if _rerun_state.get("status") == "running":
             return {
@@ -282,6 +364,7 @@ def _trigger_pipeline_rerun() -> dict:
             }
 
         job_id = str(uuid.uuid4())[:8]
+        eff_skip = bool(skip_post_pipeline_domain_normalization) or _env_demo_mode_skip_rebase()
         _rerun_state.update(
             {
                 "status": "running",
@@ -296,6 +379,9 @@ def _trigger_pipeline_rerun() -> dict:
                 "rows_processed_so_far": 0,
                 "current_domain": None,
                 "current_domain_status": None,
+                "domain_date_rebase": None,
+                "domain_history_baseline": None,
+                "skip_post_pipeline_domain_normalization": eff_skip,
             }
         )
 
@@ -305,6 +391,7 @@ def _trigger_pipeline_rerun() -> dict:
         "status": "started",
         "job_id": job_id,
         "started_at": _rerun_state.get("started_at"),
+        "skip_post_pipeline_domain_normalization": eff_skip,
     }
 
 
@@ -736,64 +823,15 @@ def _reset_domain_pipeline_log_state(selected_domain: str) -> dict:
 
 
 def _seed_clean_domain_history_from_output(selected_domain: str) -> dict:
-    normalized_domain = _normalize_domain_name(selected_domain)
-    domain_csv = DATA_PATH / normalized_domain / f"{normalized_domain}.csv"
-    if not domain_csv.exists():
-        return {
-            "selected_domain": normalized_domain,
-            "seeded": False,
-            "message": f"Domain output not found for history seeding: {domain_csv}",
-        }
-
-    df = pd.read_csv(domain_csv)
-    row_count = int(len(df))
-    config = GOVERNANCE_TEST_CASES.get(normalized_domain) or {}
-    business_date_field = str(config.get("business_date_field") or "").strip()
-    freshness_hours = 0.0
-
-    if business_date_field and business_date_field in df.columns:
-        parsed = pd.to_datetime(df[business_date_field], errors="coerce").dropna()
-        if not parsed.empty:
-            latest_business_ts = pd.Timestamp(parsed.max()).to_pydatetime()
-            freshness_hours = max(0.0, (datetime.now() - latest_business_ts).total_seconds() / 3600.0)
-
-    seed_points = []
-    base_time = datetime.now()
-    for i in range(14, 0, -1):
-        seed_points.append(
-            {
-                "domain_name": normalized_domain,
-                "row_count": row_count,
-                "timestamp": (base_time - timedelta(days=i)).isoformat(timespec="seconds"),
-                "freshness_hours": round(float(freshness_hours), 6),
-            }
-        )
-
-    if MONITORING_HISTORY_PATH.exists():
-        try:
-            history_df = pd.read_csv(MONITORING_HISTORY_PATH)
-        except Exception:
-            history_df = pd.DataFrame(columns=["domain_name", "row_count", "timestamp", "freshness_hours"])
-    else:
-        history_df = pd.DataFrame(columns=["domain_name", "row_count", "timestamp", "freshness_hours"])
-
-    if "domain_name" not in history_df.columns:
-        history_df["domain_name"] = ""
-    history_df = history_df[
-        history_df["domain_name"].astype(str).str.strip().str.lower() != normalized_domain
-    ].copy()
-
-    seeded_df = pd.DataFrame(seed_points)
-    combined = pd.concat([history_df, seeded_df], ignore_index=True)
-    combined.to_csv(MONITORING_HISTORY_PATH, index=False)
-
+    """Legacy hook for governance demo restore — rebuild full baseline from all domain CSVs."""
+    _ = _normalize_domain_name(selected_domain)
+    full = _rebuild_domain_health_history_baseline_from_domain_csvs()
     return {
-        "selected_domain": normalized_domain,
-        "seeded": True,
-        "seed_rows": len(seed_points),
-        "row_count_seeded": row_count,
-        "freshness_hours_seeded": round(float(freshness_hours), 6),
-        "history_file": str(MONITORING_HISTORY_PATH),
+        "selected_domain": _,
+        "seeded": full.get("status") == "replaced",
+        "seed_rows": full.get("rows_written"),
+        "legacy_forward_to": "full_domain_health_history_rebuild",
+        **full,
     }
 
 
@@ -965,6 +1003,114 @@ def _restore_domain_baseline_to_silver(selected_domain: str) -> dict:
     }
 
 
+def _restore_core_silver_baselines() -> dict:
+    """Restore baseline-ready Silver inputs for demo reset across core domains."""
+    results: list[dict] = []
+    restored_domains: list[str] = []
+    errors: list[str] = []
+
+    # Prefer immutable baseline for sales when available.
+    sales_restore = _restore_domain_baseline_to_silver("sales_domain")
+    results.append({"domain": "sales_domain", "method": "immutable_baseline", **sales_restore})
+    if sales_restore.get("restored"):
+        restored_domains.append("sales_domain")
+    elif sales_restore.get("message"):
+        errors.append(f"sales_domain: {sales_restore.get('message')}")
+
+    # Product/users baseline recovery from vetted correction utilities.
+    for fn, domain in ((correct_product, "product_domain"), (correct_users, "users_domain")):
+        try:
+            action = fn()
+            results.append({"domain": domain, "method": "correction_utility", **action})
+            if bool(action.get("updated")):
+                restored_domains.append(domain)
+            else:
+                errors.append(f"{domain}: {action.get('reason') or 'not updated'}")
+        except Exception as exc:  # noqa: BLE001
+            err = f"{domain}: {exc}"
+            errors.append(err)
+            results.append({"domain": domain, "method": "correction_utility", "updated": False, "error": str(exc)})
+
+    return {
+        "restored_domains": sorted(set(restored_domains)),
+        "results": results,
+        "errors": errors,
+        "restored_count": len(sorted(set(restored_domains))),
+    }
+
+
+def _restore_product_canonical_sources() -> dict:
+    """Hard-reset product Silver + domain CSV from demo canonical clean source."""
+    canonical = _resolve_test_case_source("product_domain_healthy.csv", "product_domain")
+    if canonical is None:
+        return {
+            "restored": False,
+            "message": "Canonical product baseline source not found: product_domain_healthy.csv",
+            "source_file": None,
+        }
+
+    silver_target = DATA_ROOT / "Data" / "Silver-data" / "products_clean.csv"
+    domain_target = DATA_PATH / "product_domain" / "product_domain.csv"
+    silver_target.parent.mkdir(parents=True, exist_ok=True)
+    domain_target.parent.mkdir(parents=True, exist_ok=True)
+
+    # Remove potentially contaminated files first, then restore clean canonical source.
+    for target in (silver_target, domain_target):
+        if target.exists():
+            target.unlink()
+        shutil.copy2(canonical, target)
+
+    return {
+        "restored": True,
+        "source_file": str(canonical),
+        "silver_target": str(silver_target),
+        "domain_target": str(domain_target),
+    }
+
+
+def _clear_governance_artifacts_for_restore() -> dict:
+    """Clear stale monitoring artifacts so rebuilt baseline reflects restored clean data."""
+    cleared = {
+        "domain_health_history": False,
+        "pipeline_log_product_entries_removed": 0,
+        "scenario_history_product_entries_removed": 0,
+    }
+
+    if MONITORING_HISTORY_PATH.exists():
+        try:
+            MONITORING_HISTORY_PATH.unlink()
+            cleared["domain_health_history"] = True
+        except Exception:
+            cleared["domain_health_history"] = False
+
+    pipeline_log_path = MONITORING_HISTORY_PATH.parent / "logs" / "pipeline_log.json"
+    if pipeline_log_path.exists():
+        try:
+            logs = pd.read_json(pipeline_log_path)
+            if not logs.empty and "domain" in logs.columns:
+                before = int(len(logs))
+                filtered = logs[logs["domain"].astype(str).str.strip().str.lower() != "product_domain"].copy()
+                cleared["pipeline_log_product_entries_removed"] = max(0, before - int(len(filtered)))
+                filtered.to_json(pipeline_log_path, orient="records", indent=2, date_format="iso")
+        except Exception:
+            cleared["pipeline_log_product_entries_removed"] = 0
+
+    if SCENARIO_COMPARISON_HISTORY_PATH.exists():
+        try:
+            rows = _load_scenario_comparison_history()
+            before = len(rows)
+            filtered = [
+                item for item in rows
+                if _normalize_domain_name(item.get("selected_domain") or "") != "product_domain"
+            ]
+            cleared["scenario_history_product_entries_removed"] = max(0, before - len(filtered))
+            SCENARIO_COMPARISON_HISTORY_PATH.write_text(json.dumps(filtered, indent=2), encoding="utf-8")
+        except Exception:
+            cleared["scenario_history_product_entries_removed"] = 0
+
+    return cleared
+
+
 def _build_domain_before_after_comparison(selected_domain: str, selected_scenario: str, before: dict, after: dict) -> dict:
     return {
         "selected_scenario": selected_scenario,
@@ -1122,6 +1268,17 @@ def _run_silver_only_rebase() -> dict:
     return utility.run(apply_changes=True)
 
 
+def _rebase_data_mesh_domain_outputs() -> dict:
+    """Shift business timestamps in materialized domain CSVs so max dates align with today.
+
+    Used after a successful Data Mesh reload so ADGRI freshness reflects recent business time.
+    Does not modify governance_intelligence formulas or Silver inputs.
+    """
+    utility = BusinessDateRebaseUtility(data_root=DATA_ROOT)
+    utility.targets = [DATA_ROOT / "Data_Mesh_Domains"]
+    return utility.run(apply_changes=True)
+
+
 def _shift_silver_dates_by_offset(offset_days: int) -> dict:
     utility = BusinessDateRebaseUtility(data_root=DATA_ROOT)
     utility.targets = [DATA_ROOT / "Data" / "Silver-data"]
@@ -1224,6 +1381,76 @@ governance_engine = GovernanceIntelligenceEngine(
     data_path=DATA_PATH,
     monitoring_history_path=MONITORING_HISTORY_PATH,
 )
+
+
+def _df_null_duplicate_pct(df: pd.DataFrame) -> tuple[float, float]:
+    """Aggregate null and duplicate rates for domain CSV snapshot rows."""
+    if df is None or len(df) == 0:
+        return 0.0, 0.0
+    n_rows = max(1, len(df))
+    n_cols = max(1, len(df.columns))
+    total_cells = float(n_rows * n_cols)
+    null_cells = float(df.isna().sum().sum())
+    null_pct = round(100.0 * null_cells / total_cells, 4)
+    dup_pct = round(100.0 * float(df.duplicated().sum()) / float(n_rows), 4)
+    return null_pct, dup_pct
+
+
+def _rebuild_domain_health_history_baseline_from_domain_csvs() -> dict:
+    """Replace domain_health_history.csv using metrics derived from current domain CSVs.
+
+    After demo date rebasing, stale freshness_hours in history skew freshness z-scores.
+    This rebuild keeps baseline aligned with materialized data without changing ADGRI logic.
+    """
+    engine = governance_engine
+    window = int(engine.rolling_window_days)
+    base_time = datetime.now()
+    rows_out: list[dict] = []
+
+    for domain_name in engine._list_domains():
+        try:
+            df, _path = engine._load_domain_csv(domain_name)
+        except Exception:
+            continue
+        row_count = int(len(df))
+        null_pct, dup_pct = _df_null_duplicate_pct(df)
+        date_col = engine._find_date_column(df)
+        freshness_hours = 0.0
+        if date_col:
+            parsed = pd.to_datetime(df[date_col], errors="coerce").dropna()
+            if not parsed.empty:
+                latest_ts = pd.Timestamp(parsed.max()).to_pydatetime()
+                freshness_hours = max(
+                    0.0,
+                    (datetime.now() - latest_ts).total_seconds() / 3600.0,
+                )
+
+        for i in range(window, 0, -1):
+            ts = base_time - timedelta(days=i)
+            rows_out.append(
+                {
+                    "domain_name": domain_name,
+                    "row_count": row_count,
+                    "null_percentage": null_pct,
+                    "duplicate_percentage": dup_pct,
+                    "freshness_hours": round(float(freshness_hours), 6),
+                    "schema_change_flag": 0.0,
+                    "timestamp": ts.strftime("%Y-%m-%d %H:%M:%S"),
+                }
+            )
+
+    MONITORING_HISTORY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    out_df = pd.DataFrame(rows_out)
+    out_df.to_csv(MONITORING_HISTORY_PATH, index=False)
+
+    return {
+        "status": "replaced",
+        "history_file": str(MONITORING_HISTORY_PATH),
+        "domains_seeded": int(out_df["domain_name"].nunique()) if not out_df.empty else 0,
+        "rows_written": int(len(out_df)),
+        "window_days": window,
+    }
+
 
 governance_prioritization_engine = GovernancePrioritizationEngine(
     governance_engine=governance_engine,
@@ -1855,7 +2082,11 @@ def admin_run_governance_demo_scenario(payload: dict = Body(default={})):
     if not load_result.get("loaded"):
         raise HTTPException(status_code=400, detail=load_result.get("message") or "Unable to load selected scenario dataset.")
 
-    rerun_start = _trigger_pipeline_rerun()
+    rerun_start = _trigger_pipeline_rerun(
+        skip_post_pipeline_domain_normalization=_should_skip_post_pipeline_domain_normalization(
+            dataset_name=selected_scenario
+        )
+    )
     if rerun_start.get("status") == "already_running":
         raise HTTPException(status_code=409, detail="Pipeline rerun is already running. Try again once it completes.")
 
@@ -1886,6 +2117,17 @@ def admin_run_governance_demo_scenario(payload: dict = Body(default={})):
             "latest_evaluation_time": domain_after.get("governance_evaluation_time"),
             "latest_business_data_date": domain_after.get("latest_business_data_date"),
         },
+        "demo_domain_normalization": {
+            "skipped_post_pipeline_steps": bool(rerun_state.get("skip_post_pipeline_domain_normalization")),
+            "condition_used": (
+                "filename_stale_or_test"
+                if _filename_suggests_preserve_freshness_demo(selected_scenario)
+                else ("DEMO_MODE_SKIP_REBASE_env" if _env_demo_mode_skip_rebase() else "core_run_full_normalization")
+            ),
+            "domain_date_rebase": rerun_state.get("domain_date_rebase"),
+            "domain_history_baseline": rerun_state.get("domain_history_baseline"),
+            "DEMO_MODE_SKIP_REBASE_env_active": _env_demo_mode_skip_rebase(),
+        },
     }
 
 
@@ -1901,20 +2143,18 @@ def admin_restore_governance_demo_baseline(payload: dict = Body(default={})):
     if not _is_rerun_authorized(session_id, user_id, auth_token, auth_username, auth_password):
         raise HTTPException(status_code=403, detail="Admin authorization failed for baseline restore workflow.")
 
+    product_before = _domain_governance_snapshot("product_domain")
     domain_before = _domain_governance_snapshot(selected_domain)
-    restore_result = _restore_domain_baseline_to_silver(selected_domain)
-    if not restore_result.get("supported"):
-        raise HTTPException(status_code=400, detail=restore_result.get("message") or "Unsupported domain.")
-    if not restore_result.get("restored"):
-        raise HTTPException(status_code=400, detail=restore_result.get("message") or "Unable to restore baseline dataset.")
 
-    output_reset = _reset_domain_output_state(selected_domain)
-    governance_state_reset = _reset_domain_governance_state(selected_domain)
+    artifact_cleanup = _clear_governance_artifacts_for_restore()
+    product_restore = _restore_product_canonical_sources()
+    restore_bundle = _restore_core_silver_baselines()
+    if product_restore.get("restored"):
+        restore_bundle["restored_domains"] = sorted(set((restore_bundle.get("restored_domains") or []) + ["product_domain"]))
+    restore_bundle["product_canonical_restore"] = product_restore
 
-    domain_output_csv = DATA_PATH / selected_domain / f"{selected_domain}.csv"
-    output_exists_before = domain_output_csv.exists()
-
-    rerun_start = _trigger_pipeline_rerun()
+    # Force full post-pipeline normalization for baseline reset demos.
+    rerun_start = _trigger_pipeline_rerun(skip_post_pipeline_domain_normalization=False)
     if rerun_start.get("status") == "already_running":
         raise HTTPException(status_code=409, detail="Pipeline rerun is already running. Try again once it completes.")
 
@@ -1926,12 +2166,19 @@ def admin_restore_governance_demo_baseline(payload: dict = Body(default={})):
         and str(rerun_summary.get("status") or "").upper() == "SUCCESS"
     )
 
-    pipeline_log_reset = _reset_domain_pipeline_log_state(selected_domain)
-    clean_history_seed = _seed_clean_domain_history_from_output(selected_domain)
+    # Ensure normalization runs even when DEMO_MODE_SKIP_REBASE was enabled for stale-issue visibility.
+    force_norm = admin_governance_apply_domain_date_normalization(
+        {
+            "session_id": f"{session_id}-post-restore-norm",
+            "user_id": user_id,
+            "auth_token": auth_token,
+            "auth_username": auth_username,
+            "auth_password": auth_password,
+        }
+    )
 
     domain_after = _domain_governance_snapshot(selected_domain)
-    output_exists_after = domain_output_csv.exists()
-    domain_overwritten = bool(pipeline_rerun_succeeded and output_exists_after)
+    product_after = _domain_governance_snapshot("product_domain")
     governance_recomputed = bool(
         pipeline_rerun_succeeded
         and domain_after.get("governance_evaluation_time") is not None
@@ -1954,33 +2201,71 @@ def admin_restore_governance_demo_baseline(payload: dict = Body(default={})):
         "executed_at": datetime.now().isoformat(timespec="seconds"),
         "selected_domain": selected_domain,
         "selected_scenario": "sales_baseline",
-        "baseline_restore": restore_result,
+        "baseline_restore": restore_bundle,
+        "restored_domains": restore_bundle.get("restored_domains") or [],
         "restore_summary": {
-            "baseline_source_file_used": restore_result.get("source_file"),
-            "silver_replaced": bool(restore_result.get("silver_replaced")),
-            "domain_overwritten": domain_overwritten,
             "governance_recomputed": governance_recomputed,
             "adgri_before_restore": domain_before.get("adgri"),
             "adgri_after_restore": domain_after.get("adgri"),
-            "domain_output_exists_before_rerun": output_exists_before,
-            "domain_output_exists_after_rerun": output_exists_after,
-        },
-        "state_reset": {
-            "domain_output_reset": output_reset,
-            "governance_state_reset": governance_state_reset,
-            "pipeline_log_reset": pipeline_log_reset,
-            "clean_history_seed": clean_history_seed,
         },
         "scenario_test_case_comparison": scenario_comparison,
         "comparison": comparison,
-        "pipeline_validation": {
-            "rerun_succeeded": pipeline_rerun_succeeded,
+        "artifact_cleanup": artifact_cleanup,
+        "pipeline_status": {
+            "succeeded": pipeline_rerun_succeeded,
             "final_status": rerun_state.get("status"),
             "summary": rerun_summary,
             "error": rerun_state.get("error"),
             "latest_evaluation_time": domain_after.get("governance_evaluation_time"),
             "latest_business_data_date": domain_after.get("latest_business_data_date"),
         },
+        "domain_date_rebase": force_norm.get("domain_date_rebase") or rerun_state.get("domain_date_rebase"),
+        "domain_history_baseline": force_norm.get("domain_history_baseline") or rerun_state.get("domain_history_baseline"),
+        "product_domain_diagnostics": {
+            "row_count_before_restore": product_before.get("row_count"),
+            "row_count_after_restore": product_after.get("row_count"),
+            "csv_path_restored_from": product_restore.get("source_file"),
+            "latest_business_date": product_after.get("latest_business_data_date"),
+            "volume_risk": product_after.get("volume_instability"),
+            "distribution_risk": product_after.get("distribution_instability"),
+            "adgri": product_after.get("adgri"),
+        },
+        "pipeline_validation": {
+            "rerun_succeeded": pipeline_rerun_succeeded,
+            "final_status": rerun_state.get("status"),
+        },
+    }
+
+
+@app.post("/admin/governance-demo/apply-domain-date-normalization")
+def admin_governance_apply_domain_date_normalization(payload: dict = Body(default={})):
+    """Run domain CSV date rebase + domain_health_history baseline rebuild (after demo uploads that skipped both)."""
+    session_id = str(payload.get("session_id") or "admin-governance-demo-norm").strip() or "admin-governance-demo-norm"
+    user_id = str(payload.get("user_id") or "admin").strip() or "admin"
+    auth_token = str(payload.get("auth_token") or "").strip()
+    auth_username = str(payload.get("auth_username") or "").strip()
+    auth_password = str(payload.get("auth_password") or "").strip()
+
+    if not _is_rerun_authorized(session_id, user_id, auth_token, auth_username, auth_password):
+        raise HTTPException(status_code=403, detail="Admin authorization failed for domain date normalization.")
+
+    rebase_meta = None
+    rebuild_meta = None
+    try:
+        rebase_meta = _rebase_data_mesh_domain_outputs()
+    except Exception as exc:  # noqa: BLE001
+        rebase_meta = {"status": "error", "message": str(exc)}
+    try:
+        rebuild_meta = _rebuild_domain_health_history_baseline_from_domain_csvs()
+    except Exception as exc:  # noqa: BLE001
+        rebuild_meta = {"status": "error", "message": str(exc)}
+
+    return {
+        "workflow": "apply_domain_date_normalization",
+        "executed_at": datetime.now().isoformat(timespec="seconds"),
+        "domain_date_rebase": rebase_meta,
+        "domain_history_baseline": rebuild_meta,
+        "note": "Clears stale business-date demo visibility by aligning Data_Mesh_Domains CSV dates and refreshing monitoring history.",
     }
 
 
@@ -2015,7 +2300,11 @@ def admin_load_governance_test_case_and_rerun(payload: dict = Body(default={})):
     if not load_result.get("loaded"):
         raise HTTPException(status_code=400, detail=load_result.get("message") or "Unable to load selected test-case.")
 
-    rerun_start = _trigger_pipeline_rerun()
+    rerun_start = _trigger_pipeline_rerun(
+        skip_post_pipeline_domain_normalization=_should_skip_post_pipeline_domain_normalization(
+            dataset_name=selected_test_case
+        )
+    )
     if rerun_start.get("status") == "already_running":
         raise HTTPException(status_code=409, detail="Pipeline rerun is already running. Try again once it completes.")
 
@@ -2042,6 +2331,17 @@ def admin_load_governance_test_case_and_rerun(payload: dict = Body(default={})):
             "succeeded": pipeline_rerun_succeeded,
             "summary": rerun_summary,
             "error": rerun_state.get("error"),
+        },
+        "demo_domain_normalization": {
+            "skipped_post_pipeline_steps": bool(rerun_state.get("skip_post_pipeline_domain_normalization")),
+            "condition_used": (
+                "filename_stale_or_test"
+                if _filename_suggests_preserve_freshness_demo(selected_test_case)
+                else ("DEMO_MODE_SKIP_REBASE_env" if _env_demo_mode_skip_rebase() else "core_run_full_normalization")
+            ),
+            "domain_date_rebase": rerun_state.get("domain_date_rebase"),
+            "domain_history_baseline": rerun_state.get("domain_history_baseline"),
+            "DEMO_MODE_SKIP_REBASE_env_active": _env_demo_mode_skip_rebase(),
         },
         "governance_refresh": {
             "latest_refresh_time": governance_after.get("as_of"),
@@ -2114,7 +2414,11 @@ def admin_upload_governance_test_case_and_rerun(
     governance_before = _governance_score_snapshot()
     domain_before = _domain_governance_snapshot(mapped_domain)
 
-    rerun_start = _trigger_pipeline_rerun()
+    rerun_start = _trigger_pipeline_rerun(
+        skip_post_pipeline_domain_normalization=_should_skip_post_pipeline_domain_normalization(
+            from_governance_upload=True
+        )
+    )
     if rerun_start.get("status") == "already_running":
         raise HTTPException(status_code=409, detail="Pipeline rerun is already running. Try again once it completes.")
 
@@ -2139,6 +2443,7 @@ def admin_upload_governance_test_case_and_rerun(
         "executed_at": datetime.now().isoformat(timespec="seconds"),
         "uploaded_file_name": incoming_file_name,
         "mapped_domain": mapped_domain,
+        "affected_domain": mapped_domain,
         "replaced_in_silver": replaced_in_silver,
         "silver_target_file": str(target_file),
         "mapping_method": mapping.get("mapped_by"),
@@ -2148,6 +2453,13 @@ def admin_upload_governance_test_case_and_rerun(
             "succeeded": pipeline_rerun_succeeded,
             "summary": rerun_summary,
             "error": rerun_state.get("error"),
+        },
+        "demo_domain_normalization": {
+            "skipped_post_pipeline_steps": bool(rerun_state.get("skip_post_pipeline_domain_normalization")),
+            "condition_used": "governance_file_upload_origin",
+            "domain_date_rebase": rerun_state.get("domain_date_rebase"),
+            "domain_history_baseline": rerun_state.get("domain_history_baseline"),
+            "DEMO_MODE_SKIP_REBASE_env_active": _env_demo_mode_skip_rebase(),
         },
         "governance_refresh": {
             "latest_refresh_time": governance_after.get("as_of"),

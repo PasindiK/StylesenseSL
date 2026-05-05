@@ -239,6 +239,10 @@ class BusinessDateRebaseUtility:
             if lower.endswith("_date"):
                 names.append(col)
                 continue
+            # Align with governance_intelligence._find_date_column (*_ts heuristic).
+            if lower.endswith("_ts"):
+                names.append(col)
+                continue
             if lower.endswith("_at") and ("created" in lower or "updated" in lower):
                 names.append(col)
                 continue

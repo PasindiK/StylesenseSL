@@ -1,0 +1,83 @@
+{
+  "auto_threshold": 0.6,
+  "orphan_threshold": 0.4,
+  "ambiguity_margin": 0.1,
+  "objective_score": 0.878182,
+  "objective_weights": {
+    "w_domain_assignment": 0.38,
+    "w_orphan_detection": 0.2,
+    "w_review_routing": 0.18,
+    "w_strict_outcome": 0.14,
+    "penalty_wrong_auto": 0.42,
+    "penalty_review_workload": 0.12
+  },
+  "metrics": {
+    "domain_assignment_accuracy": 1.0,
+    "wrong_auto_assignment_rate": 0.0,
+    "review_routing_accuracy": 1.0,
+    "orphan_detection_accuracy": 1.0,
+    "review_workload_fraction": 0.181818,
+    "strict_outcome_accuracy": 1.0
+  },
+  "counts": {
+    "rows": 22,
+    "gold_existing": 16,
+    "gold_orphan": 2,
+    "gold_review": 4,
+    "predicted_review": 4,
+    "wrong_auto_events": 0
+  },
+  "blend_weights_used": {
+    "w1_semantic": 0.4,
+    "w2_ontology": 0.4,
+    "w3_contract": 0.2,
+    "w4_memory": 0.0
+  },
+  "blend_weights_source": "data/evaluation/optimal_embedding_domain_weights.json",
+  "calibration_backend": "embedding",
+  "semantic_backend_at_calibration": "sentence_embedding",
+  "embedding_calibration_warning": null,
+  "validation_csv": "data/evaluation/domain_admission_validation.csv",
+  "sweep": {
+    "auto_threshold": [
+      0.6,
+      0.65,
+      0.7,
+      0.75,
+      0.8,
+      0.85
+    ],
+    "orphan_threshold": [
+      0.25,
+      0.3,
+      0.35,
+      0.4,
+      0.45,
+      0.5
+    ],
+    "ambiguity_margin": [
+      0.05,
+      0.1,
+      0.15,
+      0.2
+    ],
+    "valid_combinations_tested": 144,
+    "skipped_invalid_combinations": 0
+  },
+  "baseline_reference_thresholds": {
+    "auto_threshold": 0.7,
+    "orphan_threshold": 0.4,
+    "ambiguity_margin": 0.1
+  },
+  "baseline_metrics": {
+    "domain_assignment_accuracy": 1.0,
+    "wrong_auto_assignment_rate": 0.0,
+    "review_routing_accuracy": 1.0,
+    "orphan_detection_accuracy": 1.0,
+    "review_workload_fraction": 0.181818,
+    "strict_outcome_accuracy": 1.0,
+    "objective_score": 0.878182
+  },
+  "explanation": "Thresholds calibrate a 3-way decision on hybrid best score and leader gap: auto (EXISTING_DOMAIN) if score>=auto_threshold and gap>=ambiguity_margin; orphan if score<orphan_threshold; else REVIEW_REQUIRED. Production _resolve_admission_policy is unchanged; adopt these values only when explicitly wired in.",
+  "generated_at": "2026-05-05T01:13:34+00:00"
+}

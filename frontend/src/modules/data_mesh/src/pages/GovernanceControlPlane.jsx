@@ -1,11 +1,106 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Alert, Button, Card, Col, Row, Select, Spin, Statistic, Table, Typography, Progress, Tag, Upload } from "antd";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Alert, Button, Card, Col, Row, Select, Spin, Statistic, Table, Typography, Tag, Upload } from "antd";
 import axios from "axios";
 import { ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts";
 import { API_BASE } from "../config";
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph, Text } = Typography;
 const { Option } = Select;
+
+/** Business-priority labels for panel narrative (same ADGRI equation; importance differs by domain). */
+const DOMAIN_BUSINESS_PRIORITIES = {
+  sales_domain: { freshness: "High", volume: "Medium", distribution: "Medium" },
+  users_domain: { freshness: "Low", volume: "Medium", distribution: "High" },
+  interaction_domain: { freshness: "Medium", volume: "Medium", distribution: "High" },
+  product_domain: { freshness: "Medium", volume: "Medium", distribution: "High" },
+  shop_domain: { freshness: "Medium", volume: "Medium", distribution: "Medium" },
+  engagement_domain: { freshness: "Medium", volume: "Medium", distribution: "High" },
+  user_preferences_domain: { freshness: "Low", volume: "Medium", distribution: "High" },
+};
+
+const DEFAULT_BUSINESS_PRIORITY = { freshness: "Medium", volume: "Medium", distribution: "Medium" };
+
+function getBusinessPriorities(domainName) {
+  const key = String(domainName || "").trim();
+  return DOMAIN_BUSINESS_PRIORITIES[key] || DEFAULT_BUSINESS_PRIORITY;
+}
+
+function priorityTierColor(tier) {
+  const t = String(tier || "").toLowerCase();
+  if (t === "high") return "red";
+  if (t === "medium") return "gold";
+  return "blue";
+}
+
+function formatEffectiveWeights(weights) {
+  if (!weights || typeof weights !== "object") return null;
+  const f = Number(weights.freshness);
+  const v = Number(weights.volume);
+  const d = Number(weights.distribution);
+  if ([f, v, d].some((x) => Number.isNaN(x))) return null;
+  const pct = (x) => `${Math.round(x * 100)}%`;
+  return `This run: Fresh ${pct(f)} · Vol ${pct(v)} · Dist ${pct(d)}`;
+}
+
+function inferMainRiskDriver(item) {
+  const breakdown = item?.contribution_breakdown;
+  if (breakdown && typeof breakdown === "object") {
+    const scores = ["volume", "freshness", "distribution"].map((k) => ({
+      key: k,
+      impact: Number((breakdown[k] || {}).score_impact || 0),
+    }));
+    const best = scores.reduce((a, b) => (b.impact > a.impact ? b : a), scores[0]);
+    if (best && best.impact > 0) {
+      return best.key.charAt(0).toUpperCase() + best.key.slice(1);
+    }
+  }
+  const tr = String(item?.top_reason || "").toLowerCase();
+  if (tr.includes("volume")) return "Volume";
+  if (tr.includes("freshness")) return "Freshness";
+  if (tr.includes("distribution")) return "Distribution";
+  return "Mixed";
+}
+
+function mainDriverBadgeColor(driver) {
+  const d = String(driver || "").toLowerCase();
+  if (d === "freshness") return "volcano";
+  if (d === "volume") return "geekblue";
+  if (d === "distribution") return "purple";
+  return "default";
+}
+
+function recommendedTableAction(adgri, mainDriver) {
+  const score = Number(adgri || 0);
+  if (score >= 85) return "Routine monitoring";
+  const d = String(mainDriver || "").toLowerCase();
+  if (d === "freshness") return "Refresh data pipeline";
+  if (d === "volume") return "Check missing/duplicate ingestion";
+  if (d === "distribution") return "Inspect anomaly/drift";
+  return "Inspect anomaly/drift";
+}
+
+function governanceHealthStatus(adgri) {
+  const score = Number(adgri || 0);
+  if (score >= 85) return "Healthy";
+  if (score >= 65) return "Monitor";
+  return "Action needed";
+}
+
+function healthStatusColor(status) {
+  if (status === "Healthy") return "success";
+  if (status === "Monitor") return "warning";
+  return "error";
+}
+
+function actionCardStyleByStatus(status) {
+  if (status === "Healthy") {
+    return { border: "1px solid #16a34a", background: "#f0fdf4" };
+  }
+  if (status === "Monitor") {
+    return { border: "1px solid #f59e0b", background: "#fffbeb" };
+  }
+  return { border: "1px solid #dc2626", background: "#fef2f2" };
+}
 
 function formatTime(value) {
   if (!value) return "-";
@@ -77,6 +172,7 @@ function lowScoreReason(item) {
 export default function GovernanceControlPlane() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [summary, setSummary] = useState({ domains: [] });
   const [selectedDomain, setSelectedDomain] = useState("");
   const [domainDetails, setDomainDetails] = useState(null);
@@ -87,6 +183,13 @@ export default function GovernanceControlPlane() {
   const [uploadResult, setUploadResult] = useState(null);
   const [scenarioComparison, setScenarioComparison] = useState(null);
   const [liveTrendOverride, setLiveTrendOverride] = useState([]);
+  const [demoAffectedDomain, setDemoAffectedDomain] = useState("");
+  const [showAffectedOnly, setShowAffectedOnly] = useState(false);
+  const selectedDomainRef = useRef("");
+
+  useEffect(() => {
+    selectedDomainRef.current = selectedDomain;
+  }, [selectedDomain]);
 
   useEffect(() => {
     setLoading(true);
@@ -126,7 +229,7 @@ export default function GovernanceControlPlane() {
       });
   }, [selectedDomain]);
 
-  const refreshGovernanceViews = async (domainName) => {
+  const refreshGovernanceViews = useCallback(async (domainName) => {
     const [summaryRes, detailRes, comparisonRes] = await Promise.all([
       axios.get(`${API_BASE}/governance/summary`),
       axios.get(`${API_BASE}/governance/domain/${encodeURIComponent(domainName)}`),
@@ -137,7 +240,32 @@ export default function GovernanceControlPlane() {
     setSelectedDomain(domainName);
     setDomainDetails(detailRes?.data || null);
     setScenarioComparison(comparisonRes?.data?.latest || null);
-  };
+  }, []);
+
+  useEffect(() => {
+    const onPipelineGovernanceRefresh = () => {
+      const fallback = summary.domains?.[0]?.domain_name || "";
+      const target = selectedDomainRef.current || fallback;
+      if (target) {
+        refreshGovernanceViews(target).catch(() => {});
+        return;
+      }
+      axios
+        .get(`${API_BASE}/governance/summary`)
+        .then((res) => {
+          const payload = res.data || { domains: [] };
+          setSummary(payload);
+          const first = payload.domains?.[0]?.domain_name;
+          if (first) {
+            selectedDomainRef.current = first;
+            setSelectedDomain(first);
+          }
+        })
+        .catch(() => {});
+    };
+    window.addEventListener("dm-data-mesh-governance-refresh", onPipelineGovernanceRefresh);
+    return () => window.removeEventListener("dm-data-mesh-governance-refresh", onPipelineGovernanceRefresh);
+  }, [summary.domains, refreshGovernanceViews]);
 
   const uploadAndRerun = () => {
     if (!selectedFile) {
@@ -147,6 +275,7 @@ export default function GovernanceControlPlane() {
 
     setUploadLoading(true);
     setError("");
+    setSuccessMessage("");
     setUploadResult(null);
 
     const formData = new FormData();
@@ -165,7 +294,9 @@ export default function GovernanceControlPlane() {
         setUploadResult(payload);
         setScenarioComparison(payload?.scenario_test_case_comparison || null);
         setLiveTrendOverride(payload?.live_governance_trend?.risk_trend || []);
-        const mappedDomain = payload?.mapped_domain || selectedDomain || "sales_domain";
+        const mappedDomain = payload?.affected_domain || payload?.mapped_domain || selectedDomain || "sales_domain";
+        setDemoAffectedDomain(mappedDomain);
+        setShowAffectedOnly(true);
         await refreshGovernanceViews(mappedDomain);
       })
       .catch((err) => {
@@ -180,6 +311,7 @@ export default function GovernanceControlPlane() {
   const restoreBaseline = () => {
     setRestoreLoading(true);
     setError("");
+    setSuccessMessage("");
 
     const restoreDomain = selectedDomain || uploadResult?.mapped_domain || "sales_domain";
 
@@ -195,7 +327,10 @@ export default function GovernanceControlPlane() {
         const payload = res.data || {};
         setScenarioComparison(payload?.scenario_test_case_comparison || null);
         setLiveTrendOverride([]);
+        setDemoAffectedDomain("");
+        setShowAffectedOnly(false);
         await refreshGovernanceViews(payload?.selected_domain || restoreDomain);
+        setSuccessMessage("Baseline restored and governance recomputed.");
       })
       .catch((err) => {
         const detail = err?.response?.data?.detail;
@@ -208,19 +343,33 @@ export default function GovernanceControlPlane() {
 
   const tableRows = useMemo(
     () =>
-      (summary.domains || []).map((item) => ({
-        key: item.domain_name,
-        domain_name: item.domain_name,
-        adgri_score: item.adgri_score || item.governance_score,
-        confidence_level: item?.confidence?.level || "low",
-        volume_risk: item?.volume_stability?.risk,
-        freshness_risk: item?.freshness_stability?.risk,
-        distribution_risk: item?.distribution_stability?.risk,
-        top_reason: item?.top_reason,
-        low_score_reason: item?.low_score_reason_label || lowScoreReason(item),
-      })),
-    [summary]
+      (summary.domains || []).map((item) => {
+        const adgri = item.adgri_score || item.governance_score;
+        const mainDriver = inferMainRiskDriver(item);
+        return {
+          key: item.domain_name,
+          domain_name: item.domain_name,
+          adgri_score: adgri,
+          raw_item: item,
+          confidence_level: item?.confidence?.level || "low",
+          confidence_score: item?.confidence?.score,
+          volume_risk: item?.volume_stability?.risk,
+          freshness_risk: item?.freshness_stability?.risk,
+          distribution_risk: item?.distribution_stability?.risk,
+          weights: item?.weights,
+          main_driver: mainDriver,
+          recommended_action: recommendedTableAction(adgri, mainDriver),
+          health_status: governanceHealthStatus(adgri),
+          business_priorities: getBusinessPriorities(item.domain_name),
+          is_demo_focus: demoAffectedDomain && item.domain_name === demoAffectedDomain,
+        };
+      }),
+    [summary, demoAffectedDomain]
   );
+  const visibleTableRows = useMemo(() => {
+    if (!showAffectedOnly || !demoAffectedDomain) return tableRows;
+    return tableRows.filter((row) => row.domain_name === demoAffectedDomain);
+  }, [tableRows, showAffectedOnly, demoAffectedDomain]);
 
   const statusText = relativeTime(domainDetails?.latest_governance_evaluation_time || summary?.as_of);
 
@@ -237,6 +386,9 @@ export default function GovernanceControlPlane() {
   const trendTitle = (liveTrendOverride && liveTrendOverride.length)
     ? "Live Governance Trend"
     : (domainDetails?.trend_label || "Live Governance Trend");
+  const focusedDomainRow = tableRows.find((row) => row.domain_name === demoAffectedDomain) || null;
+  const focusedDomainStatus = focusedDomainRow?.health_status || "Monitor";
+  const focusedActionCardStyle = actionCardStyleByStatus(focusedDomainStatus);
 
   return (
     <div style={{ padding: 16, maxWidth: 1400, margin: "0 auto", width: "100%" }}>
@@ -316,6 +468,7 @@ export default function GovernanceControlPlane() {
       ) : null}
 
       {error ? <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} /> : null}
+      {successMessage ? <Alert type="success" showIcon message={successMessage} style={{ marginBottom: 16 }} /> : null}
 
       {loading ? (
         <Spin />
@@ -323,12 +476,12 @@ export default function GovernanceControlPlane() {
         <>
           <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
             <Col xs={24} sm={8}>
-              <Card>
+              <Card size="small">
                 <Statistic title="Domains Evaluated" value={(summary.domains || []).length} />
               </Card>
             </Col>
             <Col xs={24} sm={8}>
-              <Card>
+              <Card size="small">
                 <Statistic
                   title="Average ADGRI"
                   value={
@@ -341,7 +494,7 @@ export default function GovernanceControlPlane() {
               </Card>
             </Col>
             <Col xs={24} sm={8}>
-              <Card>
+              <Card size="small">
                 <Statistic
                   title="Lowest Domain ADGRI"
                   value={
@@ -355,51 +508,183 @@ export default function GovernanceControlPlane() {
             </Col>
           </Row>
 
-          <Card title="ADGRI Reliability by Domain" style={{ marginBottom: 16 }}>
+          <Card size="small" title="ADGRI formula" style={{ marginBottom: 12 }}>
+            <Paragraph style={{ marginBottom: 6, fontFamily: "monospace", fontSize: 13 }}>
+              ADGRI = 100 × (1 − weighted risk)
+              <br />
+              weighted risk = w<sub>f</sub>×Freshness + w<sub>v</sub>×Volume + w<sub>d</sub>×Distribution
+            </Paragraph>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              w<sub>f</sub>, w<sub>v</sub>, w<sub>d</sub> are domain-aware effective weights (confidence-normalized per evaluation). Business priority chips below show how each domain type emphasizes factors for governance focus.
+            </Text>
+          </Card>
+
+          <Card size="small" style={{ marginBottom: 16, background: "#f8fafc", borderColor: "#e2e8f0" }}>
+            <Paragraph style={{ marginBottom: 0, color: "#334155", fontSize: 13 }}>
+              ADGRI uses the same reliability equation across domains, but factor importance is adjusted using domain-specific business priorities. For example, freshness is more important for Sales, while distribution stability is more important for User and Preference domains.
+            </Paragraph>
+          </Card>
+
+          <Card title="Domain-Aware ADGRI Reliability" style={{ marginBottom: 16 }}>
+            {demoAffectedDomain ? (
+              <Alert
+                type="info"
+                showIcon
+                style={{ marginBottom: 12 }}
+                message={`Focused governance assessment: ${demoAffectedDomain} updated. Other domains are recalculated globally.`}
+                action={(
+                  <Button size="small" onClick={() => setShowAffectedOnly((v) => !v)}>
+                    {showAffectedOnly ? "View all domains" : "Show affected domain only"}
+                  </Button>
+                )}
+              />
+            ) : null}
+            {focusedDomainRow ? (
+              <Card
+                size="small"
+                title="Recommended Governance Action"
+                style={{ marginBottom: 12, ...focusedActionCardStyle }}
+              >
+                <Row gutter={[12, 8]}>
+                  <Col xs={24} md={8}><strong>Domain:</strong> {focusedDomainRow.domain_name}</Col>
+                  <Col xs={24} md={8}><strong>Main risk:</strong> {focusedDomainRow.main_driver}</Col>
+                  <Col xs={24} md={8}><strong>Status:</strong> {focusedDomainRow.health_status}</Col>
+                  <Col xs={24}><strong>Action:</strong> {focusedDomainRow.recommended_action}</Col>
+                </Row>
+              </Card>
+            ) : null}
             <Table
+              size="small"
               pagination={false}
-              dataSource={tableRows}
-              columns={[
-                { title: "Domain", dataIndex: "domain_name" },
-                {
-                  title: "ADGRI",
-                  dataIndex: "adgri_score",
-                  render: (value) => (
-                    <div style={{ minWidth: 180 }}>
-                      <div style={{ marginBottom: 4 }}>{Number(value || 0).toFixed(2)}</div>
-                      <Progress percent={Math.round(value || 0)} size="small" status="active" />
+              scroll={{ x: 1280 }}
+              dataSource={visibleTableRows}
+              expandable={{
+                expandedRowRender: (record) => {
+                  const item = record.raw_item || {};
+                  const eff = formatEffectiveWeights(record.weights);
+                  return (
+                    <div style={{ padding: "4px 0 8px", maxWidth: 720 }}>
+                      <div style={{ marginBottom: 8 }}>
+                        <Text strong style={{ marginRight: 8 }}>Signal confidence</Text>
+                        <Tag color={confidenceColor(record.confidence_level)}>
+                          {String(record.confidence_level || "low").toUpperCase()}
+                        </Tag>
+                        {record.confidence_score != null ? (
+                          <Text type="secondary" style={{ marginLeft: 8 }}>
+                            score {Number(record.confidence_score).toFixed(3)}
+                          </Text>
+                        ) : null}
+                      </div>
+                      {eff ? (
+                        <div style={{ marginBottom: 8 }}>
+                          <Text strong>Effective blend (API): </Text>
+                          <Text type="secondary">{eff}</Text>
+                        </div>
+                      ) : null}
+                      <div style={{ marginBottom: 4 }}>
+                        <Text strong>Detail: </Text>
+                        <Text type="secondary">{item.top_reason || "—"}</Text>
+                      </div>
                     </div>
+                  );
+                },
+                rowExpandable: () => true,
+              }}
+              columns={[
+                {
+                  title: "Domain",
+                  dataIndex: "domain_name",
+                  fixed: "left",
+                  width: 140,
+                  ellipsis: true,
+                  render: (text, record) => (
+                    <span style={{ whiteSpace: "nowrap", fontWeight: record?.is_demo_focus ? 700 : 400 }}>
+                      {text}
+                      {record?.is_demo_focus ? <Tag color="blue" style={{ marginLeft: 6 }}>Demo focus</Tag> : null}
+                    </span>
                   ),
                 },
                 {
-                  title: "Confidence",
-                  dataIndex: "confidence_level",
-                  render: (value) => <Tag color={confidenceColor(value)}>{String(value || "low").toUpperCase()}</Tag>,
+                  title: "ADGRI Score",
+                  dataIndex: "adgri_score",
+                  width: 100,
+                  render: (value) => (
+                    <Tag color={Number(value || 0) >= 85 ? "green" : Number(value || 0) >= 65 ? "gold" : "red"} style={{ margin: 0 }}>
+                      {Number(value || 0).toFixed(1)}
+                    </Tag>
+                  ),
                 },
                 {
-                  title: "Volume Stability Risk",
+                  title: "Domain Priority Weights",
+                  key: "priority_weights",
+                  width: 320,
+                  render: (_, record) => {
+                    const bp = record.business_priorities || DEFAULT_BUSINESS_PRIORITY;
+                    const chips = (
+                      <span style={{ display: "inline-flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+                        <Tag color={priorityTierColor(bp.freshness)} style={{ margin: 0 }}>Freshness {bp.freshness}</Tag>
+                        <Tag color={priorityTierColor(bp.volume)} style={{ margin: 0 }}>Volume {bp.volume}</Tag>
+                        <Tag color={priorityTierColor(bp.distribution)} style={{ margin: 0 }}>Distribution {bp.distribution}</Tag>
+                      </span>
+                    );
+                    const eff = formatEffectiveWeights(record.weights);
+                    return (
+                      <div style={{ lineHeight: 1.5 }}>
+                        {chips}
+                        {eff ? (
+                          <div style={{ marginTop: 4 }}>
+                            <Text type="secondary" style={{ fontSize: 11, whiteSpace: "nowrap" }}>{eff}</Text>
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  },
+                },
+                {
+                  title: "Volume Risk",
                   dataIndex: "volume_risk",
-                  render: (value) => Number((value || 0) * 100).toFixed(1) + "%",
+                  width: 88,
+                  align: "right",
+                  render: (value) => <span style={{ whiteSpace: "nowrap" }}>{Number((value || 0) * 100).toFixed(1)}%</span>,
                 },
                 {
-                  title: "Freshness Deviation Risk",
+                  title: "Freshness Risk",
                   dataIndex: "freshness_risk",
-                  render: (value) => Number((value || 0) * 100).toFixed(1) + "%",
+                  width: 96,
+                  align: "right",
+                  render: (value) => <span style={{ whiteSpace: "nowrap" }}>{Number((value || 0) * 100).toFixed(1)}%</span>,
                 },
                 {
-                  title: "Distribution Stability Risk",
+                  title: "Distribution Risk",
                   dataIndex: "distribution_risk",
-                  render: (value) => Number((value || 0) * 100).toFixed(1) + "%",
+                  width: 112,
+                  align: "right",
+                  render: (value) => <span style={{ whiteSpace: "nowrap" }}>{Number((value || 0) * 100).toFixed(1)}%</span>,
                 },
                 {
-                  title: "Top Reason",
-                  dataIndex: "top_reason",
-                  render: (value) => value || "-",
+                  title: "Main Risk Driver",
+                  dataIndex: "main_driver",
+                  width: 120,
+                  render: (value) => (
+                    <Tag color={mainDriverBadgeColor(value)} style={{ margin: 0 }}>{String(value || "Mixed")}</Tag>
+                  ),
                 },
                 {
-                  title: "Low-Score Explanation",
-                  dataIndex: "low_score_reason",
-                  render: (value) => value || "-",
+                  title: "Status",
+                  dataIndex: "health_status",
+                  width: 110,
+                  render: (value) => <Tag color={healthStatusColor(value)} style={{ margin: 0 }}>{value}</Tag>,
+                },
+                {
+                  title: "Recommended Action",
+                  dataIndex: "recommended_action",
+                  width: 250,
+                  ellipsis: true,
+                  render: (text) => (
+                    <span style={{ fontWeight: 700, whiteSpace: "normal", wordBreak: "break-word", lineHeight: 1.3 }}>
+                      {text}
+                    </span>
+                  ),
                 },
               ]}
             />
@@ -444,11 +729,32 @@ export default function GovernanceControlPlane() {
                       <div style={{ fontWeight: 600, marginBottom: 4 }}>Latest Business Data Date</div>
                       <div>{businessDateText(domainDetails?.latest_business_data_date)}</div>
                     </Col>
+                    <Col xs={24} md={24}>
+                      <div style={{ fontWeight: 600, marginBottom: 6 }}>Domain business priorities (focus)</div>
+                      {(() => {
+                        const bp = getBusinessPriorities(domainDetails?.domain_name || selectedDomain);
+                        return (
+                          <span style={{ display: "inline-flex", flexWrap: "wrap", gap: 6 }}>
+                            <Tag color={priorityTierColor(bp.freshness)}>Freshness {bp.freshness}</Tag>
+                            <Tag color={priorityTierColor(bp.volume)}>Volume {bp.volume}</Tag>
+                            <Tag color={priorityTierColor(bp.distribution)}>Distribution {bp.distribution}</Tag>
+                          </span>
+                        );
+                      })()}
+                      {formatEffectiveWeights(domainDetails?.weights) ? (
+                        <div style={{ marginTop: 8 }}>
+                          <Text type="secondary" style={{ fontSize: 12 }}>{formatEffectiveWeights(domainDetails?.weights)}</Text>
+                        </div>
+                      ) : null}
+                    </Col>
                     <Col xs={24} md={8}>
-                      <div style={{ fontWeight: 600, marginBottom: 4 }}>Confidence</div>
+                      <div style={{ fontWeight: 600, marginBottom: 4 }}>Signal confidence (detail)</div>
                       <Tag color={confidenceColor(domainDetails?.confidence?.level)}>
-                        {String(domainDetails?.confidence?.level || "low").toUpperCase()} ({Number((domainDetails?.confidence?.score || 0) * 100).toFixed(1)}%)
+                        {String(domainDetails?.confidence?.level || "low").toUpperCase()}
                       </Tag>
+                      <span style={{ marginLeft: 8, color: "#64748b", fontSize: 12 }}>
+                        score {Number(domainDetails?.confidence?.score || 0).toFixed(3)}
+                      </span>
                     </Col>
                     <Col xs={24} md={8}>
                       <div style={{ fontWeight: 600, marginBottom: 4 }}>Trend Slope</div>
@@ -460,17 +766,25 @@ export default function GovernanceControlPlane() {
                     <div style={{ color: "#64748b", marginBottom: 10 }}>
                       Current score reflects present reliability; trend shows recent movement over time and does not by itself indicate domain failure.
                     </div>
-                    <div style={{ fontWeight: 600 }}>Top Reason</div>
-                    <div>{domainDetails?.top_reason || "-"}</div>
+                    <div style={{ fontWeight: 600, marginBottom: 6 }}>Main risk driver</div>
+                    <Tag color={mainDriverBadgeColor(inferMainRiskDriver(domainDetails))}>
+                      {inferMainRiskDriver(domainDetails)}
+                    </Tag>
+                    <div style={{ marginTop: 10, fontWeight: 600, marginBottom: 4 }}>Governance status</div>
+                    <Tag color={healthStatusColor(governanceHealthStatus(domainDetails?.adgri_score || domainDetails?.governance_score))}>
+                      {governanceHealthStatus(domainDetails?.adgri_score || domainDetails?.governance_score)}
+                    </Tag>
+                    <div style={{ marginTop: 10, fontWeight: 600, marginBottom: 4 }}>Recommended action</div>
+                    <div>{recommendedTableAction(domainDetails?.adgri_score || domainDetails?.governance_score, inferMainRiskDriver(domainDetails))}</div>
                   </div>
                   <div style={{ marginBottom: 8 }}>
-                    <div style={{ fontWeight: 600 }}>Low-Score Explanation</div>
-                    <div>{domainDetails?.low_score_reason_label || lowScoreReason(domainDetails)}</div>
+                    <div style={{ fontWeight: 600, marginBottom: 4 }}>Narrative (API)</div>
+                    <Text type="secondary" style={{ fontSize: 13 }}>{domainDetails?.top_reason || "—"}</Text>
                   </div>
 
                   <div style={{ marginBottom: 8 }}>
-                    <div style={{ fontWeight: 600 }}>Explanation</div>
-                    <div>{domainDetails?.explanation || "-"}</div>
+                    <div style={{ fontWeight: 600, marginBottom: 4 }}>Explanation</div>
+                    <Text type="secondary" style={{ fontSize: 13 }}>{domainDetails?.explanation || "—"}</Text>
                   </div>
 
                   <Table
